@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+ <!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 1.1//EN"
+       "http://jakarta.apache.org/struts/dtds/tiles-config_1_1.dtd">
+
+
+<tiles-definitions>
+    <!-- base definitions-->
+    <definition name="BasePage" path="/@module_name@/layout.jsp">
+    	<put name="css" value="/@module_name@/includes/css.jsp"/>
+    	<put name="header" value="/@module_name@/includes/header.jsp"/>
+    	<put name="statistics" value="/@module_name@/includes/statistics.jsp"/>
+        <put name="footer" value="/@module_name@/includes/footer.jsp"/>
+    </definition>
+    <definition name="ValidatedBasePage" extends="BasePage">
+    	<put name="validate_js" value="/@module_name@/includes/validate.jsp"/>
+    </definition>
+    <definition name="ProtectedBasePage" extends="BasePage">
+    	<put name="guard" value="/@module_name@/includes/guard.jsp"/>
+    	<put name="content" value="/@module_name@/content/MainPage.jsp"/>
+    </definition>
+    <definition name="ValidatedProtectedBasePage" extends="ProtectedBasePage">
+    	<put name="validate_js" value="/@module_name@/includes/validate.jsp"/>
+    </definition>
+    <!-- extended definitions-->
+    <definition name="MainPage" extends="BasePage">
+    	<put name="content" value="/@module_name@/content/MainPage.jsp"/>
+    </definition>
+    <definition name="ShowLogonPage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/Logon.jsp"/>
+    </definition>
+    <definition name="AccessDeniedPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/AccessDenied.jsp"/>
+    </definition>
+    <definition name="AccessBannedPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/AccessBanned.jsp"/>
+    </definition>
+    <definition name="AddMessagePage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/AddMessage.jsp"/>
+    </definition> 
+    <definition name="PreviewMessagePage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/PreviewMessage.jsp"/>
+    </definition>
+    <definition name="AttachFilesPage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/AttachFiles.jsp"/>
+    </definition> 
+    <definition name="EditAttachInfoPage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/EditAttachInfo.jsp"/>
+    </definition>
+    <definition name="UnsubscribePage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/Unsubscribe.jsp"/>
+    </definition> 
+    <definition name="UnderConstructionPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/UnderConstruction.jsp"/>
+    </definition> 
+    <definition name="EditProfilePage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/EditProfile.jsp"/>
+    </definition> 
+    <definition name="ShowForumPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/ShowForum.jsp"/>
+    </definition> 
+    <definition name="NewTopicsListPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/NewTopicsList.jsp"/>
+    </definition> 
+    <definition name="AddForumPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/AddForum.jsp"/>
+    </definition> 
+    <definition name="EditForumPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/EditForum.jsp"/>
+    </definition> 
+    <definition name="AddGroupPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/AddGroup.jsp"/>
+    </definition>
+    <definition name="EditGroupPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/EditGroup.jsp"/>
+    </definition>
+    <definition name="ShowThreadPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/ShowThread.jsp"/>
+    </definition> 
+    <definition name="EditMessagePage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/EditMessage.jsp"/>
+    </definition> 
+    <definition name="UserListPage" extends="ProtectedBasePage">
+        <put name="content" value="/@module_name@/content/UserList.jsp"/>
+    </definition> 
+    <definition name="SubscriptionListPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/SubscriptionList.jsp"/>
+    </definition> 
+    <definition name="ShowUserPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/ShowUser.jsp"/>
+    </definition> 
+    <definition name="GroupListPage" extends="ProtectedBasePage">
+        <put name="content" value="/@module_name@/content/GroupList.jsp"/>
+    </definition> 
+    <definition name="ForumListPage" extends="ProtectedBasePage">
+        <put name="content" value="/@module_name@/content/ForumList.jsp"/>
+    </definition> 
+	<definition name="WhoIsListPage" extends="ProtectedBasePage">
+        <put name="content" value="/@module_name@/content/WhoIsList.jsp"/>
+    </definition>
+    <definition name="EditConstantsPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/EditConstants.jsp"/>
+    </definition>
+    <definition name="EditStylesPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/EditStyles.jsp"/>
+    </definition> 
+    <definition name="DropOldMessPage" extends="ProtectedBasePage">
+        <put name="content" value="/@module_name@/content/DropOldMess.jsp"/>
+    </definition> 
+    <definition name="TipsAndTricksPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/TipsAndTricks.jsp"/>
+    </definition> 
+    <definition name="SearchPage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/Search.jsp"/>
+    </definition> 
+    <definition name="ChangePasswordPage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/ChangePassword.jsp"/>
+    </definition> 
+    <definition name="SetAvatarPage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/SetAvatar.jsp"/>
+    </definition>
+    <definition name="FogotPassPage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/FogotPass.jsp"/>
+    </definition> 
+     <definition name="RegistrationPage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/Registration.jsp"/>
+    </definition>
+    <definition name="PendingRegistrationPage" extends="ValidatedBasePage">
+        <put name="content" value="/@module_name@/content/PendingRegistration.jsp"/>
+    </definition>
+     <definition name="MoveThreadPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/MoveThread.jsp"/>
+    </definition>
+ 	<definition name="NotFoundPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/NotFound.jsp"/>
+    </definition>
+     <definition name="UnexpectedErrorPage" extends="BasePage">
+        <put name="content" value="/@module_name@/content/UnexpectedError.jsp"/>
+    </definition>
+    <definition name="SetMailPasswordPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/SetMailPassword.jsp"/>
+    </definition>
+    <definition name="SendAdminMailPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/SendAdminMail.jsp"/>
+    </definition>
+    <definition name="RanksPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/Ranks.jsp"/>
+    </definition>
+    <definition name="BrowseLogPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/BrowseLog.jsp"/>
+    </definition>
+    <definition name="BanListPage" extends="ValidatedProtectedBasePage">
+        <put name="content" value="/@module_name@/content/BanList.jsp"/>
+    </definition>
+    <!-- simple pages-->
+    <definition name="ShowAttachedPicturePage" path="/@module_name@/content/ShowAttachedPicture.jsp"/>
+</tiles-definitions>

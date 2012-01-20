@@ -1,0 +1,1 @@
+INSERT INTO jrf_constants values('defaultLocale','en');

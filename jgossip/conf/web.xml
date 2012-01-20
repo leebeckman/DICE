@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" 
+	"http://java.sun.com/dtd/web-app_2_3.dtd">
+
+<web-app>
+	<display-name>@app_name@</display-name>
+	<description>jGossip based forum</description>
+	<!--uri in jgossip application which accessed w/o processing of user bean-->
+	<context-param>
+		<param-name>public.uri</param-name>
+		<param-value>RSSLastTopics.do</param-value>
+	</context-param>
+	
+	<context-param>
+		<param-name>useDatasource</param-name>
+		<param-value>@useDatasource@</param-value>
+	</context-param>
+	<context-param>
+		<param-name>datasourceName</param-name>
+		<param-value>@datasourceName@</param-value>
+	</context-param>
+	
+	<!-- @module_name@ Filters-->
+	<filter>
+		<filter-name>AutoLoginFilter</filter-name>
+		<filter-class>
+			org.jresearch.gossip.filters.AutoLoginFilter
+		</filter-class>
+		<init-param>
+			<param-name>editInfo.action</param-name>
+			<param-value>/@module_name@/EditProfile.do</param-value>
+		</init-param>
+		<!--  JAAS user role -->
+		<!--	<init-param>
+			<param-name>JAAS.role</param-name>
+			<param-value>forumuser</param-value>
+			</init-param> -->
+	</filter>
+
+	<filter>
+		<filter-name>Set Character Encoding</filter-name>
+		<filter-class>
+			org.jresearch.gossip.filters.SetCharacterEncodingFilter
+		</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>@charset@</param-value>
+		</init-param>
+		<init-param>
+			<param-name>ignore</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter>
+		<filter-name>CompressionFilter</filter-name>
+		<filter-class>
+			org.jresearch.gossip.filters.gzip.CompressionFilter
+		</filter-class>
+	</filter>
+
+	<filter>
+		<filter-name>BanFilter</filter-name>
+		<filter-class>
+			org.jresearch.gossip.filters.BanFilter
+		</filter-class>
+		<init-param>
+			<param-name>signon.action</param-name>
+			<param-value>/@module_name@/Logon.do</param-value>
+		</init-param>
+		<init-param>
+			<param-name>denied.action</param-name>
+			<param-value>
+				/@module_name@/showAccessBanned.do
+			</param-value>
+		</init-param>
+	</filter>
+	<filter>
+		<filter-name>SignOnFilter</filter-name>
+		<filter-class>
+			org.jresearch.gossip.filters.SignOnFilter
+		</filter-class>
+		<init-param>
+			<param-name>signon.action</param-name>
+			<param-value>/@module_name@/showLogon.do</param-value>
+		</init-param>
+		<init-param>
+			<param-name>denied.action</param-name>
+			<param-value>
+				/@module_name@/showAccessDenied.do
+			</param-value>
+		</init-param>
+	</filter>
+
+	<!-- filter-mapping  for  @module_name@ Filters-->
+	<filter-mapping>
+		<filter-name>Set Character Encoding</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>CompressionFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>CompressionFilter</filter-name>
+		<url-pattern>*.html</url-pattern>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>AutoLoginFilter</filter-name>
+		<url-pattern>/@module_name@/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>BanFilter</filter-name>
+		<url-pattern>/@module_name@/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>SignOnFilter</filter-name>
+		<url-pattern>/@module_name@/*</url-pattern>
+	</filter-mapping>
+	<!-- jGossip listeners -->
+	<listener>
+		<listener-class>
+			org.jresearch.gossip.listeners.ContextListener
+		</listener-class>
+	</listener>
+	<listener>
+		<listener-class>
+			org.jresearch.gossip.listeners.SessionListener
+		</listener-class>
+	</listener>
+	<listener>
+		<listener-class>
+			org.jresearch.gossip.listeners.UserWatcher
+		</listener-class>
+	</listener>
+
+	<!-- Standard Action Servlet Configuration (with debugging) -->
+	<servlet>
+		<servlet-name>action</servlet-name>
+		<servlet-class>
+			org.apache.struts.action.ActionServlet
+		</servlet-class>
+		<init-param>
+			<!-- @module_name@ module-->
+			<param-name>config/@module_name@</param-name>
+			<param-value>
+				/WEB-INF/struts-config-jgossip.xml
+			</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<!--generated_web.xml for precompiled jsp-->
+	<!-- Standard Action Servlet Mapping -->
+	<servlet-mapping>
+		<servlet-name>action</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+
+	<session-config>
+		<session-timeout>60</session-timeout>
+	</session-config>
+
+	<!-- The Usual Welcome File List -->
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+	<!-- Error Pages -->
+	<error-page>
+		<error-code>404</error-code>
+		<location>/@module_name@/showNotFound.do</location>
+	</error-page>
+	<error-page>
+		<exception-type>javax.servlet.ServletException</exception-type>
+		<location>/@module_name@/showUnexpectedError.do</location>
+	</error-page>
+	<error-page>
+		<exception-type>java.lang.Exception</exception-type>
+		<location>/@module_name@/showUnexpectedError.do</location>
+	</error-page>
+
+	<!-- Struts Tag Library Descriptors -->
+	<taglib>
+		<taglib-uri>/tags/struts-bean</taglib-uri>
+		<taglib-location>/WEB-INF/struts-bean.tld</taglib-location>
+	</taglib>
+
+	<taglib>
+		<taglib-uri>/tags/struts-html</taglib-uri>
+		<taglib-location>/WEB-INF/struts-html.tld</taglib-location>
+	</taglib>
+
+	<taglib>
+		<taglib-uri>/tags/struts-logic</taglib-uri>
+		<taglib-location>/WEB-INF/struts-logic.tld</taglib-location>
+	</taglib>
+
+	<taglib>
+		<taglib-uri>/tags/struts-tiles</taglib-uri>
+		<taglib-location>/WEB-INF/struts-tiles.tld</taglib-location>
+	</taglib>
+	<!--Deny direct access to jGossip JSPs by associating
+		them with denied role-->
+
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>
+				jGossip Deny Direct Access
+			</web-resource-name>
+			<description>
+				Deny direct access to jGossip JSPs by associating them
+				with denied role
+			</description>
+			<url-pattern>/@module_name@/content/*</url-pattern>
+			<url-pattern>/@module_name@/jspf/*</url-pattern>
+			<url-pattern>/@module_name@/includes/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>Denied</role-name>
+		</auth-constraint>
+	</security-constraint>
+	<security-role>
+		<role-name>Denied</role-name>
+	</security-role>
+
+</web-app>

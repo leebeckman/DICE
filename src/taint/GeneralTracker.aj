@@ -150,7 +150,6 @@ public aspect GeneralTracker {
     
     before(Object newVal): set(* org.jresearch..*.*) && args(newVal) {
     	if (newVal instanceof String) {
-//			logger.log(Level.INFO, "Caught String assignment: " + newVal);
     		if (((String) newVal).hasTaint()) {
     			Object owner = thisJoinPoint.getTarget();
     			TaintData.getTaintData().getTaintedObjs().add(owner);
@@ -158,7 +157,6 @@ public aspect GeneralTracker {
     		}
     	}
     	else {
-//			logger.log(Level.INFO, "Caught Object assignment: " + newVal);
     		if (TaintData.getTaintData().getTaintedObjs().contains(newVal)) {
     			Object owner = thisJoinPoint.getThis();
     			TaintData.getTaintData().getTaintedObjs().add(owner);

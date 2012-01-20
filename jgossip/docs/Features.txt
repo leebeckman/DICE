@@ -1,0 +1,53 @@
+
+P – planned
+I – implemented
+R - released
+D – development in progress
+C - cancelled
+F - deferred
+
+(R) Different environments. 
+Tested platforms include: Apache with Tomcat 4.1 , Jetty 4.2,SunOne 7.0
+(R) Fully validated user input
+(R) Powerful and extensive authorisation system
+(R) Auto Login for easy login of users
+(R) Strong encryption to keep passwords safe in the database
+(R) Support for both cookie and URI-based sessions
+(R) Unlimited forums can be organised into as many categories as you like
+(R) New posts flag to identify new messages
+(D) Private forums and those only for specified user groups
+(R) Powerful search facility
+(P) Automatic URL linking in posts
+(R) Support of standard and extended BBCode tags in posts
+(P) Polls
+(R) Email notification of replies to topics
+(R) Powerful topic subscription capability
+(R) Emotions(Smiles) in posts
+(P) Popular Discussions (Users can view the most popular topics from the main forum page).
+(P) User Defined Bookmark for topics
+(D) Internationalization (i18n) Support
+(R) Forum, user and group permission management
+(R) Moderation, so you can delegate the content moderation to a specific user
+(R) Audit Logging in to database. Browse of audit logs by web interface.
+(D) Control forum access to specified user groups
+(R) Unlimited members
+(R) Personal profile creation
+(R) Post counting ranks for users
+(P) Email-like private messaging system
+(R) Supports avatars
+(R) File attachment with posts
+(R) Delete/move/lock/unlock of topics
+(R) Delete single posts
+(P) Move of posts
+(P) Topic splitting
+(P) Word censoring
+(R) Extensive ban management, ban by email address, username or single/multiple IP address or hostname
+(R) IP tracking of posts and posters
+(R) Mass emailing of groups and users by the administrator
+(P) Multiple styles available for the user to choose from
+
+
+
+
+
+

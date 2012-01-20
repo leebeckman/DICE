@@ -1,0 +1,144 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Installing and configuring jGossip forum engine.</title><link rel="stylesheet" href="html.css" type="text/css"><meta name="generator" content="DocBook XSL Stylesheets V1.65.1"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="article" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="d0e1"></a>Installing and configuring jGossip forum engine.</h2></div></div><div></div><hr></div><div class="toc"><dl><dt><span class="section"><a href="#d0e4">1. List of supported software</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e7">1.1. DataBase</a></span></dt><dt><span class="section"><a href="#d0e18">1.2. Application server</a></span></dt></dl></dd><dt><span class="section"><a href="#d0e39">2. Database related issues</a></span></dt><dd><dl><dt><span class="section"><a href="#d0e42">2.1. MySQL</a></span></dt><dt><span class="section"><a href="#d0e64">2.2. Oracle 9i</a></span></dt><dt><span class="section"><a href="#d0e100">2.3. M$ SQL 2000</a></span></dt></dl></dd><dt><span class="section"><a href="#d0e139">3. Configuration related issues</a></span></dt><dt><span class="section"><a href="#d0e147">4. Installing application</a></span></dt><dt><span class="section"><a href="#d0e174">5. Completing installation.</a></span></dt><dt><span class="section"><a href="#d0e189">6. jGossip integration in existing application</a></span></dt><dt><span class="section"><a href="#d0e209">7. MH Mailing List Archive Conversion</a></span></dt></dl></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e4"></a>1.&nbsp;List of supported software</h2></div></div><div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e7"></a>1.1.&nbsp;DataBase</h3></div></div><div></div></div><table class="simplelist" border="0" summary="Simple list"><tr><td>MySQL database server version 4.+</td></tr><tr><td>Oracle 9i </td></tr><tr><td>MS SQL 2000</td></tr></table><p></p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e18"></a>1.2.&nbsp;Application server</h3></div></div><div></div></div><p>jGossip working with any  servlet 2.3 and jsp 1.2 compliant application server</p><p>Tested servers:</p><table class="simplelist" border="0" summary="Simple list"><tr><td>Apache with Tomcat 4.1</td></tr><tr><td>Tomcat 4.1 standalone</td></tr><tr><td>JBoss 3.x (with Tomcat)</td></tr><tr><td>JBoss 3.x (with jetty)</td></tr><tr><td>Jetty 4.2</td></tr><tr><td>SunOne 7.0</td></tr></table><p></p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e39"></a>2.&nbsp;Database related issues</h2></div></div><div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e42"></a>2.1.&nbsp;MySQL</h3></div></div><div></div></div><table class="simplelist" border="0" summary="Simple list"><tr><td>Copy scripts 'database/mysql/create_database.sql', 'database/mysql/install.sql','database/mysql/initload.sql' into $MYSQL_HOME/bin directory</td></tr><tr><td>Run MySQL shell with root user rights: c:\mysql\bin&gt; mysql -u root</td></tr><tr><td>Create jGossip database and user for it by this command: .\ create_database.sql</td></tr><tr><td>Switch to created database : use forum_db;</td></tr><tr><td>And execute scripts to create contents of jGossip's database: </td></tr></table><div class="orderedlist"><ol type="1"><li><p>\. install.sql</p></li><li><p>\. initload.sql</p></li></ol></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e64"></a>2.2.&nbsp;Oracle 9i</h3></div></div><div></div></div><div class="epigraph"><p> We assuming you have a basic knowledge of Oracle DB and it's administration</p></div><p><span>Scripts for Oracle placed in database/oracle/</span>
+Run this commands in order to create database, allocate tablespace and create database schema for 
+jGossip forums - in command line on a host, where Oracle server instance is running: </p><table class="simplelist" border="0" summary="Simple list"><tr><td>sqlplus /nolog</td></tr><tr><td>connect /as sysdba</td></tr><tr><td>get create_database.sql </td></tr><tr><td>run</td></tr></table><p>Run rest of scripts in a sqlplus or Toad, it is up to you.</p><div class="orderedlist"><ol type="1"><li><p>install.sql - Creates a database tables for Jgossip forums</p></li><li><p>indexes.sql - Creates an indexes for tables to improve performance</p></li><li><p>install_seq.sql - *OPTIONAL* Install Oracle sequences only if you are going to use Sequence key generator(see build options)</p></li><li><p>initload.sql- populates database with initial data.</p></li></ol></div><p>After completing these two actions you should have new created database 'forum_db', filled with all necessary data.
+You can change database name or user name, but don't forget to reflect your changes in other config files.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e100"></a>2.3.&nbsp;M$ SQL 2000</h3></div></div><div></div></div><p>Co<span>nfiguring the Database for MS SQL 2000 is a bit harder due to a EULA that forbid us to redistribute the necessary library.</span>
+Two tasks are required to complete the database configuration (can be performed in any order)</p><p></p><div class="itemizedlist"><ul type="disc"><li><p>JDBC driver download</p><p> - Point your browser to the Microsoft Download site:
+<a href="#"> <a href="#">http://www.microsoft.com/downloads/details.aspx?familyid=9f1874b6-f8e1-4bd6-947c-0fc5bf05bf71</a></a>
+ - Download one of the following files:
+          - setup.exe (Windows based development computer)
+          - mssqlserver.tar (*nix based development computer)
+ - Install/extract the package
+ - Copy all the files that are inside the lib dir (msbase.jar, mssqlserver.jar, msutil.jar) to the database/MSSQL/lib dir of jGossip</p></li><li><p>Database installation</p><p>From the MS SQL Query Analyzer (or any other client that let you execute scripts on the database) run the installation script in this order</p><div class="orderedlist"><ol type="1"><li><p>create_database.sql</p></li><li><p>install.sql</p></li><li><p>create_storedprocedures.sql</p></li><li><p>initload.sql</p></li></ol></div></li></ul></div><p></p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e139"></a>3.&nbsp;Configuration related issues</h2></div></div><div></div></div><p>Edit default jGossip configuration, located in file: env/default/build.properties.
+Or you can create your custom jGossip configuration in file env/$CONFIGURATION_NAME/build.properties.
+Use default file 'build.properties' as example for your configuration.</p><pre class="programlisting"># path to j2ee jars
+# depend from application server
+j2ee.home = c:/Apache/Tomcat/common/lib
+#catalina.home        The directory in which you have installed
+#a binary distribution of Tomcat 4.  This will
+#be used by the tomcat related target.
+catalina.home=c:/Apache/Tomcat
+
+#manager.username     The login username of a user that is assigned the
+#"Tomcat manager" role (so that he or she can execute
+#commands via the "/manager" web application)
+manager.username=admin
+#manager.password     The login password of a user that is assigned the
+#"Tomcat manager" role (so that he or she can execute
+#commands via the "/manager" web application)
+manager.password=admin
+#manager.url          The URL of the "/manager" web application on the
+#Tomcat installation to which we will deploy web
+#applications and web services.
+manager.url=http://localhost:8080/manager
+
+#web.root       The directory in which you will install
+#static content (images,css etc.).  This will
+#be used by the "deploy" target.
+web.root=c:/Apache/Tomcat/webapps
+
+#app.name             Base name of this application, used to
+#construct filenames and directories. "jgossip" by default
+#app.name=jgossip
+
+#static.name name of static-content root (application)
+#"${app.name}" by default
+#static.name=jgossip-static
+
+#logs.root       The directory in which forum log files will
+#will be placed
+logs.root=c:/Apache/Tomcat/logs
+
+# logs.type
+# c - log to console(default value)
+# f - log to file
+#logs.type=c
+
+#useJNDIDatasource - true if Datasource will taken as JNDI resource
+#by default create and use own Datasource
+#useJNDIDatasource=false
+#db.vendor is required if useJNDIDatasource=true (do not set this value if useJNDIDatasource=false)
+#supported vendors are "oracle","mysql","MSSQL"
+#db.vendor=mysql
+#datasourceName is required if useJNDIDatasource=true
+#datasourceName=java:comp/env/jdbc/jgossip
+
+#data base installation-specific settings (required if useJNDIDatasource=false)
+## MySql DB server
+db.driver=org.gjt.mm.mysql.Driver
+db.url= jdbc:mysql://localhost:3306/forum_db?autoReconnect=true
+## Oracle DB Server
+#db.driver=oracle.jdbc.driver.OracleDriver
+#db.url=jdbc:oracle:thin:@yourhost:1521:YOURDBSID
+## IBM DB/2 Server
+#db.driver=com.ibm.db2.jcc.DB2Driver
+#db.url=jdbc:db2:YOURDB
+## HSQLDB Server
+#db.driver=org.hsqldb.jdbcDriver
+#db.url=jdbc:hsqldb:hsql://&lt;server&gt;[:&lt;1476&gt;]
+## MS SQL Server
+#db.driver=com.microsoft.jdbc.sqlserver.SQLServerDriver
+#db.url=jdbc:microsoft:sqlserver://&lt;server&gt;:&lt;1433&gt;;DatabaseName=forum_db
+db.username=dbuser
+db.password=dbpassword
+#default implementation of key generator: the only possible values are - highlow or sequence
+# Highlow - high part of key is stored in database table, low part is getting as inmemory increment of int.
+# Sequence - key generator specific for Oracle. Key obtained from oracle sequence.
+#db.keygen.default=highlow
+# Increment step for low part of highlow keygen
+#db.keygen.highlow.increment=10
+
+# charset which will send in response header
+# ISO-8859-1 by default
+# and setting up for request
+# database must be conigured for this charset
+#charset=ISO-8859-1
+
+#maxFileSize-The maximum size (in bytes) of a file to be accepted as a file upload. 
+#Can be expressed as a number followed by a "K", "M", or "G" , 
+#which are interpreted to mean kilobytes, megabytes, or gigabytes :), respectively.
+#maxFileSize=800K
+
+# module name - name for jgossip struts module
+# so forum can be accessed as
+# ${app.name}/${module.name}
+# default value is "jgossip"
+# module.name=jgossip
+
+#external.web.xml -  The descriptor containing the definitions 
+#that should be merged with the forum's descriptor.
+#external.web.xml=D:/work/projects/site/conf/web.xml</pre></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e147"></a>4.&nbsp;Installing application</h2></div></div><div></div></div><p>If you want to deploy application on local computer, so use:
+ant install -Ddeploy_env=$CONFIGURATION_NAME</p><p>Else if you want to create binary distribution, so use this command:
+ant dist -Ddeploy_env=$CONFIGURATION_NAME</p><p><span>During build process 'dist/$CONFIGURATION_NAME' directory will be created with files:</span></p><table class="simplelist" border="0" summary="Simple list"><tr><td><span><span><span>${app.name }.war - jGossip release (by default with static contents) </span></span></span></td></tr><tr><td><span>${static.name}.zip - static content for standalone HTTP server connected to servlet container</span></td></tr></table><p><span><span></span></span>
+Separate file with static content will created only if you set "static.name" parameter in build.properties.</p><p>Then you can deploy war and static content from 'dist/$CONFIGURATION_NAME' folder.</p><pre class="programlisting">Supported ant tasks :
+ *************** General tasks:
+[all]           Clean build and dist directories then compile
+[clean]         Delete old build and dist directories
+[compile]       Compile Java sources
+[dist]          Create distribution files
+[dist.app]      Create war distribution
+[dist.static]   Create static content distribution files
+[deploy.static] Deploy static content to web server(run from the same server)
+[javadoc]       Create Javadoc API documentation
+[strutsdoc]     Create Struts documentation
+*************** Integrations related tasks:
+[webxmlmerge]   Merge jGossip web.xml with external descriptor
+*************** Tomcat related tasks:
+[tomcat.deploy]        Full deploy(run from the same server that Tomcat is running on)
+[tomcat.install]       Initial installation of application(run from the same server that Tomcat is running on)
+[tomcat.install.debug] Install application(w/o jsp precompilation) mapped from build directory to servlet container(run from the same server that Tomcat is running on)
+[tomcat.deploy.app]    Deploy application with precompiled jsp(run from the same server that Tomcat is running on)
+[tomcat.translate_jsp] Translate JSP to java and generate web.xml fragment(run from the same server that Tomcat is running on)
+[tomcat.compile]       Translate JSP to java (with update of web.xml) and compile java classes(run from the same server that Tomcat is running on)
+[tomcat.list]          List installed applications on servlet container
+[tomcat.remove]        Remove jGossip application on servlet container
+[tomcat.reload]        Reload jGossip application on servlet container</pre></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e174"></a>5.&nbsp;Completing installation.</h2></div></div><div></div></div><table class="simplelist" border="0" summary="Simple list"><tr><td>Restart Tomcat.</td></tr><tr><td>Forum must be accessed by url "your.domain.address/${app.name}/${module.name}".</td></tr><tr><td>By default app.name=jgossip,module.name=jgossip.</td></tr><tr><td>You can log in as "Administrator" with "password" as password.</td></tr><tr><td>Configure SMTP settings for email notifications on Constants page.</td></tr></table><p></p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e189"></a>6.&nbsp;jGossip integration in existing application</h2></div></div><div></div></div><p>You can deploy jGossip as struts module in existing struts based application.</p><div class="orderedlist"><ol type="1"><li><p>Edit build.properties- set app.name same as name of existing application.</p></li><li><p>Use ant compile (or ant tomcat.compile ).</p></li><li><p>Then merge web.xml of existing application with build/WEB-INF/web.xml
+manually or by 'ant webxmlmerge'.</p></li><li><p>Deploy forum whith existing application.</p></li></ol></div><p> Log in as "Administrator" with "password" as password.
+ You can configure external sign-on on Constants page.
+ You must store in session user bean,which implement org.jresearch.gossip.singlesign.IUser interface ,
+with name org.jresearch.gossip.IConst.SESSION.EXT_USER_KEY='JGOSSIP_EXT_USER' or use JAAS .(JAAS role name ,which have access to forum can be configured manually in web.xml file)</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="d0e209"></a>7.&nbsp;MH Mailing List Archive Conversion</h2></div></div><div></div></div><p>This class will read a directory of MH mail messages, and insert those
+messages into a jGossip forum. The messages will be sorted as best as
+possible based on the Subjects.</p><p>The resulting SQL for MySQL is output to stdout. This can be processed using
+the mysql command line client by passing the SQL into mysql's stdin.</p><p>org.jresearch.gossip.contrib.util.MList2Gossip [options...] --archive path [--archive path]...</p><p>Options:</p><div class="itemizedlist"><ul type="disc"><li><p>archive path Path to a directory of MH mail messages to insert into a
+   forum. You can specify any number of archive options to process.</p></li><li><p>forum id Id number of forum into which the messages will be inserted.</p></li><li><p>sender name Name of sender of inserted messages.</p></li><li><p>ipaddr id IP address of inserted messages.</p></li><li><p>msgid id Starting id for inserted messages.</p></li><li><p>threadid id Starting id for inserted threads.</p></li><li><p>debug Turn on debugging.</p></li><li><p>verbose Turn on verbosity. </p></li></ul></div></div></div></body></html>

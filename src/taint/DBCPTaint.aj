@@ -53,7 +53,4 @@ public aspect DBCPTaint {
 //    	TaintData.getTaintData().mapResultSetToSource(ret, thisJoinPoint.getThis());
     }
     
-    after(): jdbc_ResultSet_getObject() {
-    	
-    }
 }

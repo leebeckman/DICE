@@ -1,0 +1,703 @@
+<!--
+     General purpose build script for web applications and web services,
+     including enhanced support for deploying directly to a Tomcat 4
+     based server.
+
+     This build script assumes that the source code of your web application
+     is organized into the following subdirectories underneath the source
+     code directory from which you execute the build script:
+
+        docs                 Static documentation files to be copied to
+                             the "docs" subdirectory of your distribution.
+
+        src                  Java source code (and associated resource files)
+                             to be compiled to the "WEB-INF/classes"
+                             subdirectory of your web applicaiton.
+
+        docroot               JSP, and other content,
+                             including the WEB-INF subdirectory
+                             and its configuration file contents.
+
+        web                   Static HTML, and other (such as
+                             image files)
+
+     $Id: build.xml,v 1.11 2005/06/14 10:25:08 bel70 Exp $
+-->
+<!-- A "project" describes a set of targets that may be requested
+     when Ant is executed.  The "default" attribute defines the
+     target which is executed if no specific target is requested,
+     and the "basedir" attribute defines the current working directory
+     from which Ant executes the requested task.  This is normally
+     set to the current working directory.
+-->
+<project name="jGossip 1.1" default="help" basedir=".">
+	<!-- ===================== Property Definitions =========================== -->
+	<!--
+
+Each of the following properties are used in the build script.
+Values for these properties are set by the first place they are
+defined, from the following list:
+
+* Definitions on the "ant" command line (ant -Dfoo=bar compile).
+
+* Definitions from a "build.properties" file in the top level
+source directory of this application.
+
+* Definitions from a "build.properties" file in the developer's
+home directory.
+
+* Default definitions in this build.xml file.
+
+You will note below that property values can be composed based on the
+contents of previously defined properties.  This is a powerful technique
+that helps you minimize the number of changes required when your development
+environment is modified.  Note that property composition is allowed within
+"build.properties" files as well as in the "build.xml" script.
+
+    -->
+	<!-- ==================== File and Directory Names ======================== -->
+	<!--
+
+These properties generally define file and directory names (or paths) that
+affect where the build process stores its outputs.
+
+build.home           The directory into which the "prepare" and
+"compile" targets will generate their output.
+Defaults to "build".
+
+dist.home            The name of the base directory in which
+distribution files are created.
+Defaults to "dist".
+
+
+    -->
+
+	<property name="build.home" value="${basedir}/build" />
+	<property name="build.lang.dir" value="${build.home}/WEB-INF/classes/org/jresearch/gossip/resources/lang" />
+	<property name="dist.home" value="${basedir}/dist" />
+	<property name="docs.home" value="${basedir}/docs" />
+	<property name="src.home" value="${basedir}/src" />
+	<property name="web.home" value="${basedir}/web" />
+	<property name="docroot.home" value="${basedir}/docroot" />
+	<!-- ================== Custom Ant Task Definitions ======================= -->
+	<!--
+
+These properties define custom tasks for the Ant build tool that interact
+with the "/manager" web application installed with Tomcat 4.  Before they
+can be successfully utilized, you must perform the following steps:
+
+- Copy the file "server/lib/catalina-ant.jar" from your Tomcat 4
+installation into the "lib" directory of your Ant installation.
+
+- Create a "build.properties" file in your application's top-level
+source directory (or your user login home directory) that defines
+appropriate values for the "manager.password", "manager.url", and
+"manager.username" properties described above.
+
+For more information about the Manager web application, and the functionality
+of these tasks, see <http://localhost:8080/tomcat-docs/manager-howto.html>.
+
+    -->
+	<path id="build.classpath">
+		<fileset dir="${basedir}/lib-build">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+	<taskdef name="webxmlmerge" classname="org.apache.cactus.integration.ant.WebXmlMergeTask" classpathref="build.classpath" />
+	<taskdef name="install" classname="org.apache.catalina.ant.InstallTask" classpathref="build.classpath" />
+	<taskdef name="list" classname="org.apache.catalina.ant.ListTask" classpathref="build.classpath" />
+	<taskdef name="reload" classname="org.apache.catalina.ant.ReloadTask" classpathref="build.classpath" />
+	<taskdef name="remove" classname="org.apache.catalina.ant.RemoveTask" classpathref="build.classpath" />
+	<taskdef name="start" classname="org.apache.catalina.ant.StartTask" classpathref="build.classpath" />
+	<taskdef name="stop" classname="org.apache.catalina.ant.StopTask" classpathref="build.classpath" />
+	<taskdef name="strutsdoc" classname="strutsdoc.Main" classpathref="build.classpath" />
+	<!--  ==================== Compilation Control Options ==================== -->
+	<!--
+
+These properties control option settings on the Javac compiler when it
+is invoked using the <javac> task.
+
+compile.debug        Should compilation include the debug option?
+
+compile.deprecation  Should compilation include the deprecation option?
+
+compile.optimize     Should compilation include the optimize option?
+
+    -->
+	<property name="compile.debug" value="true" />
+	<property name="compile.deprecation" value="false" />
+	<property name="compile.optimize" value="true" />
+
+	<target name="help" description="">
+		<echo message=" *************** Supported tasks *************** " />
+		<echo message=" *************** General tasks:" />
+		<echo message="		[all]           Clean build and dist directories then compile" />
+		<echo message="		[clean]         Delete old build and dist directories" />
+		<echo message="		[compile]       Compile Java sources" />
+		<echo message="		[dist]          Create distribution files" />
+		<echo message="		[dist.app]      Create war distribution" />
+		<echo message="		[dist.static]   Create static content distribution files" />
+		<echo message="		[deploy.static] Deploy static content to web server(run from the same server)" />
+		<echo message="		[javadoc]       Create Javadoc API documentation" />
+		<echo message="		[strutsdoc]     Create Struts documentation" />
+		<echo message=" *************** Integrations related tasks:" />
+		<echo message="		[webxmlmerge]   Merge jGossip web.xml with extenal descriptor" />
+		<echo message=" *************** Tomcat related tasks:" />
+		<echo message="		[tomcat.deploy]        Full deploy(run from the same server that Tomcat is running on)" />
+		<echo message="		[tomcat.install]       Initial installation of application(run from the same server that Tomcat is running on)" />
+		<echo message="		[tomcat.install.debug] Install application(w/o jsp precompilation) mapped from build directory to servlet container(run from the same server that Tomcat is running on)" />
+		<echo message="		[tomcat.deploy.app]    Deploy application with precompiled jsp(run from the same server that Tomcat is running on)" />
+		<echo message="		[tomcat.translate_jsp] Translate JSP to java and generate web.xml fragment(run from the same server that Tomcat is running on)" />
+		<echo message="		[tomcat.compile]       Translate JSP to java (with update of web.xml) and compile java classes(run from the same server that Tomcat is running on)" />
+		<echo message="		[tomcat.list]          List installed applications on servlet container" />
+		<echo message="		[tomcat.remove]        Remove jGossip application on servlet container" />
+		<echo message="		[tomcat.reload]        Reload jGossip application on servlet container" />
+	</target>
+	<!-- =================================================================== -->
+	<!-- Internal targets (intended to be invoked by other targets)          -->
+	<!-- =================================================================== -->
+
+	<!-- =================================================================== -->
+	<!-- Check "deploy_env" property and set it if necessary                 -->
+	<!-- =================================================================== -->
+	<target name="input_env" unless="deploy_env">
+		<input message="Please enter the name of deployment environment:" addproperty="deploy_env" />
+	</target>
+
+	<!-- =================================================================== -->
+	<!-- 1. Check for availability of specified environment		     -->
+	<!-- 2. Load env specific properties				     -->
+	<!-- 3. Turn class path -->
+	<!-- =================================================================== -->
+	<target name="set_env" depends="input_env">
+		<condition property="project.fail">
+			<or>
+				<not>
+					<isset property="deploy_env" />
+				</not>
+				<equals arg1="${deploy_env}" arg2="" />
+				<not>
+					<available file="${basedir}/env/${deploy_env}/build.properties" type="file" />
+				</not>
+			</or>
+		</condition>
+		<fail if="project.fail" message="'deploy_env' property has not been set or has wrong value." />
+
+		<property name="app.env" value="${basedir}/env/${deploy_env}" />
+
+		<!-- Load environment specific properties. -->
+		<property file="${app.env}/build.properties" />
+		<!--
+        
+app.name             Base name of this application, used to
+construct filenames and directories. "jgossip" by default
+
+static.name			 name of static-content root (application)
+					"${app.name}-static" by default
+
+app.path             Context path to which this application should be
+deployed (defaults to "/" plus the value of the
+"app.name" property).
+
+app.version          Version number of this iteration of the application.
+        -->
+		<property name="app.name" value="jgossip" />
+		<property name="module.name" value="jgossip" />
+		<property name="app.path" value="/${app.name}" />
+		<property name="app.version" value="1.0.0-beta" />
+		<property name="static.name" value="${app.name}" />
+		<property name="static.home" value="${web.root}/${static.name}" />
+		<property name="logs.type" value="c" />
+		<property name="charset" value="ISO-8859-1" />
+		<property name="db.keygen.default" value="highlow" />
+		<property name="db.keygen.highlow.increment" value="10" />
+		<property name="maxFileSize" value="800K" />
+		<property name="useJNDIDatasource" value="false" />
+
+		<condition property="driver.needed">
+			<isfalse value="${useJNDIDatasource}" />
+		</condition>
+		<condition property="project.fail">
+			<or>
+				<and>
+					<istrue value="${useJNDIDatasource}" />
+					<not>
+						<isset property="datasourceName" />
+					</not>
+					<not>
+						<isset property="db.vendor" />
+					</not>
+				</and>
+				<and>
+					<isfalse value="${useJNDIDatasource}" />
+					<or>
+						<isset property="db.vendor" />
+						<not>
+							<isset property="db.driver" />
+						</not>
+						<not>
+							<isset property="db.url" />
+						</not>
+						<not>
+							<isset property="db.password" />
+						</not>
+						<not>
+							<isset property="db.username" />
+						</not>
+					</or>
+				</and>
+			</or>
+		</condition>
+
+		<fail if="project.fail" message="Data Base properties has not been set. Check your 'build.properties' file" />
+		<condition property="includeStatic">
+			<equals arg1="${app.name}" arg2="${static.name}" />
+		</condition>
+		<!-- Compilation Classpath -->
+
+		<path id="compile.classpath">
+			<!-- Include all JAR files that will be included in /WEB-INF/lib -->
+			<fileset dir="${basedir}/lib">
+				<include name="*.jar" />
+			</fileset>
+			<fileset dir="${j2ee.home}">
+				<include name="*.jar" />
+			</fileset>
+
+		</path>
+
+	</target>
+
+
+
+
+	<!-- ==================== All Target ====================================== -->
+	<!--
+
+The "all" target is a shortcut for running the "clean" target followed
+by the "compile" target, to force a complete recompile.
+
+    -->
+	<target name="all" depends="clean,compile" description="Clean build and dist directories, then compile" />
+	<!-- ==================== Clean Target ==================================== -->
+	<!--
+
+The "clean" target deletes any previous "build" and "dist" directory,
+so that you can be ensured the application can be built from scratch.
+
+    -->
+	<target name="clean" description="Delete old build and dist directories">
+		<delete dir="${build.home}" />
+		<delete dir="${dist.home}" />
+	</target>
+	<!-- ==================== Compile Target ================================== -->
+	<!--
+
+The "compile" target transforms source files (from your "src" directory)
+into object files in the appropriate location in the build directory.
+This example assumes that you will be including your classes in an
+unpacked directory hierarchy under "/WEB-INF/classes".
+
+    -->
+	<target name="compile" depends="prepare" description="Compile Java sources">
+		<!-- Compile Java classes as necessary -->
+		<mkdir dir="${build.home}/WEB-INF/classes" />
+		<javac srcdir="${build.home}/src-preprocess" destdir="${build.home}/WEB-INF/classes" debug="${compile.debug}" deprecation="${compile.deprecation}" optimize="${compile.optimize}">
+			<classpath refid="build.classpath" />
+			<classpath refid="compile.classpath" />
+		</javac>
+	</target>
+
+	<target name="tomcat.compile" depends="tomcat.translate_jsp" description="Compile Java sources">
+		<!-- Compile Java classes as necessary -->
+		<mkdir dir="${build.home}/WEB-INF/classes" />
+		<javac srcdir="${build.home}/src-preprocess" destdir="${build.home}/WEB-INF/classes" optimize="off" debug="on" failonerror="false" excludes="**/*.smap">
+			<classpath>
+				<fileset dir="${basedir}/lib">
+					<include name="*.jar" />
+				</fileset>
+				<pathelement location="${catalina.home}/common/classes" />
+				<fileset dir="${catalina.home}/common/lib">
+					<include name="*.jar" />
+				</fileset>
+				<pathelement location="${catalina.home}/shared/classes" />
+				<fileset dir="${catalina.home}/shared/lib">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${catalina.home}/common/endorsed">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+			<include name="**" />
+			<exclude name="tags/**" />
+		</javac>
+	</target>
+	<!-- =================================================================== -->
+	<!-- Compile JSP                                                         -->
+
+
+	<target name="tomcat.translate_jsp" depends="compile" description="Translate JSP to java">
+		<!--tomcat jspc task-->
+		<taskdef classname="org.apache.jasper.JspC" name="jasper2">
+			<classpath id="jspc.classpath">
+				<pathelement location="${java.home}/../lib/tools.jar" />
+				<fileset dir="${catalina.home}/server/lib">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${catalina.home}/common/lib">
+					<include name="*.jar" />
+				</fileset>
+				<fileset dir="${basedir}/lib-build">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</taskdef>
+
+		<jasper2 validateXml="false" uriroot="${build.home}" webXmlFragment="${build.home}/WEB-INF/generated_web.xml" outputDir="${build.home}/src-preprocess" />
+		<!-- ant jspc task (optional package)-->
+		<!--  <jspc srcdir="${build.home}" 
+      destdir="${build.home}/src-preprocess"
+      webinc="${build.home}/WEB-INF/generated_web.xml"
+      verbose="9">
+  		<include name="**/*.jsp" />
+  		<classpath id="jspc.classpath"> 
+        <pathelement location="${java.home}/../lib/tools.jar"/> 
+        <fileset dir="${catalina.home}/server/lib"> 
+          <include name="*.jar"/> 
+        </fileset> 
+        <fileset dir="${catalina.home}/common/lib"> 
+          <include name="*.jar"/> 
+        </fileset> 
+      </classpath>
+	</jspc>   -->
+		<loadfile property="generated_web.xml" srcFile="${build.home}/WEB-INF/generated_web.xml" failonerror="true" />
+		<replace file="${build.home}/WEB-INF/web.xml" value="${generated_web.xml}" token="&lt;!--generated_web.xml for precompiled jsp--&gt;" />
+		<delete file="${build.home}/WEB-INF/generated_web.xml" />
+		<delete>
+			<fileset dir="${build.home}/${module.name}" includes="**/*.jsp" excludes="index.jsp" />
+			<fileset dir="${build.home}/${module.name}" includes="**/*.jspf" />
+		</delete>
+	</target>
+	<!-- =================================================================== -->
+	<!-- ==================== Dist Target ===================================== -->
+	<!--
+
+The "dist" target creates a binary distribution of your application
+in a directory structure ready to be archived in a tar.gz or zip file.
+Note that this target depends on two others:
+
+* "compile" so that the entire web application (including external
+dependencies) will have been assembled
+
+* "javadoc" so that the application Javadocs will have been created
+
+    -->
+	<target name="dist.app" depends="compile" description="Create war distribution">
+		<mkdir dir="${dist.home}/${deploy_env}" />
+		<!--Copy documentation subdirectories-->
+		<mkdir dir="${dist.home}/docs" />
+		<copy todir="${dist.home}/docs">
+			<fileset dir="${docs.home}" />
+		</copy>
+		<!-- Create application JAR file -->
+		<jar jarfile="${dist.home}/${deploy_env}/${app.name}.war" basedir="${build.home}" excludes="src-preprocess/**" />
+		<!-- Copy additional files to ${dist.home} as necessary -->
+	</target>
+	<target name="dist.static" depends="set_env" unless="includeStatic" description="Create static distribution">
+		<mkdir dir="${dist.home}/${deploy_env}" />
+		<zip zipfile="${dist.home}/${deploy_env}/${static.name}.zip" basedir="${basedir}" includes="web/**" />
+	</target>
+
+	<target name="dist" depends="dist.static,dist.app" description="Create binary distribution" />
+
+	<!-- ==================== Deploy Target ================================== -->
+	<target name="deploy.static" depends="set_env" description="Deploy static content to web server">
+		<mkdir dir="${static.home}/web" />
+		<copy todir="${static.home}/web">
+			<fileset dir="${basedir}/web" />
+		</copy>
+	</target>
+	<!--
+    NOTE:  This target will only succeed if it is run from the same server that
+Tomcat is running on and application already installed in ${catalina.home}/webapps${app.path}.
+    -->
+	<target name="tomcat.deploy.app" depends="set_env" description="Deploy application">
+		<stop url="${manager.url}" username="${manager.username}" password="${manager.password}" path="${app.path}" />
+		<delete>
+			<fileset dir="${catalina.home}/webapps${app.path}" excludes="**/*.jar" />
+		</delete>
+		<copy todir="${catalina.home}/webapps${app.path}">
+			<fileset dir="${build.home}" excludes="src-preprocess/**" />
+		</copy>
+		<start url="${manager.url}" username="${manager.username}" password="${manager.password}" path="${app.path}" />
+		<!--<reload url="${manager.url}" username="${manager.username}" password="${manager.password}" path="${app.path}" />-->
+	</target>
+
+	<target name="tomcat.deploy.full" depends="deploy.static,tomcat.compile,tomcat.deploy.app" description="Full Deploy">
+
+	</target>
+	<!-- ==================== Install Target ================================== -->
+	<!-- Tmomcat must be stopped-->
+	<target name="tomcat.install" depends="deploy.static,tomcat.compile" description="Initial installation of application">
+		<mkdir dir="${catalina.home}/webapps${app.path}" />
+		<copy todir="${catalina.home}/webapps${app.path}">
+			<fileset dir="${build.home}" excludes="src-preprocess/**" />
+		</copy>
+	</target>
+	<!--
+
+  The "install" target tells the specified Tomcat 4 installation to dynamically
+  install this web application and make it available for execution.  It does
+  *not* cause the existence of this web application to be remembered across
+  Tomcat restarts; if you restart the server, you will need to re-install all
+  this web application.
+
+  If you have already installed this application, and simply want Tomcat to
+  recognize that you have updated Java classes (or the web.xml file), use the
+  "reload" target instead.
+
+  NOTE:  This target will only succeed if it is run from the same server that Tomcat is running on.
+
+  NOTE:  This is the logical opposite of the "remove" target.
+
+    -->
+
+	<target name="tomcat.install.debug" depends="deploy.static,compile" description="Install application (mapped from build directory) to servlet container">
+		<install url="${manager.url}" username="${manager.username}" password="${manager.password}" path="${app.path}" war="file://${build.home}" />
+	</target>
+	<!-- ==================== Javadoc Target ================================== -->
+	<!--
+
+The "javadoc" target creates Javadoc API documentation for the Java
+classes included in your application.  Normally, this is only required
+when preparing a distribution release, but is available as a separate
+target in case the developer wants to create Javadocs independently.
+
+    -->
+	<target name="javadoc" depends="compile" description="Create Javadoc API documentation">
+		<mkdir dir="api/java/" />
+		<javadoc sourcepath="${src.home}" destdir="api/java/" packagenames="*">
+			<classpath refid="compile.classpath" />
+		</javadoc>
+	</target>
+
+	<!-- ==================== Strutsdoc Target ================================== -->
+	<target name="strutsdoc" depends="compile" description="Create Struts documentation">
+		<mkdir dir="api/api-struts" />
+		<strutsdoc destdir="api/api-struts" servlet="action" webxml="build/WEB-INF/web.xml">
+			<plugin name="stxx" />
+			<plugin name="tiles" />
+			<plugin name="validator" />
+		</strutsdoc>
+	</target>
+	<!-- ====================== List Target =================================== -->
+	<!--
+
+The "list" target asks the specified Tomcat 4 installation to list the
+currently running web applications, either loaded at startup time or
+installed dynamically.  It is useful to determine whether or not the
+application you are currently developing has been installed.
+
+    -->
+	<target name="tomcat.list" depends="set_env" description="List installed applications on servlet container">
+		<list url="${manager.url}" username="${manager.username}" password="${manager.password}" />
+	</target>
+
+	<!-- ==================== Test DB Driver Target =========================== -->
+	<!--
+	-->
+	<target name="set_db.driver" description="Test current JDBC driver and presence of JAR file" if="driver.needed">
+		<condition property="vendor" value="oracle">
+			<and>
+				<available classname="${db.driver}">
+					<classpath>
+						<fileset dir="${basedir}/database/oracle/lib/">
+							<include name="*.jar" />
+						</fileset>
+					</classpath>
+				</available>
+			</and>
+		</condition>
+		<condition property="vendor" value="mysql">
+			<and>
+				<available classname="${db.driver}">
+					<classpath>
+						<fileset dir="${basedir}/database/mysql/lib/">
+							<include name="*.jar" />
+						</fileset>
+					</classpath>
+				</available>
+			</and>
+		</condition>
+		<condition property="vendor" value="MSSQL">
+			<and>
+				<available classname="${db.driver}">
+					<classpath>
+						<fileset dir="${basedir}/database/MSSQL/lib/">
+							<include name="*.jar" />
+						</fileset>
+					</classpath>
+				</available>
+			</and>
+		</condition>
+		<condition property="driver.available">
+			<or>
+				<not>
+					<isset property="db.driver" />
+				</not>
+				<not>
+					<isset property="vendor" />
+				</not>
+			</or>
+		</condition>
+		<fail if="${driver.available}" message="'db.driver' property has not been set or has wrong value." />
+		<!-- Copy JDBC driver -->
+		<property name="db.vendor" value="${vendor}" />
+		<echo message=" Copy ${vendor} JDBC driver jar(s) " />
+		<mkdir dir="${build.home}" />
+		<copy todir="${build.home}/WEB-INF/lib">
+			<fileset dir="${basedir}/database/${db.vendor}/lib/" />
+		</copy>
+	</target>
+
+
+
+	<!-- ==================== Prepare Target ================================== -->
+	<!--
+
+The "prepare" target is used to create the "build" destination directory,
+and copy the static contents of your web application to it.  If you need
+to copy static files from external dependencies, you can customize the
+contents of this task.
+
+Normally, this task is executed indirectly when needed.
+
+    -->
+	<target name="prepare" depends="set_env,prepare.static,set_db.driver">
+		<!-- Create build directories as needed -->
+		<mkdir dir="${build.home}" />
+		<mkdir dir="${build.home}/src-preprocess" />
+		<mkdir dir="${build.home}/${module.name}" />
+		<mkdir dir="${build.home}/WEB-INF" />
+		<mkdir dir="${build.home}/WEB-INF/classes" />
+
+		<copy todir="${build.home}/src-preprocess">
+			<fileset dir="${basedir}/src" includes="**/*.java" />
+			<filterset>
+				<filter token="module_name" value="${module.name}" />
+				<filter token="keygen_default" value="${db.keygen.default}" />
+			</filterset>
+		</copy>
+		<!-- Copy external dependencies as required -->
+		<mkdir dir="${build.home}/WEB-INF/lib" />
+		<copy todir="${build.home}/WEB-INF/lib">
+			<fileset dir="${basedir}/lib" />
+		</copy>
+		<!-- Copy application resources -->
+		<copy todir="${build.home}/WEB-INF/classes" filtering="on">
+			<fileset dir="${src.home}" excludes="**/*.java,**/*.class" />
+			<filterset>
+				<filter token="charset" value="${charset}" />
+				<filter token="module_name" value="${module.name}" />
+				<filter token="app_name" value="${app.name}" />
+				<filter token="static_root" value="/${static.name}" />
+				<filter token="logs_root" value="${logs.root}" />
+				<filter token="logs_type" value="${logs.type}" />
+				<filter token="db_vendor" value="${db.vendor}" />
+				<filter token="db_driver" value="${db.driver}" />
+				<filter token="db_url" value="${db.url}" />
+				<filter token="db_user" value="${db.username}" />
+				<filter token="db_pass" value="${db.password}" />
+				<filter token="keygen_highlow_increment" value="${db.keygen.highlow.increment}" />
+			</filterset>
+		</copy>
+		<copy todir="${build.home}/WEB-INF/classes/org/jresearch/gossip/resources/lang">
+			<fileset dir="${basedir}/resources/lang" includes="*.properties" />
+		</copy>
+		<!-- preprocess messages-->
+		<copy file="${basedir}/resources/lang/lang.properties" overwrite="true" tofile="${build.home}/WEB-INF/classes/org/jresearch/gossip/resources/lang/lang_en.properties" />
+
+		<native2ascii encoding="ISO-8859-5" src="${basedir}/resources/lang" dest="${build.home}/WEB-INF/classes/org/jresearch/gossip/resources/lang" includes="**/*.ISO-8859-5" ext=".properties" />
+
+		<native2ascii encoding="ISO-8859-1" src="${basedir}/resources/lang" dest="${build.home}/WEB-INF/classes/org/jresearch/gossip/resources/lang" includes="**/*.ISO-8859-1" ext=".properties" />
+
+		<!-- copy jsp files-->
+		<copy todir="${build.home}/${module.name}">
+			<fileset dir="${docroot.home}/jgossip" />
+			<filterset>
+				<filter token="charset" value="${charset}" />
+			</filterset>
+		</copy>
+		<!-- copy config files -->
+		<copy todir="${build.home}/WEB-INF">
+			<fileset dir="${basedir}/conf" />
+			<filterset>
+				<filter token="charset" value="${charset}" />
+				<filter token="module_name" value="${module.name}" />
+				<filter token="app_name" value="${app.name}" />
+				<filter token="maxFileSize" value="${maxFileSize}" />
+				<filter token="useDatasource" value="${useJNDIDatasource}" />
+				<filter token="datasourceName" value="${datasourceName}" />
+			</filterset>
+		</copy>
+
+	</target>
+
+	<target name="prepare.static" if="includeStatic" description="Copy static files as needed">
+		<echo message="Copy static content with application" />
+		<mkdir dir="${build.home}/web" />
+		<copy todir="${build.home}/web">
+			<fileset dir="${basedir}/web" />
+		</copy>
+	</target>
+
+	<target name="create release">
+		<mkdir dir="${basedir}/release" />
+		<zip zipfile="${basedir}/release/jgossip.zip" basedir="${basedir}" excludes=".*,dist/**,build/**,release/**,env/bel/**" />
+	</target>
+	<!-- ==================== Reload Target =================================== -->
+	<!--
+
+The "reload" target tells the specified Tomcat 4 installation to dynamically
+reload this web application, to reflect changes in the underlying classes or
+the "web.xml" deployment descriptor.
+
+    -->
+	<target name="tomcat.reload" depends="deploy.static" description="Reload application on servlet container">
+		<reload url="${manager.url}" username="${manager.username}" password="${manager.password}" path="${app.path}" />
+	</target>
+	<!-- ==================== Remove Target =================================== -->
+	<!--
+
+The "remove" target tells the specified Tomcat 4 installation to dynamically
+remove this web application from service.
+
+NOTE:  This is the logical opposite of the "install" target.
+
+    -->
+	<target name="tomcat.remove" depends="set_env" description="Remove application on servlet container">
+		<remove url="${manager.url}" username="${manager.username}" password="${manager.password}" path="${app.path}" />
+	</target>
+
+	<target name="webxmlmerge" depends="set_env" description="Merge web.xml files">
+		<condition property="project.fail">
+			<or>
+				<not>
+					<isset property="external.web.xml" />
+				</not>
+				<not>
+					<available file="${external.web.xml}" />
+				</not>
+			</or>
+		</condition>
+		<fail if="project.fail" message="external web.xml has not been set or not found. Check your 'build.properties' file" />
+		<echo>Merge jGossip's web.xml with ${external.web.xml}</echo>
+		<move file="${build.home}/WEB-INF/web.xml" tofile="${build.home}/WEB-INF/jgossip.web.xml" failonerror="false" />
+		<webxmlmerge srcfile="${external.web.xml}" destfile="${build.home}/WEB-INF/web.xml" mergefile="${build.home}/WEB-INF/jgossip.web.xml" indent="yes">
+			<xmlcatalog>
+				<dtd publicid="-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN" location="${basedir}/conf/web-app_2_2.dtd" />
+				<dtd publicid="-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" location="${basedir}/conf/web-app_2_3.dtd" />
+			</xmlcatalog>
+		</webxmlmerge>
+	</target>
+</project>

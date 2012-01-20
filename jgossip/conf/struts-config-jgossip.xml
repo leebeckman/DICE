@@ -1,0 +1,1151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.1//EN" "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">
+<struts-config>
+	<!-- ======================================== Form Bean Definitions -->
+	<form-beans>
+		<!-- Logon form bean -->
+		<form-bean name="logonForm"
+			type="org.jresearch.gossip.forms.LogonForm" />
+		<!-- Registration form bean -->
+		<form-bean name="registrationForm"
+			type="org.jresearch.gossip.forms.ProfileForm" />
+		<!-- Pending Registration form bean -->
+		<form-bean name="pendingRegistrationForm"
+			type="org.jresearch.gossip.forms.PendingRegistrationForm" />
+		<!-- Process Pending Registration form bean -->
+		<form-bean name="processPendingRegistrationForm"
+			type="org.jresearch.gossip.forms.PendingRegistrationForm" />
+		<!-- ChangePassword form bean -->
+		<form-bean name="changePasswordForm"
+			type="org.jresearch.gossip.forms.ChangePasswordForm" />
+		<!-- FogotPassword form bean -->
+		<form-bean name="fogotPassForm"
+			type="org.jresearch.gossip.forms.FogotPasswordForm" />
+		<!-- EditProfile form bean -->
+		<form-bean name="profileForm"
+			type="org.jresearch.gossip.forms.ProfileForm" />
+		<!-- Show,Lock,Delete Forum form bean -->
+		<form-bean name="processForumForm"
+			type="org.jresearch.gossip.forms.ProcessForumForm" />
+		<!-- Lock Forum form bean -->
+		<form-bean name="processLockForumForm"
+			type="org.jresearch.gossip.forms.ProcessLockForumForm" />
+		<!-- simple List form bean -->
+		<form-bean name="listForm"
+			type="org.jresearch.gossip.forms.ListForm" />
+		<!-- AddMessage form bean -->
+		<form-bean name="addMessageForm"
+			type="org.jresearch.gossip.forms.FileUploadForm" />
+		<!-- UpdateMessage form bean -->
+		<form-bean name="editMessageForm"
+			type="org.jresearch.gossip.forms.MessageForm" />
+		<!-- Reply,Quote,Delete,EditMessage form bean -->
+		<form-bean name="processMessageForm"
+			type="org.jresearch.gossip.forms.ProcessMessageForm" />
+		<!-- Delete,EditAttach form bean -->
+		<form-bean name="processAttachForm"
+			type="org.jresearch.gossip.forms.ProcessAttachForm" />
+		<!-- UpdateAttachInfo form bean -->
+		<form-bean name="attachmentInfoForm"
+			type="org.jresearch.gossip.forms.AttachmentInfoForm" />
+		<!-- DownloadAttach form bean -->
+		<form-bean name="downloadAttachForm"
+			type="org.jresearch.gossip.forms.ProcessAttachForm" />
+		<!-- DropOldMess form bean -->
+		<form-bean name="dropOldMessForm"
+			type="org.jresearch.gossip.forms.DropOldMessForm" />
+		<!-- Delete,Move,Lock,ShowThread form bean -->
+		<form-bean name="processThreadForm"
+			type="org.jresearch.gossip.forms.ProcessTopicForm" />
+		<!-- AddForum,UpdateForum form bean -->
+		<form-bean name="forumForm"
+			type="org.jresearch.gossip.forms.ForumForm" />
+		<!-- Add/Update Group form bean -->
+		<form-bean name="groupForm"
+			type="org.jresearch.gossip.forms.GroupForm" />
+		<!-- Delete User form bean -->
+		<form-bean name="processUserForm"
+			type="org.jresearch.gossip.forms.ProcessUserForm" />
+		<!-- Promote User form bean -->
+		<form-bean name="processUserStatusForm"
+			type="org.jresearch.gossip.forms.ProcessUserStatusForm" />
+		<!-- Show User form bean -->
+		<form-bean name="showUserForm"
+			type="org.jresearch.gossip.forms.ProcessUserForm" />
+		<!-- Save Avatar Form-->
+		<form-bean name="saveAvatarForm"
+			type="org.jresearch.gossip.forms.SaveAvatarForm" />
+		<!-- Save Remote Avatar Form-->
+		<form-bean name="loadAvatarForm"
+			type="org.jresearch.gossip.forms.LoadAvatarForm" />
+		<!-- Search form bean -->
+		<form-bean name="searchForm"
+			type="org.jresearch.gossip.forms.SearchForm" />
+		<!-- Add,Drop Mod form bean -->
+		<form-bean name="processModForm"
+			type="org.jresearch.gossip.forms.ProcessModForm" />
+		<!-- Delete,Edit,Update Group form bean -->
+		<form-bean name="processGroupForm"
+			type="org.jresearch.gossip.forms.ProcessGroupForm" />
+		<!-- Constants form bean -->
+		<form-bean name="editConstantsForm"
+			type="org.apache.struts.validator.DynaValidatorForm">
+			<!-- General setings-->
+			<form-property name="adminmail" type="java.lang.String" />
+			<form-property name="domainname" type="java.lang.String" />
+			<form-property name="domainurl" type="java.lang.String" />
+			<form-property name="sitename" type="java.lang.String" />
+			<form-property name="sessionlength" type="java.lang.String" />
+			<form-property name="motto" type="java.lang.String" />
+			<form-property name="gzipCompress" type="java.lang.String" />
+			<form-property name="defaultLocale" type="java.lang.String" />
+			<!-- SMTP server settings-->
+			<form-property name="mailuser" type="java.lang.String" />
+			<form-property name="mailhost" type="java.lang.String" />
+			<form-property name="smtpServerPort"
+				type="java.lang.String" />
+			<!-- Sign-on setings-->
+			<form-property name="invader" type="java.lang.String" />
+			<form-property name="enableExtSignOn"
+				type="java.lang.String" />
+			<form-property name="enableForumSignOn"
+				type="java.lang.String" />
+			<form-property name="enableForumRegistration"
+				type="java.lang.String" />
+			<form-property name="enableEmailConfiramtion"
+				type="java.lang.String" />
+			<form-property name="periodForConfirmation"
+				type="java.lang.String" />
+			<form-property name="extLogOnActionUrl"
+				type="java.lang.String" />
+			<form-property name="extLogOutActionUrl"
+				type="java.lang.String" />
+			<form-property name="extRegistrationActionUrl"
+				type="java.lang.String" />
+			<form-property name="enableAutoLogin"
+				type="java.lang.String" />
+			<!-- File Upload settings settings-->
+			<form-property name="maxAttachCount"
+				type="java.lang.String" />
+			<form-property name="enableFileUpload"
+				type="java.lang.String" />
+			<form-property name="attachStorePath"
+				type="java.lang.String" />
+			<form-property name="enableAvatar" type="java.lang.String" />
+			<!-- RSS setings-->
+			<form-property name="rssMaxItemCount"
+				type="java.lang.String" />
+			<form-property name="rssPeriod" type="java.lang.String" />
+			<form-property name="rssTtl" type="java.lang.String" />
+		</form-bean>
+		<!-- Set Mail Password form bean -->
+		<form-bean name="mailPasswordForm"
+			type="org.jresearch.gossip.forms.MailPasswordForm" />
+		<!-- subscribe form bean -->
+		<form-bean name="subscribeForm"
+			type="org.jresearch.gossip.forms.SubscribeForm" />
+		<!-- SetTimeZone form bean -->
+		<form-bean name="timeZoneForm"
+			type="org.jresearch.gossip.forms.TimeZoneForm" />
+		<!-- Styles form bean -->
+		<form-bean name="stylesForm"
+			type="org.jresearch.gossip.forms.StylesForm" />
+		<!-- RSS LastTopics form bean -->
+		<form-bean name="forumUtilsForm"
+			type="org.jresearch.gossip.forms.ProcessForumForm" />
+		<!-- admin mail form bean -->
+		<form-bean name="sendAdminMailForm"
+			type="org.jresearch.gossip.forms.SendAdminMailForm" />
+		<!-- process item form bean -->
+		<form-bean name="processItemForm"
+			type="org.jresearch.gossip.forms.ProcessItemForm" />
+		<!-- add rank form bean -->
+		<form-bean name="addRankForm"
+			type="org.jresearch.gossip.forms.RankForm" />
+		<!-- edit rank form bean -->
+		<form-bean name="editRankForm"
+			type="org.jresearch.gossip.forms.RankForm" />
+		<!-- search log form bean -->
+		<form-bean name="searchLogForm"
+			type="org.jresearch.gossip.forms.SearchLogForm" />
+		<!-- process Ban form -->
+		<form-bean name="processBanForm"
+			type="org.jresearch.gossip.forms.ProcessBanForm" />
+	</form-beans>
+
+	<!-- ================================= Global Exception Definitions -->
+	<global-exceptions>
+		<exception
+			handler="org.jresearch.gossip.actions.ExceptionHandlerAction"
+			type="java.lang.Exception" key="errors.ERR77"
+			path="/showUnexpectedError.do" />
+	</global-exceptions>
+	<!-- =================================== Global Forward Definitions -->
+	<global-forwards>
+		<forward name="jgossip-denied" path="/showAccessDenied.do" />
+		<forward name="jgossip-show-topic" path="/ShowThread.do"
+			redirect="true" />
+		<forward name="jgossip-show-forum" path="/ShowForum.do"
+			redirect="true" />
+	</global-forwards>
+	<!-- =================================== Action Mapping Definitions 
+		Permission Constants
+		===================================
+		Objects(org.jresearch.gossip.am.values.PermissionObject)
+		USER = 1
+		GROUP = 2
+		FORUM = 3
+		TOPIC = 4
+		MESSAGE = 5
+		SYSTEM = 6
+		ATTACH =7
+		===================================
+		Operations(org.jresearch.gossip.am.values.PermissionOperation)
+		READ = 1
+		ADD = 2
+		UPDATE = 3
+		DELETE = 4
+		CHANGE_STATUS = 5
+		Forum.SUBSCRIBE = 7
+		Forum.MOVE_TOPIC = 8
+		}
+	-->
+	<action-mappings>
+		<!-- Public Area-->
+		<action path="/Logon"
+			type="org.jresearch.gossip.actions.user.LogonAction" name="logonForm"
+			scope="request" validate="true" input="/showLogon.do">
+			<description>
+				Perform Logon for registered users
+			</description>
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/FogotPass"
+			type="org.jresearch.gossip.actions.user.FogotPassAction"
+			name="fogotPassForm" scope="request" validate="true"
+			input="/showFogotPass.do">
+			<description>
+				Generate a new password and send mail notification
+			</description>
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/Logout"
+			type="org.jresearch.gossip.actions.user.LogoutAction">
+			<description>
+				Perform Logout for registered users
+			</description>
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/Registration"
+			type="org.jresearch.gossip.actions.user.RegistrationAction"
+			name="registrationForm" scope="session" validate="true"
+			input="/ShowRegistration.do">
+			<description>Perform Registration of new user</description>
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/PendingRegistration"
+			type="org.jresearch.gossip.actions.user.PendingRegistrationAction"
+			name="pendingRegistrationForm" scope="request" validate="true"
+			input="/ShowRegistration.do">
+			<description>
+				Perform Pending Registration of new user
+			</description>
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/ConfirmRegistration"
+			type="org.jresearch.gossip.actions.user.ConfirmPendingRegistrationAction"
+			name="processPendingRegistrationForm" scope="request" validate="true"
+			input="/Main.do">
+			<description>
+				Confirm Pending Registration of new user
+			</description>
+			<forward name="welcome" path="/EditProfile.do"
+				redirect="true" />
+		</action>
+		<action path="/ConfirmCode"
+			type="org.jresearch.gossip.actions.util.ConfirmCodeAction">
+			<description>
+				Generate picture with confirmation code
+			</description>
+		</action>
+		<action path="/DeleteRegistration"
+			type="org.jresearch.gossip.actions.user.DeletePendingRegistrationAction"
+			name="processPendingRegistrationForm" scope="request" validate="true"
+			input="/Main.do">
+			<description>
+				Delete Pending Registration of new user
+			</description>
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/ShowRegistration"
+			type="org.jresearch.gossip.actions.RelayAction">
+			<description>Show Registration Page</description>
+			<forward name="direct" path="RegistrationPage"
+				redirect="true" />
+			<forward name="pending" path="PendingRegistrationPage"
+				redirect="true" />
+		</action>
+		<action path="/SetTimeZone"
+			type="org.jresearch.gossip.actions.user.SetTimeZoneAction"
+			name="timeZoneForm" scope="request" validate="true"
+			input="/Main.do">
+			<description>Save user time zone in session</description>
+		</action>
+		<action path="/RSSLastTopics"
+			type="org.jresearch.gossip.actions.rss.ShowLastTopicsFeedAction"
+			name="forumUtilsForm" scope="request" validate="true">
+			<description>
+				Generate last created topics feed for whole site or for
+				specified forum
+			</description>
+			<forward name="rss_main_page"
+				path="/content/rss/LastTopicsList.jsp" />
+			<forward name="rss_forum_page"
+				path="/content/rss/ForumLastTopicsList.jsp" />
+		</action>
+		<action path="/ShowAvatar"
+			type="org.jresearch.gossip.actions.user.avatar.ShowAvatarAction"
+			name="showUserForm" scope="request" validate="true"
+			input="/Main.do">
+			<description>Show user avatar</description>
+		</action>
+		<!-- USER -->
+		<action path="/AddUser"
+			type="org.jresearch.gossip.actions.admin.user.AddUserAction"
+			name="registrationForm" scope="session" validate="true"
+			input="/ShowRegistration.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Perform Registration of new user by forum Admininstrator
+			</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="2" />
+			<forward name="welcome" path="/ShowUserList.do"
+				redirect="true" />
+		</action>
+		<action path="/EditProfile"
+			type="org.jresearch.gossip.actions.user.EditProfileAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Get full users info and show Edit Profile page
+			</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="showProfile" path="EditProfilePage" />
+		</action>
+		<action path="/SaveProfile"
+			type="org.jresearch.gossip.actions.user.SaveProfileAction"
+			name="profileForm" scope="request" validate="true"
+			input="/EditProfile.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save updated users profile</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="/EditProfile.do" redirect="true" />
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/ChangePassword"
+			type="org.jresearch.gossip.actions.user.ChangePasswordAction"
+			name="changePasswordForm" scope="session" validate="true"
+			input="/showChangePassword.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save updated users password</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/SaveAvatar"
+			type="org.jresearch.gossip.actions.user.avatar.UploadAvatarAction"
+			name="saveAvatarForm" scope="request" validate="true"
+			input="/showSetAvatar.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save uploaded avatar</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="/EditProfile.do" redirect="true" />
+		</action>
+		<action path="/SaveRemoteAvatar"
+			type="org.jresearch.gossip.actions.user.avatar.LoadRemoteAvatarAction"
+			name="loadAvatarForm" scope="request" validate="true"
+			input="/showSetAvatar.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Load image by url and save as avatar
+			</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="/EditProfile.do" redirect="true" />
+		</action>
+		<action path="/ShowUserList"
+			type="org.jresearch.gossip.actions.admin.user.ShowUserListAction"
+			name="listForm" scope="request" input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show list of users</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="4" />
+			<forward name="userList" path="UserListPage" />
+		</action>
+		<action path="/DeleteUser"
+			type="org.jresearch.gossip.actions.admin.user.DeleteUserAction"
+			name="processUserForm" scope="request" validate="true"
+			input="/ShowUserList.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete user</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="4" />
+			<forward name="page" path="/ShowUserList.do"
+				redirect="true" />
+		</action>
+		<action path="/PromoteUser"
+			type="org.jresearch.gossip.actions.admin.user.PromoteUserAction"
+			name="processUserStatusForm" scope="request" validate="true"
+			input="/ShowUserList.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Change user status</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="5" />
+			<forward name="page" path="/ShowUserList.do"
+				redirect="true" />
+		</action>
+		<action path="/AddBan"
+			type="org.jresearch.gossip.actions.admin.user.ban.AddBanAction"
+			name="processBanForm" scope="request" validate="true"
+			input="/BanList.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Add Ban</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="5" />
+			<forward name="page" path="/BanList.do" redirect="true" />
+		</action>
+		<action path="/DeleteBan"
+			type="org.jresearch.gossip.actions.admin.user.ban.DeleteBanAction"
+			name="processBanForm" scope="request" validate="true"
+			input="/BanList.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete Ban</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="5" />
+			<forward name="page" path="/BanList.do" redirect="true" />
+		</action>
+		<action path="/BanList"
+			type="org.jresearch.gossip.actions.admin.user.ban.BanListAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Ban List screen</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="5" />
+			<forward name="page" path="BanListPage" />
+		</action>
+		<action path="/ShowUser"
+			type="org.jresearch.gossip.actions.user.ShowUserAction"
+			name="showUserForm" scope="request" validate="true" input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show user info</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="showUser" path="ShowUserPage" />
+		</action>
+		<action path="/DropMod"
+			type="org.jresearch.gossip.actions.admin.user.DropModAction"
+			name="processModForm" scope="request" validate="true"
+			input="/ShowUser.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Remove moderator rights</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="5" />
+		</action>
+		<action path="/AddMod"
+			type="org.jresearch.gossip.actions.admin.user.AddModAction"
+			name="processModForm" scope="request" validate="true"
+			input="/ShowUser.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Add moderator rights</description>
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="5" />
+		</action>
+
+		<!-- GROUP -->
+		<action path="/ShowGroupList"
+			type="org.jresearch.gossip.actions.admin.group.ShowGroupListAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show group list</description>
+			<set-property property="amObjectId" value="2" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="groupList" path="GroupListPage" />
+		</action>
+		<action path="/AddGroup"
+			type="org.jresearch.gossip.actions.admin.group.AddGroupAction"
+			name="groupForm" scope="request" validate="true"
+			input="/showAddGroup.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Add new group</description>
+			<set-property property="amObjectId" value="2" />
+			<set-property property="amOperationId" value="2" />
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/EditGroup"
+			type="org.jresearch.gossip.actions.admin.group.EditGroupAction"
+			name="processGroupForm" scope="request" validate="true"
+			input="/ShowGroupList.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show group info for editing</description>
+			<set-property property="amObjectId" value="2" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="editGroup" path="EditGroupPage" />
+		</action>
+		<action path="/UpdateGroup"
+			type="org.jresearch.gossip.actions.admin.group.UpdateGroupAction"
+			name="groupForm" scope="request" validate="true"
+			input="/showEditGroup.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save updated group info</description>
+			<set-property property="amObjectId" value="2" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/DeleteGroup"
+			type="org.jresearch.gossip.actions.admin.group.DeleteGroupAction"
+			name="processGroupForm" scope="request" validate="true"
+			input="/ShowGroupList.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete group</description>
+			<set-property property="amObjectId" value="2" />
+			<set-property property="amOperationId" value="4" />
+		</action>
+		<!-- FORUM -->
+		<action path="/Main"
+			type="org.jresearch.gossip.actions.ShowMainPageAction" unknown="true"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show Main page</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="welcome" path="MainPage" redirect="true" />
+		</action>
+		<action path="/Search"
+			type="org.jresearch.gossip.actions.message.SearchAction"
+			name="searchForm" scope="request" input="/showSearch.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Perform serch and show search results
+			</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="1" />
+		</action>
+		<action path="/MarkRead"
+			type="org.jresearch.gossip.actions.forum.MarkReadAction"
+			name="forumUtilsForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Mark all forums as read for current user
+			</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="welcome" path="/Main.do" redirect="true" />
+		</action>
+		<action path="/ShowForum"
+			type="org.jresearch.gossip.actions.forum.ShowForumAction"
+			name="processForumForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Get forums topics and show Forum page
+			</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="showForum" path="ShowForumPage" />
+		</action>
+		<action path="/ShowNewTopics"
+			type="org.jresearch.gossip.actions.forum.ShowLastUpdatedTopicsAction"
+			name="listForm" scope="request" input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Show updated topics since users last visit
+			</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="newTopicsList" path="NewTopicsListPage" />
+		</action>
+		<action path="/LockForum"
+			type="org.jresearch.gossip.actions.admin.forum.LockForumAction"
+			name="processLockForumForm" scope="request" validate="true"
+			input="/ShowForumList.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Lock forum</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="5" />
+		</action>
+		<action path="/DeleteForum"
+			type="org.jresearch.gossip.actions.admin.forum.DeleteForumAction"
+			name="processForumForm" scope="request" validate="true"
+			input="/ShowForumList.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete forum</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="4" />
+		</action>
+		<action path="/EditForum"
+			type="org.jresearch.gossip.actions.admin.forum.EditForumAction"
+			name="processForumForm" scope="request" validate="true"
+			input="/ShowForumList.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Get forum info and show Edit Forum page
+			</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="editForum" path="EditForumPage" />
+		</action>
+		<action path="/UpdateForum"
+			type="org.jresearch.gossip.actions.admin.forum.UpdateForumAction"
+			name="forumForm" scope="request" validate="true"
+			input="/showEditForum.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save updated forum info</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/AddForum"
+			type="org.jresearch.gossip.actions.admin.forum.AddForumAction"
+			name="forumForm" scope="request" validate="true"
+			input="/showAddForum.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Add new forum</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="2" />
+			<forward name="welcome" path="/Main.do" />
+		</action>
+		<action path="/ShowThread"
+			type="org.jresearch.gossip.actions.topic.ShowTopicAction"
+			name="processThreadForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show topic</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="showThread" path="ShowThreadPage" />
+		</action>
+		<action path="/ShowMessage"
+			type="org.jresearch.gossip.actions.message.ShowMessageAction"
+			name="processMessageForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show specified message in topic</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="1" />
+		</action>
+		<action path="/UnAnnounce"
+			type="org.jresearch.gossip.actions.admin.topic.UnAnnounceAction"
+			name="processThreadForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Remove admin announce flag from message
+			</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/MoveThread"
+			type="org.jresearch.gossip.actions.admin.topic.MoveTopicAction"
+			name="processThreadForm" scope="request" validate="true"
+			input="/showMoveThread.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Move Topic</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="8" />
+		</action>
+		<action path="/ShowSubscriptions"
+			type="org.jresearch.gossip.actions.subscription.ShowSubscriptionsAction"
+			name="listForm" scope="request" input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show user subscription list</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="7" />
+			<forward name="subscriptionList"
+				path="SubscriptionListPage" />
+		</action>
+		<action path="/Unsubscribe"
+			type="org.jresearch.gossip.actions.subscription.UnsubscribeAction"
+			name="subscribeForm" scope="request" validate="true"
+			input="/showUnsubscribe.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Unsubsribe from specified topic announces or from all
+				subscriptions
+			</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="subscriptions" path="/ShowSubscriptions.do" />
+			<forward name="unsubscribe" path="UnsubscribePage"
+				redirect="true" />
+		</action>
+		<action path="/Subscribe"
+			type="org.jresearch.gossip.actions.subscription.SubscribeAction"
+			name="processThreadForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Subsribe to specified topic announces
+			</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="7" />
+		</action>
+		<action path="/ShowForumList"
+			type="org.jresearch.gossip.actions.admin.forum.ShowForumListAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show forum list</description>
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="4" />
+			<forward name="forumList" path="ForumListPage" />
+		</action>
+		<!-- TOPIC -->
+		<action path="/DeleteThread"
+			type="org.jresearch.gossip.actions.admin.topic.DeleteTopicAction"
+			name="processThreadForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete Topic</description>
+			<set-property property="amObjectId" value="4" />
+			<set-property property="amOperationId" value="4" />
+		</action>
+		<action path="/LockThread"
+			type="org.jresearch.gossip.actions.admin.topic.LockTopicAction"
+			name="processThreadForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Lock Topic</description>
+			<set-property property="amObjectId" value="4" />
+			<set-property property="amOperationId" value="5" />
+		</action>
+		<!-- MESSAGE -->
+		<action path="/ProcessMessage"
+			type="org.jresearch.gossip.actions.RelayAction" name="addMessageForm"
+			scope="request" validate="true" input="/showAddMessage.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Dispatch processing of new message
+			</description>
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="2" />
+			<forward name="add" path="/AddMessage.do" />
+			<forward name="preview" path="/PreviewMessage.do" />
+			<forward name="attach" path="/AttachFile.do" />
+		</action>
+		<action path="/AddMessage"
+			type="org.jresearch.gossip.actions.message.AddMessageAction"
+			name="addMessageForm" scope="request" validate="true"
+			input="/showAddMessage.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Add new message</description>
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="2" />
+		</action>
+		<action path="/PreviewMessage"
+			type="org.jresearch.gossip.actions.message.PreviewMessageAction"
+			name="addMessageForm" scope="request" validate="true"
+			input="/showAddMessage.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Preview a new message</description>
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="2" />
+			<forward name="page" path="PreviewMessagePage" />
+		</action>
+		<action path="/UpdateMessage"
+			type="org.jresearch.gossip.actions.message.UpdateMessageAction"
+			name="editMessageForm" scope="request" validate="true"
+			input="/showEditMessage.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save updated message</description>
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/Reply"
+			type="org.jresearch.gossip.actions.message.ReplyAction"
+			name="processMessageForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Show message with predefined title and body for replay
+			</description>
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="2" />
+			<forward name="page" path="AddMessagePage" />
+		</action>
+		<action path="/Quote"
+			type="org.jresearch.gossip.actions.message.QuoteMessageAction"
+			name="processMessageForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Show message with predefined title and body for quoted
+				replay
+			</description>
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="2" />
+			<forward name="page" path="AddMessagePage" />
+		</action>
+		<action path="/DeleteMessage"
+			type="org.jresearch.gossip.actions.message.DeleteMessageAction"
+			name="processMessageForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete specified message</description>
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="4" />
+		</action>
+		<action path="/EditMessage"
+			type="org.jresearch.gossip.actions.message.EditMessageAction"
+			name="processMessageForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show message for editing</description>
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="EditMessagePage" />
+		</action>
+		<!-- ATTACH -->
+		<action path="/AttachFile"
+			type="org.jresearch.gossip.actions.message.PreviewMessageAction"
+			name="addMessageForm" scope="request" validate="true"
+			input="/showAddMessage.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show AttachFile page</description>
+			<set-property property="amObjectId" value="7" />
+			<set-property property="amOperationId" value="2" />
+			<forward name="page" path="AttachFilesPage" />
+		</action>
+		<action path="/DeleteAttachment"
+			type="org.jresearch.gossip.actions.message.attachment.DeleteAttachmentAction"
+			name="processAttachForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete attachment</description>
+			<set-property property="amObjectId" value="7" />
+			<set-property property="amOperationId" value="4" />
+		</action>
+		<action path="/EditAttachment"
+			type="org.jresearch.gossip.actions.message.attachment.EditAttachmentInfoAction"
+			name="processAttachForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Retrive attachment info and show Edit Attach screen
+			</description>
+			<set-property property="amObjectId" value="7" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="EditAttachInfoPage" />
+		</action>
+		<action path="/UpdateAttachInfo"
+			type="org.jresearch.gossip.actions.message.attachment.UpdateAttachmentInfoAction"
+			name="attachmentInfoForm" scope="request" validate="true"
+			input="/EditAttachment.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save attachment info</description>
+			<set-property property="amObjectId" value="7" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/DownloadAttachment"
+			type="org.jresearch.gossip.actions.message.attachment.DowloadAttachmentAction"
+			name="downloadAttachForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Download attachment</description>
+			<set-property property="amObjectId" value="7" />
+			<set-property property="amOperationId" value="1" />
+		</action>
+		<action path="/ShowAttachThumbnail"
+			type="org.jresearch.gossip.actions.message.attachment.GetAttachThumbnailAction"
+			name="downloadAttachForm" scope="request" validate="true"
+			input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show Thumbnail for attached image</description>
+			<set-property property="amObjectId" value="7" />
+			<set-property property="amOperationId" value="1" />
+		</action>
+		<!-- SYSTEM -->
+		<action path="/WhoIs"
+			type="org.jresearch.gossip.actions.admin.user.WhoIsAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show "currently online" list</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="WhoIsList" path="WhoIsListPage" />
+		</action>
+		<action path="/DropOldMess"
+			type="org.jresearch.gossip.actions.admin.message.DropOldMessAction"
+			name="dropOldMessForm" scope="request" validate="true"
+			input="/showDropOldMess.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete old messages</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/EditConstants"
+			type="org.jresearch.gossip.actions.admin.EditConstantsAction"
+			name="editConstantsForm" scope="request" validate="true"
+			input="/showEditConstants.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Save updated configuration parameters and reload
+				Configurator
+			</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/SetMailPassword"
+			type="org.jresearch.gossip.actions.admin.SetMailPasswordAction"
+			name="mailPasswordForm" scope="request" validate="true"
+			input="/showSetMailPassword.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Set password for SMTP server</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="/showEditConstants.do"
+				redirect="true" />
+		</action>
+		<action path="/UpdateStyles"
+			type="org.jresearch.gossip.actions.admin.skins.UpdateStylesAction"
+			name="stylesForm" scope="request" validate="true"
+			input="/showEditStyles.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save updated styles parameters</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/SendAdminMail"
+			type="org.jresearch.gossip.actions.admin.SendAdminMailAction"
+			name="sendAdminMailForm" scope="request" validate="true"
+			input="/showSendAdminMail.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>
+				Sand admin mail to all registered users
+			</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+
+		<action path="/Ranks"
+			type="org.jresearch.gossip.actions.admin.rank.ShowRanksAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show Post counting ranks</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="RanksPage" />
+		</action>
+		<action path="/EditRank"
+			type="org.jresearch.gossip.actions.admin.rank.EditRankAction"
+			name="processItemForm" scope="request" validate="true"
+			input="/Ranks.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Show rank for edit</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/DeleteRank"
+			type="org.jresearch.gossip.actions.admin.rank.RemoveRankAction"
+			name="processItemForm" scope="request" validate="true"
+			input="/Ranks.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete Rank</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="/Ranks.do" redirect="true" />
+		</action>
+		<action path="/AddRank"
+			type="org.jresearch.gossip.actions.admin.rank.AddRankAction"
+			name="addRankForm" scope="request" validate="true" input="/Ranks.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Add new rank</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="/Ranks.do" redirect="true" />
+		</action>
+		<action path="/UpdateRank"
+			type="org.jresearch.gossip.actions.admin.rank.UpdateRankAction"
+			name="editRankForm" scope="request" validate="true" input="/Ranks.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save updated rank info</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="/Ranks.do" redirect="true" />
+		</action>
+		<action path="/BrowseLog"
+			type="org.jresearch.gossip.actions.admin.log.BrowseLogAction"
+			name="listForm" scope="request" validate="true" input="/Main.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Browse Forum Log</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="page" path="BrowseLogPage" />
+		</action>
+		<action path="/SearchLog"
+			type="org.jresearch.gossip.actions.admin.log.SearchLogAction"
+			name="searchLogForm" scope="session" validate="true"
+			input="/BrowseLog.do"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Save updated rank info</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="1" />
+			<forward name="page" path="/BrowseLog.do" redirect="true" />
+		</action>
+        <action path="/PurgeLog"
+			type="org.jresearch.gossip.actions.admin.log.PurgeLogsAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<description>Delete all records in audit database.</description>
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+			<forward name="page" path="/BrowseLog.do" redirect="true" />
+		</action>
+		<!--actions for forward to jsp-->
+		<action path="/showLogon" parameter="ShowLogonPage"
+			type="org.apache.struts.actions.ForwardAction" />
+		<action path="/showTipsAndTricks" parameter="TipsAndTricksPage"
+			type="org.apache.struts.actions.ForwardAction" />
+		<action path="/showSearch" parameter="SearchPage"
+			type="org.apache.struts.actions.ForwardAction" />
+		<action path="/showAccessDenied" parameter="AccessDeniedPage"
+			type="org.apache.struts.actions.ForwardAction" />
+		<action path="/showAccessBanned" parameter="AccessBannedPage"
+			type="org.apache.struts.actions.ForwardAction" />
+		<action path="/showUnderConstruction"
+			parameter="UnderConstructionPage"
+			type="org.apache.struts.actions.ForwardAction" />
+		<action path="/showNotFound" parameter="NotFoundPage"
+			type="org.apache.struts.actions.ForwardAction" />
+		<action path="/showUnexpectedError"
+			parameter="UnexpectedErrorPage"
+			type="org.apache.struts.actions.ForwardAction" />
+		<action path="/showFogotPass" parameter="FogotPassPage"
+			type="org.apache.struts.actions.ForwardAction" />
+		<!-- USER -->
+		<action path="/showSetAvatar" parameter="SetAvatarPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/showChangePassword"
+			parameter="ChangePasswordPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="1" />
+			<set-property property="amOperationId" value="1" />
+		</action>
+
+		<!-- GROUP -->
+		<action path="/showAddGroup" parameter="AddGroupPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="2" />
+			<set-property property="amOperationId" value="2" />
+		</action>
+		<action path="/showEditGroup" parameter="EditGroupPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="2" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<!-- FORUM -->
+		<action path="/showAddForum" parameter="AddForumPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="2" />
+		</action>
+		<action path="/showEditForum" parameter="EditForumPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="4" />
+		</action>
+		<action path="/showUnsubscribe" parameter="UnsubscribePage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="7" />
+		</action>
+		<action path="/showMoveThread" parameter="MoveThreadPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="3" />
+			<set-property property="amOperationId" value="8" />
+		</action>
+		<!-- TOPIC -->
+		<!-- MESSAGE -->
+		<action path="/showAddMessage" parameter="AddMessagePage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="2" />
+		</action>
+		<action path="/showEditMessage" parameter="EditMessagePage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="5" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<!-- ATTACH -->
+		<action path="/showAttachedImage"
+			parameter="ShowAttachedPicturePage" name="downloadAttachForm"
+			scope="request" validate="true"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="7" />
+			<set-property property="amOperationId" value="1" />
+		</action>
+		<!-- SYSTEM -->
+		<action path="/showEditConstants" parameter="EditConstantsPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/showEditStyles" parameter="EditStylesPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/showDropOldMess" parameter="DropOldMessPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/showSetMailPassword"
+			parameter="SetMailPasswordPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+		<action path="/showSendAdminMail" parameter="SendAdminMailPage"
+			type="org.apache.struts.actions.ForwardAction"
+			className="org.jresearch.gossip.am.StrutsPermissionMapping">
+			<set-property property="amObjectId" value="6" />
+			<set-property property="amOperationId" value="3" />
+		</action>
+	</action-mappings>
+	<!-- ===================================== Controller Configuration -->
+	<controller
+		processorClass="org.apache.struts.tiles.TilesRequestProcessor"
+		contentType="text/html ; charset=@charset@" locale="true"
+		nocache="true" maxFileSize="@maxFileSize@" debug="1" />
+	<!-- ================================ Message Resources Definitions -->
+	<message-resources
+		parameter="org.jresearch.gossip.resources.lang.lang" />
+	<message-resources key="skin_default"
+		parameter="org.jresearch.gossip.resources.skins.default" />
+	<!-- ======================================= Plug Ins Configuration -->
+	<plug-in className="org.jresearch.gossip.plugin.JGossipStartUp" />
+	<plug-in className="org.apache.struts.tiles.TilesPlugin">
+		<set-property property="definitions-config"
+			value="/WEB-INF/tiles-defs-jgossip.xml" />
+		<set-property property="moduleAware" value="true" />
+		<set-property property="definitions-parser-validate"
+			value="true" />
+	</plug-in>
+	<plug-in className="org.apache.struts.validator.ValidatorPlugIn">
+		<set-property property="pathnames"
+			value="/WEB-INF/validator-rules-jgossip.xml,/WEB-INF/validation-jgossip.xml" />
+		<set-property property="stopOnFirstError" value="false" />
+	</plug-in>
+</struts-config>

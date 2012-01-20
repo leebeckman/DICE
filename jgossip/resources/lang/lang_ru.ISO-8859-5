@@ -1,0 +1,536 @@
+# -- global --
+locale.display.name=Russian
+
+global.buttons.SUBMIT=Послать
+global.buttons.CANCEL=Отменить
+global.buttons.PREVIEW=Предпросмотр
+global.buttons.BACK=Назад
+global.buttons.ATTACH_FILE=Прикрепить файл(ы)
+global.ERROR = Ошибка
+global.CREATE_SOME = Создать
+global.NO_RECORDS = Нет записей
+global.MOVE = Переместить тему
+
+global.menu.ADMIN=Меню Администратора
+global.menu.FORUM=Меню форума
+
+global.STATS = Статистика
+global.RSS = RSS 2.0
+global.STATS1 = Всего сообщений
+global.STATS2 = Всего тем
+global.STATS3 = Всего форумов
+global.STATS4 = Всего зарегистрированных пользователей
+global.PAGE = Стр.
+global.SECONDS = секунд
+global.NOT_LOGGED = Вы не вошли в систему
+global.LOGIN = ВОЙТИ
+global.LOGIN_SM = Войти
+global.REGISTER = РЕГИСТРАЦИЯ
+global.OR = или
+global.TRICKS = Подсказки
+global.CONSTANTS = Настройки
+global.SIGNON_CONSTANTS= Параметры Регистрации
+global.RSS_CONSTANTS= Параметры RSS
+global.ATTACHMENT_CONSTANTS= Аттачмент файлов  
+global.JUMPTO = Перейти в
+global.GO = Перейти
+global.NONE = Нет
+global.PREV = Прев.
+global.NEXT = След.
+global.UNDER_CONSTRUCTION = Эта функциональность еще не реализована.
+global.TIME_GMT= Время по Гринвичу
+global.TIME_LOCAL= Время Вашего часового пояса
+global.YES = Да
+global.NO = Нет
+global.MARK_READ=Отметить все форумы прочтенными
+
+constants.MAILHOST= SMTP Сервер 
+constants.MAILUSER= Имя пользователя для  SMTP Сервера
+constants.ANONYMOUS= Use anonymous to disable SMTP authentication
+constants.MAILPASSWORD= Пароль пользователя SMTP Сервера
+constants.SMTP_SERVER_PORT=Порт SMTP Сервера
+constants.ADMINMAIL= email-адрес который будет показан в поле "Отправитель" автоматически посланных email-сообщений
+constants.SITE_NAME= Имя сайта (форума)
+constants.DOMAIN_NAME= Имя домейна (Основного сайта)
+constants.DOMAIN_URL=  URL домейна
+constants.SESSION_LENGTH= Продолжительность сессии ( max неактивный период) в секундах
+constants.MOTTO= Девиз сайта 
+constants.GZIP_COMPRESS= Включен GZip 
+constants.DEFAULT_LOCALE= Язык по умолчанию (for mail notification's only)
+
+constants.INVADER1=Минимальный Статус пользователя для доступа в Невидимый форум
+constants.ENABLE_AUTO_LOGIN= Авто Логин Включен
+constants.ENABLE_FORUM_SIGN_ON=Вход в форум разрешен
+constants.ENABLE_EMAIL_CONFIRMATION=Подтверждение регистрации пользователя включено
+constants.PERIOD_FOR_CONFIRMATION=Период ожидания подтверждения (часы)
+constants.ENABLE_FORUM_REGISTRATION=Регистрация в форум разрешена
+constants.ENABLE_EXT_SIGN_ON=Вход пользователям зарегистрированным на основном сайте 
+constants.EXT_LOGON_ACTION_URL=URL Входа на основной сайт
+constants.EXT_LOGOUT_ACTION_URL=URL Выхода на основном сайте
+constants.EXT_REGISTRATION_ACTION_URL=URL Регистрации на основном сайте
+
+constants.MAX_ATTACHMENT_COUNT=Максимальное количество файлов приаттаченных к сообщению
+constants.ENABLE_FILE_UPLOAD=Аттачмент файлов разрешен
+constants.ATTACH_STORE_PATH=Путь к директории, в которую будут сохраняться файлы
+constants.ENABLE_AVATAR=Разрешены Аватары пользователей 
+
+constants.RSS_MAX_ITEM_COUNT=Max количество тем в RSS фидах
+constants.RSS_PERIOD=Период за который показываются новые темы в RSS фидах (дни)
+constants.RSS_TTL= Время жизни. Как долго фид хранится в кеше парсера(минуты)
+# -- group + forum management
+forum.FORUM = форум
+forum.NFTD = В Базе Данных не найдено  форумов
+forum.NO_FORUMS = В этой группе нет форумов
+forum.NO_GROUPS = Нет ни одной группы
+forum.NO_GROUPS_ER = Нет ни одной группы для форумов, создание форумов не возможно
+forum.MARK_READ=Отметить все темы прочтенными
+forum.MESGS = Сообщения
+forum.TOPICS = Темы
+forum.L_MSG = Посл. Сообщение
+forum.STATUS = Статус
+forum.HELLO = Привет
+forum.LOGOUT = выход
+forum.Y_INFO = Ваша Анкета
+forum.Y_PASS = Сменить Пароль
+forum.LOG_TIT = Войти в форум
+forum.U_NAME = Имя пользователя
+forum.U_PASS = Пароль пользователя
+forum.LOG_FAIL = Введён не правильный пароль [ <a href="{0}"> Забыли Пароль </a> ]
+forum.ADMIN_MENU = Меню Администратора
+forum.ADD_GROUP = Добавить Группу
+forum.ADD_FORUM = Добавить форум
+forum.GROUP_NAME = Название Группы
+forum.FORUM_NAME = Название форума
+forum.LISTORDER = Позиция в списке
+forum.AF = Добавить форум
+forum.EF = Редак. форумы
+forum.EDIT_GR = Редак. Группы
+forum.EDIT_GR2 = Редак. Группу
+forum.EDIT_FR = Редак. форумы
+forum.EDIT_FR2 = Редак. форум
+forum.FGM = Управление Группами
+forum.EDIT = Редак.
+forum.DELETE = Удалить
+forum.NOGROUPS = В вашей системе нет ни одной группы
+forum.GR_NUM = Группа
+forum.FR_NUM = форум
+forum.INGP = В Группе
+forum.FDS = Описание форума
+forum.EU = Редак. Пользователей
+forum.SEARCH = Поиск
+forum.SEARCH_FOR=Искать 
+forum.SEARCH_ANY = Любое слово
+forum.SEARCH_ALL = Все слова
+forum.SEARCH_WHOLE = Фразу полностью
+forum.LOCK1 = Открыт для всех
+forum.LOCK2 = Закрыт на темы
+forum.LOCK3 = Закрыт полностью
+forum.LOCK4 = Невидим
+forum.LOCK2.DESC = Только модераторы и администраторы могут начинать новые темы 
+forum.LOCK3.DESC = Только модераторы и администраторы могут добавлять новые сообщения 
+forum.LOCK4.DESC = форум невидим для пользователей со статусом ниже чем 
+forum.LOCK1T = форум закрыт
+forum.LAST1 = Последние Сообщения
+forum.ROOT = Начало	
+forum.GUEST = Гость
+forum.GUESTS = Гостей
+forum.ONLINE = Сейчас у нас
+
+forum.MODERATES = Модератор?
+forum.MOD1 = Модерирует форумы
+forum.MOD2 = Добавить форум
+forum.MES_TOP = Закрепить Тему вверху списка
+forum.TLOCK = Закрыть Тему
+forum.TUNLOCK = Открыть Тему
+forum.TLOCKED = Эта Тема закрыта
+forum.NEW_TOP = Список обновленных тем
+forum.NEW_TOP_HEADER = Обновленные темы после вашего последнего визита
+forum.NO_NEWTOPICS = После вашего последнего визита, обновленных тем не обнаружено
+forum.NEW_SUBSC = Подписаться на тему
+forum.GENERATEDIN = Эта страница создавалась
+
+# -- user management
+user.ADD_USER = Добавить Нового Пользователя
+
+month.1 = Январь
+month.2 = "евраль
+month.3 = Март
+month.4 = Апрель
+month.5 = Май
+month.6 = Июнь
+month.7 = Июль
+month.8 = Август
+month.9 = Сентябрь
+month.10 = Октябрь
+month.11 = Ноябрь
+month.12 = Декабрь
+
+
+user.FTMBFO = Поля подлежащие заполнению
+user.SHOW_USER = Показать Информацию
+user.CHOOSE_LOGIN = Выберете Логин
+user.PASSWORD_RULES= Логин и пароль должны содержать только буквы и  \
+                     цифры и не могут быть короче 3 символов.
+user.LOGIN = Логин
+user.PASS1 = Пароль
+user.PASS2 = Подтвердите Пароль
+user.CONFIRM_CODE=Повторите код
+user.CONFIRM_CODE_DESC=(Код чувствителен к регистру)
+user.N_PASS1 = Новый Пароль
+user.N_PASS2 = Подтвердите Новый Пароль
+user.U_MAIL = Ваш E-mail
+user.OTHER_INFO = Не обязательная Информация
+user.U_URL = Ваша Страница (URL)
+user.U_ICQ = Номер ICQ
+user.SIG1 = Подпись
+user.SIG2 = Ваша подпись будет автоматически добавляться внизу каждого вашего сообщения
+user.DOB = Дата рождения
+user.OCCUPATION = Вид Деятельности
+user.PLACE = Город
+user.OPTIONS = Опции
+user.AUTO_LOG = Авто Логин
+user.YES = Да
+user.NO = Нет
+user.MPP = Сообщений на одной странице
+user.SHOW_MAIL = Показывать Ваш Адрес E-mail
+user.CHANGE_PASS = Сменить Пароль
+user.UM = Редактор Пользователей
+user.STATUS = Status
+user.PROMOTE = Повысить
+user.DEMOTE = Понизить
+user.DELETE = Удалить
+user.BLOCK = Заблокировать IP/Пользователя
+user.STAT0 = Не Зарегестрирован
+user.STAT1 = Пользователь
+user.STAT7 = Модератор
+user.STAT8 = Гл. Модератор
+user.STAT9 = Зам. Админа
+user.STAT10 = Администратор
+user.STATX = Не Известен
+user.SELECT_NEW_STAT=Выберите Новый Статус
+user.EDIT_USER = Редак. Ваши Настройки
+user.PLEASEEEM = Пожалуйста введите адрес e-mail указанный при регистрации
+user.PLEASEEEM2 = Мы сгенерируем и вышлем вам новый пароль
+user.EMERROR = Ваш Адрес не был найден в нашей базе данных
+user.EMERROR2 = Попробовать ещё
+user.EMCONFIRM = Мы выслали вам ваш новый пароль!
+user.YNP = Ваш Новый Пароль
+user.GENERAL = Общая Информация
+user.SPECIFIC = Специфическая Информация
+user.ADD_NEW_USER=Добавить Нового Пользователя
+
+user.RANKS=Звания
+user.EDIT_RANKS=Редактировать Звания
+user.RANK_NAME= Название
+user.RANK_COUNT= Количество сообщений
+user.NEW_RANK=Добавить новое звание
+
+user.ADD_BAN=Забанить
+user.REMOVE_BAN=Удалить Бан
+user.BAN_LIST=Бан Лист
+user.ban.2=IP Адрес
+user.ban.1=Логин
+user.ban.3=E-Mail
+
+user.SET_AVATAR=Аватар
+user.avatar.UPLOAD=Послать файл
+user.avatar.URL=Адрес Изображения
+user.avatar.ADD_REMOTE=Загрузить Изображение с указанного адреса
+user.avatar.COMMENT=Изображение может быть в формате JPEG,GIF или PNG . Размеры больше 150px будут пропорционально уменьшены.
+
+#UserList heading
+user.IP=IP Адрес
+user.SESSIONID=Идетификатор сессии
+
+# -- threads
+threads.T_TIT = Название Темы
+threads.NO_THREADS = В этом форуме царит пустота...
+threads.N_THREAD = Новая Тема
+threads.N_TOPIC = Новая Тема
+
+threads.NEXT = След.
+threads.PREV = Пред.
+threads.E_THREAD = Редак. Тему
+threads.M_THREAD = Подвинуть Тему
+threads.M_THREAD2 = Передвинуть Тему В
+
+# -- messages
+messages.SENDER = Послал
+messages.MESSAGE = Сообщение
+messages.THREAD = Тема
+messages.FROM = Из
+messages.SENT = Послано
+messages.DELETE = Стереть
+messages.EDIT = Редак.
+messages.REPLY = Ответить
+messages.RE=Re:
+messages.QUOTE = Цитата
+messages.NA = Н/Д
+messages.ADD_MESSAGE = Добавить Сообщение
+messages.PREVIEW_MESSAGE = Сообщение
+messages.EDIT_MESSAGE = Редактировать Сообщение
+messages.EMR = Посылайте ответы на это сообщение на мой e-mail
+messages.E-MAIL = E-Mail
+messages.FILE_DESC=Описание
+messages.FILE = Файл
+messages.NAME = Имя
+messages.TITLE = Заголовок
+messages.TEXT = Текст
+messages.SUBJECT = Заголовок
+messages.OPTIONS = Опции
+messages.NOT_FOUND= Запрошенное Сообщение не найдено
+messages.FILES= Прикрепленные файлы
+
+messages.attach.FILE_SIZE=Размер
+messages.attach.FILE_NAME=Название Файла
+messages.attach.DOWNLOAD=Загрузить файл
+messages.attach.DELETE=Удалить файл
+messages.attach.EDIT=Редактировать описание
+messages.attach.SHOW_FULL_SIZE=Показать полноразмерное изображение
+# -- mails
+# {0} - subsriber's login
+# {1} - site url
+# {2} - show message url
+# {3} - topic title
+# {4} - new message text
+# {5} - new message sender
+# {6} - site name
+mails.NEW_MESSAGE=Дорогой {0},<br> Это автоматически сгенерированное сообщение.<br>\
+                  Вы подписались на следующую тему на нашем форуме:  <a href="http://{1}{2}">{3}</a><br>\
+                  <br>Новое сообщение в этой теме:<br>\
+                  <br><em> {4}</em><br>\
+                  <br> Послал:{5}<br>\
+                  <br> <a href="http://{1}">{6}</a>\
+                  <br>-------------------------------------------------<br>\
+                  Администратор форума\
+                  <br> -------------------------------------------------<br>
+# {0} - login
+# {1} - new password
+# {2} - site url
+# {3} - site name
+mails.NEW_PASSWORD=Дорогой {0},<br> Ваш новый пароль: {1}<br>\
+				   <br> <a href="http://{2}">{3}</a>\
+                   <br>-------------------------------------------------<br>\
+                   Администратор форума\
+                   <br> -------------------------------------------------<br>
+# {0} - login
+# {1} - password
+# {2} - site url
+# {3} - site name
+mails.NEW_ACCOUNT=Дорогой {0},<br> Для Вас создан аккаунт на сайте <a href="http://{2}">{3}</a> .<br>\
+                  Ваш пароль: {1}<br>\
+                  <br> <a href="http://{2}">{3}</a> \
+                  <br>-------------------------------------------------<br>\
+                  Администратор форума\
+                  <br> -------------------------------------------------<br>
+# {0} - login
+# {1} - activation url
+# {2} - site url
+# {3} - site name
+# {4} - remove url
+mails.CONFIRM_ACCOUNT=Пожалуйста, подтвердите ваш email адрес и активируйте ваш аккаунт .<br>\
+                      <a href="http://{1}">{1}</a><br>\
+		     Если Вы не регистрировались на {3}, Вы можете <a href="http://{4}">отменить</a> регистрацию.<br>\
+		      <br> <a href="http://{2}">{3}</a>\
+                      <br>-------------------------------------------------<br>\
+                      Администратор форума\
+                      <br> -------------------------------------------------<br>
+# {0} - login
+# {1} - text
+# {2} - site url
+# {3} - site name
+mails.ADMIN_MAIL=Дорогой {0},<br>{1}<br>\
+				 <br> <a href="http://{2}">{3}</a>\
+                 <br>-------------------------------------------------<br>\
+                 Администратор форума\
+                 <br> -------------------------------------------------<br>
+
+mails.SEND_ADMIN_MAIL=Послать сообщение 
+mails.NEW_MESSAGE_SUBJ = Новое Сообщение
+mails.NEW_USER_SUBJ = Ваш новый аккаунт {0}.
+mails.CONFIRM_ACCOUNT_SUBJ = Пожалуйста активируйте Ваш аккаунт {0}.
+mails.FORUM_ADMIN = Авто Рассылка форума
+mails.SUBSCR = Подписки
+mails.CONFIRM_SUBSCR = Вы были подписаны на эту тему
+mails.UNSUBSCR = Отписаться
+mails.E_EMAIL = Пожалуйста введите ваш адрес e-mail чтобы отписаться
+mails.OK = Ваш адрес был снят с рассылки
+mails.OK1 = Ваш адрес был снят со всех рассылок форума
+mails.OK2 = Ваш адрес в нашей базе данных не найден!
+
+mails.GOTO = На главную
+mails.GOTO2 = Попробовать Ещё
+mails.NOSUB = У вас нет ни одной подписки
+mails.NOSUB2 = У вас нет ни одной подписки <br> \ 
+               Если вы зарегистрированный пользователь,- войдите в систему для управления подписками
+mails.BY = 
+
+mails.SHOW_USER = Показать Информацию
+mails.GENERAL = Общая Информация
+mails.SPECIFIC = Специфическая Информация
+mails.DROPOLD = Стереть Старые Темы
+
+mails.DROPMES = Стереть Все Темы Старее Чем
+mails.1WEEK = 1 Неделя
+mails.2WEEK = 2 Недели
+mails.1MONTH = 1 Месяц
+mails.3MONTH = 3 Месяца
+mails.6MONTH = 6 Месяцев
+mails.1YEAR = 1 Год
+mails.2YEAR = 2 Года
+mails.3YEAR = 3 Года
+mails.5YEAR = 5 Лет
+
+mails.DONE = Готово!<br><br>Стёрто: {0} Тем и {1} Сообщений
+mails.DELETED = Стёрто
+mails.THREADS = Тем
+mails.MESSAGES = Messages
+mails.AND = и
+
+# -- tags
+tags.IF = Если заключить текст в теги
+tags.HTEXT = тут текст
+tags.STAGS = Спец Теги
+tags.WILLGET = то получим вот что
+# -- log
+log.BROWSE_LOG= Browse Log
+log.PURGE_LOG=Purge Log
+log.search.DATE=Date 
+log.search.DATE_FROM=from
+log.search.DATE_TO=to
+
+log.list.log_date=date
+log.list.logger=logger
+log.list.log_level=log level
+log.list.message=message
+log.list.user_name=user name
+log.list.session_id=session id
+log.list.remote_ip=IP address
+
+# -- logging
+logs.LOG1 = logged on in session
+logs.LOG2 = attempted to login as
+logs.LOG3 = creates a new forum
+logs.LOG4 = creates a new group
+logs.LOG5 = posts a new message to thread
+logs.LOG6 = subscribes to thread
+logs.LOG7 = registeres as
+logs.LOG8 = changes his/her password
+logs.LOG9 = deletes user
+logs.LOG10 = set user status
+logs.LOG11 = A new password is sent for user:
+logs.LOG12 = deletes forum
+logs.LOG13 = deletes group
+logs.LOG14 = deletes message
+logs.LOG15 = deletes thread
+logs.LOG16 = drops some threads
+logs.LOG17 = changes details of forum
+logs.LOG18 = changes details of group
+logs.LOG19 = changes his/her details
+logs.LOG20 = locks forum
+logs.LOG21 = locks thread
+logs.LOG22 = unlocks thread
+logs.LOG23 = logs out
+logs.LOG24 = moves thread
+logs.LOG25 = automatically changes status to
+logs.LOG26 = enters the ERROR page
+logs.LOG27 = attempt to access 	
+logs.LOG28 = changes message 
+logs.LOG29 = add a new user login=
+# -- status
+status.STATUS=Результат
+status.CH_PASS=Пароль изменен
+status.UPDATE_MAILPASSWORD=Пароль для SMTP Сервера изменен
+status.UPDATE_DETAILS=Информация сохранена
+status.DELETE_USER=Пользователь {0} удален 
+status.UPDATE_CONSTANTS=Настройки форума сохранены
+status.ADMIN_MAIL_SENT=Сообщение послано всем зарегистрированным пользователям
+status.FORUM_LOCKED=Статус изменен для форума ID={0}
+status.USER_ADDED=Пользователь '{0}' добавлен
+status.PENDING_USER_ADDED=Необходимо подтверждение регистрации с Вашего email адреса <br> \
+                          Инструкции высланы на указанный Вами email.
+status.PENDING_REGISTRATION_CANCELLED=Регистрация для '{0}' отменена
+# -- errors
+
+errors.TITLE=Ошибка
+errors.DESCRIPTION=Вы должны исправить следующие ошибки:
+errors.ioException=I/O exception rendering error messages: {0}
+
+errors.ERR1 = Имя форума должно быть не менее 3 знаков в длину!
+errors.ERR2 = Описание форума должно быть не менее 3 знаков в длину!
+errors.ERR3 = Название Группы должно быть не менее 3 знаков в длину!
+errors.ERR4 = Использованы запрещённые символы при выборе логина!
+errors.ERR5 = Слишком короткое имя пользователя (логин), мин. 4 знака!
+errors.ERR6 = Этот логин уже занят!
+errors.ERR7 = Использованы запрещённые символы при выборе пароля!
+errors.ERR8 = Слишком короткий пароль, мин. 4 знака!
+errors.ERR9 = Ваши пароли не совпадают!
+errors.ERR10 = Пожалуйста введите нормальный адрес e-mail!
+errors.ERR11 = Такой номер ICQ не существует!
+errors.ERR12 = Ве не вошли в систему, как вы сюда попали?
+errors.ERR13 = У вас не достаточно прав доступа для работы с данным разделом!
+errors.ERR14 = Вы пытались получить не санкционированный доступ к данному разделу форума, \
+               при повторных попытках Ваш IP адрес будет забанен!
+errors.ERR15 = Пожалуйста, соблюдайте минимальную длину заголовка (3 знака)
+errors.ERR16 = Пожалуйста, соблюдайте минимальную длину текста (3 знака)
+errors.ERR17 = По вашему запросу ни чего не найдено
+errors.ERR18 = Заголовок обязателен для новой темы
+errors.ERR19 = E-Mail - обязателеное поле.
+errors.ERR20 = Имя -обязателеное поле.
+errors.ERR21 = Этот логин уже занят или Вы не вошли в систему.
+errors.ERR22 = Невозможно сохранить информацию для поьзователя с логином =
+errors.ERR23 = Звание для  {0} сообщений уже существует
+errors.ERR24 = Неправильный пароль
+errors.ERR404 = Запрашиваемый URL не найден.
+errors.ERR77 = Произошла ошибка.
+error.maxLengthExceeded=Был превышен максимально допустимый размер файла.
+errors.banned =Доступ закрыт. За дополнительной информацией обращайтесь к администратору форкма.
+# -- standard errors --
+
+
+# -- validator --
+errors.invalid=Поле {0} содержит неправильные данные .
+errors.maxlength=Поле {0} не может быть длиннее {1} символов.
+errors.minlength=Поле {0} не может быть короче {1} символов.
+errors.range=Поле {0} должно быть в интервале между {1} и {2}.
+errors.required={0} обязательное поле.
+errors.byte=Поле {0} должно быть байтом.
+errors.date=Поле {0} должно быть датой.
+errors.double=Поле {0} должно быть числом DOUBLE.
+errors.float=Поле {0} должно быть числом FLOAT.
+errors.integer=Поле {0} должно быть целым числом INTEGER.
+errors.long=Поле {0} должно быть целым числом LONG.
+errors.short=Поле {0} должно быть целым числом SHORT.
+errors.creditcard=Поле {0} должно быть номером кредитной карты.
+errors.email=Поле {0} не e-mail адрес.
+errors.color={Поле 0} должно быть цветом (hexadecimal).
+errors.twofields=Поле '{0}' должно иметь одинаковое значение с полем '{1}' 
+# -- other --
+errors.cancel=Операция отменена.
+errors.detail={0}
+errors.general=Процесс не завершен. Детали:{0}
+errors.token=Запрос не может быть выполнен. Операция не поддерживается.
+# -- welcome --
+welcome.title=Добро Пожаловать!
+welcome.heading=Добро Пожаловать!
+welcome.message=Добро Пожаловать!
+# -- skins
+skins.COLOR_RULE=При вводе значений для цвета (hexadecimal) не надо включать начальный символ #, т.е.. FFFFFF правильно, #FFFFFF нет
+skins.UPDATE=Изменение Стилей
+skins.SKIN=Скин
+# -- emoticons
+happy=счастливый
+sad=грустный
+grin=усмешка
+love=любовь
+mischief=озорник
+cool=крутой
+silly=глупый
+angry=сердитый
+laugh=хохот
+wink=подмигивание
+blush=краснеет
+cry=плач
+confused=сбитый с толку
+shocked=пораженный
+plain=спокойный

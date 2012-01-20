@@ -1,0 +1,533 @@
+# -- global --
+locale.display.name=Italian
+
+global.buttons.SUBMIT=Invia
+global.buttons.CANCEL=Cancella
+global.buttons.PREVIEW=Anteprima
+global.buttons.BACK=Indietro
+global.buttons.ATTACH_FILE=Allega File
+global.ERROR = Errore
+global.CREATE_SOME = Crea qualche
+global.NO_RECORDS = Nessun record trovato
+global.MOVE = Sposta argomento
+
+global.menu.ADMIN=Menù di amministrazione
+global.menu.FORUM=Forum menu
+
+global.STATS = Statistiche
+global.RSS = RSS 2.0
+global.STATS1 = Numero totale di messaggi
+global.STATS2 = Numero totale di argomenti
+global.STATS3 = Numero totale di forum
+global.STATS4 = Numero totale di utenti registrati
+global.PAGE = Pagina
+global.SECONDS = secondi
+global.NOT_LOGGED = Non sei autenticato
+global.LOGIN = LOGIN
+global.LOGIN_SM = Login
+global.REGISTER = REGISTRATI
+global.OR = o
+global.TRICKS = Tricks
+global.CONSTANTS = Costanti
+global.SIGNON_CONSTANTS= Preferenze su Sign-On
+global.RSS_CONSTANTS= Preferenze su RSS
+global.ATTACHMENT_CONSTANTS= Preferenze sull'upload dei File
+global.FORGOTPASS = Dimentatica Password
+global.JUMPTO = Vai a
+global.GO = Vai
+global.NONE = Nessun
+global.PREV = Precedente
+global.NEXT = Prossimo
+global.UNDER_CONSTRUCTION = Questa funzionalità sarà disponibile a breve.
+global.TIME_GMT= Tempo GMT
+global.TIME_LOCAL= Tempo nel fuso locale
+global.YES = Si
+global.NO = No
+global.MARK_READ=Segna tutti i forum come letti
+
+constants.MAILHOST= Server SMTP
+constants.MAILUSER= User Name per il Server SMTP
+constants.ANONYMOUS= Usa anonymous per disabilitare l'autenticazione SMTP
+constants.MAILPASSWORD= User Password per il Server SMTP
+constants.SMTP_SERVER_PORT=Porta del Server SMTP
+constants.ADMINMAIL= Indirizzo di Email da usare come mittente nei messaggi generati dal sistema
+constants.SITE_NAME= Nome del Sito
+constants.DOMAIN_NAME= Nome del Dominio
+constants.DOMAIN_URL=  URL del Dominio
+constants.SESSION_LENGTH=Lunghezza della sessione (intervallo massimo di inattività) in secondi
+constants.MOTTO= Motto del sito 
+constants.GZIP_COMPRESS= Abilita compressione GZip
+constants.DEFAULT_LOCALE= Default Locale (for mail notification's only)
+
+constants.INVADER1=User Status for Invisible Forum access
+constants.ENABLE_AUTO_LOGIN=Abilita Auto Login
+constants.ENABLE_FORUM_SIGN_ON=Abilita Forum Sign-On
+constants.ENABLE_EMAIL_CONFIRMATION=Abilita Conferma Email per gli utenti registrati
+constants.PERIOD_FOR_CONFIRMATION=Periodo di attesa conferma (in ore)
+constants.ENABLE_FORUM_REGISTRATION=Abilita la registrazione al Forum
+constants.ENABLE_EXT_SIGN_ON=Abilita il login dall'esterno
+constants.EXT_LOGON_ACTION_URL=External LogOn Action Url
+constants.EXT_LOGOUT_ACTION_URL=External LogOut Action Url
+constants.EXT_REGISTRATION_ACTION_URL=External Registration Action Url
+
+constants.MAX_ATTACHMENT_COUNT=Massimo numero di file allegati per messaggio
+constants.ENABLE_FILE_UPLOAD=Abilita gli allegati nel messaggi
+constants.ATTACH_STORE_PATH=Directory dove salvere gli allegati
+constants.ENABLE_AVATAR=Abilita Avatar
+
+constants.RSS_MAX_ITEM_COUNT=Numero di elementi per feed RSS
+constants.RSS_PERIOD=Periodo del feed RSS (in giorni)
+constants.RSS_TTL= Time to live. Indica per quanto tempo il feed è cachato dal parser (in minuti)
+# -- group + forum management
+forum.FORUM=Forum
+forum.NFTD = Non ci sono Forum nel database
+forum.NO_FORUMS = Non ci sono forum in questo gruppo
+forum.NO_GROUPS = Non ci sono gruppi
+forum.NO_GROUPS_ER = There are no forum groups present, no forum creations will be accepted!
+forum.MARK_READ=Segna tutti gli argomenti come letti
+forum.MESGS = Messaggi
+forum.TOPICS = Argomenti
+forum.L_MSG = Ultimo Messaggio
+forum.STATUS = Stato
+forum.HELLO = Benvenuto
+forum.LOGOUT = logout
+forum.Y_INFO = Informazioni Personali
+forum.Y_PASS = Cambia Passoword
+forum.LOG_TIT = Login al Forum
+forum.U_NAME = User Name
+forum.U_PASS = User Password
+forum.LOG_FAIL = User o Password sbagliate [ <a href="{0}"> Hai dimenticato la password? </a> ]
+forum.ADMIN_MENU = Menù di amministrazione
+forum.ADD_GROUP = Aggiungi Gruppo
+forum.ADD_FORUM = Aggiungi Forum
+forum.GROUP_NAME = Nome Gruppo
+forum.FORUM_NAME = Nome Forum
+forum.LISTORDER = Ordinamento nella lista
+forum.AF = Aggiungi Forum
+forum.EF = Modifica Forum
+forum.EDIT_GR = Modifica Gruppi
+forum.EDIT_GR2 = Modifica Gruppo
+forum.EDIT_FR = Modifica Forums
+forum.EDIT_FR2 = Modifica Forum
+forum.FGM = Gestione Gruppi
+forum.EDIT = Modifica
+forum.DELETE = Cancella
+forum.NOGROUPS = Spiacente, non ci sono gruppi...
+forum.GR_NUM = Gruppo
+forum.FR_NUM = Forum
+forum.INGP = nel gruppo
+forum.FDS = Descrizione Forum
+forum.EU = Modifica Utenti
+forum.SEARCH = Ricerca
+forum.SEARCH_FOR=Cerca
+forum.SEARCH_ANY = qualsiasi parola
+forum.SEARCH_ALL = tutte le parole
+forum.SEARCH_WHOLE = la frase
+forum.LOCK1 = Libero
+forum.LOCK2 = Argomenti Bloccati
+forum.LOCK3 = Bloccato completamente
+forum.LOCK4 = Invisibile
+forum.LOCK2.DESC = Solo i moderatori e gli amministatori possono aggiungere argomenti
+forum.LOCK3.DESC = Solo i moderatori e gli amministatori possono aggiungere nuovi messaggi
+forum.LOCK4.DESC = Il forum è nascosto per tutti gli utenti con livello inferiore a 
+forum.LOCK1T = Il forum è bloccato
+forum.LAST1 = Ultimi Messaggi
+forum.ROOT = Forum Root	
+forum.GUEST = Guest
+forum.GUESTS = Guests
+forum.ONLINE = Attualemente collegati
+
+forum.MODERATES = Informazioni sul moderatore
+forum.MOD1 = Modera i forum
+forum.MOD2 = Aggiungi un forum da moderare
+forum.MES_TOP = Annuncio dell'amministratore
+forum.TLOCK = Blocca argomento
+forum.TUNLOCK = Sblocca argomento
+forum.TLOCKED = Questo argomento è bloccato
+forum.NEW_TOP = Mostra argomenti aggiornati
+forum.NEW_TOP_HEADER = Argomenti aggiornati dalla tua ultima visita
+forum.NO_NEWTOPICS = Spiacente, non ci sono argomenti aggiornati dalla tua ultima visita
+forum.NEW_SUBSC = Abilita notifica per l'argomento
+forum.GENERATEDIN = Pagina generata in
+
+# -- user management
+user.ADD_USER = Aggiungi nuovo utente
+
+month.1 = Gennaio
+month.2 = Febbraio
+month.3 = Marzo
+month.4 = Aprile
+month.5 = Maggio
+month.6 = Giugno
+month.7 = Luglio
+month.8 = Agosto
+month.9 = Settembre
+month.10 = Ottobre
+month.11 = Novembre
+month.12 = Dicembre
+
+user.FTMBFO = Campi che devono essere compilati
+user.SHOW_USER = Mostra utente
+user.CHOOSE_LOGIN = Scegli un Login
+user.PASSWORD_RULES= Login e password possono contenere solo lettere e \
+                     numeri and non possono essere più corti di 3 caratteri.
+user.LOGIN = Login
+user.PASS1 = Password
+user.PASS2 = Conferma Password
+user.CONFIRM_CODE=Codice di Conferma
+user.CONFIRM_CODE_DESC=(Inserisci il codice esattamente come lo vedi. Il codice differenzia maiuscole e minuscole.)
+user.N_PASS1 = Nuova Password
+user.N_PASS2 = Conferma Nuova Password
+user.U_MAIL = E-mail
+user.OTHER_INFO = Altre informazioni (opzionali)
+user.U_URL = URL HomePage
+user.U_ICQ = Numero ICQ
+user.SIG1 = Firma
+user.SIG2 = La Firma sarà aggiunta<br>alla fine di tutti i tuoi messaggi...
+user.DOB = Data di Nascita
+user.OCCUPATION = Occupazione
+user.PLACE = Città
+user.OPTIONS = Opzione
+user.AUTO_LOG = Auto Login
+user.YES = Si
+user.NO = No
+user.MPP = Messaggi per pagina
+user.SHOW_MAIL = Mostra la tua email agli altri
+user.CHANGE_PASS = Cambia Password
+user.UM = User Manager
+user.STATUS = Stato
+user.PROMOTE = Promuovi
+user.DEMOTE = Boccia
+user.DELETE = Cancella
+user.BLOCK = Blocca IP/Utente
+user.STAT0 = Non Registrato
+user.STAT1 = Utente
+user.STAT7 = Moderatore
+user.STAT8 = Moderatore Principale
+user.STAT9 = Vice-Amministratore
+user.STAT10 = Amministratore
+user.SELECT_NEW_STAT=Selezione Nuovo Stato
+user.STATX = Sconosciuto
+user.EDIT_USER = Motifica le tue impostazioni
+user.PLEASEEEM = Inserisci l'indirizzo di e-mail con il quale ti sei registrato
+user.PLEASEEEM2 = Verrà generata una nuova password e inviata a questo indirizzo
+user.EMERROR = Il tuo indirizzo di e-mail non è presente nel database
+user.EMERROR2 = Prova nuovamente
+user.EMCONFIRM = La tua Nuova password ti è stata inviata per posta
+user.YNP = La tua nuova Password
+user.GENERAL = Informazioni Generali
+user.SPECIFIC = Informazioni specifiche
+user.ADD_NEW_USER=Aggiungi nuovo utente
+
+user.RANKS=Livelli in base al numero di messaggi
+user.EDIT_RANKS=Modifica il livello di un utente
+user.RANK_NAME= Nome
+user.RANK_COUNT= Numero di messaggi
+user.NEW_RANK=Aggiungi nuovo livello
+
+user.ADD_BAN=Aggiungi Blocco
+user.REMOVE_BAN=Rimuovi Blocco
+user.BAN_LIST=Lista dei Blocchi
+user.ban.2=Indirizzo IP
+user.ban.1=Nome di Login
+user.ban.3=E-Mail
+
+user.SET_AVATAR=Imposta Avatar
+user.avatar.UPLOAD=Uploada Avatar
+user.avatar.ADD_REMOTE=Carica Immagine da URL
+user.avatar.URL=URL dell'immagine
+user.avatar.COMMENT=Puoi assegnare immagini nei formati JPEG,GIF e PNG. Immagini con altezza o larghezza maggiori di 150px saranno ridimensionate a quella grandezza.
+#UserList heading
+user.IP=Indirizzo IP
+user.SESSIONID=ID di sessione
+
+# -- threads
+threads.T_TIT = Theme Title
+threads.NO_THREADS = Spiacienti, il forum è vuoto...
+threads.N_THREAD = New Thread
+threads.N_TOPIC = New Topic
+
+threads.NEXT = Next
+threads.PREV = Prev
+threads.E_THREAD = Edit Thread
+threads.M_THREAD = Move Thread
+threads.M_THREAD2 = Move Thread To
+
+# -- messages
+messages.SENDER = Mittente
+messages.MESSAGE = messaggio
+messages.THREAD = Argomento
+messages.FROM = Da
+messages.SENT = Invia
+messages.DELETE = Cancella
+messages.EDIT = Modifica
+messages.REPLY = Rispondi
+messages.RE=Re:
+messages.QUOTE = Cita
+messages.NA = N/A
+messages.ADD_MESSAGE = Aggiungi Messaggio
+messages.PREVIEW_MESSAGE = Anteprima Messaggio
+messages.EDIT_MESSAGE = Modifica Messaggio
+messages.EMR = Inviami per e-mail le risposte a questo messaggio
+messages.E-MAIL = E-Mail
+messages.FILE_DESC=Descrizione
+messages.FILE = File
+messages.NAME = Nome
+messages.TITLE = Titolo
+messages.TEXT = Testo
+messages.SUBJECT = Oggetto
+messages.OPTIONS = Opzioni
+messages.NOT_FOUND= Spiacente, il messaggio richieste non è stato trovato.
+messages.FILES= File Allegati
+
+messages.attach.FILE_SIZE=Dimensione
+messages.attach.FILE_NAME=Nome
+messages.attach.DOWNLOAD=Scarica File
+messages.attach.DELETE=Elimina File
+messages.attach.EDIT=Modifica le info sul File
+messages.attach.SHOW_FULL_SIZE=Mostra l'immagine a dimensioni originali
+# -- mails
+# {0} - subsriber's login
+# {1} - site url
+# {2} - show message url
+# {3} - topic title
+# {4} - new message text
+# {5} - new message sender
+# {6} - site name
+mails.NEW_MESSAGE=Caro {0},<br> Questo è un messaggio generato dal sistema.<br>\
+                  Ti sei iscritto al seguente argomento:  <a href="http://{1}{2}">{3}</a><br>\
+                  <br>Questo è il nuovo messaggio inviato:<br>\
+                  <br><em> {4}</em><br>\
+                  <br> Inviato da:{5}<br>\
+                  <br> <a href="http://{1}">{6}</a>\
+                  <br>-------------------------------------------------<br>\
+                  L'Amministatore del Forum\
+                  <br> -------------------------------------------------<br>
+# {0} - login
+# {1} - new password
+# {2} - site url
+# {3} - site name
+mails.NEW_PASSWORD=Caro {0},<br> la tua nuova Password: {1}<br>\
+				   <br> <a href="http://{2}">{3}</a>\
+                   <br>-------------------------------------------------<br>\
+                   L'Amministatore del Forum\
+                   <br> -------------------------------------------------<br>
+# {0} - login
+# {1} - password
+# {2} - site url
+# {3} - site name
+mails.NEW_ACCOUNT=Caro {0},<br> Il tuo account per <a href="http://{2}">{3}</a> è stato creato.<br>\
+                  La tua Password: {1}<br>\
+                  <br> <a href="http://{2}">{3}</a> \
+                  <br>-------------------------------------------------<br>\
+                  L'Amministatore del Forum\
+                  <br> -------------------------------------------------<br>
+# {0} - login
+# {1} - activation url
+# {2} - site url
+# {3} - site name
+# {4} - remove url
+mails.CONFIRM_ACCOUNT=Clicca sul seguente link per verificare l'indirizzo di e-mail e attivare l'account.<br>\
+					  <a href="http://{1}">{1}</a><br>\
+					  Se non hai creato recentemente un account per {3} <a href="http://{4}">clicca qui</a>.<br>\
+					  <br> <a href="http://{2}">{3}</a>\
+                      <br>-------------------------------------------------<br>\
+                      L'Amministatore del Forum\
+                      <br> -------------------------------------------------<br>
+# {0} - login
+# {1} - text
+# {2} - site url
+# {3} - site name
+mails.ADMIN_MAIL=Caro {0},<br>{1}<br>\
+				 <br> <a href="http://{2}">{3}</a>\
+                 <br>-------------------------------------------------<br>\
+                 L'Amministatore del Forum\
+                 <br> -------------------------------------------------<br>
+
+mails.SEND_ADMIN_MAIL=Invia mail a tutti
+mails.NEW_MESSAGE_SUBJ = Nuovo Messaggio
+mails.NEW_USER_SUBJ = Il tuo nuovo account per {0}.
+mails.CONFIRM_ACCOUNT_SUBJ = Per favore attiva il tuo account per {0}.
+mails.FORUM_ADMIN = jGossip Forum Mailer
+mails.SUBSCR = Iscrizioni
+mails.CONFIRM_SUBSCR = Sei iscritto a questo argomento
+mails.UNSUBSCR = Disiscriviti
+mails.E_EMAIL = Inserisci la tua e-mail per disiscriverti
+mails.OK = Sei stato disiscritto da questa lista di invio
+mails.OK1 = Sei stato disiscritto da tutte le liste di invio
+mails.OK2 = Il tuo indirizzo di email non è presente nel database!
+
+mails.GOTO = Vai alla pagina iniziale
+mails.GOTO2 = Riprova
+mails.NOSUB = Non sei iscritto a nessun argomento
+mails.NOSUB2 = YNon sei iscritto a nessun argomento <br>\
+               Se sei un utente registrato, autenticati per gestire le tue iscrizioni
+mails.BY = Da
+
+mails.SHOW_USER = Mostra utente
+mails.GENERAL = Informazioni generali
+mails.SPECIFIC = Informazioni Specifiche
+mails.DROPOLD = Cancella i messaggi vecchi
+
+mails.DROPMES = Cancella tutti i messaggi più vecchi di
+mails.1WEEK = 1 Settimana
+mails.2WEEK = 2 Settimane
+mails.1MONTH = 1 Mese
+mails.3MONTH = 3 Mesi
+mails.6MONTH = 6 Mesi
+mails.1YEAR = 1 Anno
+mails.2YEAR = 2 Anni
+mails.3YEAR = 3 Anni
+mails.5YEAR = 5 Anni
+
+mails.DONE = Fatto!<br><br>Cancellati: {0} Argomenti e {1} Messaggi
+mails.DELETED = Cancellati
+mails.THREADS = Argomenti
+mails.MESSAGES = Messaggi
+mails.AND = e
+
+# -- tags
+tags.IF = Put some text in these tags
+tags.HTEXT = Some Text
+tags.STAGS = Tag speciali
+tags.WILLGET = and you will get this
+# -- log
+log.BROWSE_LOG= Analizza Log
+log.search.DATE=Data 
+log.search.DATE_FROM=Da
+log.search.DATE_TO=a
+
+log.list.log_date=Data
+log.list.logger=sorgente
+log.list.log_level=livello di log
+log.list.message=messaggio
+log.list.user_name=user name
+log.list.session_id=session id
+log.list.remote_ip=indirizzo IP
+# -- logging
+logs.LOG1 = loggato con sessione 
+logs.LOG2 = ha tentato di loggarsi come
+logs.LOG3 = ha creato un nuovo forum
+logs.LOG4 = ha creato un nuovo gruppo
+logs.LOG5 = posts a new message to thread
+logs.LOG6 = subscribes to thread
+logs.LOG7 = registeres as
+logs.LOG8 = changes his/her password
+logs.LOG9 = deletes user
+logs.LOG10 = set user status
+logs.LOG11 = A new password is sent for user:
+logs.LOG12 = deletes forum
+logs.LOG13 = deletes group
+logs.LOG14 = deletes message
+logs.LOG15 = deletes thread
+logs.LOG16 = drops some threads
+logs.LOG17 = changes details of forum
+logs.LOG18 = changes details of group
+logs.LOG19 = changes his/her details
+logs.LOG20 = locks forum
+logs.LOG21 = locks thread
+logs.LOG22 = unlocks thread
+logs.LOG23 = logs out
+logs.LOG24 = moves thread
+logs.LOG25 = automatically changes status to
+logs.LOG26 = enters the ERROR page
+logs.LOG27 = attempt to access 	
+logs.LOG28 = changes message 
+logs.LOG29 = add a new user login=
+# -- status
+status.STATUS=Stato
+status.CH_PASS=Password cambiata
+status.UPDATE_MAILPASSWORD=Password per il server SMTP è stata cambiata
+status.UPDATE_DETAILS=Informazioni salvate
+status.DELETE_USER=Utente {0} cancellato
+status.UPDATE_CONSTANTS=Costanti del Forum aggiornate
+status.ADMIN_MAIL_SENT=Admin mail is sent to all registered users
+status.FORUM_LOCKED=Lock status is changed for forum with id={0}
+status.USER_ADDED=L'utente '{0}' è stato aggiunto
+status.PENDING_USER_ADDED=Confirmation from your email address is required, \
+                          to prevent anyone from registering you without permission.<br> \
+                          Instructions are being sent to you.
+status.PENDING_REGISTRATION_CANCELLED=The registration of '{0}' has been cancelled
+# -- errors
+
+errors.TITLE=Errore di validazione
+errors.DESCRIPTION=Devi correggere i seguenti errori prima di procedere:
+errors.ioException=I/O exception rendering error messages: {0}
+
+errors.ERR1 = "Forum Name" must be at least 3 charachters long!
+errors.ERR2 = "Forum Description" must be at least 3 charachters long!
+errors.ERR3 = "Group Name" must be at least 3 charachters long!
+errors.ERR4 = Invalid charachters used in "Login Name" selection!
+errors.ERR5 = User name too short (min 4 charachters)!
+errors.ERR6 = This Login Name is already taken!
+errors.ERR7 = Invalid charachters used in Password selection!
+errors.ERR8 = Password too short (min 4 charachters)!
+errors.ERR9 = Your passwords don't match!
+errors.ERR10 = Please enter a valid e-mail!
+errors.ERR11 = Invalid ICQ Number!
+errors.ERR12 = You are NOT logged in, how did you come here?
+errors.ERR13 = You do NOT have enough priviliges to work in this section!
+errors.ERR14 = YOU have attempted to gain unauthorized access to the forum management system!
+errors.ERR15 = Please make the title longer (3 chars min.)
+errors.ERR16 = Please make the message text longer (3 chars min.)
+errors.ERR17 = Your query returned no results
+errors.ERR18 = Title is required for new thread
+errors.ERR19 = E-Mail is required.
+errors.ERR20 = Name is required.
+errors.ERR21 = This Login Name is already taken or you are not logged in.
+errors.ERR22 = Can't save user info for external user with login =
+errors.ERR23 = Rank for count {0} alredy exist
+errors.ERR24 = Password is wrong
+errors.ERR404 = The requested URL was not found on this server.
+errors.ERR77 = Sorry, Unexpected Error occured.
+error.maxLengthExceeded=The maximum length for uploaded file has been exceeded.
+errors.banned = Access Denied. If you have any questions, please contact with forum administrator.
+# -- standard errors --
+
+
+# -- validator --
+errors.invalid={0} non è valido.
+errors.maxlength={0} non può essere più lungo di {1} caratteri.
+errors.minlength={0} non può essere più corto di {1} caratteri.
+errors.range={0} non è nell'intervallo tra {1} è {2}.
+errors.required={0} è obbligatorio.
+errors.byte={0} dev'essere di tipo byte.
+errors.date={0} non è una data.
+errors.double={0}dev'essere un numero double.
+errors.float={0} dev'essere un numero con virgola.
+errors.integer={0} dev'essere un numero intero.
+errors.long={0} dev'essere un numero long.
+errors.short={0}dev'essere un numero corto.
+errors.creditcard={0} non è un numero di carta di credito valido.
+errors.email={0} non è un'email valida.
+errors.color={0} deve esere un colore valido (notazione esadecimale).
+errors.twofields=Il campo '{0}' deve avere lo stesso valore del campo '{1}'
+# -- other --
+errors.cancel=Operazione Cancellata.
+errors.detail={0}
+errors.general=The process did not complete. Details should follow. {0}
+errors.token=Request could not be completed. Operation is not in sequence.
+# -- welcome --
+welcome.title=Benvenuto!
+welcome.heading=Benvenuto!
+welcome.message=Benvenuto!
+# -- skins
+skins.COLOR_RULE=When entering colours (hexadecimal notation) you must not include the initial #, i.e.. FFFFFF is valid, #FFFFFF is not
+skins.UPDATE=Modifica Stili
+skins.SKIN=Skin
+# -- emoticons
+happy=felice
+sad=triste
+grin=grin
+love=amore
+mischief=mischief
+cool=figo
+silly=silly
+angry=arrabbiato
+laugh=risata
+wink=occhiolino
+blush=arrossito
+cry=piange
+confused=confuso
+shocked=shocked
+plain=plain
