@@ -1,0 +1,7 @@
+Log of what I did to get this running...
+Require ant
+tried: ant -buildfile jgossip/build.xml dist -Ddeploy_env=default
+Needs apache libs
+updated j2ee.home, cataline.home, manager.username, manager.password, web.root, logs.root, db.driver in jgossip/env/default/build.properties
+Modified port 8080 to 8686 in tomcat/conf/server.xml
+Run server with: JAVA_HOME=~/DICE/ibm-java ./startup.sh

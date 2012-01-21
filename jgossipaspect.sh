@@ -2,7 +2,6 @@
 
 rm /home/lee/JavaTaintTracker/weavelog.log
 rm /home/lee/JavaTaintTracker/connector_weavelog.log
-#bash /home/lee/JavaTaintTracker/tomcat6.0.18/output/build/bin/shutdown.sh
 cd /home/lee/workspace/TaintAspects/bin
 jar cfM traceLib.jar .
 
