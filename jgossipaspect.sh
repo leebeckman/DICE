@@ -1,51 +1,34 @@
 #!/bin/bash
 
-rm /home/lee/JavaTaintTracker/weavelog.log
-rm /home/lee/JavaTaintTracker/connector_weavelog.log
-cd /home/lee/workspace/TaintAspects/bin
-jar cfM traceLib.jar .
+rm $HOME/DICE/weavelog.log
+rm $HOME/DICE/weavelog_connector.log
+rm $HOME/DICE/weavelog_beanutils.log
 
-cd /home/lee/JavaTaintTracker/jgossipFiles
-ant dist -Ddeploy_env=default
-cd /home/lee/JavaTaintTracker/jgossipFiles/dist/default
-jar xf jgossip.war
-cd WEB-INF
-jar cfM jgossipclasses.jar -C classes .
-mv /home/lee/workspace/TaintAspects/bin/traceLib.jar ./
+export CLASSPATH="$HOME/DICE/tomcat/lib/*:$HOME/DICE/jgossip/database/oracle/lib/*:$HOME/DICE/jgossip/database/mysql/lib/*:$HOME/DICE/jgossip/lib/*"
 
-export CLASSPATH="/home/lee/aspectj1.6/lib/aspectjrt.jar:/home/lee/JavaTaintTracker/tomcat6.0.18/output/build/lib/*:/home/lee/JavaTaintTracker/jgossipFiles/database/oracle/lib/*:/home/lee/JavaTaintTracker/jgossipFiles/database/mysql/lib/*:/home/lee/JavaTaintTracker/jgossipFiles/lib/*"
-ajc -inpath jgossipclasses.jar -aspectpath traceLib.jar -1.5 -showWeaveInfo -log /home/lee/JavaTaintTracker/weavelog.log -outjar tracedjgossip.jar
-rm jgossipclasses.jar
+ajc -sourceroots $HOME/DICE/src -1.5 -outjar $HOME/DICE/traceLib.jar
+cp $HOME/DICE/traceLib.jar $HOME/DICE/tomcat/lib
 
-cd /home/lee/JavaTaintTracker/jgossipFiles/dist/default/WEB-INF/lib
-mv /home/lee/JavaTaintTracker/jgossipFiles/dist/default/WEB-INF/traceLib.jar ./
-#ajc -inpath mysql-connector-java-3.0.14-production-bin.jar -aspectpath traceLib.jar -1.5 -showWeaveInfo -log /home/lee/JavaTaintTracker/connector_weavelog.log -outjar mysql-connector-java-3.0.14-production-bin-aspects.jar
-#rm mysql-connector-java-3.0.14-production-bin.jar
-ajc -inpath commons-dbcp.jar -aspectpath traceLib.jar -1.5 -showWeaveInfo -log /home/lee/JavaTaintTracker/connector_weavelog.log -outjar commons-dbcp-aspects.jar
-ajc -inpath commons-beanutils.jar -aspectpath traceLib.jar -1.5 -showWeaveInfo -log /home/lee/JavaTaintTracker/beanutils_weavelog.log -outjar commons-beanutils-aspects.jar
-rm commons-dbcp.jar
-rm /home/lee/JavaTaintTracker/tomcat6.0.18/output/build/lib/traceLib.jar
-mv traceLib.jar /home/lee/JavaTaintTracker/tomcat6.0.18/output/build/lib
+rm -rf $HOME/DICE/jgossipAspect
+mkdir $HOME/DICE/jgossipAspect
+echo '>>>jar xf...'
+unzip $HOME/DICE/jgossip/dist/default/jgossip.war -d $HOME/DICE/jgossipAspect
+echo '>>>jar cfM...'
+jar cfM $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar -C $HOME/DICE/jgossipAspect/WEB-INF/classes .
+echo '>>>done'
 
-cd ..
-rm -rf classes
-mkdir classes
-mv tracedjgossip.jar classes
-cd classes
-jar xf tracedjgossip.jar
-rm tracedjgossip.jar
-cd ../..
+ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/tracedjgossipClasses.jar
+rm $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar
 
-mv jgossip.war ../
-rm WEB-INF/lib/jsp-api.jar
-#rm /home/lee/JavaTaintTracker/tomcat6.0.18/output/build/webapps/jgossip.war
-#jar cvf /home/lee/JavaTaintTracker/tomcat6.0.18/output/build/webapps/jgossip.war *
-rm /home/lee/JavaTaintTracker/$1
-jar cvf /home/lee/JavaTaintTracker/$1 *
-mv ../jgossip.war ./
-rm -rf jgossip
-rm -rf META-INF
-rm -rf web
-rm -rf WEB-INF
+ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog_connector.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp-aspects.jar
+ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog_beanutils.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils-aspects.jar
+rm $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp.jar
+rm $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils.jar
 
-#bash /home/lee/JavaTaintTracker/tomcat6.0.18/output/build/bin/startup.sh
+
+rm -rf $HOME/DICE/jgossipAspect/WEB-INF/classes
+mkdir $HOME/DICE/jgossipAspect/WEB-INF/classes
+unzip $HOME/DICE/jgossipAspect/WEB-INF/tracedjgossipClasses.jar -d $HOME/DICE/jgossipAspect/WEB-INF/classes
+rm $HOME/DICE/jgossipAspect/WEB-INF/tracedjgossipClasses.jar
+
+jar cvf $HOME/DICE/jgossip.war -C $HOME/DICE/jgossipAspect .

@@ -13,7 +13,7 @@ public aspect DBCPTaint {
 	public DBCPTaint() {
 		try {
 			LogManager lm = LogManager.getLogManager();
-			FileHandler fh = new FileHandler("/home/lee/JavaTaintTracker/dbtaintinglog.log");
+			FileHandler fh = new FileHandler("/home/lee/DICE/dbtaintinglog.log");
 			
 			tlogger = Logger.getLogger("DBTaintLogger");
 			lm.addLogger(tlogger);

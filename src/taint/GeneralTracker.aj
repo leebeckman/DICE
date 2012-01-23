@@ -29,7 +29,7 @@ public aspect GeneralTracker {
 	public GeneralTracker() {
 		try {
 			LogManager lm = LogManager.getLogManager();
-			FileHandler fh = new FileHandler("/home/lee/JavaTaintTracker/taintlog.log");
+			FileHandler fh = new FileHandler("/home/lee/DICE/taintlog.log");
 			
 			logger = Logger.getLogger("TaintLogger");
 			lm.addLogger(logger);
