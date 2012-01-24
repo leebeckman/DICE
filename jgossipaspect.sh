@@ -11,11 +11,8 @@ cp $HOME/DICE/traceLib.jar $HOME/DICE/tomcat/lib
 
 rm -rf $HOME/DICE/jgossipAspect
 mkdir $HOME/DICE/jgossipAspect
-echo '>>>jar xf...'
 unzip $HOME/DICE/jgossip/dist/default/jgossip.war -d $HOME/DICE/jgossipAspect
-echo '>>>jar cfM...'
 jar cfM $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar -C $HOME/DICE/jgossipAspect/WEB-INF/classes .
-echo '>>>done'
 
 ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/tracedjgossipClasses.jar
 rm $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar
@@ -25,10 +22,17 @@ ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils.jar -aspectpa
 rm $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp.jar
 rm $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils.jar
 
-
+echo "Removing old classes dir"
 rm -rf $HOME/DICE/jgossipAspect/WEB-INF/classes
+echo "Creating new classes dir"
 mkdir $HOME/DICE/jgossipAspect/WEB-INF/classes
+ls $HOME/DICE/jgossipAspect/WEB-INF
+echo "Extracting new jgossip classes"
 unzip $HOME/DICE/jgossipAspect/WEB-INF/tracedjgossipClasses.jar -d $HOME/DICE/jgossipAspect/WEB-INF/classes
+ls $HOME/DICE/jgossipAspect/WEB-INF/classes
 rm $HOME/DICE/jgossipAspect/WEB-INF/tracedjgossipClasses.jar
 
+echo "Packaging war"
 jar cvf $HOME/DICE/jgossip.war -C $HOME/DICE/jgossipAspect .
+rm -rf $HOME/DICE/jgossipAspect
+rm $HOME/DICE/traceLib.jar
