@@ -3,10 +3,13 @@
 rm $HOME/DICE/weavelog.log
 rm $HOME/DICE/weavelog_connector.log
 rm $HOME/DICE/weavelog_beanutils.log
+rm $HOME/DICE/aspectcompile.log
 
 export CLASSPATH="$HOME/DICE/tomcat/lib/*:$HOME/DICE/jgossip/database/oracle/lib/*:$HOME/DICE/jgossip/database/mysql/lib/*:$HOME/DICE/jgossip/lib/*"
+export JAVA_HOME="$HOME/DICE/ibm-java"
 
-ajc -sourceroots $HOME/DICE/src -1.5 -outjar $HOME/DICE/traceLib.jar
+
+ajc -sourceroots $HOME/DICE/src -1.5 -log $HOME/DICE/aspectcompile.log -outjar $HOME/DICE/traceLib.jar
 cp $HOME/DICE/traceLib.jar $HOME/DICE/tomcat/lib
 
 rm -rf $HOME/DICE/jgossipAspect

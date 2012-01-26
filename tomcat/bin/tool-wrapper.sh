@@ -18,7 +18,7 @@
 # -----------------------------------------------------------------------------
 # Wrapper script for command line tools
 #
-# Environment Variable Prequisites
+# Environment Variable Prerequisites
 #
 #   CATALINA_HOME May point at your Catalina "build" directory.
 #
@@ -30,7 +30,7 @@
 #   JAVA_OPTS     (Optional) Java runtime options used when the "start",
 #                 "stop", or "run" command is executed.
 #
-# $Id: tool-wrapper.sh 562770 2007-08-04 22:13:58Z markt $
+# $Id: tool-wrapper.sh 1040555 2010-11-30 15:00:25Z rjung $
 # -----------------------------------------------------------------------------
 
 # OS specific support.  $var _must_ be set to either true or false.
@@ -54,7 +54,12 @@ done
 
 # Get standard environment variables
 PRGDIR=`dirname "$PRG"`
-CATALINA_HOME=`cd "$PRGDIR/.." ; pwd`
+CATALINA_HOME=`cd "$PRGDIR/.." >/dev/null; pwd`
+
+# Ensure that any user defined CLASSPATH variables are not used on startup,
+# but allow them to be specified in setenv.sh, in rare case when it is needed.
+CLASSPATH=
+
 if [ -r "$CATALINA_HOME"/bin/setenv.sh ]; then
   . "$CATALINA_HOME"/bin/setenv.sh
 fi

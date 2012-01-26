@@ -1,6 +1,7 @@
 package taint;
 
 import org.aspectj.lang.JoinPoint;
+
 import org.aspectj.lang.JoinPoint.EnclosingStaticPart;
 import org.aspectj.lang.reflect.CodeSignature;
 //import org.jresearch.gossip.list.RecordsData;
@@ -14,10 +15,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-
-
 public aspect GeneralTracker {
-	private Logger logger;
+	
 	private boolean anyExecutionAdviceEnabled; // temporary solution to fix overflowing on recursive advice
 	/*
 	 * Word of caution here:
@@ -27,23 +26,6 @@ public aspect GeneralTracker {
 	 */
 	
 	public GeneralTracker() {
-		try {
-			LogManager lm = LogManager.getLogManager();
-			FileHandler fh = new FileHandler("/home/lee/DICE/taintlog.log");
-			
-			logger = Logger.getLogger("TaintLogger");
-			lm.addLogger(logger);
-			logger.setLevel(Level.INFO);
-			fh.setFormatter(new SimpleFormatter());
-			
-			logger.addHandler(fh);
-			
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
 		anyExecutionAdviceEnabled = true;
 	}
 	
@@ -72,7 +54,7 @@ public aspect GeneralTracker {
 //        
 //        return result;
 //    }
-//    
+    
 //    Object around(): stringConcat() {
 //    	Object result = proceed();
 //    	TaintData.getTaintData().mapDataToSource(result, null);
@@ -101,8 +83,8 @@ public aspect GeneralTracker {
 		        			StackTraceElement[] stack = current.getStackTrace();
 		        			StackPath path = stackTraceToPath(stack);
 		        			
-//		        			logger.log(Level.INFO, "STP=" + path + "=" + TaintData.getTaintData().getDataSources(args[i]));
-		        			logger.log(Level.INFO, "STP=" + path);
+		        			TaintData.getTaintData().log("STP=" + path + "=" + TaintData.getTaintData().getDataSources(args[i]));
+//		        			logger.log(Level.INFO, "STP=" + path);
 		        		}
 	        		}
 	        	}
@@ -115,7 +97,7 @@ public aspect GeneralTracker {
 	        			StackTraceElement[] stack = current.getStackTrace();
 	        			StackPath path = stackTraceToPath(stack);
 	        			
-	        			logger.log(Level.INFO, "OTP=" + path);
+	        			TaintData.getTaintData().log("OTP=" + path + "=" + TaintData.getTaintData().getDataSources(args[i]));
 	        		}
 	        	}
 	        }
@@ -132,7 +114,7 @@ public aspect GeneralTracker {
 	    			StackTraceElement[] stack = current.getStackTrace();
 	    			StackPath path = stackTraceToPath(stack);
 	    			
-	    			logger.log(Level.INFO, "STR=" + path.toTargetSourceString());
+	    			TaintData.getTaintData().log("STR=" + path.toTargetSourceString() + "=" + TaintData.getTaintData().getDataSources(ret));
 	    		}
 	    	}
 	    	else {
@@ -141,7 +123,7 @@ public aspect GeneralTracker {
 	    			StackTraceElement[] stack = current.getStackTrace();
 	    			StackPath path = stackTraceToPath(stack);
 	    			
-	    			logger.log(Level.INFO, "OTR=" + path.toTargetSourceString());
+	    			TaintData.getTaintData().log("OTR=" + path.toTargetSourceString() + "=" + TaintData.getTaintData().getDataSources(ret));
 	    		}
 	    	}
 	    	anyExecutionAdviceEnabled = true;
@@ -153,14 +135,16 @@ public aspect GeneralTracker {
     		if (((String) newVal).hasTaint()) {
     			Object owner = thisJoinPoint.getTarget();
     			TaintData.getTaintData().getTaintedObjs().add(owner);
-    			logger.log(Level.INFO, "Tainting assigned through String");
+    			TaintData.getTaintData().propagateSources(newVal, owner);
+    			TaintData.getTaintData().log("Tainting assigned through String: " + TaintData.getTaintData().getDataSources(owner));
     		}
     	}
     	else {
     		if (TaintData.getTaintData().getTaintedObjs().contains(newVal)) {
     			Object owner = thisJoinPoint.getThis();
     			TaintData.getTaintData().getTaintedObjs().add(owner);
-    			logger.log(Level.INFO, "Tainting assigned through Object");
+    			TaintData.getTaintData().propagateSources(newVal, owner);
+    			TaintData.getTaintData().log("Tainting assigned through Object: " + TaintData.getTaintData().getDataSources(owner));
     		}
     	}
     }
@@ -183,7 +167,7 @@ public aspect GeneralTracker {
 		}
 		
 		if (startIndex < 3) {
-			logger.log(Level.SEVERE, "Suspect stack trace used to extract path");
+			TaintData.getTaintData().log("Suspect stack trace used to extract path");
 		}
 
 		targClass = stack[startIndex].getClassName();
@@ -192,6 +176,14 @@ public aspect GeneralTracker {
 		srcMethod = stack[startIndex + 1].getMethodName();
 		
 		return new StackPath(targClass, targMethod, srcClass, srcMethod);
+    }
+    
+    private String stackTraceToString(StackTraceElement[] stack) {
+		String ret = "";
+		for (int i = 0; i < stack.length; i++) {
+			ret = ret + ("STACK: " + stack[i].getClassName() + ":" + stack[i].getMethodName() + "\n");
+		}
+		return ret;
     }
     
     class StackPath {

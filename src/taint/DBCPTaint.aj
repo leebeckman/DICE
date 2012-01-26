@@ -1,33 +1,22 @@
 package taint;
 
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
+import javax.sql.rowset.RowSetMetaDataImpl;
+
 public aspect DBCPTaint {
-	Logger tlogger;
 	
 	public DBCPTaint() {
-		try {
-			LogManager lm = LogManager.getLogManager();
-			FileHandler fh = new FileHandler("/home/lee/DICE/dbtaintinglog.log");
-			
-			tlogger = Logger.getLogger("DBTaintLogger");
-			lm.addLogger(tlogger);
-			tlogger.setLevel(Level.INFO);
-			fh.setFormatter(new SimpleFormatter());
-			
-			tlogger.addHandler(fh);
-			
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
+
 	}
 	
     
@@ -41,16 +30,25 @@ public aspect DBCPTaint {
     	Object result = proceed();
     	if (result instanceof String) {
     		result = new String((String)result, true);
-//    		TaintData.getTaintData().mapDataToSource(result, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
-    		tlogger.log(Level.INFO, "Tainted ResultSet String object: " + result);
+
+    		TaintData.getTaintData().mapDataToSource(result, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
+    		TaintData.getTaintData().log_db("Tainted ResultSet String object: " + result);
     	}
     	return result;
     }
     
     after() returning (Object ret): jdbc_PreparedStatement_executeQuery() {
+    	ResultSet rs = (ResultSet)ret;
+		ResultSetMetaData metaData = null;
+		try {
+    		metaData = (ResultSetMetaData) rs.getMetaData();
+    	} catch (SQLException e) {
+    		TaintData.getTaintData().log("ON GETTING METADATA FROM RESULTSET: " + e.getMessage());
+    	}
+    	
     	TaintData.getTaintData().getTaintedObjs().add(ret);
-    	tlogger.log(Level.INFO, "Tainting ResultSet " + ret);
-//    	TaintData.getTaintData().mapResultSetToSource(ret, thisJoinPoint.getThis());
+		TaintData.getTaintData().mapDataToSource(ret, metaData);
+    	TaintData.getTaintData().mapResultSetToSource(ret, metaData);
     }
     
 }

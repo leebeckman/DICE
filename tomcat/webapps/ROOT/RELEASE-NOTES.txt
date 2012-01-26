@@ -15,10 +15,10 @@
   limitations under the License.
 ================================================================================
 
-$Id: RELEASE-NOTES 612940 2008-01-17 19:22:26Z markt $
+$Id: RELEASE-NOTES 1178679 2011-10-04 04:25:20Z kkolinko $
 
 
-                     Apache Tomcat Version 6.0-snapshot
+                     Apache Tomcat Version 6.0.35
                             Release Notes
 
 
@@ -36,13 +36,14 @@ KNOWN ISSUES IN THIS RELEASE:
 * Symlinking static resources
 * Enabling invoker servlet
 * Viewing the Tomcat Change Log
+* Cryptographic software notice
 * When all else fails
 
 
 ===================
 Dependency Changes:
 ===================
-Tomcat 6.0 is designed to run on JSE 5.0 and later.
+Tomcat 6.0 is designed to run on Java SE 5.0 and later.
 
 In addition, Tomcat 6.0 uses the Eclipse JDT Java compiler for compiling
 JSP pages.  This means you no longer need to have the complete
@@ -84,10 +85,10 @@ for use by web applications (by placing them in "lib"):
 * catalina-ant.jar (Tomcat Catalina Ant tasks)
 * catalina-ha.jar (High availability package)
 * catalina-tribes.jar (Group communication)
+* ecj-3.7.jar (Eclipse JDT Java compiler)
 * el-api.jar (EL 2.1 API)
 * jasper.jar (Jasper 2 Compiler and Runtime)
 * jasper-el.jar (Jasper 2 EL implementation)
-* jasper-jdt.jar (Eclipse JDT 3.3 Java compiler)
 * jsp-api.jar (JSP 2.1 API)
 * servlet-api.jar (Servlet 2.5 API)
 * tomcat-coyote.jar (Tomcat connectors and utility classes)
@@ -152,7 +153,7 @@ In order to grant security permissions to JARs located inside the
 web application repository, use URLs of of the following format
 in your policy file:
 
-file:${catalina.home}/webapps/examples/WEB-INF/lib/driver.jar
+file:${catalina.base}/webapps/examples/WEB-INF/lib/driver.jar
 
 
 ============================
@@ -182,6 +183,34 @@ http://tomcat.apache.org/faq/misc.html#invoker.
 Viewing the Tomcat Change Log:
 ==============================
 See changelog.html in this directory.
+
+
+=============================
+Cryptographic software notice
+=============================
+This distribution includes cryptographic software.  The country in 
+which you currently reside may have restrictions on the import, 
+possession, use, and/or re-export to another country, of 
+encryption software.  BEFORE using any encryption software, please 
+check your country's laws, regulations and policies concerning the
+import, possession, or use, and re-export of encryption software, to 
+see if this is permitted.  See <http://www.wassenaar.org/> for more
+information.
+
+The U.S. Government Department of Commerce, Bureau of Industry and
+Security (BIS), has classified this software as Export Commodity 
+Control Number (ECCN) 5D002.C.1, which includes information security
+software using or performing cryptographic functions with asymmetric
+algorithms.  The form and manner of this Apache Software Foundation
+distribution makes it eligible for export under the License Exception
+ENC Technology Software Unrestricted (TSU) exception (see the BIS 
+Export Administration Regulations, Section 740.13) for both object 
+code and source code.
+
+The following provides more details on the included cryptographic
+software:
+  - Tomcat includes code designed to work with JSSE
+  - Tomcat includes code designed to work with OpenSSL
 
 
 ====================

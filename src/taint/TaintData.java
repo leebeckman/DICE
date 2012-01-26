@@ -1,16 +1,23 @@
 package taint;
 
+import java.io.IOException;
+import java.sql.PreparedStatement;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import javax.sql.rowset.RowSetMetaDataImpl;
 
-import org.apache.commons.dbcp.DelegatingPreparedStatement;
-
 public class TaintData {
 
+	private Logger logger;
+	private Logger dlogger;
 	private static TaintData self;
 	private HashSet<Object> taintedObj;
 	
@@ -20,6 +27,29 @@ public class TaintData {
 	
 	
 	private TaintData() {
+		try {
+			LogManager lm = LogManager.getLogManager();
+			
+			FileHandler fh = new FileHandler("/home/lee/DICE/dbtaintlog.log");
+			dlogger = Logger.getLogger("DBTaintLogger");
+			lm.addLogger(dlogger);
+			dlogger.setLevel(Level.INFO);
+			fh.setFormatter(new SimpleFormatter());
+			dlogger.addHandler(fh);
+			
+			fh = new FileHandler("/home/lee/DICE/taintlog.log");
+			logger = Logger.getLogger("TaintLogger");
+			lm.addLogger(logger);
+			logger.setLevel(Level.INFO);
+			fh.setFormatter(new SimpleFormatter());
+			logger.addHandler(fh);
+			
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
 		taintedObj = new HashSet<Object>();
 		resultSetToSourceMap = new HashMap<Object, Object>();
 		dataToSourcesMap = new HashMap<Object, TaintData.SizedSources>();
@@ -31,6 +61,14 @@ public class TaintData {
 		}
 		
 		return self;
+	}
+	
+	public void log(String message) {
+		logger.log(Level.INFO, message);
+	}
+	
+	public void log_db(String message) {
+		dlogger.log(Level.INFO, message);
 	}
 	
 	public HashSet<Object> getTaintedObjs() {
@@ -53,8 +91,11 @@ public class TaintData {
 		dataToSourcesMap.put(data, new SizedSources(size, source));
 	}
 	
-	public void mapDataToSources(Object data, Object sourcedData) {
-		dataToSourcesMap.get(data).addSources(dataToSourcesMap.get(sourcedData));
+	public void propagateSources(Object sourceData, Object targetData) {
+		if (dataToSourcesMap.get(targetData) == null) {
+			dataToSourcesMap.put(targetData, new SizedSources(0, null));
+		}
+		dataToSourcesMap.get(targetData).addSources(dataToSourcesMap.get(sourceData));
 	}
 	
 	public SizedSources getDataSources(Object data) {
@@ -66,8 +107,9 @@ public class TaintData {
 		
 		public SizedSources (int size, Object source) {
 			this.sources = new HashMap<Object, Integer>();
-			if (source != null)
+			if (source != null) {
 				this.sources.put(source, size);
+			}
 		}
 		
 		public void addSources(SizedSources sources) {
@@ -82,14 +124,16 @@ public class TaintData {
 		public String toString() {
 			String ret = "";
 			for (Object source : sources.keySet()) {
-				ret += (sources.get(source) + '-');
+				ret = ret + (sources.get(source).toString() + '-');
 				try {
-					RowSetMetaDataImpl metaData = (RowSetMetaDataImpl) ((DelegatingPreparedStatement)source).getMetaData();
+					ResultSetMetaData metaData = (ResultSetMetaData) source;
 					int colCount = metaData.getColumnCount();
 					for (int i = 1; i <= colCount; i++) {
-						ret += (metaData.getColumnName(i) + '#');
+						ret = ret + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
 					}
 				} catch (SQLException e) {
+					ret = "SQLException";
+					ret = ret + ": " + e.getMessage();
 					e.printStackTrace();
 				}
 			}
