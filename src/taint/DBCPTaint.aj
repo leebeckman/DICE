@@ -1,17 +1,8 @@
 package taint;
 
-import java.io.IOException;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-
-import javax.sql.rowset.RowSetMetaDataImpl;
 
 public aspect DBCPTaint {
 	
@@ -30,7 +21,7 @@ public aspect DBCPTaint {
     	Object result = proceed();
     	if (result instanceof String) {
     		result = new String((String)result, true);
-
+    		
     		TaintData.getTaintData().mapDataToSource(result, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
     		TaintData.getTaintData().log_db("Tainted ResultSet String object: " + result);
     	}
@@ -46,8 +37,8 @@ public aspect DBCPTaint {
     		TaintData.getTaintData().log("ON GETTING METADATA FROM RESULTSET: " + e.getMessage());
     	}
     	
-    	TaintData.getTaintData().getTaintedObjs().add(ret);
-		TaintData.getTaintData().mapDataToSource(ret, metaData);
+//    	TaintData.getTaintData().getTaintedObjs().add(ret);
+//		TaintData.getTaintData().mapDataToSource(ret, metaData);
     	TaintData.getTaintData().mapResultSetToSource(ret, metaData);
     }
     

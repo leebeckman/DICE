@@ -1,29 +1,13 @@
 package taint;
 
-import org.aspectj.lang.JoinPoint;
-
-import org.aspectj.lang.JoinPoint.EnclosingStaticPart;
-import org.aspectj.lang.reflect.CodeSignature;
-//import org.jresearch.gossip.list.RecordsData;
-
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.sql.ResultSet;
-import java.util.logging.*;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.IdentityHashMap;
+
+import org.aspectj.lang.reflect.CodeSignature;
 
 public aspect GeneralTracker {
 	
 	private boolean anyExecutionAdviceEnabled; // temporary solution to fix overflowing on recursive advice
-	/*
-	 * Word of caution here:
-	 * Sets use .equals() for equality checks. Possible that objects which implement their own
-	 * equals could indicate equality even if not referentially equivalent. This could lead
-	 * to incorrect tainting information, but this is probably pretty unlikely.
-	 */
 	
 	public GeneralTracker() {
 		anyExecutionAdviceEnabled = true;
@@ -92,12 +76,13 @@ public aspect GeneralTracker {
 //	        		if (args[i] instanceof ResultSet) {
 //	        			logger.log(Level.INFO, "ResultSet " + args[i] + " passed through " + thisJoinPoint.getSignature().getName());
 //	        		}
-	        		if (TaintData.getTaintData().getTaintedObjs().contains(args[i])) {
+	        		IdentityHashMap<String, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
+	        		if (objTaint.size() > 0) {
 	        			Thread current = Thread.currentThread();
 	        			StackTraceElement[] stack = current.getStackTrace();
 	        			StackPath path = stackTraceToPath(stack);
-	        			
-	        			TaintData.getTaintData().log("OTP=" + path + "=" + TaintData.getTaintData().getDataSources(args[i]));
+	        			for (String key : objTaint.keySet())
+	        				TaintData.getTaintData().log("OTP=" + path + "=" + TaintData.getTaintData().getDataSources(key));
 	        		}
 	        	}
 	        }
@@ -118,36 +103,37 @@ public aspect GeneralTracker {
 	    		}
 	    	}
 	    	else {
-	    		if (TaintData.getTaintData().getTaintedObjs().contains(ret)) {
+	    		IdentityHashMap<String, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
+        		if (objTaint.size() > 0) {
 	    			Thread current = Thread.currentThread();
 	    			StackTraceElement[] stack = current.getStackTrace();
 	    			StackPath path = stackTraceToPath(stack);
-	    			
-	    			TaintData.getTaintData().log("OTR=" + path.toTargetSourceString() + "=" + TaintData.getTaintData().getDataSources(ret));
+	    			for (String key : objTaint.keySet())
+	    				TaintData.getTaintData().log("OTR=" + path.toTargetSourceString() + "=" + TaintData.getTaintData().getDataSources(key));
 	    		}
 	    	}
 	    	anyExecutionAdviceEnabled = true;
     	}
     }
     
-    before(Object newVal): set(* org.jresearch..*.*) && args(newVal) {
-    	if (newVal instanceof String) {
-    		if (((String) newVal).hasTaint()) {
-    			Object owner = thisJoinPoint.getTarget();
-    			TaintData.getTaintData().getTaintedObjs().add(owner);
-    			TaintData.getTaintData().propagateSources(newVal, owner);
-    			TaintData.getTaintData().log("Tainting assigned through String: " + TaintData.getTaintData().getDataSources(owner));
-    		}
-    	}
-    	else {
-    		if (TaintData.getTaintData().getTaintedObjs().contains(newVal)) {
-    			Object owner = thisJoinPoint.getThis();
-    			TaintData.getTaintData().getTaintedObjs().add(owner);
-    			TaintData.getTaintData().propagateSources(newVal, owner);
-    			TaintData.getTaintData().log("Tainting assigned through Object: " + TaintData.getTaintData().getDataSources(owner));
-    		}
-    	}
-    }
+//    before(Object newVal): set(* org.jresearch..*.*) && args(newVal) {
+//    	if (newVal instanceof String) {
+//    		if (((String) newVal).hasTaint()) {
+//    			Object owner = thisJoinPoint.getTarget();
+//    			TaintData.getTaintData().getTaintedObjs().add(owner);
+//    			TaintData.getTaintData().propagateSources(newVal, owner);
+//    			TaintData.getTaintData().log("Tainting assigned through String: " + TaintData.getTaintData().getDataSources(owner));
+//    		}
+//    	}
+//    	else {
+//    		if (TaintData.getTaintData().getTaintedObjs().contains(newVal)) {
+//    			Object owner = thisJoinPoint.getThis();
+//    			TaintData.getTaintData().getTaintedObjs().add(owner);
+//    			TaintData.getTaintData().propagateSources(newVal, owner);
+//    			TaintData.getTaintData().log("Tainting assigned through Object: " + TaintData.getTaintData().getDataSources(owner));
+//    		}
+//    	}
+//    }
     
     private StackPath stackTraceToPath(StackTraceElement[] stack) {
     	String targClass;
