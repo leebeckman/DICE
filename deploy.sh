@@ -1,8 +1,8 @@
 #!/bin/bash
-#rm *.log
-#rm *.lck
-#rm *.1
-#rm ext*
+rm *.log
+rm *.lck
+rm *.1
+rm ext*
 
 ant -buildfile jgossip/build.xml dist -Ddeploy_env=default
 bash jgossipaspect.sh 2>&1 | tee deploy.log

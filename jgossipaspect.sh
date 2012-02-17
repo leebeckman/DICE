@@ -5,7 +5,7 @@ rm $HOME/DICE/weavelog_connector.log
 rm $HOME/DICE/weavelog_beanutils.log
 rm $HOME/DICE/aspectcompile.log
 
-export CLASSPATH="$HOME/DICE/tomcat/lib/*:$HOME/DICE/jgossip/database/oracle/lib/*:$HOME/DICE/jgossip/database/mysql/lib/*:$HOME/DICE/jgossip/lib/*"
+export CLASSPATH="$HOME/DICE/src/lib/*:$HOME/DICE/tomcat/lib/*:$HOME/DICE/jgossip/database/oracle/lib/*:$HOME/DICE/jgossip/database/mysql/lib/*:$HOME/DICE/jgossip/lib/*"
 export JAVA_HOME="$HOME/DICE/ibm-java"
 
 
@@ -20,10 +20,16 @@ jar cfM $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar -C $HOME/DICE/jgossi
 ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/tracedjgossipClasses.jar
 rm $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar
 
-ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog_connector.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp-aspects.jar
-ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog_beanutils.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils-aspects.jar
-rm $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp.jar
-rm $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils.jar
+cd $HOME/DICE/jgossipAspect/WEB-INF/lib
+for jarfile in *.jar
+do
+	ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/$jarfile -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog_$jarfile.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/lib/aspects-$jarfile
+	rm $HOME/DICE/jgossipAspect/WEB-INF/lib/$jarfile
+done
+#ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog_connector.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp-aspects.jar
+#ajc -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -showWeaveInfo -log $HOME/DICE/weavelog_beanutils.log -outjar $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils-aspects.jar
+#rm $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-dbcp.jar
+#rm $HOME/DICE/jgossipAspect/WEB-INF/lib/commons-beanutils.jar
 
 echo "Removing old classes dir"
 rm -rf $HOME/DICE/jgossipAspect/WEB-INF/classes
@@ -39,3 +45,12 @@ echo "Packaging war"
 jar cvf $HOME/DICE/jgossip.war -C $HOME/DICE/jgossipAspect .
 rm -rf $HOME/DICE/jgossipAspect
 rm $HOME/DICE/traceLib.jar
+#!/bin/bash
+
+for file in *.sh
+do
+	echo $file
+done
+
+cd $HOME/DICE/jgossipAspect/WEB-INF/lib
+

@@ -20,10 +20,9 @@ public aspect DBCPTaint {
     Object around(): jdbc_ResultSet_getObject() {
     	Object result = proceed();
     	if (result instanceof String) {
-    		result = new String((String)result, true);
+//    		result = new String((String)result, true);
     		
     		TaintData.getTaintData().mapDataToSource(result, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
-    		TaintData.getTaintData().log_db("Tainted ResultSet String object: " + result);
     	}
     	return result;
     }
@@ -34,7 +33,7 @@ public aspect DBCPTaint {
 		try {
     		metaData = (ResultSetMetaData) rs.getMetaData();
     	} catch (SQLException e) {
-    		TaintData.getTaintData().log("ON GETTING METADATA FROM RESULTSET: " + e.getMessage());
+//    		TaintData.getTaintData().log("ON GETTING METADATA FROM RESULTSET: " + e.getMessage());
     	}
     	
 //    	TaintData.getTaintData().getTaintedObjs().add(ret);
