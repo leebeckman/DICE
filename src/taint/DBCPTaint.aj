@@ -17,14 +17,12 @@ public aspect DBCPTaint {
     pointcut jdbc_PreparedStatement_executeQuery():
     	execution(public * org.apache.commons.dbcp..*PreparedStatement.executeQuery(..));
 
-    Object around(): jdbc_ResultSet_getObject() {
-    	Object result = proceed();
-    	if (result instanceof String) {
+    after() returning (Object ret): jdbc_ResultSet_getObject() {
+		TaintLogger.getTaintLogger().log_db("Checking " + ret.getClass().getName() + ": " + ret.toString());
+    	if (ret instanceof String) {
 //    		result = new String((String)result, true);
-    		
-    		TaintData.getTaintData().mapDataToSource(result, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
+    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
     	}
-    	return result;
     }
     
     after() returning (Object ret): jdbc_PreparedStatement_executeQuery() {

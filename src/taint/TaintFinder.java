@@ -18,7 +18,7 @@ import java.util.TreeSet;
 public final class TaintFinder {
 	private static final Map visited = new IdentityHashMap();
 	private static final Stack stack = new Stack();
-	private static final TreeSet<String> taintedFields = new TreeSet<String>();
+	private static final TreeSet<Object> taintedFields = new TreeSet<Object>();
 	private static final IdentityHashMap<Object, ObjField> parents = new IdentityHashMap<Object, ObjField>();
 	
 	/*
@@ -26,7 +26,7 @@ public final class TaintFinder {
 	 * map to an ArrayList of strings which can be used to determine how the tainted strings
 	 * are nested within the object.
 	 */
-	public synchronized static IdentityHashMap<String, ArrayList<String>> findTaint(Object obj) {
+	public synchronized static IdentityHashMap<Object, ArrayList<String>> findTaint(Object obj) {
 		assert visited.isEmpty();
 		assert stack.isEmpty();
 		assert taintedFields.isEmpty();
@@ -38,22 +38,25 @@ public final class TaintFinder {
 //			result += _estimate(stack.pop());
 			_findTaint(stack.pop());
 		}
-		visited.clear();
-		IdentityHashMap<String, ArrayList<String>> retList = new IdentityHashMap<String, ArrayList<String>>();
-		for (String taintedField : taintedFields) {
-			ArrayList<String> fieldPath = new ArrayList<String>();
-			ObjField parent = parents.get(taintedField);
-			while (parent != null) {
-				fieldPath.add(parent.obj.getClass().getName() + "." + parent.fieldName);
-				parent = parents.get(parent.obj);
-			}
-			retList.put(taintedField, fieldPath);
+		
+		//TODO: Do something different here, as this causes a huge memory leak 
+		IdentityHashMap<Object, ArrayList<String>> retList = new IdentityHashMap<Object, ArrayList<String>>();
+		for (Object taintedField : taintedFields) {
+//			ArrayList<String> fieldPath = new ArrayList<String>();
+//			ObjField parent = parents.get(taintedField);
+//			while (parent != null) {
+//				fieldPath.add(parent.obj.getClass().getName() + "." + parent.fieldName);
+//				parent = parents.get(parent.obj);
+//			}
+			retList.put(taintedField, null);
 		}
+		visited.clear();
 		taintedFields.clear();
 		parents.clear();
+		
 		// System.out.println(obj.getClass().getName() + ": " + result);
-//		return result;
 		return retList;
+//		return null;
 	}
 
 	private static boolean skipObject(Object obj) {
@@ -95,11 +98,13 @@ public final class TaintFinder {
 						try {
 							Object toBeDone = fields[i].get(obj);
 							if (toBeDone != null) {
-								if (fields[i].getType().equals(String.class) && ((String)toBeDone).hasTaint()) {
-									taintedFields.add((String)toBeDone);
+								if (fields[i].getType().equals(String.class) || fields[i].getType().equals(StringBuffer.class) || fields[i].getType().equals(StringBuilder.class)) {
+									if(TaintData.getTaintData().isTainted(toBeDone)) {
+										taintedFields.add(toBeDone);
+									}
 								}
 								parents.put(toBeDone, new ObjField(obj, fields[i].getName()));
-								stack.add(toBeDone);
+								stack.push(toBeDone);
 							}
 						} catch (IllegalAccessException ex) {
 							assert false;
@@ -135,7 +140,8 @@ public final class TaintFinder {
 //							+ _estimate(Array.get(obj, i));
 					Object child = Array.get(obj, i);
 //					parents.put(child, obj);
-					_findTaint(child);
+					stack.push(child);
+//					_findTaint(child);
 				}
 			}
 		}

@@ -6,6 +6,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.LinkedList;
+import java.util.Stack;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -20,11 +22,13 @@ public class TaintData {
 	
 	// A source is something which describes where the data came from
 	private IdentityHashMap<Object, Object> resultSetToSourceMap;
+	private Stack<LinkedList<Object>> taintStack;
 	
 	// This is where much of the important data comes from, aside from the TaintFinder. Tainted strings map to the ResultSetMetaData responsible for them.
 	// This is fine for now as we're only concerned with data read from the database.
-	private IdentityHashMap<Object, SizedSources> dataToSourcesMap;
+	private WeakIdentityHashMap<Object, SizedSources> dataToSourcesMap;
 	
+	// TODO: Probably need to change this to a WeakIdentityHashMap
 	private IdentityHashMap<WeakReference<Object>, Integer> objectUIDs;
 	private int uidCounter;
 	
@@ -32,8 +36,9 @@ public class TaintData {
 	private TaintData() {
 //		taintedObj = new HashSet<Object>();
 		resultSetToSourceMap = new IdentityHashMap<Object, Object>();
-		dataToSourcesMap = new IdentityHashMap<Object, TaintData.SizedSources>();
+		dataToSourcesMap = new WeakIdentityHashMap<Object, SizedSources>();
 		objectUIDs = new IdentityHashMap<WeakReference<Object>, Integer>();
+		taintStack = new Stack<LinkedList<Object>>();
 		uidCounter = 0;
 	}
 	
@@ -65,7 +70,7 @@ public class TaintData {
 		int size = 0;
 		if (data instanceof String) {
 			size = ((String)data).length();
-			TaintLogger.getTaintLogger().log("Mapping: " + data + " code: " + data.hashCode());
+//			TaintLogger.getTaintLogger().log("Mapping: " + data + " code: " + data.hashCode());
 			dataToSourcesMap.put((String)data, new SizedSources(size, source));
 		}
 	}
@@ -81,7 +86,7 @@ public class TaintData {
 		return dataToSourcesMap.get(data);
 	}
 	
-	public IdentityHashMap<Object, SizedSources> getDataToSourceMap() {
+	public WeakIdentityHashMap<Object, SizedSources> getDataToSourceMap() {
 		return dataToSourcesMap;
 	}
 	

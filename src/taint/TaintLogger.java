@@ -6,13 +6,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Stack;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.SocketHandler;
 import java.util.logging.XMLFormatter;
 
 import org.jdom.Attribute;
@@ -30,7 +27,7 @@ public class TaintLogger {
 	private static TaintLogger self;
 	
 	public enum TaintLogType {
-		PROPAGATION, MODIFICATION, COMPOSITION, ASSOCIATION, CALLING, RETURNING
+		PROPAGATION, FUZZYPROPAGATION, MODIFICATION, COMPOSITION, ASSOCIATION, CALLING, RETURNING
 	}
 	
 	private TaintLogger() {
@@ -39,8 +36,8 @@ public class TaintLogger {
 			
 			FileHandler fhDB = new FileHandler("/home/lee/DICE/dbtaintlog.log");
 			FileHandler fhTaint = new FileHandler("/home/lee/DICE/taintlog.log");
-			fhDB.setFormatter(new XMLFormatter());
-			fhTaint.setFormatter(new XMLFormatter());
+			fhDB.setFormatter(new LightFormatter());
+			fhTaint.setFormatter(new LightFormatter());
 			
 //			SocketHandler shTaint = new SocketHandler("localhost", 8687);
 //			shTaint.setFormatter(new SimpleFormatter());
@@ -62,7 +59,7 @@ public class TaintLogger {
 			e.printStackTrace();
 		}
 		xmlOut = new XMLOutputter();
-		Format outFormat = Format.getPrettyFormat();
+		Format outFormat = Format.getCompactFormat();
 		outFormat.setOmitDeclaration(true);
 		xmlOut.setFormat(outFormat);
 	}
@@ -79,7 +76,7 @@ public class TaintLogger {
 		logger.log(Level.INFO, message);
 	}
 	
-	private void log_db(String message) {
+	public void log_db(String message) {
 		dlogger.log(Level.INFO, message);
 	}
 	
@@ -109,7 +106,35 @@ public class TaintLogger {
 		addObjectElement(logRoot, "targetObject", target);
 		
 		Document logDoc = new Document(logRoot);
-		log("about to log");
+		log(xmlOut.outputString(logDoc));
+	}
+	
+	/*
+	 * <taintlog type="fuzzypropagation">
+	 * 
+	 * 		<location srcClass="" srcMethod="" destClass="" destMethod="" adviceType="" />
+	 * 		
+	 * 		<sourceObject type="typeName" uid="uid">
+	 * 			<taintRecord>record</taintRecord>
+	 * 			<taintRecord>record</taintRecord>
+	 * 		</sourceObject>
+	 * 
+	 * 		<targetObject type="typeName" uid="uid">
+	 * 			<taintRecord>record</taintRecord>
+	 * 			<taintRecord>record</taintRecord>
+	 * 		</targetObject>
+	 * 
+	 * </taintlog>
+	 */
+	public void logFuzzyPropagation(StackPath location, GeneralTracker.AdviceType adviceType, Object source, Object target) {
+		Element logRoot = getLogRoot(TaintLogType.FUZZYPROPAGATION);
+		
+		addLocationElement(logRoot, location, adviceType);
+		
+		addObjectElement(logRoot, "sourceObject", source, true);
+		addObjectElement(logRoot, "targetObject", target, true);
+		
+		Document logDoc = new Document(logRoot);
 		log(xmlOut.outputString(logDoc));
 	}
 	
@@ -228,25 +253,26 @@ public class TaintLogger {
 	 * 
 	 * </taintlog>
 	 */
-	public void logCalling(StackPath location, GeneralTracker.AdviceType adviceType, IdentityHashMap<String, ArrayList<String>> taintSources) {
+	public void logCallingObjectArg(StackPath location, GeneralTracker.AdviceType adviceType, Object taintSource, IdentityHashMap<Object, ArrayList<String>> subTaintSources) {
 		Element logRoot = getLogRoot(TaintLogType.CALLING);
 		
 		addLocationElement(logRoot, location, adviceType);
 		
-		for (String taintedObject : taintSources.keySet()) {
-			addObjectElement(logRoot, "taintedObject", taintedObject);
-		}
+//		for (Object taintedObject : subTaintSources.keySet()) {
+//			addObjectElement(logRoot, "taintedObject", taintedObject, true);
+//		}
+		addObjectElement(logRoot, "taintedObject", taintSource, true);
 		
 		Document logDoc = new Document(logRoot);
 		log(xmlOut.outputString(logDoc));
 	}
 	
-	public void logCalling(StackPath location, GeneralTracker.AdviceType adviceType, String taintSource) {
+	public void logCallingStringArg(StackPath location, GeneralTracker.AdviceType adviceType, Object taintSource) {
 		Element logRoot = getLogRoot(TaintLogType.CALLING);
 		
 		addLocationElement(logRoot, location, adviceType);
 		
-		addObjectElement(logRoot, "taintedObject", taintSource);
+		addObjectElement(logRoot, "taintedObject", taintSource, true);
 		
 		Document logDoc = new Document(logRoot);
 		log(xmlOut.outputString(logDoc));
@@ -314,27 +340,37 @@ public class TaintLogger {
 	 * TODO: Taint records currently come from ResultSetMetaData. This part can be improved.
 	 */
 	private void addObjectElement(Element root, String tagName, Object object) {
+		addObjectElement(root, tagName, object, false);		
+	}
+	
+	private void addObjectElement(Element root, String tagName, Object object, boolean showValue) {
 		Element objectElem = new Element(tagName);
-		objectElem.setAttribute(new Attribute("type", object.getClass().getName()));
-		// TODO: objectUIDs currently not working, looking like advice may be missing some/all object creations
-		//objectElem.setAttribute(new Attribute("uid", String.valueOf(TaintData.getTaintData().getObjectUID(object))));
 		
-		if (TaintData.getTaintData().getDataSources(object) != null) {
-			HashMap<Object, Integer> sources = TaintData.getTaintData().getDataSources(object).getSources();
-			for (Object source : sources.keySet()) {
-				try {
-					String sourceStr = "";
-					ResultSetMetaData metaData = (ResultSetMetaData) source;
-					int colCount = metaData.getColumnCount();
-					for (int i = 1; i <= colCount; i++) {
-						sourceStr = sourceStr + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
+		if (object != null) {
+			objectElem.setAttribute(new Attribute("type", object.getClass().getName()));
+			if (showValue)
+				objectElem.setAttribute(new Attribute("value", object.toString()));
+			
+			// TODO: objectUIDs currently not working, looking like advice may be missing some/all object creations
+			//objectElem.setAttribute(new Attribute("uid", String.valueOf(TaintData.getTaintData().getObjectUID(object))));
+			
+			if (TaintData.getTaintData().getDataSources(object) != null) {
+				HashMap<Object, Integer> sources = TaintData.getTaintData().getDataSources(object).getSources();
+				for (Object source : sources.keySet()) {
+					try {
+						String sourceStr = "";
+						ResultSetMetaData metaData = (ResultSetMetaData) source;
+						int colCount = metaData.getColumnCount();
+						for (int i = 1; i <= colCount; i++) {
+							sourceStr = sourceStr + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
+						}
+						
+						Element taintRecordElem = new Element("taintRecord");
+						taintRecordElem.setText(sourceStr);
+						objectElem.addContent(taintRecordElem);
+					} catch (SQLException e) {
+						e.printStackTrace();
 					}
-					
-					Element taintRecordElem = new Element("taintRecord");
-					taintRecordElem.setText(sourceStr);
-					objectElem.addContent(taintRecordElem);
-				} catch (SQLException e) {
-					e.printStackTrace();
 				}
 			}
 		}
