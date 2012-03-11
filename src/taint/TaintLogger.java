@@ -295,20 +295,21 @@ public class TaintLogger {
 	 * 
 	 * </taintlog>
 	 */
-	public void logReturning(StackPath location, GeneralTracker.AdviceType adviceType, IdentityHashMap<String, ArrayList<String>> taintSources) {
+	public void logReturningObject(StackPath location, GeneralTracker.AdviceType adviceType, Object taintSource, IdentityHashMap<Object, ArrayList<String>> subTaintSources) {
 		Element logRoot = getLogRoot(TaintLogType.RETURNING);
 		
 		addLocationElement(logRoot, location, adviceType);
 		
-		for (String taintedObject : taintSources.keySet()) {
-			addObjectElement(logRoot, "taintedObject", taintedObject);
-		}
+//		for (String taintedObject : taintSources.keySet()) {
+//			addObjectElement(logRoot, "taintedObject", taintedObject);
+//		}
+		addObjectElement(logRoot, "taintedObject", taintSource);
 		
 		Document logDoc = new Document(logRoot);
 		log(xmlOut.outputString(logDoc));
 	}
 	
-	public void logReturning(StackPath location, GeneralTracker.AdviceType adviceType, String taintSource) {
+	public void logReturning(StackPath location, GeneralTracker.AdviceType adviceType, Object taintSource) {
 		Element logRoot = getLogRoot(TaintLogType.RETURNING);
 		
 		addLocationElement(logRoot, location, adviceType);

@@ -18,6 +18,7 @@ unzip $HOME/DICE/jgossip/dist/default/jgossip.war -d $HOME/DICE/jgossipAspect
 jar cfM $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar -C $HOME/DICE/jgossipAspect/WEB-INF/classes .
 
 ajc -Xlint:ignore -nowarn -g:none -inpath $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -outjar $HOME/DICE/jgossipAspect/WEB-INF/tracedjgossipClasses.jar
+#ajc -showWeaveInfo -log $HOME/DICE/weavelog.log -inpath $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar -aspectpath $HOME/DICE/traceLib.jar -1.5 -outjar $HOME/DICE/jgossipAspect/WEB-INF/tracedjgossipClasses.jar
 rm $HOME/DICE/jgossipAspect/WEB-INF/jgossipClasses.jar
 
 cd $HOME/DICE/jgossipAspect/WEB-INF/lib
@@ -25,6 +26,7 @@ mkdir temp
 for jarfile in *.jar
 do
 	ajc -Xlint:ignore -nowarn -g:none -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/$jarfile -aspectpath $HOME/DICE/traceLib.jar -1.5 -outjar $HOME/DICE/jgossipAspect/WEB-INF/lib/temp/$jarfile
+#	ajc -showWeaveInfo -log $HOME/DICE/$jarfile.log -inpath $HOME/DICE/jgossipAspect/WEB-INF/lib/$jarfile -aspectpath $HOME/DICE/traceLib.jar -1.5 -outjar $HOME/DICE/jgossipAspect/WEB-INF/lib/temp/$jarfile
 	echo $jarfile
 done
 rm $HOME/DICE/jgossipAspect/WEB-INF/lib/*.jar

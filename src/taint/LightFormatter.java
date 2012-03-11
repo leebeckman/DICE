@@ -7,7 +7,7 @@ public class LightFormatter extends Formatter {
 
 	@Override
 	public String format(LogRecord r) {
-		return r.getMessage();
+		return r.getMessage() + "\n";
 	}
 
 }

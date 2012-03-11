@@ -1,6 +1,7 @@
 package taint;
 
 import java.nio.charset.Charset;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 
@@ -117,71 +118,28 @@ public aspect GeneralTracker {
 	 *  		
 	 */
 	
-	// for fuzzy string taint propagation
-	
 	public enum AdviceType {
 		BEFORE, AFTER, STRINGMANIP, FUZZY
 	}
-	
-//	private boolean anyExecutionAdviceEnabled; // fixes overflowing on recursive advice
+
+	// Debug counters
+	public int deepScanDone;
+	public int deepScanSkip;
 	
 	public GeneralTracker() {
-//		anyExecutionAdviceEnabled = true;
+		deepScanDone = 0;
+		deepScanSkip = 0;
 	}
 	
 	/*
 	 * Use this to stop advice from triggering advice, which leads to infinite recursion
 	 */
 	pointcut myAdvice(): adviceexecution() && (within(GeneralTracker) || within(DBCPTaint) || within(TaintLogger) || within(TaintData) || within(TaintUtil));
+
+//	before(): execution(* getForums(..)) && !cflow(myAdvice()) {
+//		TaintLogger.getTaintLogger().log("THREADID: " + Thread.currentThread().getId());
+//	}
 	
-//    pointcut anyExecution():
-//        (execution(public * org.jresearch..*.*(..)) ||
-//        execution(public org.jresearch..*.new(..)) ||
-//        execution(public * org.apache.commons.dbcp..*.*(..)) ||
-//        execution(public * org.apache.commons.beanutils..*.*(..)));
-    
-//    pointcut beanSetProp():
-//    	execution(* invokeMethod(Method, Object, Object[]));
-//    
-//    before(): beanSetProp() && !cflow(myAdvice()) {
-//    	Object[] args = thisJoinPoint.getArgs();
-//    	
-//    	Object[] values = (Object[])args[2];
-//    	String logstr = "BEANSETPROP";
-//    	for (int i = 0; i < values.length; i++) {
-//    		logstr = logstr + ":" + values[i] + " ";
-//    	}
-//    	
-//    	Method method = (Method)args[0];
-//    	logstr = logstr + method.getClass().getName() + "::" + method.getName();
-//    	TaintLogger.getTaintLogger().log(logstr);
-//    }
-//    
-//    pointcut setCent():
-//    	execution(* setCentents(String));
-//    
-//    before(): setCent() && !cflow(myAdvice()) {
-//		Object[] args = thisJoinPoint.getArgs();
-//		String string = (String)args[0];
-//		
-//		boolean tainted = TaintData.getTaintData().isTainted(string);
-//    	
-//    	TaintLogger.getTaintLogger().log("setCententsCheck: " + string + " is tainted: " + tainted + " code " + string.hashCode());
-//    }
-    
-    pointcut process():
-    	execution (* org.jresearch..ForumDAO.getForums(..));
-    
-    before(): process() && !cflow(myAdvice()) {
-    	StackPath location = getStackTracePath();
-    	TaintLogger.getTaintLogger().log_db("getForums called by " + Thread.currentThread().getId() + " at " + location + " ... " + location.getDeeperString(100));
-    }
-    	
-    
-    
-    
-    
-    
     /*
      * For managing taint at the String level
 	 * Pointcuts for String, StringBuilder, StringBuffer
@@ -547,7 +505,6 @@ public aspect GeneralTracker {
      * 
      */
     after() returning (Object ret): (stringConstruct() || stringBuilderConstruct() || stringBufferConstruct() || stringCopyValueOf() || stringFormat()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST1");
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
@@ -590,7 +547,6 @@ public aspect GeneralTracker {
 	 * int[], int, int truncates
 	 */
     after() returning (Object ret): stringConstructModification() && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST2");
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = getStackTracePath();
     	
@@ -606,7 +562,6 @@ public aspect GeneralTracker {
      * Static propagation without modification
      */
     after() returning (Object ret): (stringValueOf() || stringCopyValueOf()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST3");
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = getStackTracePath();
     	
@@ -622,7 +577,6 @@ public aspect GeneralTracker {
      * Static propagation with modification
      */
     after() returning (Object ret): (stringValueOfCharModification() || stringCopyValueOfModification()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST4");
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = getStackTracePath();
     	
@@ -641,7 +595,6 @@ public aspect GeneralTracker {
      */
     after() returning (Object ret): 	(stringGetBytes() || stringToCharArray() || stringBuilderToString() || stringBuilderShareValue() ||
     					stringBuilderGetValue() || stringBufferToString() || stringBufferShareValue() || stringBufferGetValue()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST5");
     	StackPath location = getStackTracePath();
 
 		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis())) {
@@ -655,7 +608,6 @@ public aspect GeneralTracker {
      */
     
     before(): (stringGetBytesNoReturn() || stringGetCharsNoReturn() || stringBuilderGetChars() || stringBufferGetChars()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST6");
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = getStackTracePath();
     	
@@ -679,7 +631,6 @@ public aspect GeneralTracker {
      */
     after() returning (Object ret): 	(stringGetBytesModification() || stringReplace() || stringSubstring() || stringToLowerCase() || stringToUpperCase()  || 
     					stringTrim() || stringSubSequence() || stringBuilderSubstring() || stringBuilderSubSequence() || stringBufferSubstring() || stringBufferSubSequence()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST7");
     	StackPath location = getStackTracePath();
 
 		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis())) {
@@ -693,7 +644,6 @@ public aspect GeneralTracker {
      * Propagation by splitting
      */
     after() returning (Object ret): stringSplit() && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST8");
     	StackPath location = getStackTracePath();
 		
 		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis())) {
@@ -713,7 +663,6 @@ public aspect GeneralTracker {
      * Concat propagates and composes this and argument
      */
     after() returning (Object ret): stringConcat() && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST9");
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
@@ -747,7 +696,6 @@ public aspect GeneralTracker {
      * Currently finds composition from relaceAll, replaceFirst
      */
     after() returning (Object ret): stringReplaceString() && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST10");
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
@@ -788,7 +736,6 @@ public aspect GeneralTracker {
     					stringRegionMatches() || stringContentEquals() || stringMatches() || stringContains() || stringReplaceString() ||
     					stringBuilderIndexOf() || stringBuilderLastIndexOf() || stringBufferIndexOf() || stringBufferLastIndexOf()) && !cflow(myAdvice()) {
     	
-//    	TaintLogger.getTaintLogger().log("ST11");
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> associated = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
@@ -816,7 +763,6 @@ public aspect GeneralTracker {
      */
     after() returning (Object ret): 	(stringBuilderAppend() || stringBuilderInsert() || stringBuilderReplace() ||
     					stringBufferAppend() || stringBufferInsert() || stringBufferReplace()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST12");
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
@@ -856,7 +802,6 @@ public aspect GeneralTracker {
      */
     after() returning (Object ret): 	(stringBuilderAppendModification() || stringBuilderInsertModification() ||
     					stringBufferAppendModification() || stringBufferInsertModification()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST13");
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
@@ -895,7 +840,6 @@ public aspect GeneralTracker {
     
     after() returning (Object ret):	(stringBuilderDelete() || stringBufferDelete() || stringBuilderReverse() || stringBufferReverse() ||
     					stringBuilderAppendCodePoint() || stringBufferAppendCodePoint()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST14");
     	StackPath location = getStackTracePath();
 		
     	// Note modification of this
@@ -908,7 +852,6 @@ public aspect GeneralTracker {
      */
     
     before(): (stringBuilderSetCharAt() || stringBufferSetCharAt() || stringBuilderSetLength() || stringBufferSetLength()) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST15");
     	StackPath location = getStackTracePath();
 		
 		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis()))
@@ -920,7 +863,6 @@ public aspect GeneralTracker {
      * Monitors all method invocations and returns for fuzzy propagation
      */
     after() returning (Object ret): execution(public * org.jresearch..*.*(..)) && !cflow(myAdvice()) {
-//    	TaintLogger.getTaintLogger().log("ST16");
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = getStackTracePath();
 
@@ -936,12 +878,10 @@ public aspect GeneralTracker {
 		if (taintedArgs.size() > 0 && ret != null) {
 			if (!TaintData.getTaintData().isTainted(ret)) {
 				for (Object arg : taintedArgs) {
-//					TaintLogger.getTaintLogger().log("testing fuzzy: leven: " + TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) + " lendiff: " + Math.abs(arg.toString().length() - ret.toString().length()) + " difffact: " + Math.min(arg.toString().length(), ret.toString().length()) * 0.20 + " s1: " + arg + " s2: " + ret);
 					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
 							Math.abs(arg.toString().length() - ret.toString().length()) + 
 							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
 							Math.min(arg.toString().length(), ret.toString().length()) > 0) {
-//						TaintLogger.getTaintLogger().log("is fuzzy");
 						TaintLogger.getTaintLogger().logFuzzyPropagation(location, AdviceType.FUZZY, arg, ret);
 						TaintData.getTaintData().propagateSources(arg, ret);
 						break;
@@ -951,107 +891,99 @@ public aspect GeneralTracker {
 		}
 	}
 	
-    /*
-     * Generic call advice to note tainted args
-     */
-//    before(): anyExecution() && !cflow(myAdvice()) {
-//        Object[] args = thisJoinPoint.getArgs();
-//        Class[] types = ((CodeSignature)thisJoinPoint.getSignature()).getParameterTypes();
-//        StackPath location = getStackTracePath();
-//        
-//        for (int i = 0; i < args.length; i++) {
-//        	if (args[i] instanceof String) { //TODO: add StringBuffer/Builder
-//        		if (args[i] != null ) {
-//	        		if (((String) args[i]).hasTaint()) {
-//	        			TaintLogger.getTaintLogger().logCalling(location, AdviceType.BEFORE, (String)args[i]);
-//	        		}
-//        		}
-//        	}
-//        	else if (args[i] instanceof Object) {
-////	        		if (args[i] instanceof ResultSet) {
-////	        			logger.log(Level.INFO, "ResultSet " + args[i] + " passed through " + thisJoinPoint.getSignature().getName());
-////	        		}
-//        		IdentityHashMap<String, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-//        		if (objTaint.size() > 0) {
-//    				TaintLogger.getTaintLogger().logCalling(location, AdviceType.BEFORE, objTaint);
-//        		}
-//        	}
-//        }
-//    }
+    
+    
     
     /*
      * Generic advice to note taint call/return
+     * 
+     * TODO: Totally not instrumenting constructors
      */
-//    after() returning (Object ret): anyExecution() && !cflow(myAdvice()) {
     before(): execution(* *.*(..)) && !cflow(myAdvice()) {
-    	
+    	TaintData.getTaintData().startCall();
     }
     
-    after(): execution(* *.*(..)) && !cflow(myAdvice()) {
-    	
+    after(): execution(javax..HttpServletRequest.new(..)) {
+    	TaintLogger.getTaintLogger().log("THREADIDNEW " + Thread.currentThread().getId());
     }
     
     after() returning (Object ret): execution(* *.*(..)) && !cflow(myAdvice()) {
+    	StackPath location = null;
         Object[] args = thisJoinPoint.getArgs();
-//        StackPath location = getStackTracePath();
-//        
-//        for (int i = 0; i < args.length; i++) {
-//        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer ||  args[i] instanceof StringBuilder)) {
-//        		if (TaintData.getTaintData().isTainted(args[i])) {
-//        			TaintLogger.getTaintLogger().logCallingStringArg(location, AdviceType.BEFORE, args[i]);
-//        		}
-//        	}
-//        	/*
-//        	 * Disable heavy taint finding for now, too expensive
-//        	 */
-//        	else if (args[i] != null && args[i] instanceof Object) {
-////	        		if (args[i] instanceof ResultSet) {
-////	        			logger.log(Level.INFO, "ResultSet " + args[i] + " passed through " + thisJoinPoint.getSignature().getName());
-////	        		}
-//        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-//        		if (objTaint != null && objTaint.size() > 0) {
-//    				TaintLogger.getTaintLogger().logCallingObjectArg(location, AdviceType.BEFORE, args[i], objTaint);
-//        		}
-//        	}
-//        }
-//        
-//    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder)) {
-//    		if (TaintData.getTaintData().isTainted(ret)) {
-//    			TaintLogger.getTaintLogger().logReturning(location, AdviceType.AFTER, (String)ret);
-//    		}
-//    	}
+        	/*
+        	 *  search through args. Look for taint, and as it is found
+        	 *  push it down in the stack.
+        	 *  
+        	 *  Everything is discarded in the end.
+        	 */
+        
+        boolean taintAccessed = TaintData.getTaintData().taintAccessed();
+        
+        for (int i = 0; i < args.length; i++) {
+        	//TODO: Deal with the fact that I added ResultSet here
+        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
+        		if (TaintData.getTaintData().isTainted(args[i])) {
+        	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
+        			if (location == null)
+        				location = getStackTracePath();
+        			TaintLogger.getTaintLogger().logCallingStringArg(location, AdviceType.BEFORE, args[i]);
+        			TaintData.getTaintData().pushTaintDownStack(args[i]);			
+        		}
+        	}
+        	else if (taintAccessed && args[i] != null && args[i] instanceof Object) {
+        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
+        		if (objTaint != null && objTaint.size() > 0) {
+        			if (location == null)
+        				location = getStackTracePath();
+    				TaintLogger.getTaintLogger().logCallingObjectArg(location, AdviceType.BEFORE, args[i], objTaint);
+    				for (Object taintedObject : objTaint.keySet()) {
+    					TaintData.getTaintData().pushTaintDownStack(taintedObject);
+    				}
+        		}
+        	}
+        }
+
+    	//TODO: Deal with the fact that I added ResultSet here
+    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
+    		if (TaintData.getTaintData().isTainted(ret)) {
+    			if (location == null)
+    				location = getStackTracePath();
+    			TaintLogger.getTaintLogger().logReturning(location, AdviceType.AFTER, (String)ret);
+    		}
+    	}
+    	else if (taintAccessed && ret != null && ret instanceof Object) {
+			IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
+			if (objTaint.size() > 0) {
+				TaintLogger.getTaintLogger().logReturning(location, AdviceType.AFTER, objTaint);
+			}
+		}
+    	/*
+    	 * Second check to see if anything remains in the accessed taint list. If so, couldn't source
+    	 * all taint to args.
+    	 */
+    	if (TaintData.getTaintData().taintAccessed()) {
+    		TaintLogger.getTaintLogger().log("Non-arg taint accessed");
+    	}
     	/*
     	 * Disable heavy taint finding for now, too expensive
     	 */
-//    	else if (ret != null && ret instanceof Object) {
-//    		IdentityHashMap<String, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
-//    		if (objTaint.size() > 0) {
-//    			TaintLogger.getTaintLogger().logReturning(location, AdviceType.AFTER, objTaint);
-//    		}
-//    	}
+
     }
-    
-    /*
-     * Catch all constructors to map UIDs for objects.
-     */
-//    after() returning (Object ret): call(new(..)) && !cflow(myAdvice()) {
-//    	TaintData.getTaintData().mapObjectUID(ret);
-//    }
-    
+
+    after(): execution(* *.*(..)) && !cflow(myAdvice()) {
+    	TaintData.getTaintData().endCall();
+    }
     
     /*
      * This advice is currently not used as we are just scanning object graphs to find taint. It's slow, but much simpler than this
      */
-//    before(Object newVal): set(* *) && args(newVal) && !cflow(myAdvice()) {
-////    	TaintLogger.getTaintLogger().log("ST17");
-//    	if (newVal != null && TaintData.getTaintData().isTainted(newVal)) {
-//			Object owner = thisJoinPoint.getThis();
-//			if (owner != null) {
-////				TaintLogger.getTaintLogger().log("taintassigned from " + newVal.hashCode() + " to " + owner.hashCode());
-//				TaintData.getTaintData().propagateSources(newVal, owner);
-//			}
-//		}
-//    }
+    after() returning(Object accessed): get(* *) && !cflow(myAdvice()) {
+    	if (accessed != null && 
+    			(accessed instanceof String || accessed instanceof StringBuilder || accessed instanceof StringBuffer || accessed instanceof ResultSet) &&
+    			TaintData.getTaintData().isTainted(accessed)) {
+			TaintData.getTaintData().recordTaintAccess(accessed);
+		}
+    }
     
     private StackPath getStackTracePath() {
     	Thread current = Thread.currentThread();
@@ -1094,10 +1026,10 @@ public aspect GeneralTracker {
 		startIndex++;
 		
 		StackPath result = new StackPath(destClass, destMethod, srcClass, srcMethod);
-		while (startIndex < stack.length) {
-			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
-			startIndex++;
-		}
+//		while (startIndex < stack.length) {
+//			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
+//			startIndex++;
+//		}
 		
 		return result; 
     }
