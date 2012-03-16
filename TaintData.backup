@@ -5,7 +5,6 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,19 +14,19 @@ public class TaintData {
 	private static TaintData self;
 	
 	// A source is something which describes where the data came from
-	private IdentityHashMap resultSetToSourceMap;
-	private ConcurrentHashMap taintStack;
+	private IdentityHashMap<Object, Object> resultSetToSourceMap;
+	private ConcurrentHashMap<Long, Stack<WeakIdentityHashMap<Object, Object>>> taintStack;
 	
 	// This is where much of the important data comes from, aside from the TaintFinder. Tainted strings map to the ResultSetMetaData responsible for them.
 	// This is fine for now as we're only concerned with data read from the database.
-	private WeakIdentityHashMap dataToSourcesMap;
+	private WeakIdentityHashMap<Object, SizedSources> dataToSourcesMap;
 	
 	// TODO: Probably need to change this to a WeakIdentityHashMap
 	
 	private TaintData() {
-		resultSetToSourceMap = new IdentityHashMap();
-		dataToSourcesMap = new WeakIdentityHashMap();
-		taintStack = new ConcurrentHashMap();
+		resultSetToSourceMap = new IdentityHashMap<Object, Object>();
+		dataToSourcesMap = new WeakIdentityHashMap<Object, SizedSources>();
+		taintStack = new ConcurrentHashMap<Long, Stack<WeakIdentityHashMap<Object, Object>>>();
 	}
 	
 	public static TaintData getTaintData() {
@@ -43,12 +42,12 @@ public class TaintData {
 	 * a particular stack location accessed the tainted object.
 	 */
 	public void recordTaintAccess(Object tainted) {
-		Long threadId = new Long(Thread.currentThread().getId());
+		Long threadId = Thread.currentThread().getId();
 		if (!taintStack.containsKey(threadId)) {
 			TaintLogger.getTaintLogger().log("stackTaint failed");
 		}
 		else {
-			((WeakIdentityHashMap)((Stack)taintStack.get(threadId)).peek()).put(tainted, null);
+			taintStack.get(threadId).peek().put(tainted, null);
 		}
 	}
 	
@@ -57,16 +56,16 @@ public class TaintData {
 	 * arguments, and so it should be searched for in the last method on the stack as well.
 	 */
 	public void pushTaintDownStack(Object taintedArg) {
-		Long threadId = new Long(Thread.currentThread().getId());
+		Long threadId = Thread.currentThread().getId();
 		if (!taintStack.containsKey(threadId)) {
 			TaintLogger.getTaintLogger().log("taintAccessed failed");
 		}
 		else {
-			WeakIdentityHashMap top = (WeakIdentityHashMap)((Stack)taintStack.get(threadId)).pop();
+			WeakIdentityHashMap<Object, Object> top = taintStack.get(threadId).pop();
 			if (top.remove(taintedArg) != null) {
-				((WeakIdentityHashMap)((Stack)taintStack.get(threadId)).peek()).put(taintedArg, null);
+				taintStack.get(threadId).peek().put(taintedArg, null);
 			}
-			((Stack)taintStack.get(threadId)).push(top);
+			taintStack.get(threadId).push(top);
 		}
 	}
 	
@@ -74,13 +73,13 @@ public class TaintData {
 	 * Checks if any taint was accessed for the current thread at a particular stack location.
 	 */
 	public boolean taintAccessed() {
-		Long threadId = new Long(Thread.currentThread().getId());
+		Long threadId = Thread.currentThread().getId();
 		if (!taintStack.containsKey(threadId)) {
 			TaintLogger.getTaintLogger().log("taintAccessed failed");
 			return false;
 		}
 		else {
-			return (((WeakIdentityHashMap)((Stack)taintStack.get(threadId)).peek()).size() > 0);
+			return (taintStack.get(threadId).peek().size() > 0);
 		}
 	}
 	
@@ -89,25 +88,25 @@ public class TaintData {
 	 * access with that location.
 	 */
 	public void startCall() {
-		Long threadId = new Long(Thread.currentThread().getId());
+		Long threadId = Thread.currentThread().getId();
 		if (!taintStack.containsKey(threadId)) {
-			taintStack.put(threadId, new Stack());
+			taintStack.put(threadId, new Stack<WeakIdentityHashMap<Object, Object>>());
 //			TaintLogger.getTaintLogger().log("TID: " + threadId + " startfail: " + taintStack.contains(threadId));
 		}
-		((Stack)taintStack.get(threadId)).push(new WeakIdentityHashMap());
+		taintStack.get(threadId).push(new WeakIdentityHashMap<Object, Object>());
 	}
 	
 	/*
 	 * Used with startCall() to keep track of the stack location. Called on method exit.
 	 */
 	public void endCall() {
-		Long threadId = new Long(Thread.currentThread().getId());
+		Long threadId = Thread.currentThread().getId();
 		if (!taintStack.containsKey(threadId)) {
 //			TaintLogger.getTaintLogger().log("TID: " + threadId + " endfail ");
-			taintStack.put(threadId, new Stack());
+			taintStack.put(threadId, new Stack<WeakIdentityHashMap<Object, Object>>());
 		}
-		if (!((Stack)taintStack.get(threadId)).empty())
-			((WeakIdentityHashMap)((Stack)taintStack.get(threadId)).pop()).clear();
+		if (!taintStack.get(threadId).empty())
+			taintStack.get(threadId).pop().clear();
 	}
 	
 	public void mapResultSetToSource(Object resultSet, Object source) {
@@ -134,14 +133,14 @@ public class TaintData {
 		if (dataToSourcesMap.get(targetData) == null) {
 			dataToSourcesMap.put(targetData, new SizedSources(0, null));
 		}
-		((SizedSources)dataToSourcesMap.get(targetData)).addSources((SizedSources)dataToSourcesMap.get(sourceData));
+		dataToSourcesMap.get(targetData).addSources(dataToSourcesMap.get(sourceData));
 	}
 	
 	public SizedSources getDataSources(Object data) {
-		return (SizedSources)dataToSourcesMap.get(data);
+		return dataToSourcesMap.get(data);
 	}
 	
-	public WeakIdentityHashMap getDataToSourceMap() {
+	public WeakIdentityHashMap<Object, SizedSources> getDataToSourceMap() {
 		return dataToSourcesMap;
 	}
 	
@@ -157,12 +156,12 @@ public class TaintData {
 	}
 	
 	class SizedSources {
-		private HashMap sources;
+		private HashMap<Object, Integer> sources;
 		
 		public SizedSources (int size, Object source) {
-			this.sources = new HashMap();
+			this.sources = new HashMap<Object, Integer>();
 			if (source != null) {
-				this.sources.put(source, new Integer(size));
+				this.sources.put(source, size);
 			}
 		}
 		
@@ -171,15 +170,13 @@ public class TaintData {
 				this.sources.putAll(sources.getSources());
 		}
 		
-		public HashMap getSources() {
+		public HashMap<Object, Integer> getSources() {
 			return sources;
 		}
 		
 		public String toString() {
 			String ret = "";
-			Iterator keySet = sources.keySet().iterator();
-			while (keySet.hasNext()) {
-				Object source = keySet.next();
+			for (Object source : sources.keySet()) {
 				ret = ret + (sources.get(source).toString() + '-');
 				try {
 					ResultSetMetaData metaData = (ResultSetMetaData) source;
@@ -197,3 +194,4 @@ public class TaintData {
 		}
 	}
 }
+

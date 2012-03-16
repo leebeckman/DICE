@@ -5,7 +5,6 @@ import java.util.logging.LogRecord;
 
 public class LightFormatter extends Formatter {
 
-	@Override
 	public String format(LogRecord r) {
 		return r.getMessage() + "\n";
 	}

@@ -4,7 +4,6 @@ import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 
 public aspect GeneralTracker {
 	
@@ -119,6 +118,10 @@ public aspect GeneralTracker {
 	 *  		
 	 */
 	
+	public enum AdviceType {
+		BEFORE, AFTER, STRINGMANIP, FUZZY
+	}
+
 	// Debug counters
 	public int deepScanDone;
 	public int deepScanSkip;
@@ -503,7 +506,7 @@ public aspect GeneralTracker {
      */
     after() returning (Object ret): (stringConstruct() || stringBuilderConstruct() || stringBufferConstruct() || stringCopyValueOf() || stringFormat()) && !cflow(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
-    	ArrayList composed = new ArrayList();
+    	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
 //    	TaintLogger.getTaintLogger().log("String construct: " + ret + " in " + location.toString());
     	if (ret != null) {
@@ -661,7 +664,7 @@ public aspect GeneralTracker {
      */
     after() returning (Object ret): stringConcat() && !cflow(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
-    	ArrayList composed = new ArrayList();
+    	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
     	
     	if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis())) {
@@ -694,7 +697,7 @@ public aspect GeneralTracker {
      */
     after() returning (Object ret): stringReplaceString() && !cflow(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
-    	ArrayList composed = new ArrayList();
+    	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
     	
 		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis())) {
@@ -734,7 +737,7 @@ public aspect GeneralTracker {
     					stringBuilderIndexOf() || stringBuilderLastIndexOf() || stringBufferIndexOf() || stringBufferLastIndexOf()) && !cflow(myAdvice()) {
     	
     	Object[] args = thisJoinPoint.getArgs();
-    	ArrayList associated = new ArrayList();
+    	ArrayList<Object> associated = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
 		
 		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis()))
@@ -761,7 +764,7 @@ public aspect GeneralTracker {
     after() returning (Object ret): 	(stringBuilderAppend() || stringBuilderInsert() || stringBuilderReplace() ||
     					stringBufferAppend() || stringBufferInsert() || stringBufferReplace()) && !cflow(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
-    	ArrayList composed = new ArrayList();
+    	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
 		
 		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis()))
@@ -800,7 +803,7 @@ public aspect GeneralTracker {
     after() returning (Object ret): 	(stringBuilderAppendModification() || stringBuilderInsertModification() ||
     					stringBufferAppendModification() || stringBufferInsertModification()) && !cflow(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
-    	ArrayList composed = new ArrayList();
+    	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = getStackTracePath();
 		
     	composed.add(thisJoinPoint.getThis());
@@ -863,7 +866,7 @@ public aspect GeneralTracker {
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = getStackTracePath();
 
-		ArrayList taintedArgs = new ArrayList();
+		ArrayList<Object> taintedArgs = new ArrayList<Object>();
 		for (int i = 0; i < args.length; i++) {
 			if (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) { // TODO: add StringBuffer/Builder
 				if (args[i] != null && TaintData.getTaintData().isTainted(args[i])) {
@@ -874,9 +877,7 @@ public aspect GeneralTracker {
 		
 		if (taintedArgs.size() > 0 && ret != null) {
 			if (!TaintData.getTaintData().isTainted(ret)) {
-				Iterator argsIt = taintedArgs.iterator();
-				while (argsIt.hasNext()) {
-					Object arg = argsIt.next();
+				for (Object arg : taintedArgs) {
 					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
 							Math.abs(arg.toString().length() - ret.toString().length()) + 
 							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
@@ -932,14 +933,12 @@ public aspect GeneralTracker {
         		}
         	}
         	else if (taintAccessed && args[i] != null && args[i] instanceof Object) {
-        		IdentityHashMap objTaint = TaintFinder.findTaint(args[i]);
+        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
         		if (objTaint != null && objTaint.size() > 0) {
         			if (location == null)
         				location = getStackTracePath();
     				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint);
-    				Iterator keySet = objTaint.keySet().iterator();
-    				while (keySet.hasNext()) {
-    					Object taintedObject = keySet.next();
+    				for (Object taintedObject : objTaint.keySet()) {
     					TaintData.getTaintData().pushTaintDownStack(taintedObject);
     				}
         		}
@@ -955,7 +954,7 @@ public aspect GeneralTracker {
     		}
     	}
     	else if (taintAccessed && ret != null && ret instanceof Object) {
-			IdentityHashMap objTaint = TaintFinder.findTaint(ret);
+			IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
 			if (objTaint.size() > 0) {
 				TaintLogger.getTaintLogger().logReturning(location, "EXECUTEOBJECTRETURN", objTaint);
 			}
@@ -1050,14 +1049,14 @@ public aspect GeneralTracker {
     	public String destMethod;
     	public String srcClass;
     	public String srcMethod;
-    	private ArrayList deeperStack;
+    	private ArrayList<String> deeperStack;
     	
     	public StackPath(String destClass, String destMethod, String srcClass, String srcMethod) {
     		this.destClass = destClass;
     		this.destMethod = destMethod;
     		this.srcClass = srcClass;
     		this.srcMethod = srcMethod;
-    		this.deeperStack = new ArrayList();
+    		this.deeperStack = new ArrayList<String>();
     	}
     	
     	public String getDest() {
@@ -1094,3 +1093,4 @@ public aspect GeneralTracker {
     }
     
 }
+

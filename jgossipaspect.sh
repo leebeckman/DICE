@@ -1,10 +1,5 @@
 #!/bin/bash
 
-rm $HOME/DICE/weavelog.log
-rm $HOME/DICE/weavelog_connector.log
-rm $HOME/DICE/weavelog_beanutils.log
-rm $HOME/DICE/aspectcompile.log
-
 export CLASSPATH="$HOME/DICE/src/lib/*:$HOME/DICE/tomcat/lib/*:$HOME/DICE/jgossip/database/oracle/lib/*:$HOME/DICE/jgossip/database/mysql/lib/*:$HOME/DICE/jgossip/lib/*"
 export JAVA_HOME="$HOME/DICE/ibm-java"
 

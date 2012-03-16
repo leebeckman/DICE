@@ -4,6 +4,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import taint.GeneralTracker.AdviceType;
+import taint.GeneralTracker.StackPath;
 import taint.GeneralTracker.StackPath;
 
 public aspect DBCPTaint {
@@ -109,4 +111,5 @@ public aspect DBCPTaint {
 //    }
 //    
 //}
+
 
