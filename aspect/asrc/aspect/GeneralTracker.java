@@ -939,8 +939,8 @@ public class GeneralTracker {
 			
 //			StackPath location = null;
 //	        Object[] args = invocation.getArguments();
+        	TaintLogger.getTaintLogger().log("HOWDY");
 	        System.exit(0);
-	        TaintLogger.getTaintLogger().log("HOWDY");
 	        	/*
 	        	 *  search through args. Look for taint, and as it is found
 	        	 *  push it down in the stack.

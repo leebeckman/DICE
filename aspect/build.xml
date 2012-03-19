@@ -135,8 +135,8 @@
                         <aopc compilerclasspathref="classpath" classpathref="classpath" verbose="true">
                             <classpath path="classes"/>
                             <src path="classes"/>
-                            <!--<aoppath path="jboss-aop.xml"/>-->
-                            <aopclasspath path="classes/aspects"/>
+                            <aoppath path="jboss-aop.xml"/>
+                            <!--<aopclasspath path="classes/aspects"/>-->
                         </aopc>
                     </try>
                     <catch>

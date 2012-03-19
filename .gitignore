@@ -2,8 +2,6 @@
 *.log
 *.swp
 *.lck
-*.classpath
-*.project
 tomcat/webapps
 tomcat/work
 tomcat-old/webapps
