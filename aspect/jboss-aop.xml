@@ -6,7 +6,7 @@
     <pointcut name="anyExecution" expr="execution(public * *->*(..))"/>
     <pointcut name="anyStaticExecution" expr="execution(static * *->*(..))"/>
 
-    <pointcut name="testCut" expr="execution(public void org.jresearch.gossip.dao.ForumDAO->getForums(..))" />
+    <pointcut name="testCut" expr="execution(public void org.jresearch.gossip.list.RecordsData->fillRecords(..))" />
     
     <bind pointcut="anyExecution AND notAspectMethods">
         <around name="processArgsAndReturn" aspect="aspect.GeneralTracker" />

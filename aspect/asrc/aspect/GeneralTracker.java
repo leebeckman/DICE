@@ -927,7 +927,9 @@ public class GeneralTracker {
 		
 		lm.addLogger(logger);
 		
-		logger.log(Level.INFO, "TESTLAWG");
+		logger.log(Level.INFO, "TESTLOG");
+		
+		System.exit(0);
 	}
 	
 //	@PointcutDef ("execution(* *->*(..))")
