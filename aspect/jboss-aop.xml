@@ -1,0 +1,19 @@
+<aop>
+
+    <aspect class="aspect.GeneralTracker"/>
+
+    <pointcut name="notAspectMethods" expr="!execution(* aspect.*->*(..))"/>
+    <pointcut name="anyExecution" expr="execution(public * *->*(..))"/>
+    <pointcut name="anyStaticExecution" expr="execution(static * *->*(..))"/>
+
+    <pointcut name="testCut" expr="call(public void org.jresearch.gossip.dao.ForumDAO->getForums(..))" />
+    
+    <bind pointcut="anyExecution AND notAspectMethods">
+        <around name="processArgsAndReturn" aspect="aspect.GeneralTracker" />
+    </bind>
+
+    <bind pointcut="testCut">
+        <before name="testLog" aspect="aspect.GeneralTracker" />
+    </bind>
+   
+</aop>

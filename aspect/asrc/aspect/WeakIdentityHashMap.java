@@ -146,10 +146,9 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         }
     }
 
-    class IdentityWeakReference extends WeakReference<K> {
+    public class IdentityWeakReference extends WeakReference<K> {
         int hash;
         
-        @SuppressWarnings("unchecked")
         IdentityWeakReference(Object obj) {
             super((K)obj, queue);
             hash = System.identityHashCode(obj);

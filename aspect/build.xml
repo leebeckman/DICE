@@ -51,8 +51,9 @@
     <target name="aopc" depends="compile">
 
         <delete dir="output"/>
+        <mkdir dir="output"/>
 
-        <for param="file">
+        <!--<for param="file">
             <path>
                 <fileset dir="classes" includes="*.jar" />
             </path>
@@ -100,7 +101,7 @@
                 <delete dir="classes/extracted/${filename}"/>
 
             </sequential>
-        </for>
+        </for>-->
         <for param="file">
             <path>
                 <fileset dir="classes" includes="*.war" />
@@ -114,7 +115,7 @@
                     <path refid="jboss.aop.classpath"/>
 
                     <pathelement path="classes/aspects"/>
-                    <pathelement path="classes/extracted/${filename}"/>
+                    <pathelement path="classes/extracted/${filename}/WEB-INF/classes"/>
 
                     <fileset dir="${user.home}/DICE/src/lib">
                         <include name="*.jar"/>
@@ -134,7 +135,8 @@
                         <aopc compilerclasspathref="classpath" classpathref="classpath" verbose="true">
                             <classpath path="classes"/>
                             <src path="classes"/>
-                            <aoppath path="asrc/jboss-aop.xml"/>
+                            <!--<aoppath path="jboss-aop.xml"/>-->
+                            <aopclasspath path="classes/aspects"/>
                         </aopc>
                     </try>
                     <catch>
@@ -143,6 +145,13 @@
                     <finally />
                 </trycatch>
 
+		        <copy todir="classes/extracted/${filename}/WEB-INF/lib">
+		            <fileset dir="output">
+			        <include name="*.jar"/>
+		            </fileset>
+		        </copy>
+
+                <jar destfile="classes/extracted/${filename}/WEB-INF/lib/aspects.jar" basedir="classes/aspects" />
                 <war destfile="output/${filename}" basedir="classes/extracted/${filename}"/>
                 <delete dir="classes/extracted/${filename}"/>
 
@@ -150,9 +159,74 @@
         </for>
 
         <delete dir="classes/extracted"/>
-
-        <jar destfile="output/aspects.jar" basedir="classes/aspects" />
         <delete dir="classes" />
+    </target>
+
+    <target name="report" depends="compile">
+
+        <delete dir="output"/>
+        <mkdir dir="output"/>
+
+        <for param="file">
+            <path>
+                <fileset dir="classes" includes="*.war" />
+            </path>
+            <sequential>
+                <var name="filename" unset="true"/>
+                <property name="filename" value="@{file}" basedir="classes" relative="yes" />
+                <echo>File: @{file} ${filename}</echo>
+
+                <path id="classpath">
+                    <path refid="jboss.aop.classpath"/>
+
+                    <pathelement path="classes/aspects"/>
+                    <pathelement path="classes/extracted/${filename}/WEB-INF/classes"/>
+
+                    <fileset dir="${user.home}/DICE/src/lib">
+                        <include name="*.jar"/>
+                    </fileset>
+                    <fileset dir="${user.home}/DICE/jgossip/lib">
+                        <include name="*.jar"/>
+                    </fileset>
+                </path>
+
+                <delete dir="classes/extracted/${filename}"/>
+                <mkdir dir="classes/extracted/${filename}"/>
+                <unwar src="@{file}" dest="classes/extracted/${filename}"/>
+                <delete file="@{file}"/>
+
+                <trycatch property="message" reference="exception">
+                    <try>
+                        <aopc compilerclasspathref="classpath" classpathref="classpath" verbose="true">
+                            <classpath path="classes"/>
+                            <src path="classes"/>
+                            <aoppath path="jboss-aop.xml"/>
+                            <aopclasspath path="classes/aspects"/>
+                        </aopc>
+                        <aopc compilerclasspathref="classpath" classpathref="classpath" verbose="true" report="true">
+                            <classpath path="classes"/>
+                            <src path="classes"/>
+                            <aoppath path="jboss-aop.xml"/>
+                            <aopclasspath path="classes/aspects"/>
+                        </aopc>
+                    </try>
+                    <catch>
+                        <echo>Message: ${message}</echo>
+                    </catch>
+                    <finally />
+                </trycatch>
+
+		        <copy todir="classes/extracted/${filename}/WEB-INF/lib">
+		            <fileset dir="output">
+			        <include name="*.jar"/>
+		            </fileset>
+		        </copy>
+
+                <jar destfile="classes/extracted/${filename}/WEB-INF/lib/aspects.jar" basedir="classes/aspects" />
+                <war destfile="output/${filename}" basedir="classes/extracted/${filename}"/>
+
+            </sequential>
+        </for>
     </target>
 
 </project>
