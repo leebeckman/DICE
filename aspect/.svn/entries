@@ -1,0 +1,70 @@
+8
+
+dir
+2528
+https://svn.corp.jboss.com/repos/training/trunk/training/other/AOP/dzone-article/listing2
+https://svn.corp.jboss.com/repos/training
+
+
+
+2008-08-18T14:59:27.953373Z
+2528
+kkhan
+
+
+svn:special svn:externals svn:needs-lock
+
+.classpath
+file
+
+
+
+
+2008-08-15T14:24:01.000000Z
+f7cd577b688ee96d02843e1fe4aaa0d7
+2008-08-18T14:59:27.953373Z
+2528
+kkhan
+
+.project
+file
+
+
+
+
+2008-08-14T17:04:10.000000Z
+1ef3fadcdb89721467a05f00c4ac53fe
+2008-08-18T14:59:27.953373Z
+2528
+kkhan
+
+src
+dir
+
+jboss-aop.xml
+file
+
+
+
+
+2008-08-15T15:49:24.000000Z
+aa872569956f508a0499f29ec0e85686
+2008-08-18T14:59:27.953373Z
+2528
+kkhan
+
+.settings
+dir
+
+build.xml
+file
+
+
+
+
+2008-08-15T16:23:14.000000Z
+f1384d8cdda9795c78c82a378422acdc
+2008-08-18T14:59:27.953373Z
+2528
+kkhan
+

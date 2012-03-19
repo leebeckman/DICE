@@ -1,0 +1,15 @@
+<aop>
+   <aspect class="bank.LoggingAspect"/>
+
+   <bind pointcut="execution(bank.BankAccount->new(int))">
+      <around aspect="bank.LoggingAspect" name="log"/>
+   </bind>
+
+   <bind pointcut="execution(void bank.BankAccount->*(int))">
+      <around aspect="bank.LoggingAspect" name="log"/>
+   </bind>
+   
+   <bind pointcut="set(* bank.BankAccount->balance)">
+      <around aspect="bank.LoggingAspect" name="log"/>
+   </bind>
+</aop>

@@ -11,7 +11,6 @@ public aspect DBCPTaint {
 	public DBCPTaint() {
 
 	}
-	
     
     pointcut resultSetAccess():
     	(execution(public * *ResultSet.getObject(..)) ||
@@ -22,24 +21,24 @@ public aspect DBCPTaint {
 //    	(execution(public * org.apache.commons.dbcp..*PreparedStatement.executeQuery(..)) ||
 
     after() returning (Object ret): resultSetAccess() {
-		TaintLogger.getTaintLogger().log_db("Checking " + thisJoinPoint.getThis().getClass().getName() + ": " + ret.toString());
-    	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
-//    		result = new String((String)result, true);
-    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
-    		StackPath location = GeneralTracker.aspectOf().getStackTracePath();
-    		TaintLogger.getTaintLogger().logReturning(location, "RESULTSETACCESS", ret);
-    	}
+//		TaintLogger.getTaintLogger().log_db("Checking " + thisJoinPoint.getThis().getClass().getName() + ": " + ret.toString());
+//    	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
+////    		result = new String((String)result, true);
+//    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
+//    		StackPath location = GeneralTracker.aspectOf().getStackTracePath();
+//    		TaintLogger.getTaintLogger().logReturning(location, "RESULTSETACCESS", ret);
+//    	}
     }
     
     after() returning (ResultSet rs): resultSetCreation() {
-		ResultSetMetaData metaData = null;
-		try {
-    		metaData = (ResultSetMetaData) rs.getMetaData();
-    		TaintData.getTaintData().mapDataToSource(rs, metaData);
-        	TaintData.getTaintData().mapResultSetToSource(rs, metaData);
-    	} catch (SQLException e) {
-    		TaintLogger.getTaintLogger().log("FAIL GETTING METADATA FROM RESULTSET: " + e.getMessage());
-    	}
+//		ResultSetMetaData metaData = null;
+//		try {
+//    		metaData = (ResultSetMetaData) rs.getMetaData();
+//    		TaintData.getTaintData().mapDataToSource(rs, metaData);
+//        	TaintData.getTaintData().mapResultSetToSource(rs, metaData);
+//    	} catch (SQLException e) {
+//    		TaintLogger.getTaintLogger().log("FAIL GETTING METADATA FROM RESULTSET: " + e.getMessage());
+//    	}
     	
     }
     

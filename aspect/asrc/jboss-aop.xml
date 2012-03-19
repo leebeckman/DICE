@@ -1,0 +1,13 @@
+<aop>
+
+    <aspect class="aspect.LoggingAspect"/>
+
+    <pointcut name="notAspectMethods" expr="!execution(* aspect.*->*(..))"/>
+    <pointcut name="anyExecution" expr="execution(* *->*(..))"/>
+
+
+    <bind pointcut="anyExecution AND notAspectMethods">
+        <around aspect="aspect.LoggingAspect" name="log"/>
+    </bind>
+   
+</aop>

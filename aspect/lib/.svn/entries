@@ -1,0 +1,28 @@
+8
+
+dir
+2528
+https://svn.corp.jboss.com/repos/training/trunk/training/other/AOP/dzone-article/libraries
+https://svn.corp.jboss.com/repos/training
+
+
+
+2008-08-18T14:59:27.953373Z
+2528
+kkhan
+
+
+svn:special svn:externals svn:needs-lock
+
+.project
+file
+
+
+
+
+2008-08-15T09:52:11.000000Z
+c30f683d371c2e660d0566bd7e438469
+2008-08-18T14:59:27.953373Z
+2528
+kkhan
+

@@ -1,0 +1,66 @@
+<project default="run-load-time" name="JBoss/AOP">
+	
+	<!--
+	   This example demonstrates a logging aspect
+	   Run 'ant' to run with loadtime weaving
+	   Run 'ant run-compile-time' to run with compile-time weaving 
+	-->
+	
+   <target name="prepare">
+      <path id="jboss.aop.classpath">
+         <fileset dir="../libraries">
+            <include name="jboss-aop-jdk50-single.jar"/>
+         </fileset>
+      </path>
+
+      <path id="classpath">
+         <path refid="jboss.aop.classpath"/>
+         <pathelement path="classes"/>
+      </path>
+
+      <taskdef name="aopc" classname="org.jboss.aop.ant.AopC" classpathref="jboss.aop.classpath"/>
+   </target>
+
+   <target name="compile" depends="prepare">
+   	<delete dir="classes"/>
+      <mkdir dir="classes"/>
+      <javac srcdir="src"
+         destdir="classes"
+         debug="on"
+         deprecation="on"
+         optimize="off"
+         includes="**">
+         <classpath refid="classpath"/>
+      </javac>
+         	
+      <copy todir="classes" filtering="no">
+         <fileset dir="src">
+            <include name="**/*.properties"/>
+         </fileset>
+      </copy>
+   </target>
+	
+	<target name="aopc" depends="compile">
+      <aopc compilerclasspathref="classpath" classpathref="classpath" verbose="true">
+         <classpath path="classes"/>
+         <src path="classes"/>
+         <aoppath path="jboss-aop.xml"/>
+      </aopc>
+   </target>
+
+   <target name="run-compile-time" depends="aopc">
+      <java fork="yes" failOnError="true" className="bank.Bank">
+         <sysproperty key="jboss.aop.path" value="jboss-aop.xml"/>
+         <classpath refid="classpath"/>
+      </java>
+   </target>
+
+   <target name="run-load-time" depends="compile">
+      <java fork="yes" failOnError="true" className="bank.Bank">
+         <sysproperty key="jboss.aop.path" value="jboss-aop.xml"/>
+         <jvmarg value="-javaagent:../libraries/jboss-aop-jdk50-single.jar"/>
+         <classpath refid="classpath"/>
+      </java>
+   </target>
+
+</project>

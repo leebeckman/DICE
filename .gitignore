@@ -4,5 +4,10 @@
 *.lck
 *.classpath
 *.project
-tomcat/webapps/
-tomcat/work/
+tomcat/webapps
+tomcat/work
+tomcat-old/webapps
+tomcat-old/work
+*.out
+jgossip/build
+jgossip/dist

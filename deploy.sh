@@ -5,6 +5,9 @@ rm *.1
 rm ext*
 
 ant -buildfile jgossip/build.xml dist -Ddeploy_env=default
+ant -buildfile aspect/build.xml
+
+exit 0
 bash jgossipaspect.sh 2>&1 | tee deploy.log
 bash tomcat/bin/shutdown.sh
 rm tomcat/webapps/jgossip.war
