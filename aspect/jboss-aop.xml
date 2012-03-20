@@ -2,18 +2,12 @@
 
     <aspect class="aspect.GeneralTracker"/>
 
-    <pointcut name="notAspectMethods" expr="!execution(* aspect.*->*(..))"/>
-    <pointcut name="anyExecution" expr="execution(public * *->*(..))"/>
-    <pointcut name="anyStaticExecution" expr="execution(static * *->*(..))"/>
+    <pointcut name="notAspectExecution" expr="!execution(* aspect.*->*(..))"/>
+    <pointcut name="notAspectCall" expr="!call(* aspect.*->*(..))"/>
+    <pointcut name="anyExecution" expr="execution(* *->*(..))"/>
 
-    <pointcut name="testCut" expr="execution(public void org.jresearch.gossip.list.RecordsData->fillRecords(..))" />
-    
-    <bind pointcut="anyExecution AND notAspectMethods">
+    <bind pointcut="anyExecution AND notAspectExecution AND notAspectCall">
         <around name="processArgsAndReturn" aspect="aspect.GeneralTracker" />
-    </bind>
-
-    <bind pointcut="testCut">
-        <before name="testLog" aspect="aspect.GeneralTracker" />
     </bind>
    
 </aop>

@@ -122,6 +122,7 @@ public class ShowForumAction extends BaseAction {
 		} catch (IllegalAccessException e) {
 			throw new SystemException(e);
 		} catch (InvocationTargetException e) {
+			getServlet().log("FAIL: ", e);
 			throw new SystemException(e);
 		} catch (NoSuchMethodException e) {
 			throw new SystemException(e);
@@ -129,4 +130,5 @@ public class ShowForumAction extends BaseAction {
 
 		return (mapping.findForward("showForum"));
 	}
+	
 }

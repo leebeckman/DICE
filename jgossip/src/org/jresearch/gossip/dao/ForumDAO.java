@@ -2236,6 +2236,7 @@ public class ForumDAO extends DAO {
 		ResultSet rs = null;
 		boolean success = false;
 
+
 		try {
 			rs = st.executeQuery();
 

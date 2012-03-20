@@ -75,17 +75,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         for (Map.Entry<IdentityWeakReference, V> ref : backingStore.entrySet()) {
             final K key = ref.getKey().get();
             final V value = ref.getValue();
-            Map.Entry<K, V> entry = new Map.Entry<K, V>() {
-                public K getKey() {
-                    return key;
-                }
-                public V getValue() {
-                    return value;
-                }
-                public V setValue(V value) {
-                    throw new UnsupportedOperationException();
-                }
-            };
+            Map.Entry<K, V> entry = new MapEntryImpl<K, V>(key, value);
             ret.add(entry);
         }
         return Collections.unmodifiableSet(ret);

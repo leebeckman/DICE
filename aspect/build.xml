@@ -151,7 +151,14 @@
 		            </fileset>
 		        </copy>
 
-                <jar destfile="classes/extracted/${filename}/WEB-INF/lib/aspects.jar" basedir="classes/aspects" />
+                <jar destfile="output/aspects.jar" basedir="classes/aspects" />
+
+                <copy todir="classes/extracted/${filename}/WEB-INF/lib">
+                    <fileset dir="output">
+                        <include name="aspects.jar"/>
+                    </fileset>
+                </copy>
+
                 <war destfile="output/${filename}" basedir="classes/extracted/${filename}"/>
                 <delete dir="classes/extracted/${filename}"/>
 
@@ -162,7 +169,7 @@
         <delete dir="classes" />
     </target>
 
-    <target name="report" depends="compile">
+<!--<target name="report" depends="compile">
 
         <delete dir="output"/>
         <mkdir dir="output"/>
@@ -218,15 +225,16 @@
 
 		        <copy todir="classes/extracted/${filename}/WEB-INF/lib">
 		            <fileset dir="output">
-			        <include name="*.jar"/>
+			            <include name="*.jar"/>
 		            </fileset>
 		        </copy>
 
-                <jar destfile="classes/extracted/${filename}/WEB-INF/lib/aspects.jar" basedir="classes/aspects" />
+                <jar destfile="output/aspects.jar" basedir="classes/aspects" />
+
                 <war destfile="output/${filename}" basedir="classes/extracted/${filename}"/>
 
             </sequential>
         </for>
-    </target>
+    </target>-->
 
 </project>

@@ -896,44 +896,13 @@ public class GeneralTracker {
      * 
      * TODO: Totally not instrumenting constructors
      */
-//	public Object startCall(MethodInvocation invocation) throws Throwable {
-//		try {
-//			TaintData.getTaintData().startCall();	
-//			return invocation.invokeNext();
-//		} finally {
-//		}
-//	}
-    
 //    after(): execution(javax..HttpServletRequest.new(..)) {
 ////    	TaintLogger.getTaintLogger().log("THREADIDNEW " + Thread.currentThread().getId());
 //    }
-    
-	public void testLog() {
-		LogManager lm = LogManager.getLogManager();
-		
-		FileHandler fhTaint = null;
-		try {
-			fhTaint = new FileHandler("/home/lee/DICE/taintlog.log");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		fhTaint.setFormatter(new LightFormatter());
-		
-		Logger logger = Logger.getLogger("TaintLogger");
-		logger.setLevel(Level.INFO);
 
-		logger.addHandler(fhTaint);
-		
-		lm.addLogger(logger);
-		
-		logger.log(Level.INFO, "TESTLOG");
-		
-		System.exit(0);
-	}
 	
 //	@PointcutDef ("execution(* *->*(..))")
-	public static Pointcut anyMethods;
+//	public static Pointcut anyMethods;
 	
 //	@Bind (pointcut="aspect.GeneralTracker.anyMethods")
 	public Object processArgsAndReturn(MethodInvocation invocation) throws Throwable {
@@ -941,8 +910,7 @@ public class GeneralTracker {
 			
 //			StackPath location = null;
 //	        Object[] args = invocation.getArguments();
-        	TaintLogger.getTaintLogger().log("HOWDY");
-	        System.exit(0);
+        	TaintLogger.getTaintLogger().log("Thing");
 	        	/*
 	        	 *  search through args. Look for taint, and as it is found
 	        	 *  push it down in the stack.
@@ -994,18 +962,10 @@ public class GeneralTracker {
 //	    	if (TaintData.getTaintData().taintAccessed()) {
 ////	    		TaintLogger.getTaintLogger().log("Non-arg taint accessed");
 //	    	}
-			return ret;
 //			TaintData.getTaintData().endCall();	
+			return ret;
 	}
 
-//	public Object endCall(MethodInvocation invocation) throws Throwable {
-//		try {
-//			TaintData.getTaintData().endCall();	
-//			return invocation.invokeNext();
-//		} finally {
-//		}
-//	}
-    
     /*
      * This advice is currently not used as we are just scanning object graphs to find taint. It's slow, but much simpler than this
      */

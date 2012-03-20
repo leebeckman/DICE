@@ -62,4 +62,6 @@ else
   fi
 fi 
 
+
+export JAVA_OPTS="-Djboss.aop.path=/home/lee/DICE/aspect/jboss-aop.xml -Djboss.aop.class.path=/home/lee/DICE/aspect/output/aspects.jar"
 exec "$PRGDIR"/"$EXECUTABLE" start "$@"

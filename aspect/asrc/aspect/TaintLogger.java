@@ -26,9 +26,9 @@ public class TaintLogger {
 	private XMLOutputter xmlOut;
 	private static TaintLogger self;
 	
-	public enum TaintLogType {
-		PROPAGATION, FUZZYPROPAGATION, MODIFICATION, COMPOSITION, ASSOCIATION, CALLING, RETURNING
-	}
+//	public enum TaintLogType {
+//		PROPAGATION, FUZZYPROPAGATION, MODIFICATION, COMPOSITION, ASSOCIATION, CALLING, RETURNING
+//	}
 	
 	private TaintLogger() {
 		try {
@@ -98,7 +98,7 @@ public class TaintLogger {
 	 * </taintlog>
 	 */
 	public void logPropagation(StackPath location, String adviceType, Object source, Object target) {
-		Element logRoot = getLogRoot(TaintLogType.PROPAGATION);
+		Element logRoot = getLogRoot("PROPAGATION");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
@@ -127,7 +127,7 @@ public class TaintLogger {
 	 * </taintlog>
 	 */
 	public void logFuzzyPropagation(StackPath location, String adviceType, Object source, Object target) {
-		Element logRoot = getLogRoot(TaintLogType.FUZZYPROPAGATION);
+		Element logRoot = getLogRoot("FUZZYPROPAGATION");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
@@ -151,7 +151,7 @@ public class TaintLogger {
 	 * </taintlog>
 	 */
 	public void logModification(StackPath location, String adviceType, Object target) {
-		Element logRoot = getLogRoot(TaintLogType.MODIFICATION);
+		Element logRoot = getLogRoot("MODIFICATION");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
@@ -186,7 +186,7 @@ public class TaintLogger {
 	 * </taintlog>
 	 */
 	public void logComposition(StackPath location, String adviceType, ArrayList<Object> composed, Object target) {
-		Element logRoot = getLogRoot(TaintLogType.COMPOSITION);
+		Element logRoot = getLogRoot("COMPOSITION");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
@@ -222,7 +222,7 @@ public class TaintLogger {
 	 * </taintlog>
 	 */
 	public void logAssociation(StackPath location, String adviceType, ArrayList<Object> associated) {
-		Element logRoot = getLogRoot(TaintLogType.ASSOCIATION);
+		Element logRoot = getLogRoot("ASSOCIATION");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
@@ -254,7 +254,7 @@ public class TaintLogger {
 	 * </taintlog>
 	 */
 	public void logCallingObjectArg(StackPath location, String adviceType, Object taintSource, IdentityHashMap<Object, ArrayList<String>> subTaintSources) {
-		Element logRoot = getLogRoot(TaintLogType.CALLING);
+		Element logRoot = getLogRoot("CALLING");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
@@ -268,7 +268,7 @@ public class TaintLogger {
 	}
 	
 	public void logCallingStringArg(StackPath location, String adviceType, Object taintSource) {
-		Element logRoot = getLogRoot(TaintLogType.CALLING);
+		Element logRoot = getLogRoot("CALLING");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
@@ -296,7 +296,7 @@ public class TaintLogger {
 	 * </taintlog>
 	 */
 	public void logReturningObject(StackPath location, String adviceType, Object taintSource, IdentityHashMap<Object, ArrayList<String>> subTaintSources) {
-		Element logRoot = getLogRoot(TaintLogType.RETURNING);
+		Element logRoot = getLogRoot("RETURNING");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
@@ -310,7 +310,7 @@ public class TaintLogger {
 	}
 	
 	public void logReturning(StackPath location, String adviceType, Object taintSource) {
-		Element logRoot = getLogRoot(TaintLogType.RETURNING);
+		Element logRoot = getLogRoot("RETURNING");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
@@ -320,7 +320,7 @@ public class TaintLogger {
 		log(xmlOut.outputString(logDoc));
 	}
 	
-	private Element getLogRoot(TaintLogType logType) {
+	private Element getLogRoot(String logType) {
 		Element logRoot = new Element("taintlog");
 		logRoot.setAttribute(new Attribute("type", logType.toString()));
 		logRoot.setAttribute(new Attribute("reqHash", String.valueOf(RequestData.getCurrentThreadRequestHash())));
