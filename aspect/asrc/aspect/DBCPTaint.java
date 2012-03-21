@@ -4,6 +4,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import org.jboss.aop.joinpoint.MethodInvocation;
+
 import aspect.GeneralTracker.StackPath;
 
 public class DBCPTaint {
@@ -11,37 +13,33 @@ public class DBCPTaint {
 	public DBCPTaint() {
 
 	}
-	
+
+    public Object processResultSetAccess(MethodInvocation invocation) throws Throwable {
+    	TaintLogger.getTaintLogger().log("PRSA");
+    	Object ret = invocation.invokeNext();
+    	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
+//    		result = new String((String)result, true);
+    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(invocation.getTargetObject()));
+    		StackPath location = GeneralTracker.getStackTracePath();
+    		TaintLogger.getTaintLogger().logReturning(location, "RESULTSETACCESS", ret);
+    	}
+    	return ret;
+    }
     
-//    pointcut resultSetAccess():
-//    	(execution(public * *ResultSet.getObject(..)) ||
-//    	execution(public * *ResultSet.getString(..)));
-//    
-//    pointcut resultSetCreation():
-//    	execution(public ResultSet *.*(..));
-////    	(execution(public * org.apache.commons.dbcp..*PreparedStatement.executeQuery(..)) ||
-//
-//    after() returning (Object ret): resultSetAccess() {
-//		TaintLogger.getTaintLogger().log_db("Checking " + thisJoinPoint.getThis().getClass().getName() + ": " + ret.toString());
-//    	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
-////    		result = new String((String)result, true);
-//    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
-//    		StackPath location = GeneralTracker.aspectOf().getStackTracePath();
-//    		TaintLogger.getTaintLogger().logReturning(location, "RESULTSETACCESS", ret);
-//    	}
-//    }
-//    
-//    after() returning (ResultSet rs): resultSetCreation() {
-//		ResultSetMetaData metaData = null;
-//		try {
-//    		metaData = (ResultSetMetaData) rs.getMetaData();
-//    		TaintData.getTaintData().mapDataToSource(rs, metaData);
-//        	TaintData.getTaintData().mapResultSetToSource(rs, metaData);
-//    	} catch (SQLException e) {
-//    		TaintLogger.getTaintLogger().log("FAIL GETTING METADATA FROM RESULTSET: " + e.getMessage());
-//    	}
-//    	
-//    }
+    public Object processResultSetCreation(MethodInvocation invocation) throws Throwable {
+    	TaintLogger.getTaintLogger().log("PRSC");
+    	ResultSet rs = (ResultSet)invocation.invokeNext();
+		ResultSetMetaData metaData = null;
+		try {
+    		metaData = (ResultSetMetaData) rs.getMetaData();
+    		TaintData.getTaintData().mapDataToSource(rs, metaData);
+        	TaintData.getTaintData().mapResultSetToSource(rs, metaData);
+    	} catch (SQLException e) {
+    		TaintLogger.getTaintLogger().log("FAIL GETTING METADATA FROM RESULTSET: " + e.getMessage());
+    	}
+    	
+		return rs;
+    }
     
 }
 

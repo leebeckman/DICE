@@ -1,11 +1,8 @@
 How to run:
 
-Note: Currently Makefile doesn't do anything, so ignore this for now.
-
 Required packages:
    -ant
    -mysql-server
-   -aspectj
 
 Steps:
    -Clone repository into home directory (otherwise default paths will be broken), creating ~/DICE.

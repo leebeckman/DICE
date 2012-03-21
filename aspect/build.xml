@@ -53,7 +53,7 @@
         <delete dir="output"/>
         <mkdir dir="output"/>
 
-        <!--<for param="file">
+        <for param="file">
             <path>
                 <fileset dir="classes" includes="*.jar" />
             </path>
@@ -88,7 +88,7 @@
                         <aopc compilerclasspathref="classpath" classpathref="classpath" verbose="true">
                             <classpath path="classes"/>
                             <src path="classes"/>
-                            <aoppath path="asrc/jboss-aop.xml"/>
+                            <aoppath path="jboss-aop.xml"/>
                         </aopc>
                     </try>
                     <catch>
@@ -101,7 +101,7 @@
                 <delete dir="classes/extracted/${filename}"/>
 
             </sequential>
-        </for>-->
+        </for>
         <for param="file">
             <path>
                 <fileset dir="classes" includes="*.war" />
@@ -136,7 +136,6 @@
                             <classpath path="classes"/>
                             <src path="classes"/>
                             <aoppath path="jboss-aop.xml"/>
-                            <!--<aopclasspath path="classes/aspects"/>-->
                         </aopc>
                     </try>
                     <catch>

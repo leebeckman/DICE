@@ -1,13 +1,33 @@
 <aop>
 
     <aspect class="aspect.GeneralTracker"/>
+    <aspect class="aspect.DBCPTaint"/>
+    <aspect class="aspect.RequestTracker"/>
 
-    <pointcut name="notAspectExecution" expr="!execution(* aspect.*->*(..))"/>
-    <pointcut name="notAspectCall" expr="!call(* aspect.*->*(..))"/>
-    <pointcut name="anyExecution" expr="execution(* *->*(..))"/>
+    <!--<pointcut name="notAspectExecution" expr="!execution(* aspect.*->*(..))"/>
+    <pointcut name="notAspectCall" expr="!call(* aspect.*->*(..))"/>-->
 
-    <bind pointcut="anyExecution AND notAspectExecution AND notAspectCall">
+    <!-- Intercept all methods -->
+    <pointcut name="anyExecution" expr="execution(* org.jresearch.*->*(..))"/>
+    <bind pointcut="anyExecution">
         <around name="processArgsAndReturn" aspect="aspect.GeneralTracker" />
     </bind>
-   
+
+    <!-- Taint source -->
+    <pointcut name="resultSetAccess" expr="execution(public * *ResultSet->getObject(..)) OR execution(public * *ResultSet->getString(..))"/>
+    <bind pointcut="resultSetAccess">
+        <around name="processResultSetAccess" aspect="aspect.DBCPTaint" />
+    </bind>
+
+    <pointcut name="resultSetCreation" expr="execution(public *ResultSet *->*(..))"/>
+    <bind pointcut="resultSetCreation">
+        <around name="processResultSetCreation" aspect="aspect.DBCPTaint" />
+    </bind>
+
+    <!-- Application request entry point -->
+    <pointcut name="actionExecution" expr="execution(public * $instanceof{org.apache.struts.action.Action}->execute(..))"/>
+    <bind pointcut="actionExecution">
+        <around name="processActionExecution" aspect="aspect.RequestTracker"/>
+    </bind>
+
 </aop>

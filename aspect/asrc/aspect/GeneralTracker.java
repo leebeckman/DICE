@@ -1,18 +1,10 @@
 package aspect;
 
-import java.io.IOException;
+import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
+import java.util.IdentityHashMap;
 
-import org.jboss.aop.Aspect;
-import org.jboss.aop.Bind;
-import org.jboss.aop.PointcutDef;
-import org.jboss.aop.advice.Scope;
 import org.jboss.aop.joinpoint.MethodInvocation;
-import org.jboss.aop.pointcut.Pointcut;
 
 //@Aspect (scope = Scope.PER_VM)
 public class GeneralTracker {
@@ -906,64 +898,66 @@ public class GeneralTracker {
 	
 //	@Bind (pointcut="aspect.GeneralTracker.anyMethods")
 	public Object processArgsAndReturn(MethodInvocation invocation) throws Throwable {
-//			TaintData.getTaintData().startCall();
+		TaintData.getTaintData().startCall();
 			
-//			StackPath location = null;
-//	        Object[] args = invocation.getArguments();
-        	TaintLogger.getTaintLogger().log("Thing");
-	        	/*
-	        	 *  search through args. Look for taint, and as it is found
-	        	 *  push it down in the stack.
-	        	 *  
-	        	 *  Everything is discarded in the end.
-	        	 */
-	        
-//	        boolean taintAccessed = TaintData.getTaintData().taintAccessed();
-//	        
-//	        for (int i = 0; i < args.length; i++) {
-//	        	//TODO: Deal with the fact that I added ResultSet here
-//	        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-//	        		if (TaintData.getTaintData().isTainted(args[i])) {
-//	        			if (location == null)
-//	        				location = getStackTracePath();
-//	        			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i]);
-//	        			TaintData.getTaintData().pushTaintDownStack(args[i]);			
-//	        		}
-//	        	}
-//	        	else if (taintAccessed && args[i] != null && args[i] instanceof Object) {
-//	        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-//	        		if (objTaint != null && objTaint.size() > 0) {
-//	        			if (location == null)
-//	        				location = getStackTracePath();
-//	    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint);
-//	    				for (Object taintedObject : objTaint.keySet()) {
-//	    					TaintData.getTaintData().pushTaintDownStack(taintedObject);
-//	    				}
-//	        		}
-//	        	}
-//	        }
-	        
-	        Object ret = invocation.invokeNext();
-//	    	//TODO: Deal with the fact that I added ResultSet here
-//	    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
-//	    		if (TaintData.getTaintData().isTainted(ret)) {
-//	    			if (location == null)
-//	    				location = getStackTracePath();
-//	    			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret);
-//	    		}
-//	    	}
-//	    	else if (taintAccessed && ret != null && ret instanceof Object) {
-//				IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
-//				if (objTaint.size() > 0) {
-//					TaintLogger.getTaintLogger().logReturning(location, "EXECUTEOBJECTRETURN", objTaint);
-//				}
-//			}
-//
-//	    	if (TaintData.getTaintData().taintAccessed()) {
-////	    		TaintLogger.getTaintLogger().log("Non-arg taint accessed");
-//	    	}
-//			TaintData.getTaintData().endCall();	
-			return ret;
+		StackPath location = null;
+        Object[] args = invocation.getArguments();
+    	
+    	/*
+    	 *  search through args. Look for taint, and as it is found
+    	 *  push it down in the stack.
+    	 *  
+    	 *  Everything is discarded in the end.
+    	 */
+        
+        boolean taintAccessed = TaintData.getTaintData().taintAccessed();
+        TaintLogger.getTaintLogger().log("TA: " + taintAccessed);
+        
+        for (int i = 0; i < args.length; i++) {
+        	//TODO: Deal with the fact that I added ResultSet here
+        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
+        		if (TaintData.getTaintData().isTainted(args[i])) {
+        			if (location == null)
+        				location = getStackTracePath();
+        			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i]);
+        			TaintData.getTaintData().pushTaintDownStack(args[i]);			
+        		}
+        	}
+        	else if (taintAccessed && args[i] != null && args[i] instanceof Object) {
+        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
+        		if (objTaint != null && objTaint.size() > 0) {
+        			if (location == null)
+        				location = getStackTracePath();
+    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint);
+    				for (Object taintedObject : objTaint.keySet()) {
+    					TaintData.getTaintData().pushTaintDownStack(taintedObject);
+    				}
+        		}
+        	}
+        }
+        
+        Object ret = invocation.invokeNext();
+    	//TODO: Deal with the fact that I added ResultSet here
+    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
+    		if (TaintData.getTaintData().isTainted(ret)) {
+    			if (location == null)
+    				location = getStackTracePath();
+    			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret);
+    		}
+    	}
+    	else if (taintAccessed && ret != null && ret instanceof Object) {
+			IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
+			if (objTaint.size() > 0) {
+				TaintLogger.getTaintLogger().logReturning(location, "EXECUTEOBJECTRETURN", objTaint);
+			}
+		}
+
+    	if (TaintData.getTaintData().taintAccessed()) {
+//	    		TaintLogger.getTaintLogger().log("Non-arg taint accessed");
+    	}
+    	
+		TaintData.getTaintData().endCall();	
+		return ret;
 	}
 
     /*
@@ -977,7 +971,7 @@ public class GeneralTracker {
 //		}
 //    }
     
-    public StackPath getStackTracePath() {
+    public static StackPath getStackTracePath() {
     	Thread current = Thread.currentThread();
     	StackTraceElement[] stack = current.getStackTrace();
     	StackPath path = stackTraceToPath(stack);
@@ -986,7 +980,7 @@ public class GeneralTracker {
     }
     
     
-    private StackPath stackTraceToPath(StackTraceElement[] stack) {
+    private static StackPath stackTraceToPath(StackTraceElement[] stack) {
     	String destClass;
 		String destMethod;
 		String srcClass;
@@ -996,10 +990,10 @@ public class GeneralTracker {
 		while (stack[startIndex].getClassName().startsWith("java.lang.Thread") && stack[startIndex].getMethodName().startsWith("getStackTrace")) {
 			startIndex++;
 		}
-		while (!stack[startIndex].getClassName().startsWith("taint.GeneralTracker")) {
+		while (!stack[startIndex].getClassName().startsWith("aspect.GeneralTracker")) {
 			startIndex++;
 		}
-		while (stack[startIndex].getClassName().startsWith("taint.GeneralTracker")) {
+		while (stack[startIndex].getClassName().startsWith("aspect.GeneralTracker")) {
 			startIndex++;
 		}
 		while (stack[startIndex].getMethodName().contains("_aroundBody")) {
@@ -1029,15 +1023,15 @@ public class GeneralTracker {
 		return result; 
     }
     
-    private String stackTraceToString(StackTraceElement[] stack) {
-		String ret = "";
-		for (int i = 0; i < stack.length; i++) {
-			ret = ret + ("STACK: " + stack[i].getClassName() + ":" + stack[i].getMethodName() + "\n");
-		}
-		return ret;
-    }
+//    private String stackTraceToString(StackTraceElement[] stack) {
+//		String ret = "";
+//		for (int i = 0; i < stack.length; i++) {
+//			ret = ret + ("STACK: " + stack[i].getClassName() + ":" + stack[i].getMethodName() + "\n");
+//		}
+//		return ret;
+//    }
     
-    class StackPath {
+    static class StackPath {
     	public String destClass;
     	public String destMethod;
     	public String srcClass;
