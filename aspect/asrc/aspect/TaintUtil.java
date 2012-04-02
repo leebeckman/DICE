@@ -1,5 +1,7 @@
 package aspect;
 
+import java.util.ArrayList;
+
 public class TaintUtil {
 	
 	public static int getLevenshteinDistance(String s, String t) {
@@ -74,5 +76,128 @@ public class TaintUtil {
 		// actually has the most recent cost counts
 		return p[n];
 	}
+	
+	public static StackPath getStackTracePath() {
+    	Thread current = Thread.currentThread();
+    	StackTraceElement[] stack = current.getStackTrace();
+    	StackPath path = stackTraceToPath(stack);
+    	
+    	return path;
+    }
+    
+    
+    private static StackPath stackTraceToPath(StackTraceElement[] stack) {
+    	String destClass;
+		String destMethod;
+		String srcClass;
+		String srcMethod;
+		
+		int startIndex = 0;
+		while (stack[startIndex].getClassName().startsWith("java.lang.Thread")) {
+			startIndex++;
+		}
+		while (stack[startIndex].getClassName().startsWith("aspect.")) {
+			startIndex++;
+		}
+		while (stack[startIndex].getClassName().contains("JoinPoint_")) {
+			startIndex++;
+		}
+		if (stack[startIndex].getClassName().contains("Advisor")) {
+			startIndex++;
+		}
+		
+		destClass = stack[startIndex].getClassName();
+		destMethod = stack[startIndex].getMethodName();
+		startIndex++;
+		
+		while (stack[startIndex].getMethodName().endsWith("$aop")) {
+			startIndex++;
+		}
+		while (stack[startIndex].getClassName().contains("JoinPoint_")) {
+			startIndex++;
+		}
+		while (stack[startIndex].getClassName().startsWith("aspect.")) {
+			startIndex++;
+		}
+		while (stack[startIndex].getClassName().contains("JoinPoint_")) {
+			startIndex++;
+		}
+		if (stack[startIndex].getClassName().contains("Advisor")) {
+			startIndex++;
+		}
+		
+		srcClass = stack[startIndex].getClassName();
+		srcMethod = stack[startIndex].getMethodName();
+		startIndex++;
+		
+		StackPath result = new StackPath(destClass, destMethod, srcClass, srcMethod);
+		
+		/*
+		 * Debugging, log additional stack levels
+		 */
+//		startIndex = 0;
+//		while (startIndex < stack.length) {
+//			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
+//			startIndex++;
+//		}
+		
+		return result; 
+    }
+    
+//    private String stackTraceToString(StackTraceElement[] stack) {
+//		String ret = "";
+//		for (int i = 0; i < stack.length; i++) {
+//			ret = ret + ("STACK: " + stack[i].getClassName() + ":" + stack[i].getMethodName() + "\n");
+//		}
+//		return ret;
+//    }
+    
+    static class StackPath {
+    	public String destClass;
+    	public String destMethod;
+    	public String srcClass;
+    	public String srcMethod;
+    	private ArrayList<String> deeperStack;
+    	
+    	public StackPath(String destClass, String destMethod, String srcClass, String srcMethod) {
+    		this.destClass = destClass;
+    		this.destMethod = destMethod;
+    		this.srcClass = srcClass;
+    		this.srcMethod = srcMethod;
+    		this.deeperStack = new ArrayList<String>();
+    	}
+    	
+    	public String getDest() {
+    		return destClass + ":" + destMethod;
+    	}
+    	
+    	public String getSource() {
+    		return srcClass + ":" + srcMethod;
+    	}
+    	
+    	public String toString() {
+    		return getSource() + " -> " + getDest();
+    	}
+    	
+    	public String toDestSourceString() {
+    		return getDest() + " -> " + getSource();
+    	}
+    	
+    	public void addDeeper(String srcClass, String srcMethod) {
+    		this.deeperStack.add(srcClass + ":" + srcMethod);
+    	}
+    	
+    	public String getDeeperString(int levels) {
+    		String result = "";
+    		for (int i = 0; i < levels; i++) {
+    			result = result + this.deeperStack.get(i);
+    			if (i >= this.deeperStack.size() - 1)
+    				break;
+    			if (i != levels - 1)
+    				result = result + " -> \n";
+    		}
+    		return result;
+    	}
+    }
 	
 }

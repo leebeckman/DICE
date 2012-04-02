@@ -47,6 +47,7 @@ public class TaintData {
 			TaintLogger.getTaintLogger().log("stackTaint failed");
 		}
 		else {
+//			TaintLogger.getTaintLogger().log("Adding to TS " + threadId + " value " + tainted + " code: " + tainted.hashCode());
 			taintStack.get(threadId).peek().put(tainted, null);
 		}
 	}
@@ -58,7 +59,7 @@ public class TaintData {
 	public void pushTaintDownStack(Object taintedArg) {
 		Long threadId = Thread.currentThread().getId();
 		if (!taintStack.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("taintAccessed failed");
+			TaintLogger.getTaintLogger().log("pushTaintDownStack failed");
 		}
 		else {
 			WeakIdentityHashMap<Object, Object> top = taintStack.get(threadId).pop();
@@ -79,6 +80,7 @@ public class TaintData {
 			return false;
 		}
 		else {
+//			TaintLogger.getTaintLogger().log("Checking TS " + threadId + " size: " + taintStack.get(threadId).peek().size() + " bool: " + (taintStack.get(threadId).peek().size() > 0));
 			return (taintStack.get(threadId).peek().size() > 0);
 		}
 	}

@@ -1,6 +1,7 @@
 package aspect;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import org.jdom.Element;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
-import aspect.GeneralTracker.StackPath;
+import aspect.TaintUtil.StackPath;
 
 //TODO: Make this static, not a singleton
 public class TaintLogger {
@@ -307,6 +308,16 @@ public class TaintLogger {
 		
 		Document logDoc = new Document(logRoot);
 		log(xmlOut.outputString(logDoc));
+	}
+	
+	public void logFieldSet(StackPath location, String adviceType, Object value, Field targetField) {
+		
+		
+	}
+	
+	public void logFieldGet(StackPath location, String adviceType, Object value, Field targetField) {
+		
+		
 	}
 	
 	public void logReturning(StackPath location, String adviceType, Object taintSource) {

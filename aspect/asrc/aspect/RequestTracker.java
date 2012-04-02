@@ -9,7 +9,7 @@ public class RequestTracker {
 
 	
 	public Object processActionExecution(MethodInvocation invocation) throws Throwable {
-		TaintLogger.getTaintLogger().log("ACTION");
+//		TaintLogger.getTaintLogger().log("ACTION");
 		Object[] args = invocation.getArguments();
 		Object ret = invocation.invokeNext();
     	for (int i = 0; i < args.length; i++) {

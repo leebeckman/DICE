@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 import org.jboss.aop.joinpoint.MethodInvocation;
 
-import aspect.GeneralTracker.StackPath;
+import aspect.TaintUtil.StackPath;
 
 public class DBCPTaint {
 	
@@ -15,19 +15,19 @@ public class DBCPTaint {
 	}
 
     public Object processResultSetAccess(MethodInvocation invocation) throws Throwable {
-    	TaintLogger.getTaintLogger().log("PRSA");
+//    	TaintLogger.getTaintLogger().log("PRSA");
     	Object ret = invocation.invokeNext();
     	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
 //    		result = new String((String)result, true);
     		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(invocation.getTargetObject()));
-    		StackPath location = GeneralTracker.getStackTracePath();
+    		StackPath location = TaintUtil.getStackTracePath();
     		TaintLogger.getTaintLogger().logReturning(location, "RESULTSETACCESS", ret);
     	}
     	return ret;
     }
     
     public Object processResultSetCreation(MethodInvocation invocation) throws Throwable {
-    	TaintLogger.getTaintLogger().log("PRSC");
+//    	TaintLogger.getTaintLogger().log("PRSC");
     	ResultSet rs = (ResultSet)invocation.invokeNext();
 		ResultSetMetaData metaData = null;
 		try {
