@@ -311,13 +311,25 @@ public class TaintLogger {
 	}
 	
 	public void logFieldSet(StackPath location, String adviceType, Object value, Field targetField) {
+		Element logRoot = getLogRoot("FIELDSET");
 		
+		addLocationElement(logRoot, location, adviceType);
+		addObjectElement(logRoot, "taintedObject", value, true);
+		addFieldElement(logRoot, targetField);
 		
+		Document logDoc = new Document(logRoot);
+		log(xmlOut.outputString(logDoc));
 	}
 	
 	public void logFieldGet(StackPath location, String adviceType, Object value, Field targetField) {
+		Element logRoot = getLogRoot("FIELDGET");
 		
+		addLocationElement(logRoot, location, adviceType);
+		addObjectElement(logRoot, "taintedObject", value, true);
+		addFieldElement(logRoot, targetField);
 		
+		Document logDoc = new Document(logRoot);
+		log(xmlOut.outputString(logDoc));
 	}
 	
 	public void logReturning(StackPath location, String adviceType, Object taintSource) {
@@ -347,6 +359,14 @@ public class TaintLogger {
 		locationElem.setAttribute(new Attribute("adviceType", adviceType.toString()));
 		
 		root.addContent(locationElem);
+	}
+	
+	private void addFieldElement(Element root, Field field) {
+		Element fieldElem = new Element("field");
+		fieldElem.setAttribute(new Attribute("targetClass", field.getDeclaringClass().getName()));
+		fieldElem.setAttribute(new Attribute("targetField", field.getName()));
+		
+		root.addContent(fieldElem);
 	}
 	
 	/*

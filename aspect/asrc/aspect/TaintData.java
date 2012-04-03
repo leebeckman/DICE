@@ -152,7 +152,7 @@ public class TaintData {
 	
 	public int getTaintHashCode(Object object) {
 		if (isTainted(object)) {
-			return System.identityHashCode(object);
+			return System.identityHashCode(dataToSourcesMap.get(object));
 		}
 		return 0;
 	}

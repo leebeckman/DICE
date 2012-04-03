@@ -342,35 +342,36 @@ public class StringTracker {
     	return ret;
 	}
 
-	public Object processStringBufferTrimToSize(CallerInvocation invocation) throws Throwable {
-    	Object[] args = invocation.getArguments();
-		StackPath location = TaintUtil.getStackTracePath();
-		Object ret = invocation.invokeNext();
-
-		ArrayList<Object> taintedArgs = new ArrayList<Object>();
-		for (int i = 0; i < args.length; i++) {
-			if (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) { // TODO: add StringBuffer/Builder
-				if (args[i] != null && TaintData.getTaintData().isTainted(args[i])) {
-					taintedArgs.add(args[i]);
-				}
-			} 
-		}
-		
-		if (taintedArgs.size() > 0 && ret != null) {
-			if (!TaintData.getTaintData().isTainted(ret)) {
-				for (Object arg : taintedArgs) {
-					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
-							Math.abs(arg.toString().length() - ret.toString().length()) + 
-							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
-							Math.min(arg.toString().length(), ret.toString().length()) > 0) {
-						TaintLogger.getTaintLogger().logFuzzyPropagation(location, "FUZZYPROP", arg, ret);
-						TaintData.getTaintData().propagateSources(arg, ret);
-						break;
-					}
-				}
-			}
-		}
-    	return ret;
-	}
+	// Moving this to general tracker, has compatible pointcut
+//	public Object processStringBufferTrimToSize(CallerInvocation invocation) throws Throwable {
+//    	Object[] args = invocation.getArguments();
+//		StackPath location = TaintUtil.getStackTracePath();
+//		Object ret = invocation.invokeNext();
+//
+//		ArrayList<Object> taintedArgs = new ArrayList<Object>();
+//		for (int i = 0; i < args.length; i++) {
+//			if (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) { // TODO: add StringBuffer/Builder
+//				if (args[i] != null && TaintData.getTaintData().isTainted(args[i])) {
+//					taintedArgs.add(args[i]);
+//				}
+//			} 
+//		}
+//		
+//		if (taintedArgs.size() > 0 && ret != null) {
+//			if (!TaintData.getTaintData().isTainted(ret)) {
+//				for (Object arg : taintedArgs) {
+//					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
+//							Math.abs(arg.toString().length() - ret.toString().length()) + 
+//							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
+//							Math.min(arg.toString().length(), ret.toString().length()) > 0) {
+//						TaintLogger.getTaintLogger().logFuzzyPropagation(location, "FUZZYPROP", arg, ret);
+//						TaintData.getTaintData().propagateSources(arg, ret);
+//						break;
+//					}
+//				}
+//			}
+//		}
+//    	return ret;
+//	}
 	
 }

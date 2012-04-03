@@ -93,16 +93,11 @@ public class TaintUtil {
 		String srcMethod;
 		
 		int startIndex = 0;
-		while (stack[startIndex].getClassName().startsWith("java.lang.Thread")) {
-			startIndex++;
-		}
-		while (stack[startIndex].getClassName().startsWith("aspect.")) {
-			startIndex++;
-		}
-		while (stack[startIndex].getClassName().contains("JoinPoint_")) {
-			startIndex++;
-		}
-		if (stack[startIndex].getClassName().contains("Advisor")) {
+		while (stack[startIndex].getClassName().startsWith("java.lang.Thread") || 
+				stack[startIndex].getClassName().startsWith("aspect.") || 
+				stack[startIndex].getClassName().contains("JoinPoint_") ||
+				stack[startIndex].getClassName().contains("Advisor") ||
+				stack[startIndex].getMethodName().endsWith("$aop")) {
 			startIndex++;
 		}
 		
@@ -110,21 +105,28 @@ public class TaintUtil {
 		destMethod = stack[startIndex].getMethodName();
 		startIndex++;
 		
-		while (stack[startIndex].getMethodName().endsWith("$aop")) {
+		while (stack[startIndex].getClassName().startsWith("java.lang.Thread") || 
+				stack[startIndex].getClassName().startsWith("aspect.") || 
+				stack[startIndex].getClassName().contains("JoinPoint_") ||
+				stack[startIndex].getClassName().contains("Advisor") ||
+				stack[startIndex].getMethodName().endsWith("$aop")) {
 			startIndex++;
 		}
-		while (stack[startIndex].getClassName().contains("JoinPoint_")) {
-			startIndex++;
-		}
-		while (stack[startIndex].getClassName().startsWith("aspect.")) {
-			startIndex++;
-		}
-		while (stack[startIndex].getClassName().contains("JoinPoint_")) {
-			startIndex++;
-		}
-		if (stack[startIndex].getClassName().contains("Advisor")) {
-			startIndex++;
-		}
+//		while (stack[startIndex].getMethodName().endsWith("$aop")) {
+//			startIndex++;
+//		}
+//		while (stack[startIndex].getClassName().contains("JoinPoint_")) {
+//			startIndex++;
+//		}
+//		while (stack[startIndex].getClassName().startsWith("aspect.")) {
+//			startIndex++;
+//		}
+//		while (stack[startIndex].getClassName().contains("JoinPoint_")) {
+//			startIndex++;
+//		}
+//		if (stack[startIndex].getClassName().contains("Advisor")) {
+//			startIndex++;
+//		}
 		
 		srcClass = stack[startIndex].getClassName();
 		srcMethod = stack[startIndex].getMethodName();

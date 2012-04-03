@@ -38,9 +38,9 @@
         <around name="processFieldGet" aspect="aspect.GeneralTracker"/>
     </bind>
 
-    <pointcut name="fieldSet" expr="get(* org.jresearch.*->*)"/>
-    <bind pointcut="fieldGet">
-        <around name="processFieldGet" aspect="aspect.GeneralTracker"/>
+    <pointcut name="fieldSet" expr="set(* org.jresearch.*->*)"/>
+    <bind pointcut="fieldSet">
+        <around name="processFieldSet" aspect="aspect.GeneralTracker"/>
     </bind>
 
     <!-- Tainted array field access -->
