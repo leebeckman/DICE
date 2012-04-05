@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ProfileService beans that extend the bootstrap configuration.
+    This includes:
+    Remote access to ProfileService interfaces
+    ManagementView plugin + DeploymentTemplates
+    ...
+    $Id: profileservice-jboss-beans.xml 81761 2008-11-28 10:31:01Z scott.stark@jboss.org $
+-->
+<deployment xmlns="urn:jboss:bean-deployer:2.0">
+
+    <bean name="ProfileServiceAuthenticationManager" class="org.jboss.security.AuthenticationManager">
+        <constructor factoryMethod="getAuthenticationManager">
+            <factory bean="JNDIBasedSecurityManagement"/>
+            <parameter>profileservice</parameter>
+        </constructor>
+    </bean>
+    <bean name="ProfileServiceAuthorizationManager" class="org.jboss.security.AuthorizationManager">
+        <constructor factoryMethod="getAuthorizationManager">
+            <factory bean="JNDIBasedSecurityManagement"/>
+            <parameter>profileservice</parameter>
+        </constructor>
+    </bean>
+    
+    <interceptor xmlns="urn:jboss:aop-beans:1.0" class="org.jboss.aspects.security.AuthenticationInterceptor">
+        <constructor>
+            <parameter><inject bean="ProfileServiceAuthenticationManager"/></parameter>
+        </constructor>
+    </interceptor>
+    <!-- TODO: the second param is a RealmMapping interface, but the
+        JNDIBasedSecurityManagement.getAuthorizationManager returns an AuthorizationManager.
+        The RoleBasedAuthorizationInterceptor should be updated to accept an
+        AuthorizationManager. This only works because the AuthorizationManager
+        still implements RealmMapping.
+    -->
+    <interceptor xmlns="urn:jboss:aop-beans:1.0" class="org.jboss.aspects.security.RoleBasedAuthorizationInterceptor">
+        <constructor>
+            <parameter><inject bean="ProfileServiceAuthenticationManager"/></parameter>
+            <parameter><inject bean="ProfileServiceAuthorizationManager"/></parameter>
+        </constructor>
+    </interceptor>
+
+<!-- Uncomment to require secure access
+    <bind xmlns="urn:jboss:aop-beans:1.0" pointcut="execution(* $instanceof{org.jboss.deployers.spi.management.ManagementView}->$implements{org.jboss.deployers.spi.management.ManagementView}(..))">
+    <interceptor-ref name="org.jboss.aspects.security.AuthenticationInterceptor"/>
+    <interceptor-ref name="org.jboss.aspects.security.RoleBasedAuthorizationInterceptor"/>
+    </bind>
+-->
+
+    <bean name="ConnectorMBean">
+        <constructor factoryClass="org.jboss.mx.util.MBeanTyper" factoryMethod="typeMBean">
+            <parameter><inject bean="JMXKernel" property="mbeanServer"/></parameter>
+            <parameter>jboss.remoting:service=Connector,transport=socket</parameter>
+            <parameter>org.jboss.remoting.transport.ConnectorMBean</parameter>
+        </constructor>
+        <depends>jboss.remoting:service=Connector,transport=socket</depends>
+    </bean>
+
+    <!--
+        Add a ProfileService handler to the remoting socket connector
+    -->
+    <bean name="ProfileServiceInvocationHandler"
+        class="org.jboss.profileservice.remoting.ProfileServiceInvocationHandler">
+        <install bean="ConnectorMBean" method="addInvocationHandler">
+            <parameter class="java.lang.String">ProfileService</parameter>
+            <parameter class="org.jboss.remoting.ServerInvocationHandler"><this/></parameter>
+        </install>
+        <uninstall bean="ConnectorMBean" method="removeInvocationHandler">
+            <parameter>ProfileService</parameter>
+        </uninstall>
+        <property name="managementViewProxy"><inject bean="ProfileServiceProxyFactory" property="managementViewProxy"/></property>
+        <property name="deployMgrProxy"><inject bean="ProfileServiceProxyFactory" property="deployMgrProxy"/></property>
+        <property name="securityDomain">profileservice</property>
+        <property name="securityManagement"><inject bean="JNDIBasedSecurityManagement"/></property>
+    </bean>
+    
+    <!--
+        Add a DeploymentManger handler to the remoting socket connector
+    -->
+    <bean name="DeploymentInvocationHandler"
+        class="org.jboss.profileservice.management.upload.remoting.DeployHandler">
+        <install bean="ConnectorMBean" method="addInvocationHandler">
+            <parameter class="java.lang.String">DeploymentManager</parameter>
+            <parameter class="org.jboss.remoting.ServerInvocationHandler"><this/></parameter>
+        </install>
+        <uninstall bean="ConnectorMBean" method="removeInvocationHandler">
+            <parameter>DeploymentManager</parameter>
+        </uninstall>
+        <property name="mainDeployer"><inject bean="MainDeployer"/></property>
+    </bean>
+
+    <bean name="RuntimeComponentDispatcher" class="org.jboss.profileservice.management.KernelBusRuntimeComponentDispatcher">
+       <constructor>
+          <parameter class="org.jboss.kernel.Kernel"><inject bean="jboss.kernel:service=Kernel"/></parameter>
+       </constructor>
+    </bean>
+
+    <!--
+        The ManagementView plugin
+    -->
+    <bean name="ManagementView" class="org.jboss.profileservice.management.ManagementViewImpl">
+        <install bean="ProfileService" method="setViewManager">
+            <parameter>
+                <this/>
+            </parameter>
+        </install>
+        <uninstall bean="ProfileService" method="setViewManager">
+            <parameter>
+                <null/>
+            </parameter>
+        </uninstall>
+        <property name="mainDeployer"><inject bean="MainDeployer"/></property>
+        <property name="profileService"><inject bean="ProfileService"/></property>
+        <property name="locator"><inject bean="ConnectorMBean" property="invokerLocator"/></property>
+        <property name="dispatcher"><inject bean="RuntimeComponentDispatcher"/></property>
+        <property name="bootstrapManagedDeployments"><inject bean="ProfileServiceBootstrap" property="bootstrapMDs"/></property>
+        <!-- Accept any implementor of DeploymentTemplate -->
+        <incallback method="addTemplate"/>
+        <uncallback method="removeTemplate"/>
+    </bean>
+
+    <!--
+        The DeploymentManager plugin
+    -->
+    <bean name="DeploymentManager"
+        class="org.jboss.profileservice.management.upload.DeploymentManagerImpl">
+        <install bean="ProfileService" method="setDeploymentManager">
+            <parameter>
+                <this/>
+            </parameter>
+        </install>
+        <uninstall bean="ProfileService" method="setDeploymentManager">
+            <parameter>
+                <null/>
+            </parameter>
+        </uninstall>
+        <property name="repositoryFactory"><inject bean="SerializableDeploymentRepositoryFactory" /></property>
+        <property name="profileService"><inject bean="ProfileService"/></property>
+        <property name="deployHandler"><inject bean="DeploymentInvocationHandler"/></property>
+        <property name="locator"><inject bean="ConnectorMBean" property="invokerLocator"/></property>
+        <property name="remotingSubsystem">DeploymentManager</property>
+    </bean>
+
+    <bean name="ProfileServiceProxyFactory" class="org.jboss.profileservice.remoting.ProxyFactory">
+        <property name="dispatchName">ProfileService</property>
+        <property name="jndiName">ProfileService</property>
+        <property name="locator"><inject bean="ConnectorMBean" property="invokerLocator"/></property>
+        <property name="profileService"><inject bean="ProfileService"/></property>
+        <property name="viewManager"><inject bean="ManagementView"/></property>
+        <property name="deploymentManager"><inject bean="DeploymentManager"/></property>
+        <depends>ConnectorMBean</depends>
+    </bean>
+
+</deployment>

@@ -1,0 +1,320 @@
+<%--
+/* ***** BEGIN LICENSE BLOCK *****
+ * The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in 
+ * compliance with the License. You may obtain a copy of the License 
+ * at http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
+ * the License for the specific language governing rights and 
+ * limitations under the License.
+ *
+ * The Original Code is JGossip forum code.
+ *
+ * The Initial Developer of the Original Code is the JResearch, Org. 
+ * Portions created by the Initial Developer are Copyright (C) 2004 
+ * the Initial Developer. All Rights Reserved. 
+ * 
+ * Contributor(s): 
+ *              Dmitry Belov <bel@jresearch.org>
+ *        
+ * ***** END LICENSE BLOCK ***** */
+--%>
+<script language="JavaScript">
+function jumpMenu(selObj,restore){
+    var nurl=selObj.options[selObj.selectedIndex].value; 
+	if(nurl){
+        self.location.href=nurl;
+	}                       	
+	if (restore) 
+	    selObj.selectedIndex=0;
+}  
+<c:if test="${sessionScope.JRF_USER.status>8}"> 
+function changeMenu(){
+    var amObj=document.getElementById("admin_menu");
+    var fmObj=document.getElementById("forum_menu");
+    var amDsp=amObj.style.display;
+    var fmDsp=fmObj.style.display;
+    amObj.style.display=fmDsp;
+    fmObj.style.display=amDsp;
+}      
+</c:if>         
+</script>
+
+<div style="position: absolute; top:4px; left: 25px; z-index: 3;"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/logo_top.gif" alt="" width="90" height="91" border="0"></div>
+
+<table width="98%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+    <td class="r_o" height="25" >&nbsp;</td>
+    <td>&nbsp;</td>
+    <td width="100"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="100" height="1" border="0"></td>
+    <td >&nbsp;</td>
+    <td class="top_tab" nowrap >&nbsp;<span class="caption">&nbsp;&nbsp;<a class="header" href="<gossip:config key="<%=IConst.CONFIG.DOMAIN_URL%>"/>"><gossip:config key="<%=IConst.CONFIG.DOMAIN_NAME%>"/></a>&nbsp;&nbsp;</span>&nbsp;
+	</td>
+    <td >&nbsp;&nbsp;</td>
+    <td nowrap width="100%" align="right" class="nav" nowrap>
+    <html:link action="Main" ><gossip:config key="<%=IConst.CONFIG.SITE_NAME%>"/></html:link>
+					<c:if test="${!empty JRF_TITLE_NAV_BAR}">
+						<c:forEach items="${JRF_TITLE_NAV_BAR}" var="currNavEl">
+						&nbsp;&raquo;&nbsp;
+							<c:if test="${currNavEl.link!='N'}" >
+								<a href="<c:out value="${currNavEl.link}" escapeXml="false"/>">
+							</c:if>
+							<c:out value="${currNavEl.title}" escapeXml="false"/>
+							<c:if test="${currNavEl.link!='N'}" >
+								</a>
+							</c:if>
+							<script>
+							self.document.title+=unQuote(" > <c:out value="${currNavEl.title}" escapeXml="false"/>");
+							</script>
+						</c:forEach> 
+					</c:if>&nbsp;&nbsp;
+    </td>
+    <td>&nbsp;</td>
+</tr>
+<tr>
+    <td height="5" colspan="2">
+		<table cellspacing="0" cellpadding="0" border="0" width="100%">
+			<tr>
+				<td height="5" class="b_g" ><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+			</tr>
+		</table>
+	</td>
+    <td><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+	<td class="t_o"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+    <td class="lr_g_t_o"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+    <td class="b_g_t_o"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+    <td class="b_g" colspan="2"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+
+</tr>
+<tr>
+    <td height="5" colspan="2">
+		<table cellspacing="0" cellpadding="0" border="0" width="100%">
+			<tr>
+				<td height="5" class="l_g" ><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+			</tr>
+		</table>
+	</td>
+	<td><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+    <td><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+    <td class="l_g"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+    <td colspan="2"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+    <td class="r_g"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+</tr>
+<tr>
+	<td valign="top">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td valign="top"  height="38"  class="l_g_r_o">&nbsp;</td>
+			</tr>
+		</table>
+	</td>
+	<td colspan="2">&nbsp;</td>
+    <td colspan="4" rowspan="2" valign="bottom">
+		<table width="100%"  cellspacing="0" cellpadding="0" >
+			<tr>
+			    <td colspan="2" valign="top" >&nbsp;<span class="motto"><gossip:config key="<%=IConst.CONFIG.MOTTO%>"/></span></td>
+			    <td rowspan="2" class="b_lg" nowrap valign="top" align="right">
+			    	<span class="nav" id="forum_menu" <c:if test="${!empty requestScope.showAdminMenu}">
+			    	                                     style="display:none;"
+			    	                                  </c:if> ><!--forum menu-->
+			    	    <html:link action="showSearch"><fmt:message key="forum.SEARCH"/></html:link>
+                  		<b> | </b><html:link action="showTipsAndTricks"><fmt:message key="global.TRICKS"/></html:link>
+                  		<b> | </b> 
+			    	    <c:choose>		
+	                      <c:when test="${sessionScope.JRF_USER.status==0}">            
+              			        <html:link action="showUnsubscribe"><fmt:message key="mails.UNSUBSCR"/></html:link>
+              			        <br>
+              		      </c:when>
+		                  <c:otherwise>
+              		        <c:if test="${!empty requestScope.JRF_CURR_THREAD}">	
+					            <a href="<c:url value="Subscribe.do">
+			                       <c:param name="tid" value="${param.tid}"/>
+			                       <c:param name="fid" value="${param.fid}"/>
+			                       <c:if test="${!empty param.block}">
+			                           <c:param name="block" value="${param.block}"/>
+			                       </c:if>
+                                  </c:url>"><fmt:message key="forum.NEW_SUBSC"/></a><b> | </b>
+				            </c:if>
+              		        <html:link action="ShowSubscriptions"><fmt:message key="mails.SUBSCR"/></html:link>
+                            <br>
+                            <html:link action="EditProfile"><fmt:message key="forum.Y_INFO"/></html:link><b> | </b><html:link action="showChangePassword"><fmt:message key="forum.Y_PASS"/></html:link>
+                            <br><b><html:link action="ShowNewTopics"><fmt:message key="forum.NEW_TOP"/></html:link></b>
+			                <c:if test="${sessionScope.JRF_USER.status>8}">
+				                <b> | </b> <a style="cursor:pointer;text-decoration:underline;" onClick="changeMenu()"><fmt:message key="global.menu.ADMIN"/></a>
+				            </c:if>
+                          </c:otherwise>
+		                </c:choose>
+			    	</span>
+			    	<c:if test="${sessionScope.JRF_USER.status>8}">
+			    	    <span class="nav"  id="admin_menu" <c:if test="${empty requestScope.showAdminMenu}">
+			    	                                          style="display:none;"
+			    	                                       </c:if>><!-- admin's menu-->
+			    		   <html:link action="showAddGroup"><nobr><fmt:message key="forum.ADD_GROUP"/></nobr></html:link> <b>|</b> <html:link action="showAddForum"><nobr><fmt:message key="forum.AF"/></nobr></html:link> <b>|</b>
+                           <html:link action="ShowGroupList"><nobr><fmt:message key="forum.EDIT_GR"/></nobr></html:link> <b>|</b> <html:link action="ShowForumList"><nobr><fmt:message key="forum.EF"/></nobr></html:link>
+                           <br><html:link action="showDropOldMess"><nobr><fmt:message key="mails.DROPOLD"/></nobr></html:link>    
+                           <b> | </b><html:link action="ShowUserList"><fmt:message key="forum.EU"/></html:link>
+                           <b> | </b><html:link action="WhoIs"><fmt:message key="forum.ONLINE"/></html:link>
+                           <br><html:link action="BanList"><fmt:message key="user.BAN_LIST"/></html:link>
+                           <b> | </b><html:link action="showEditStyles"><fmt:message key="skins.UPDATE"/></html:link>
+                           <b> | </b><html:link action="showEditConstants"><fmt:message key="global.CONSTANTS"/></html:link>
+                           <b> | </b><html:link action="Ranks"><fmt:message key="user.EDIT_RANKS"/></html:link>
+                           <br><a style="cursor:pointer;text-decoration:underline;" onClick="changeMenu()"><fmt:message key="global.menu.FORUM"/></a>
+                            <b> | </b><html:link action="showSendAdminMail"><nobr><fmt:message key="mails.SEND_ADMIN_MAIL"/></nobr></html:link>
+                            <b> | </b><html:link action="BrowseLog"><nobr><fmt:message key="log.BROWSE_LOG"/></nobr></html:link>
+                        </span>
+			    	</c:if>
+			    </td>
+				<td>
+					&nbsp;
+				</td>
+			</tr>
+			<tr>
+				<td width="400"  align="right" valign="bottom">
+					<table cellspacing="0" cellpadding="0" border="0" width="100%">
+						<tr>
+							<td width="130">&nbsp;</td>
+							<td  class="b_o" colspan="2">&nbsp;</td>
+						</tr>
+						<tr>
+							<td  class="b_g"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+							<td  class="l_o_b_g" height="4"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+							<td width="6" class="r_o"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+						</tr>
+						<tr>
+							<td  height="2"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+							<td  class="l_o"  ><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+							<td  class="r_o" ><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+						</tr>
+					</table>
+				</td>
+			    <td class="tr_o" width="150" height="27" nowrap valign="middle">				
+				
+					<table cellspacing="0" cellpadding="4" border="0">
+						<form name="form1">
+						<tr>
+							<td><span class="caption"><fmt:message key="global.JUMPTO"/></span></td>
+							<td> 
+                         <select name="Quick" onChange="jumpMenu(this,0)" style="width: 198px;">
+                        	<option value="Main.do" title="<fmt:message key="forum.ROOT"/>"><fmt:message key="forum.ROOT"/></option>
+							<c:if test="${!empty sessionScope.JRF_GROUPS}">
+							    <gossip:jumpoptions/>
+							</c:if>
+                         </select>
+                         </td>
+							<td><input class="but" type="button" name="go" onclick="jumpMenu(document.form1.Quick,0)" value="<fmt:message key="global.GO"/>"></td>
+						</tr>
+						</form>
+					</table>
+							
+				</td>
+				<td>
+					&nbsp;
+				</td>
+			</tr>
+			<tr>
+    			<td  width="400"  height="5" align="right">
+					<table cellspacing="0" cellpadding="0" border="0" width="100%">
+						<tr><td  width="130" height="6"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+							<td  class="l_o" ><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+							<td width="6" class="r_o" height="3"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+						</tr>
+					</table>
+				</td>
+				<td class="b_o" colspan="3"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+			</tr>
+		</table>
+	</td>
+    <td rowspan="2" class="l_o_r_g">&nbsp;</td>
+</tr>
+<tr>
+	<td colspan="3"  valign="bottom">
+		<table cellspacing="0"  cellpadding="0" border="0" width="100%">
+		    <tr>
+				<td  class="l_g_r_o" >&nbsp;</td>
+				<td>&nbsp;</td></tr>
+			<tr>
+				<td  class="lb_g_r_o" height="4"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+				<td width="100%" class="b_g" ><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+			</tr>
+			<tr>
+				<td  class="r_o" ><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+				<td width="100%"  height="8" ><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+			</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td   valign="top">
+		<table width="100%" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td  height="5" class="r_o">&nbsp;</td>
+			</tr>
+		</table>
+	</td>
+	<td colspan="2" nowrap align="right">&nbsp;<span class="txt">
+			<c:choose>		
+	          <c:when test="${sessionScope.JRF_USER.status==0}"> 
+             	  <fmt:message key="global.NOT_LOGGED"/>
+              </c:when>
+		      <c:otherwise>
+                  <fmt:message key="forum.HELLO"/>,&nbsp;<c:out value="${sessionScope.JRF_USER.name}"/>
+              </c:otherwise>
+		    </c:choose></span>&nbsp;</td>
+	<td colspan="5" valign="top">
+		<table width="100%" cellspacing="0" cellpadding="0" border="0">
+			
+			<tr>
+    			<td  width="400"  height="6" align="right">
+    				<table cellspacing="0" cellpadding="0" border="0" width="100%">
+						<tr>
+							<td width="130" height="6" align="center" nowrap>&nbsp;<span class="caption_t">
+				        <c:choose>		
+	                       <c:when test="${sessionScope.JRF_USER.status==0}"> 
+							    <%if (IConst.VALUES.FALSE.equals(Configurator.getInstance().get(IConst.CONFIG.ENABLE_FORUM_SIGN_ON))) {%>
+							    	<c:set var="jrf_url"><gossip:config key="<%=IConst.CONFIG.EXT_LOGON_ACTION_URL%>"/></c:set>
+							        <a class="control" href="<c:url value="${jrf_url}"/>"><fmt:message key="global.LOGIN"/></a>&nbsp;<fmt:message key="global.OR"/>&nbsp;<c:set var="jrf_url"><gossip:config key="<%=IConst.CONFIG.EXT_REGISTRATION_ACTION_URL%>"/></c:set><a class="control" href"<c:url value="${jrf_url}"/>"><fmt:message key="global.REGISTER"/></a>
+							    <%}else{%>
+              					    <html:link styleClass="control" action="showLogon"><fmt:message key="global.LOGIN"/></html:link>
+              					    <%if (IConst.VALUES.TRUE.equals(Configurator.getInstance().get(IConst.CONFIG.ENABLE_FORUM_REGISTRATION))) {%>
+              					        &nbsp;<fmt:message key="global.OR"/>&nbsp;<%
+              					        if(IConst.VALUES.FALSE.equals(Configurator.getInstance().get(IConst.CONFIG.ENABLE_EMAIL_CONFIRMATION))){
+              					        	pageContext.setAttribute("jrf_registration_mode","direct");
+              					        }else{
+              					        	pageContext.setAttribute("jrf_registration_mode","pending");
+              					        }
+              					        %><a class="control" href="<c:url value="ShowRegistration.do">
+			                       									<c:param name="dispatch" value="${pageScope.jrf_registration_mode}"/>
+			                       								 </c:url>" ><fmt:message key="global.REGISTER"/></a>
+              					    <%}%> 
+              				    <%}%>
+              		        </c:when>
+		                    <c:otherwise>
+              				     <%if (IConst.VALUES.FALSE.equals(Configurator.getInstance().get(IConst.CONFIG.ENABLE_FORUM_SIGN_ON))) {%>
+              				     	<c:set var="jrf_url"><gossip:config key="<%=IConst.CONFIG.EXT_LOGOUT_ACTION_URL%>"/></c:set>
+							        <a class="control" href="<c:url value="${jrf_url}"/>"><fmt:message key="forum.LOGOUT"/></a>
+							    <%}else{%>
+              				        <html:link styleClass="control" action="Logout"><fmt:message key="forum.LOGOUT"/></html:link>
+              				    <%}%>
+              				 </c:otherwise>
+		                </c:choose>
+              				</span>
+              				</td>
+							<td  class="l_o" ><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+							<td width="6"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+						</tr>
+					</table></td>
+				<td>&nbsp;</td>
+			</tr>
+		</table>
+	</td>
+</tr>
+<tr>
+	<td colspan="8">
+	<img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="800" height="1" border="0">
+	</td>
+</tr>		
+</table>
+<br><br>
+<%@ include file="status.jspf"%>

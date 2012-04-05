@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    Hot deployment scanning
+    
+    $Id: profileservice-jboss-beans.xml 79345 2008-10-10 13:46:55Z emuckenhuber $
+-->
+<deployment xmlns="urn:jboss:bean-deployer:2.0">
+
+    <!-- Hotdeployment of applications -->
+    <bean name="HDScanner"
+        class="org.jboss.system.server.profileservice.hotdeploy.HDScanner">
+        <property name="mainDeployer"><inject bean="MainDeployer"/></property>
+        <property name="controller"><inject bean="jboss.kernel:service=KernelController"/></property>
+        <property name="profileService"><inject bean="ProfileService"/></property>
+        <property name="scanPeriod">5000</property>
+        <property name="scanThreadName">HDScanner</property>
+    </bean>
+</deployment>

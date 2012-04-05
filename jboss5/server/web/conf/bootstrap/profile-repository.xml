@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+   The profile service
+-->
+<deployment xmlns="urn:jboss:bean-deployer:2.0">
+
+   <classloader><inject bean="profile-classloader:0.0.0"/></classloader>
+
+   <classloader name="profile-classloader" xmlns="urn:jboss:classloader:1.0" export-all="NON_EMPTY" import-all="true">
+      <root>${jboss.lib.url}jboss-profileservice-spi.jar</root>
+   </classloader>
+    
+    <bean name="StructureModCache" class="org.jboss.deployers.vfs.spi.structure.modified.DefaultStructureCache">
+      <destroy method="flush"/>
+    </bean>
+
+    <bean name="StructureModificationChecker" class="org.jboss.deployers.vfs.spi.structure.modified.MetaDataStructureModificationChecker">
+      <constructor>
+        <parameter><inject bean="MainDeployer" /></parameter>
+      </constructor>
+      <property name="cache"><inject bean="StructureModCache" /></property>
+      <property name="filter"><bean class="org.jboss.system.server.profile.basic.XmlIncludeVirtualFileFilter" /></property>
+    </bean>
+
+    <!--
+    	The file repository profile service which provides full
+        support ProfileService spi.
+    -->
+    <bean name="ProfileService" class="org.jboss.system.server.profileservice.repository.ProfileServiceImpl">
+        <constructor>
+            <parameter>${jboss.server.name}</parameter>
+        </constructor>
+        <property name="profileRepository"><inject bean="FileProfileRepository"/></property>
+    </bean>
+    <bean name="FileProfileRepository" class="org.jboss.system.server.profileservice.repository.FileProfileRepository">
+        <property name="storeRoot">${jboss.server.base.dir}</property>
+        <property name="repositoryFactory"><inject bean="SerializableDeploymentRepositoryFactory"/></property>
+    </bean>
+   <bean name="SerializableDeploymentRepositoryFactory" class="org.jboss.system.server.profileservice.repository.SerializableDeploymentRepositoryFactory">
+      <property name="storeRoot">${jboss.server.base.dir}</property>
+      <property name="attachmentsRoot">${jboss.server.data.dir}/attachments</property>
+      <property name="applicationURIs">
+         <array elementClass="java.net.URI">
+            <value>${jboss.server.home.url}deploy</value>
+         </array>
+      </property>
+      <property name="serializer"><inject bean="AttachmentsSerializer"/></property>
+      <property name="deploymentFilter"><inject bean="DeploymentFilter" /></property>
+      <property name="mainDeployer"><inject bean="MainDeployer"/></property>
+      <property name="checker"><inject bean="StructureModificationChecker"/></property>
+      <depends>ProfileServicePersistenceDeployer</depends>
+   </bean>
+   <bean name="AttachmentsSerializer" class="org.jboss.system.server.profileservice.repository.JAXBAttachmentSerializer" />
+
+   <!-- The Bootstrap implementation that loads the Profile from the ProfileService -->
+   <bean name="ProfileServiceBootstrap" class="org.jboss.system.server.profileservice.ProfileServiceBootstrap">
+      <property name="mainDeployer"><inject bean="MainDeployer"/></property>
+      <property name="profileService"><inject bean="ProfileService"/></property>
+      <property name="mof"><inject bean="ManagedObjectFactory"/></property>
+      <property name="mgtDeploymentCreator"><inject bean="ManagedDeploymentCreator"/></property>
+   </bean>
+   
+   <bean name="ProfileServicePersistenceDeployer" class="org.jboss.system.server.profileservice.persistence.deployer.ProfileServicePersistenceDeployer" />
+	
+   <!-- A filter for excluding files from the scanner -->
+   <bean name="DeploymentFilter" class="org.jboss.virtual.plugins.vfs.helpers.ExtensibleFilter">
+      <!-- Files starting with theses strings are ignored -->
+      <property name="prefixes">#,%,\,,.,_$</property>
+      <!-- Files ending with theses strings are ignored -->
+      <property name="suffixes">#,$,%,~,\,v,.BAK,.bak,.old,.orig,.tmp,.rej,.sh</property>
+      <!-- Files matching with theses strings are ignored -->
+      <property name="matches">.make.state,.nse_depinfo,CVS,CVS.admin,RCS,RCSLOG,SCCS,TAGS,core,tags</property>
+   </bean>
+   
+</deployment>

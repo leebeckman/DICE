@@ -1,0 +1,1015 @@
+<!DOCTYPE form-validation PUBLIC
+          "-//Apache Software Foundation//DTD Commons Validator Rules Configuration 1.1.3//EN"
+          "http://jakarta.apache.org/commons/dtds/validator_1_1_3.dtd">
+<form-validation>
+	<global>
+        <constant>
+            <constant-name>logon_pattern</constant-name>
+            <constant-value>^[0-9a-zA-Z_]{3,32}$</constant-value>
+        </constant>
+        <constant>
+            <constant-name>password_pattern</constant-name>
+            <constant-value>^[0-9a-zA-Z]{3,16}$</constant-value>
+        </constant>
+        <constant>
+            <constant-name>url_pattern</constant-name>
+            <constant-value>^(http[s]?\:\/\/)?[a-zA-Z0-9\-]+\.([a-zA-Z0-9\-]+\.)*[a-zA-Z]+(\/.*)?$</constant-value>
+        </constant>
+        <constant>
+            <constant-name>yn_pattern</constant-name>
+            <constant-value>^[YN]{1}$</constant-value>
+        </constant>
+    </global>
+	<formset>
+	<form name="logonForm">
+			<field property="username" depends="required,mask">
+				<arg0 key="forum.U_NAME"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${logon_pattern}</var-value>
+				</var>
+			</field>
+			<field property="password" depends="required,mask">
+				<arg0 key="forum.U_PASS"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${password_pattern}</var-value>
+				</var>
+			</field>
+		</form>
+		
+		<form name="changePasswordForm">
+			<field property="password" depends="required,mask">
+				<arg0 key="forum.U_PASS"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${password_pattern}</var-value>
+				</var>
+			</field>
+			<field property="password1" depends="required,mask,twofields">
+				<arg0 key="user.N_PASS1"/>
+				<arg1 key="user.N_PASS2"/>
+				<msg
+    				name="twofields"
+    				key="errors.twofields"/>
+  				<var>
+    				<var-name>secondProperty</var-name>
+    				<var-value>password2</var-value>
+  				</var>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${password_pattern}</var-value>
+				</var>
+			</field>
+		</form>
+		
+		<form name="fogotPassForm">
+			<field property="uid" depends="required,mask">
+				<arg0 key="forum.U_NAME"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${logon_pattern}</var-value>
+				</var>
+			</field>
+			<field property="email" depends="required,email,maxlength">
+				<arg0 key="user.U_MAIL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>64</var-value>
+				</var>
+			</field>
+		</form>
+		
+		<form name="pendingRegistrationForm">
+			<field property="login" depends="required,mask">
+				<arg0 key="user.CHOOSE_LOGIN"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${logon_pattern}</var-value>
+				</var>
+			</field>
+			<field property="email" depends="required,email,maxlength">
+				<arg0 key="user.U_MAIL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>64</var-value>
+				</var>
+			</field>
+			<field property="confirmCode" depends="required,confirmCode">
+				<arg0 key="user.CONFIRM_CODE"/>
+			</field>
+		</form>
+		
+		<form name="processPendingRegistrationForm">
+			<field property="login" depends="required,mask">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>login</var-value>
+				</var>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${logon_pattern}</var-value>
+				</var>
+			</field>
+			<field property="code" depends="required">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>confirmcode</var-value>
+				</var>
+			</field>
+			<field property="email" depends="required,email,maxlength">
+				<arg0 key="${var:name}"  resource="false"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>email</var-value>
+				</var>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>64</var-value>
+				</var>
+			</field>	
+		</form>
+		
+		<form name="registrationForm">
+			<field property="login" depends="required,mask">
+				<arg0 key="user.CHOOSE_LOGIN"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${logon_pattern}</var-value>
+				</var>
+			</field>
+			<field property="password" depends="required,mask,twofields">
+				<arg0 key="user.PASS1"/>
+				<arg1	key="user.PASS2"/>
+				<msg
+    				name="twofields"
+    				key="errors.twofields"/>
+                <var>
+					<var-name>mask</var-name>
+					<var-value>${password_pattern}</var-value>
+				</var>
+  				<var>
+    				<var-name>secondProperty</var-name>
+    				<var-value>password2</var-value>
+  				</var>				
+			</field>
+			<field property="confirmCode" depends="required,confirmCode">
+				<arg0 key="user.CONFIRM_CODE"/>
+			</field>
+			<field property="email" depends="required,email,maxlength">
+				<arg0 key="user.U_MAIL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>64</var-value>
+				</var>
+			</field>
+			<field property="icq" depends="long,maxlength">
+				<arg0 key="user.U_ICQ"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>16</var-value>
+				</var>
+			</field>
+			<field property="signature" depends="maxlength">
+				<arg0 key="user.SIG1"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>226</var-value>
+				</var>
+			</field>
+			<field property="homePage" depends="mask,maxlength">
+				<arg0 key="user.U_URL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>128</var-value>
+				</var>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${url_pattern}</var-value>
+				</var>
+			</field>
+			<field property="occupation" depends="maxlength">
+				<arg0 key="user.OCCUPATION"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>24</var-value>
+				</var>
+			</field>
+			<field property="place" depends="maxlength">
+				<arg0 key="user.PLACE"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>32</var-value>
+				</var>
+			</field>
+		</form>
+		
+		<form name="profileForm">
+			<field property="email" depends="required,email,maxlength">
+				<arg0 key="user.U_MAIL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>64</var-value>
+				</var>
+			</field>
+			<field property="icq" depends="long,maxlength">
+				<arg0 key="user.U_ICQ"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>16</var-value>
+				</var>
+			</field>
+			<field property="signature" depends="maxlength">
+				<arg0 key="user.SIG1"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>226</var-value>
+				</var>
+			</field>
+			<field property="homePage" depends="mask,maxlength">
+				<arg0 key="user.U_URL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>128</var-value>
+				</var>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${url_pattern}</var-value>
+				</var>
+			</field>
+			<field property="occupation" depends="maxlength">
+				<arg0 key="user.OCCUPATION"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>24</var-value>
+				</var>
+			</field>
+			<field property="place" depends="maxlength">
+				<arg0 key="user.PLACE"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>32</var-value>
+				</var>
+			</field>
+		</form>
+		
+		<form name="processForumForm">
+			<field property="fid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>
+			<field property="block" depends="integer"/>
+		</form>
+		
+		<form name="processLockForumForm">
+			<field property="forumid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>
+			<field property="locked" depends="intRange">
+				<arg0 key="${var:name}"  resource="false"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>locked status</var-value>
+				</var>
+				<var>
+					<var-name>min</var-name>
+					<var-value>0</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>3</var-value>
+				</var>
+			</field>		
+		</form>
+		
+		<form name="listForm">
+			<field property="block" depends="integer"/>
+		</form>
+		
+		<form name="addMessageForm">
+			<field property="fid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>
+			<field property="tid" depends="integer"/>
+			<field property="block" depends="integer"/>
+			<field property="email" depends="email,maxlength">
+				<arg0 key="messages.E-MAIL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>64</var-value>
+				</var>
+			</field>
+			<field property="name" depends="mask">
+				<arg0 key="messages.NAME"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${logon_pattern}</var-value>
+				</var>
+			</field>
+			<field property="text" depends="required">
+				<arg0 key="messages.TEXT"/>
+			</field>
+			<field property="cleanText" depends="required">
+				<arg0 key="messages.TEXT"/>
+			</field>
+		</form>
+		
+		<form name="editMessageForm">
+			<field property="fid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>
+			<field property="tid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>topic ID</var-value>
+				</var>
+			</field>
+			<field property="mid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>message ID</var-value>
+				</var>
+			</field>
+			<field property="block" depends="integer"/>
+			
+			<field property="text" depends="required">
+				<arg0 key="messages.TEXT"/>
+			</field>	
+		</form>
+		
+		<form name="processMessageForm">
+			<field property="fid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>
+			<field property="tid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>topic ID</var-value>
+				</var>
+			</field>
+			<field property="mid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>message ID</var-value>
+				</var>
+			</field>
+			<field property="block" depends="integer"/>
+		</form>
+		
+		<form name="processAttachForm">
+			<field property="fid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>
+			<field property="tid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>topic ID</var-value>
+				</var>
+			</field>
+			<field property="mid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>message ID</var-value>
+				</var>
+			</field>
+			<field property="id" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>attach ID</var-value>
+				</var>
+			</field>
+			<field property="block" depends="integer"/>
+		</form>
+		
+		<form name="attachmentInfoForm">
+			<field property="fid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>
+			<field property="tid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>topic ID</var-value>
+				</var>
+			</field>
+			<field property="mid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>message ID</var-value>
+				</var>
+			</field>
+			<field property="id" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>attach ID</var-value>
+				</var>
+			</field>
+			<field property="block" depends="integer"/>
+			<field property="name" depends="required,maxlength">
+				<arg0 key="messages.attach.FILE_NAME"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>80</var-value>
+				</var>
+			</field>
+			<field property="description" depends="maxlength">
+				<arg0 key="messages.FILE_DESC"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+		</form>
+		
+		<form name="downloadAttachForm">
+			<field property="id" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>attach ID</var-value>
+				</var>
+			</field>
+		</form>
+		<form name="processThreadForm">
+			<field property="fid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>
+			<field property="tid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>topic ID</var-value>
+				</var>
+			</field>
+			<field property="block" depends="integer"/>
+		</form>
+		<form name="forumForm">
+			<field property="groupid" depends="required,integer">
+				<arg0 key="forum.INGP"/>
+			</field>
+			<field property="forum_name" depends="required">
+				<arg0 key="forum.FORUM_NAME"/>
+			</field>
+			<field property="forum_desc" depends="required">
+				<arg0 key="forum.FDS"/>
+			</field>
+			<field property="forum_sort" depends="required">
+				<arg0 key="forum.LISTORDER"/>
+			</field>	
+		</form>
+		<form name="groupForm">
+			<field property="group_name" depends="required">
+				<arg0 key="forum.GROUP_NAME"/>
+			</field>
+			<field property="group_sort" depends="required">
+				<arg0 key="forum.LISTORDER"/>
+			</field>		
+		</form>
+		<form name="processUserForm">
+			<field property="uid" depends="required,integer"/>			
+		</form>
+		<form name="processUserStatusForm">
+			<field property="id" depends="required,integer"/>	
+			<field property="status" depends="intRange">
+				<arg0 key="${var:name}"  resource="false"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>status</var-value>
+				</var>
+				<var>
+					<var-name>min</var-name>
+					<var-value>0</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>9</var-value>
+				</var>
+			</field>		
+		</form>
+		<form name="showUserForm">
+			<field property="uid" depends="required,mask">
+				<arg0 key="${var:name}"  resource="false"/>	
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${logon_pattern}</var-value>
+				</var>
+			</field>			
+		</form>
+		<form name="loadAvatarForm">
+			<field property="url" depends="required,mask">
+				<arg0 key="user.avatar.URL"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${url_pattern}</var-value>
+				</var>
+			</field>			
+		</form>
+		<form name="processModForm">
+			<field property="name" depends="required,mask">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>login</var-value>
+				</var>	
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${logon_pattern}</var-value>
+				</var>
+			</field>
+			<field property="fid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>			
+		</form>
+		<form name="processGroupForm">
+			<field property="gid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>group ID</var-value>
+				</var>
+			</field>			
+		</form>
+		<form name="searchForm">
+			<field property="search" depends="required">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>query string</var-value>
+				</var>
+			</field>
+			<field property="block" depends="integer"/>			
+		</form>
+		<form name="editConstantsForm">
+			<field property="mailhost" depends="required,maxlength">
+				<arg0 key="constants.MAILHOST"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="smtpServerPort" depends="required,intRange">
+				<arg0 key="constants.SMTP_SERVER_PORT"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>min</var-name>
+					<var-value>1</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>9999</var-value>
+				</var>
+			</field>
+			<field property="mailuser" depends="required,maxlength">
+				<arg0 key="constants.MAILUSER"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="adminmail" depends="required,email,maxlength">
+				<arg0 key="constants.ADMINMAIL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="domainurl" depends="required,maxlength">
+				<arg0 key="constants.DOMAIN_URL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="sessionlength" depends="required,integer,maxlength">
+				<arg0 key="constants.SESSION_LENGTH"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>10</var-value>
+				</var>
+			</field>
+			<field property="sitename" depends="required,maxlength">
+				<arg0 key="constants.SITE_NAME"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="domainname" depends="required,maxlength">
+				<arg0 key="constants.DOMAIN_NAME"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="motto" depends="required,maxlength">
+				<arg0 key="constants.MOTTO"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="gzipCompress" depends="required,mask">
+				<arg0 key="constants.GZIP_COMPRESS"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${yn_pattern}</var-value>
+				</var>
+			</field>
+			<field property="defaultLocale" depends="required">
+				<arg0 key="constants.DEFAULT_LOCALE"/>
+			</field>
+			<field property="enableFileUpload" depends="required,mask">
+				<arg0 key="constants.ENABLE_FILE_UPLOAD"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${yn_pattern}</var-value>
+				</var>
+			</field>
+			<field property="attachStorePath" depends="required">
+				<arg0 key="constants.ATTACH_STORE_PATH"/>
+			</field>
+			<field property="maxAttachCount" depends="required,intRange">
+				<arg0 key="constants.MAX_ATTACHMENT_COUNT"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>min</var-name>
+					<var-value>1</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>10</var-value>
+				</var>
+			</field>
+			<field property="enableAvatar" depends="required,mask">
+				<arg0 key="constants.ENABLE_AVATAR"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${yn_pattern}</var-value>
+				</var>
+			</field>
+			<field property="invader" depends="required,intRange">
+				<arg0 key="constants.INVADER1"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>min</var-name>
+					<var-value>1</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>10</var-value>
+				</var>
+			</field>
+			<field property="enableAutoLogin" depends="required,mask">
+				<arg0 key="constants.ENABLE_AUTO_LOGIN"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${yn_pattern}</var-value>
+				</var>
+			</field>
+			<field property="enableForumSignOn" depends="required,mask">
+				<arg0 key="constants.ENABLE_FORUM_SIGN_ON"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${yn_pattern}</var-value>
+				</var>
+			</field>
+			<field property="enableForumRegistration" depends="required,mask">
+				<arg0 key="constants.ENABLE_FORUM_REGISTRATION"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${yn_pattern}</var-value>
+				</var>
+			</field>
+			<field property="enableEmailConfiramtion" depends="required,mask">
+				<arg0 key="constants.ENABLE_EMAIL_CONFIRMATION"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${yn_pattern}</var-value>
+				</var>
+			</field>
+			<field property="periodForConfirmation" depends="required,intRange">
+				<arg0 key="constants.PERIOD_FOR_CONFIRMATION"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>min</var-name>
+					<var-value>1</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>99</var-value>
+				</var>
+			</field>
+			<field property="enableExtSignOn" depends="required,mask">
+				<arg0 key="constants.ENABLE_EXT_SIGN_ON"/>
+				<var>
+					<var-name>mask</var-name>
+					<var-value>${yn_pattern}</var-value>
+				</var>
+			</field>
+			<field property="extLogOnActionUrl" depends="required,maxlength">
+				<arg0 key="constants.EXT_LOGON_ACTION_URL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="extLogOutActionUrl" depends="required,maxlength">
+				<arg0 key="constants.EXT_LOGOUT_ACTION_URL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="extRegistrationActionUrl" depends="required,maxlength">
+				<arg0 key="constants.EXT_REGISTRATION_ACTION_URL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="rssMaxItemCount" depends="required,intRange">
+				<arg0 key="constants.RSS_MAX_ITEM_COUNT"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>min</var-name>
+					<var-value>1</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>99</var-value>
+				</var>
+			</field>
+			<field property="rssPeriod" depends="required,intRange">
+				<arg0 key="constants.RSS_PERIOD"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>min</var-name>
+					<var-value>1</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>99</var-value>
+				</var>
+			</field>
+			<field property="rssTtl" depends="required,intRange">
+				<arg0 key="constants.RSS_TTL"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>min</var-name>
+					<var-value>1</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>9999</var-value>
+				</var>
+			</field>
+		</form>
+		<form name="subscribeForm">
+			<field property="email" depends="email,maxlength">
+				<arg0 key="user.U_MAIL"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="tid" depends="integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>thread ID</var-value>
+				</var>
+			</field>
+		</form>
+		<form name="dropOldMessForm">
+			<field property="intime" depends="required,long">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>intime</var-value>
+				</var>
+			</field>
+		</form>
+		<form name="timeZoneForm">
+			<field property="offset" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>offset</var-value>
+				</var>
+			</field>		
+		</form>
+		<form name="stylesForm">
+			<field property="skinid" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>skin ID</var-value>
+				</var>
+			</field>		
+		</form>
+		<form name="forumUtilsForm">
+			<field property="fid" depends="integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>forum ID</var-value>
+				</var>
+			</field>
+		</form>
+		<form name="mailPasswordForm">
+			<field property="password"
+     		depends="required,twofields">
+  				<msg
+    				name="required"
+    				key="errors.required"/>
+  				<msg
+    				name="twofields"
+    				key="errors.twofields"/>
+
+  				<arg0 	key="user.PASS1"/>
+  				<arg1	key="user.PASS2"/>
+  				<var>
+    				<var-name>secondProperty</var-name>
+    				<var-value>passwordConfirm</var-value>
+  				</var>
+			</field>
+		</form>
+		<form name="sendAdminMailForm">
+			<field property="subject" depends="required,maxlength">
+				<arg0 key="messages.SUBJECT"/>
+				<arg1 key="${var:maxlength}" name="maxlength" resource="false"/>
+				<var>
+					<var-name>maxlength</var-name>
+					<var-value>255</var-value>
+				</var>
+			</field>
+			<field property="text" depends="required">
+				<arg0 key="messages.TEXT"/>
+			</field>
+		</form>
+		<form name="processItemForm">
+			<field property="id" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>ID</var-value>
+				</var>
+			</field>		
+		</form>
+		<form name="addRankForm">
+			<field property="name" depends="required">
+				<arg0 key="user.RANK_NAME" />
+			</field>
+			<field property="count" depends="required,intRange">
+				<arg0 key="user.RANK_COUNT"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>min</var-name>
+					<var-value>1</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>99999</var-value>
+				</var>
+			</field>		
+		</form>
+		<form name="editRankForm">
+			<field property="id" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>ID</var-value>
+				</var>
+			</field>
+			<field property="name" depends="required">
+				<arg0 key="user.RANK_NAME" />
+			</field>
+			<field property="count" depends="required,intRange">
+				<arg0 key="user.RANK_COUNT"/>
+				<arg1 key="${var:min}" name="min" resource="false"/>
+				<arg2 key="${var:max}" name="max" resource="false"/>
+				<var>
+					<var-name>min</var-name>
+					<var-value>1</var-value>
+				</var>
+				<var>
+					<var-name>max</var-name>
+					<var-value>99999</var-value>
+				</var>
+			</field>		
+		</form>
+		<form name="searchLogForm">
+			<field property="block" depends="integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>block</var-value>
+				</var>
+			</field>		
+		</form>
+		<form name="processBanForm">
+			<field property="type" depends="required,integer">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>type</var-value>
+				</var>
+			</field>
+			<field property="mask" depends="required">
+				<arg0 key="${var:name}"  resource="false"/>
+				<var>
+					<var-name>name</var-name>
+					<var-value>mask</var-value>
+				</var>
+			</field>		
+		</form>
+	</formset>
+</form-validation>

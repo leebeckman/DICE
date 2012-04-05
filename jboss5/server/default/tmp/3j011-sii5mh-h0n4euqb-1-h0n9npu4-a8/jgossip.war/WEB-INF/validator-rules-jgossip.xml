@@ -1,0 +1,1297 @@
+<!DOCTYPE form-validation PUBLIC
+          "-//Apache Software Foundation//DTD Commons Validator Rules Configuration 1.1.3//EN"
+          "http://jakarta.apache.org/commons/dtds/validator_1_1_3.dtd">
+<form-validation>
+
+   <global>
+
+      <validator name="required"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateRequired"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+                  msg="errors.required">
+             <javascript><![CDATA[
+   function validateRequired(form) {
+        var isValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name");
+
+        oRequired = eval('new ' + formName.value + '_required()');
+
+        for (x in oRequired) {
+            var field = form[oRequired[x][0]];
+
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'file' ||
+                field.type == 'checkbox' ||
+                field.type == 'select-one' ||
+                field.type == 'password') &&
+                field.disabled == false) {
+
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else if (field.type == 'checkbox') {
+                    if (field.checked) {
+                        value = field.value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (trim(value).length == 0) {
+
+                    if (i == 0) {
+                        focusField = field;
+                    }
+                    fields[i++] = oRequired[x][1];
+                    isValid = false;
+                }
+            } else if (field.type == "select-multiple") { 
+                var numOptions = field.options.length;
+                lastSelected=-1;
+                for(loop=numOptions-1;loop>=0;loop--) {
+                    if(field.options[loop].selected) {
+                        lastSelected = loop;
+                        value = field.options[loop].value;
+                        break;
+                    }
+                }
+                if(lastSelected < 0 || trim(value).length == 0) {
+                    if(i == 0) {
+                        focusField = field;
+                    }
+                    fields[i++] = oRequired[x][1];
+                    isValid=false;
+                }
+            } else if ((field.length > 0) && (field[0].type == 'radio' || field[0].type == 'checkbox')) {
+                isChecked=-1;
+                for (loop=0;loop < field.length;loop++) {
+                    if (field[loop].checked) {
+                        isChecked=loop;
+                        break; // only one needs to be checked
+                    }
+                }
+                if (isChecked < 0) {
+                    if (i == 0) {
+                        focusField = field[0];
+                    }
+                    fields[i++] = oRequired[x][1];
+                    isValid=false;
+                }
+            }
+        }
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return isValid;
+    }
+    
+    // Trim whitespace from left and right sides of s.
+    function trim(s) {
+        return s.replace( /^\s*/, "" ).replace( /\s*$/, "" );
+    }             
+              ]]></javascript>
+		</validator>      
+
+      <validator name="requiredif"
+                 classname="org.apache.struts.validator.FieldChecks"
+                 method="validateRequiredIf"
+                 methodParams="java.lang.Object,
+                               org.apache.commons.validator.ValidatorAction,
+                               org.apache.commons.validator.Field,
+                               org.apache.struts.action.ActionMessages,
+                               org.apache.commons.validator.Validator,
+                               javax.servlet.http.HttpServletRequest"
+                 msg="errors.required"/>
+
+      <validator name="validwhen"
+          msg="errors.required"
+                 classname="org.apache.struts.validator.validwhen.ValidWhen"
+                 method="validateValidWhen"
+                 methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"/>
+
+
+      <validator name="minlength"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateMinLength"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.minlength">
+             <javascript><![CDATA[
+    function validateMinLength(form) {
+        var isValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name");
+
+
+        oMinLength = eval('new ' + formName.value + '_minlength()');
+
+        for (x in oMinLength) {
+            var field = form[oMinLength[x][0]];
+
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'password' ||
+                field.type == 'textarea') &&
+                field.disabled == false) {
+
+                var iMin = parseInt(oMinLength[x][2]("minlength"));
+                if ((trim(field.value).length > 0) && (field.value.length < iMin)) {
+                    if (i == 0) {
+                        focusField = field;
+                    }
+                    fields[i++] = oMinLength[x][1];
+                    isValid = false;
+                }
+            }
+        }
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return isValid;
+    }             
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="maxlength"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateMaxLength"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.maxlength">
+             <javascript><![CDATA[
+    function validateMaxLength(form) {
+        var isValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name"); 
+
+        oMaxLength = eval('new ' + formName.value + '_maxlength()');        
+        for (x in oMaxLength) {
+            var field = form[oMaxLength[x][0]];
+
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'password' ||
+                field.type == 'textarea') &&
+                field.disabled == false) {
+
+                var iMax = parseInt(oMaxLength[x][2]("maxlength"));
+                if (field.value.length > iMax) {
+                    if (i == 0) {
+                        focusField = field;
+                    }
+                    fields[i++] = oMaxLength[x][1];
+                    isValid = false;
+                }
+            }
+        }
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return isValid;
+    }             
+              ]]></javascript>
+		</validator>      
+
+
+
+      <validator name="mask"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateMask"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.invalid">
+             <javascript><![CDATA[
+    function validateMask(form) {
+        var isValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name"); 
+
+        oMasked = eval('new ' + formName.value + '_mask()');      
+        for (x in oMasked) {
+            var field = form[oMasked[x][0]];
+
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                 field.type == 'textarea' ||
+				 field.type == 'file') &&
+                 (field.value.length > 0) &&
+                 field.disabled == false) {
+
+                if (!matchPattern(field.value, oMasked[x][2]("mask"))) {
+                    if (i == 0) {
+                        focusField = field;
+                    }
+                    fields[i++] = oMasked[x][1];
+                    isValid = false;
+                }
+            }
+        }
+
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return isValid;
+    }
+
+    function matchPattern(value, mask) {
+       return mask.exec(value);
+    }             
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="byte"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateByte"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.byte"
+       jsFunctionName="ByteValidations">
+             <javascript><![CDATA[
+              function validateByte(form) {
+        var bValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name"); 
+        oByte = eval('new ' + formName.value + '_ByteValidations()');
+
+        for (x in oByte) {
+            var field = form[oByte[x][0]];
+
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')  &&
+                field.disabled == false) {
+
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) {
+                    if (!isAllDigits(value)) {
+                        bValid = false;
+                        if (i == 0) {
+                            focusField = field;
+                        }
+                        fields[i++] = oByte[x][1];
+
+                    } else {
+
+                        var iValue = parseInt(value);
+                        if (isNaN(iValue) || !(iValue >= -128 && iValue <= 127)) {
+                            if (i == 0) {
+                                focusField = field;
+                            }
+                            fields[i++] = oByte[x][1];
+                            bValid = false;
+                        }
+                    }
+                }
+
+            }
+        }
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return bValid;
+    }
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="short"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateShort"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.short"
+       jsFunctionName="ShortValidations">
+             <javascript><![CDATA[
+    function validateShort(form) {
+        var bValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name");
+
+        oShort = eval('new ' + formName.value + '_ShortValidations()');
+
+        for (x in oShort) {
+            var field = form[oShort[x][0]];
+
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')  &&
+                field.disabled == false) {
+
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) {
+                    if (!isAllDigits(value)) {
+                        bValid = false;
+                        if (i == 0) {
+                            focusField = field;
+                        }
+                        fields[i++] = oShort[x][1];
+
+                    } else {
+
+                        var iValue = parseInt(value);
+                        if (isNaN(iValue) || !(iValue >= -32768 && iValue <= 32767)) {
+                            if (i == 0) {
+                                focusField = field;
+                            }
+                            fields[i++] = oShort[x][1];
+                            bValid = false;
+                        }
+                   }
+               }
+            }
+        }
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return bValid;
+    }             
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="integer"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateInteger"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.integer"
+       jsFunctionName="IntegerValidations">
+             <javascript><![CDATA[
+    function validateInteger(form) {
+        var bValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name"); 
+
+        oInteger = eval('new ' + formName.value + '_IntegerValidations()');
+        for (x in oInteger) {
+            var field = form[oInteger[x][0]];
+
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio') &&
+                field.disabled == false) {
+
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) {
+
+                    if (!isAllDigits(value)) {
+                        bValid = false;
+                        if (i == 0) {
+                            focusField = field;
+                        }
+                        fields[i++] = oInteger[x][1];
+
+                    } else {
+                        var iValue = parseInt(value);
+                        if (isNaN(iValue) || !(iValue >= -2147483648 && iValue <= 2147483647)) {
+                            if (i == 0) {
+                                focusField = field;
+                            }
+                            fields[i++] = oInteger[x][1];
+                            bValid = false;
+                       }
+                   }
+               }
+            }
+        }
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return bValid;
+    }
+
+    function isAllDigits(argvalue) {
+        argvalue = argvalue.toString();
+        var validChars = "0123456789";
+        var startFrom = 0;
+        if (argvalue.substring(0, 2) == "0x") {
+           validChars = "0123456789abcdefABCDEF";
+           startFrom = 2;
+        } else if (argvalue.charAt(0) == "0") {
+           validChars = "01234567";
+           startFrom = 1;
+        } else if (argvalue.charAt(0) == "-") {
+            startFrom = 1;
+        }
+
+        for (var n = startFrom; n < argvalue.length; n++) {
+            if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+        }
+        return true;
+    }             
+              ]]></javascript>
+		</validator>      
+
+
+
+      <validator name="long"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateLong"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.long">
+             <javascript><![CDATA[
+    function validateInteger(form) {
+        var bValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name"); 
+
+        oInteger = eval('new ' + formName.value + '_IntegerValidations()');
+        for (x in oInteger) {
+            var field = form[oInteger[x][0]];
+
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio') &&
+                field.disabled == false) {
+
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) {
+
+                    if (!isAllDigits(value)) {
+                        bValid = false;
+                        if (i == 0) {
+                            focusField = field;
+                        }
+                        fields[i++] = oInteger[x][1];
+
+                    } else {
+                        var iValue = parseInt(value);
+                        if (isNaN(iValue) || !(iValue >= -2147483648 && iValue <= 2147483647)) {
+                            if (i == 0) {
+                                focusField = field;
+                            }
+                            fields[i++] = oInteger[x][1];
+                            bValid = false;
+                       }
+                   }
+               }
+            }
+        }
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return bValid;
+    }
+
+    function isAllDigits(argvalue) {
+        argvalue = argvalue.toString();
+        var validChars = "0123456789";
+        var startFrom = 0;
+        if (argvalue.substring(0, 2) == "0x") {
+           validChars = "0123456789abcdefABCDEF";
+           startFrom = 2;
+        } else if (argvalue.charAt(0) == "0") {
+           validChars = "01234567";
+           startFrom = 1;
+        } else if (argvalue.charAt(0) == "-") {
+            startFrom = 1;
+        }
+
+        for (var n = startFrom; n < argvalue.length; n++) {
+            if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+        }
+        return true;
+    }             
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="float"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateFloat"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.float"
+       jsFunctionName="FloatValidations">
+             <javascript><![CDATA[
+   function validateFloat(form) {
+        var bValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+         var formName = form.getAttributeNode("name");
+
+        oFloat = eval('new ' + formName.value + '_FloatValidations()');
+        for (x in oFloat) {
+        	var field = form[oFloat[x][0]];
+        	
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio') &&
+                field.disabled == false) {
+        
+            	var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+        
+                if (value.length > 0) {
+                    // remove '.' before checking digits
+                    var tempArray = value.split('.');
+                    //Strip off leading '0'
+                    var zeroIndex = 0;
+                    var joinedString= tempArray.join('');
+                    while (joinedString.charAt(zeroIndex) == '0') {
+                        zeroIndex++;
+                    }
+                    var noZeroString = joinedString.substring(zeroIndex,joinedString.length);
+
+                    if (!isAllDigits(noZeroString)) {
+                        bValid = false;
+                        if (i == 0) {
+                            focusField = field;
+                        }
+                        fields[i++] = oFloat[x][1];
+
+                    } else {
+	                var iValue = parseFloat(value);
+	                if (isNaN(iValue)) {
+	                    if (i == 0) {
+	                        focusField = field;
+	                    }
+	                    fields[i++] = oFloat[x][1];
+	                    bValid = false;
+	                }
+                    }
+                }
+            }
+        }
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return bValid;
+    }             
+              ]]></javascript>
+		</validator>      
+
+      <validator name="double"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateDouble"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.double">
+             <javascript><![CDATA[
+   function validateFloat(form) {
+        var bValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+         var formName = form.getAttributeNode("name");
+
+        oFloat = eval('new ' + formName.value + '_FloatValidations()');
+        for (x in oFloat) {
+        	var field = form[oFloat[x][0]];
+        	
+            if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio') &&
+                field.disabled == false) {
+        
+            	var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+        
+                if (value.length > 0) {
+                    // remove '.' before checking digits
+                    var tempArray = value.split('.');
+                    //Strip off leading '0'
+                    var zeroIndex = 0;
+                    var joinedString= tempArray.join('');
+                    while (joinedString.charAt(zeroIndex) == '0') {
+                        zeroIndex++;
+                    }
+                    var noZeroString = joinedString.substring(zeroIndex,joinedString.length);
+
+                    if (!isAllDigits(noZeroString)) {
+                        bValid = false;
+                        if (i == 0) {
+                            focusField = field;
+                        }
+                        fields[i++] = oFloat[x][1];
+
+                    } else {
+	                var iValue = parseFloat(value);
+	                if (isNaN(iValue)) {
+	                    if (i == 0) {
+	                        focusField = field;
+	                    }
+	                    fields[i++] = oFloat[x][1];
+	                    bValid = false;
+	                }
+                    }
+                }
+            }
+        }
+        if (fields.length > 0) {
+           showErrors(fields,focusField);
+        }
+        return bValid;
+    }             
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="date"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateDate"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.date"
+       jsFunctionName="DateValidations">
+             <javascript><![CDATA[
+    function validateDate(form) {
+       var bValid = true;
+       var focusField = null;
+       var i = 0;
+       var fields = new Array();
+       var formName = form.getAttributeNode("name"); 
+
+       oDate = eval('new ' + formName.value + '_DateValidations()');
+
+       for (x in oDate) {
+           var field = form[oDate[x][0]];
+           var value = field.value;
+           var datePattern = oDate[x][2]("datePatternStrict");
+           // try loose pattern
+           if (datePattern == null)
+               datePattern = oDate[x][2]("datePattern");
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea') &&
+               (value.length > 0) && (datePattern.length > 0) &&
+                field.disabled == false) {
+                 var MONTH = "MM";
+                 var DAY = "dd";
+                 var YEAR = "yyyy";
+                 var orderMonth = datePattern.indexOf(MONTH);
+                 var orderDay = datePattern.indexOf(DAY);
+                 var orderYear = datePattern.indexOf(YEAR);
+                 if ((orderDay < orderYear && orderDay > orderMonth)) {
+                     var iDelim1 = orderMonth + MONTH.length;
+                     var iDelim2 = orderDay + DAY.length;
+                     var delim1 = datePattern.substring(iDelim1, iDelim1 + 1);
+                     var delim2 = datePattern.substring(iDelim2, iDelim2 + 1);
+                     if (iDelim1 == orderDay && iDelim2 == orderYear) {
+                        dateRegexp = new RegExp("^(\\d{2})(\\d{2})(\\d{4})$");
+                     } else if (iDelim1 == orderDay) {
+                        dateRegexp = new RegExp("^(\\d{2})(\\d{2})[" + delim2 + "](\\d{4})$");
+                     } else if (iDelim2 == orderYear) {
+                        dateRegexp = new RegExp("^(\\d{2})[" + delim1 + "](\\d{2})(\\d{4})$");
+                     } else {
+                        dateRegexp = new RegExp("^(\\d{2})[" + delim1 + "](\\d{2})[" + delim2 + "](\\d{4})$");
+                     }
+                     var matched = dateRegexp.exec(value);
+                     if(matched != null) {
+                        if (!isValidDate(matched[2], matched[1], matched[3])) {
+                           if (i == 0) {
+                               focusField = field;
+                           }
+                           fields[i++] = oDate[x][1];
+                           bValid =  false;
+                        }
+                     } else {
+                        if (i == 0) {
+                            focusField = field;
+                        }
+                        fields[i++] = oDate[x][1];
+                        bValid =  false;
+                     }
+                 } else if ((orderMonth < orderYear && orderMonth > orderDay)) {
+                     var iDelim1 = orderDay + DAY.length;
+                     var iDelim2 = orderMonth + MONTH.length;
+                     var delim1 = datePattern.substring(iDelim1, iDelim1 + 1);
+                     var delim2 = datePattern.substring(iDelim2, iDelim2 + 1);
+                     if (iDelim1 == orderMonth && iDelim2 == orderYear) {
+                         dateRegexp = new RegExp("^(\\d{2})(\\d{2})(\\d{4})$");
+                     } else if (iDelim1 == orderMonth) {
+                         dateRegexp = new RegExp("^(\\d{2})(\\d{2})[" + delim2 + "](\\d{4})$");
+                     } else if (iDelim2 == orderYear) {
+                         dateRegexp = new RegExp("^(\\d{2})[" + delim1 + "](\\d{2})(\\d{4})$");
+                     } else {
+                         dateRegexp = new RegExp("^(\\d{2})[" + delim1 + "](\\d{2})[" + delim2 + "](\\d{4})$");
+                     }
+                     var matched = dateRegexp.exec(value);
+                     if(matched != null) {
+                         if (!isValidDate(matched[1], matched[2], matched[3])) {
+                             if (i == 0) {
+                         focusField = field;
+                             }
+                             fields[i++] = oDate[x][1];
+                             bValid =  false;
+                          }
+                     } else {
+                         if (i == 0) {
+                             focusField = field;
+                         }
+                         fields[i++] = oDate[x][1];
+                         bValid =  false;
+                     }
+                 } else if ((orderMonth > orderYear && orderMonth < orderDay)) {
+                     var iDelim1 = orderYear + YEAR.length;
+                     var iDelim2 = orderMonth + MONTH.length;
+                     var delim1 = datePattern.substring(iDelim1, iDelim1 + 1);
+                     var delim2 = datePattern.substring(iDelim2, iDelim2 + 1);
+                     if (iDelim1 == orderMonth && iDelim2 == orderDay) {
+                         dateRegexp = new RegExp("^(\\d{4})(\\d{2})(\\d{2})$");
+                     } else if (iDelim1 == orderMonth) {
+                         dateRegexp = new RegExp("^(\\d{4})(\\d{2})[" + delim2 + "](\\d{2})$");
+                     } else if (iDelim2 == orderDay) {
+                         dateRegexp = new RegExp("^(\\d{4})[" + delim1 + "](\\d{2})(\\d{2})$");
+                     } else {
+                         dateRegexp = new RegExp("^(\\d{4})[" + delim1 + "](\\d{2})[" + delim2 + "](\\d{2})$");
+                     }
+                     var matched = dateRegexp.exec(value);
+                     if(matched != null) {
+                         if (!isValidDate(matched[3], matched[2], matched[1])) {
+                             if (i == 0) {
+                                 focusField = field;
+                             }
+                             fields[i++] = oDate[x][1];
+                             bValid =  false;
+                         }
+                     } else {
+                          if (i == 0) {
+                              focusField = field;
+                          }
+                          fields[i++] = oDate[x][1];
+                          bValid =  false;
+                     }
+                 } else {
+                     if (i == 0) {
+                         focusField = field;
+                     }
+                     fields[i++] = oDate[x][1];
+                     bValid =  false;
+                 }
+          }
+       }
+       if (fields.length > 0) {
+          showErrors(fields,focusField);
+       }
+       return bValid;
+    }
+    
+    function isValidDate(day, month, year) {
+	    if (month < 1 || month > 12) {
+            return false;
+        }
+        if (day < 1 || day > 31) {
+            return false;
+        }
+        if ((month == 4 || month == 6 || month == 9 || month == 11) &&
+            (day == 31)) {
+            return false;
+        }
+        if (month == 2) {
+            var leap = (year % 4 == 0 &&
+               (year % 100 != 0 || year % 400 == 0));
+            if (day>29 || (day == 29 && !leap)) {
+                return false;
+            }
+        }
+        return true;
+    }             
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="intRange"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateIntRange"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends="integer"
+                  msg="errors.range">
+             <javascript><![CDATA[
+      function validateIntRange(form) {
+        var isValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name"); 
+
+        oRange = eval('new ' + formName.value + '_intRange()');        
+        for (x in oRange) {
+            var field = form[oRange[x][0]];
+            if (field.disabled == false)  {
+                var value = '';
+                if (field.type == 'hidden' ||
+                    field.type == 'text' || field.type == 'textarea' ||
+                    field.type == 'radio' ) {
+                    value = field.value;
+                }
+                if (field.type == 'select-one') {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                }
+                if (value.length > 0) {
+                    var iMin = parseInt(oRange[x][2]("min"));
+                    var iMax = parseInt(oRange[x][2]("max"));
+                    var iValue = parseInt(value);
+                    if (!(iValue >= iMin && iValue <= iMax)) {
+                        if (i == 0) {
+                            focusField = field;
+                        }
+                        fields[i++] = oRange[x][1];
+                        isValid = false;
+                    }
+                }
+            }
+        }
+        if (fields.length > 0) {
+            showErrors(fields,focusField);
+        }
+        return isValid;
+    }           
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="floatRange"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateFloatRange"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends="float"
+                  msg="errors.range">
+             <javascript><![CDATA[
+    function validateFloatRange(form) {
+        var isValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name"); 
+
+        oRange = eval('new ' + formName.value + '_floatRange()');
+        for (x in oRange) {
+            var field = form[oRange[x][0]];
+            
+            if ((field.type == 'hidden' ||
+                field.type == 'text' || field.type == 'textarea') &&
+                (field.value.length > 0)  &&
+                 field.disabled == false) {
+        
+                var fMin = parseFloat(oRange[x][2]("min"));
+                var fMax = parseFloat(oRange[x][2]("max"));
+                var fValue = parseFloat(field.value);
+                if (!(fValue >= fMin && fValue <= fMax)) {
+                    if (i == 0) {
+                        focusField = field;
+                    }
+                    fields[i++] = oRange[x][1];
+                    isValid = false;
+                }
+            }
+        }
+        if (fields.length > 0) {
+            showErrors(fields,focusField);
+        }
+        return isValid;
+    }             
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="creditCard"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateCreditCard"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.creditcard">
+             <javascript><![CDATA[
+                function validateCreditCard(form) {
+        var bValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name");
+
+        oCreditCard = eval('new ' + formName.value + '_creditCard()');
+
+        for (x in oCreditCard) {
+            if ((form[oCreditCard[x][0]].type == 'text' ||
+                 form[oCreditCard[x][0]].type == 'textarea') &&
+                (form[oCreditCard[x][0]].value.length > 0)  &&
+                 form[oCreditCard[x][0]].disabled == false) {
+                if (!luhnCheck(form[oCreditCard[x][0]].value)) {
+                    if (i == 0) {
+                        focusField = form[oCreditCard[x][0]];
+                    }
+                    fields[i++] = oCreditCard[x][1];
+                    bValid = false;
+                }
+            }
+        }
+        if (fields.length > 0) {
+            showErrors(fields,focusField);
+        }
+        return bValid;
+    }
+
+    /**
+     * Checks whether a given credit card number has a valid Luhn checksum.
+     * This allows you to spot most randomly made-up or garbled credit card numbers immediately.
+     * Reference: http://www.speech.cs.cmu.edu/~sburke/pub/luhn_lib.html
+     */
+    function luhnCheck(cardNumber) {
+        if (isLuhnNum(cardNumber)) {
+            var no_digit = cardNumber.length;
+            var oddoeven = no_digit & 1;
+            var sum = 0;
+            for (var count = 0; count < no_digit; count++) {
+                var digit = parseInt(cardNumber.charAt(count));
+                if (!((count & 1) ^ oddoeven)) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                };
+                sum += digit;
+            };
+            if (sum == 0) return false;
+            if (sum % 10 == 0) return true;
+        };
+        return false;
+    }
+
+    function isLuhnNum(argvalue) {
+        argvalue = argvalue.toString();
+        if (argvalue.length == 0) {
+            return false;
+        }
+        for (var n = 0; n < argvalue.length; n++) {
+            if ((argvalue.substring(n, n+1) < "0") ||
+                (argvalue.substring(n,n+1) > "9")) {
+                return false;
+            }
+        }
+        return true;
+    }
+              ]]></javascript>
+		</validator>      
+
+
+      <validator name="email"
+           classname="org.jresearch.gossip.validator.Validator" method="validateEmail" 
+     methodParams="java.lang.Object,
+                  org.apache.commons.validator.ValidatorAction,
+                  org.apache.commons.validator.Field,
+                  org.apache.struts.action.ActionMessages,
+                  javax.servlet.http.HttpServletRequest" 
+              depends=""
+                  msg="errors.email">
+             <javascript><![CDATA[
+    function validateEmail(form) {
+        var bValid = true;
+        var focusField = null;
+        var i = 0;
+        var fields = new Array();
+        var formName = form.getAttributeNode("name");
+
+
+        oEmail = eval('new ' + formName.value + '_email()');
+
+        for (x in oEmail) {
+            var field = form[oEmail[x][0]];
+            if ((field.type == 'hidden' || 
+                 field.type == 'text' ||
+                 field.type == 'textarea') &&
+                (field.value.length > 0) &&
+                field.disabled == false) {
+                if (!checkEmail(field.value)) {
+                    if (i == 0) {
+                        focusField = field;
+                    }
+                    fields[i++] = oEmail[x][1];
+                    bValid = false;
+                }
+            }
+        }
+        if (fields.length > 0) {
+            showErrors(fields,focusField);
+        }
+        return bValid;
+    }
+
+    function checkEmail(emailStr) {
+               if (emailStr.length == 0) {
+                   return true;
+               }
+              	var reg1str = "( )|(@.*@)|(\\.\\.)|(@\\.)|(\\.@)|(^\\.)|(^_+@)|(^\\-+@)";
+				var reg2str = "^[\\w\\'\\.\\-]+@((\\[?)[a-zA-Z0-9\\-\\.]+\\.([a-zA-Z]{2,4}|[0-9]{1,3})(\\]?)|[a-zA-Z0-9\\-]{2,})$";
+				var reg1 = new RegExp(reg1str);
+				var reg2 = new RegExp(reg2str);
+				if (!reg1.test(emailStr) && reg2.test(emailStr))
+					return true;
+				return false;
+            }
+
+               
+              ]]></javascript>
+		</validator>      
+
+      <validator name="url"
+            classname="org.apache.struts.validator.FieldChecks"
+               method="validateUrl"
+         methodParams="java.lang.Object,
+                       org.apache.commons.validator.ValidatorAction,
+                       org.apache.commons.validator.Field,
+                       org.apache.struts.action.ActionMessages,
+                       org.apache.commons.validator.Validator,
+                       javax.servlet.http.HttpServletRequest"
+              depends=""
+                  msg="errors.url"/>
+
+     <!--
+       This simply allows struts to include the validateUtilities into a page, it should
+       not be used as a validation rule.
+     -->
+     <validator name="includeJavaScriptUtilities"
+            classname=""
+               method=""
+         methodParams=""
+              depends=""
+                  msg="">
+             <javascript><![CDATA[
+showErrors=function(mess){
+     document.getElementById("jrf_err").style.display="block";
+     document.getElementById("jrf_err_mess").innerHTML=mess.join("<br>");
+     self.scroll(0,0);
+ }
+ function hideErrors(){
+     document.getElementById("jrf_err").style.display="none";
+ }
+              ]]></javascript>
+		</validator>      
+   <validator name="twofields" 
+    classname="org.jresearch.gossip.validator.Validator" method="validateTwoFields" 
+    methodParams="java.lang.Object,
+                  org.apache.commons.validator.ValidatorAction,
+                  org.apache.commons.validator.Field,
+                  org.apache.struts.action.ActionMessages,
+                  javax.servlet.http.HttpServletRequest" 
+   depends="required" msg="errors.twofields">
+    <javascript><![CDATA[
+        function validateTwoFields(form) {
+            var bValid = true;
+            var focusField = null;
+            var i = 0;
+            var fields = new Array();
+            oTwoFields = new twofields();
+            for (x in oTwoFields) {
+                var field = form[oTwoFields[x][0]];
+                var secondField = form[oTwoFields[x][2]("secondProperty")];
+            
+                if (field.type == 'text' ||
+                    field.type == 'textarea' ||
+                    field.type == 'select-one' ||
+                    field.type == 'radio' ||
+                    field.type == 'password') {
+            
+                    var value;
+                    var secondValue;
+                    // get field's value
+                    if (field.type == "select-one") {
+                        var si = field.selectedIndex;
+                        value = field.options[si].value;
+                        secondValue = secondField.options[si].value;
+                    } else {
+                        value = field.value;
+                        secondValue = secondField.value;
+                    }
+                
+                    if (value != secondValue) {
+                    
+                        if (i == 0) {
+                            focusField = field;
+                        }
+                        fields[i++] = oTwoFields[x][1];
+                        bValid = false;
+                    }
+                }
+            }
+            
+            if (fields.length > 0) {             
+                    showErrors(fields,focusField);
+            }
+            
+            return bValid;
+        }]]></javascript>
+		</validator>
+	<validator name="confirmCode" 
+    classname="org.jresearch.gossip.validator.Validator" method="validateConfirmCode" 
+    methodParams="java.lang.Object,
+                  org.apache.commons.validator.ValidatorAction,
+                  org.apache.commons.validator.Field,
+                  org.apache.struts.action.ActionMessages,
+                  javax.servlet.http.HttpServletRequest" 
+   depends="required" msg="errors.invalid"/>
+
+   </global>
+
+</form-validation>

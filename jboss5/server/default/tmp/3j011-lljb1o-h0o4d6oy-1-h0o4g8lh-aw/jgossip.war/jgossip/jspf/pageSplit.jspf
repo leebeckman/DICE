@@ -1,0 +1,37 @@
+<%--
+/* ***** BEGIN LICENSE BLOCK *****
+ * The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in 
+ * compliance with the License. You may obtain a copy of the License 
+ * at http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
+ * the License for the specific language governing rights and 
+ * limitations under the License.
+ *
+ * The Original Code is JGossip forum code.
+ *
+ * The Initial Developer of the Original Code is the JResearch, Org. 
+ * Portions created by the Initial Developer are Copyright (C) 2004 
+ * the Initial Developer. All Rights Reserved. 
+ * 
+ * Contributor(s): 
+ *              Dmitry Belov <bel@jresearch.org>
+ *        
+ * ***** END LICENSE BLOCK ***** */
+--%> 
+<c:if test="${requestScope.JRF_RECORDS_DATA.haveSplit}">
+	<form>
+		<c:if test="${requestScope.JRF_RECORDS_DATA.currBlock>0}">
+			<a class="control" href="<gossip:blockUrl increase="-1"/>"><fmt:message key="global.PREV"/></a>
+		</c:if>
+		<gossip:blockOptions id="blockOptions"/>
+		<html:select property="property" name="<%=IConst.PAGE.SELECTED_BLOCK%>" onchange="self.location.href=this.options[this.selectedIndex].value">
+    		<html:optionsCollection name="blockOptions" value="property" label="labelProperty"/>
+		</html:select>
+		<c:if test="${!requestScope.JRF_RECORDS_DATA.lastBlock}">
+			<a class="control" href="<gossip:blockUrl increase="1"/>"><fmt:message key="global.NEXT"/></a>
+		</c:if>
+	</form>
+</c:if>

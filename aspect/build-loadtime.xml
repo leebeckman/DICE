@@ -1,0 +1,98 @@
+<project default="deploy" name="JBoss/AOP">
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+
+    <target name="prepare">
+        <path id="jboss.aop.classpath">
+            <fileset dir="lib">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+        <taskdef name="aopc" classname="org.jboss.aop.ant.AopC" classpathref="jboss.aop.classpath"/>
+    </target>
+
+    <target name="compile" depends="prepare">
+        <delete dir="classes"/>
+        <mkdir dir="classes/aspects"/>
+
+        <path id="aspectclasspath">
+            <path refid="jboss.aop.classpath"/>
+
+            <fileset dir="${user.home}/DICE/src/lib">
+                <include name="*.jar"/>
+            </fileset>
+            <fileset dir="${user.home}/DICE/jgossip/lib">
+                <include name="*.jar"/>
+            </fileset>
+        </path>
+
+        <javac  srcdir="asrc"
+                destdir="classes/aspects"
+                debug="on"
+                deprecation="on"
+                optimize="off"
+                includes="**">
+            <classpath refid="aspectclasspath"/>
+        </javac>
+
+        <copy todir="classes">
+            <fileset dir="../jgossip/dist/default">
+                <include name="*.war"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="aopc" depends="compile">
+
+        <delete dir="output"/>
+        <mkdir dir="output"/>
+
+        <for param="file">
+            <path>
+                <fileset dir="classes" includes="*.war" />
+            </path>
+            <sequential>
+                <var name="filename" unset="true"/>
+                <property name="filename" value="@{file}" basedir="classes" relative="yes" />
+                <echo>File: @{file} ${filename}</echo>
+
+                <delete dir="classes/extracted/${filename}"/>
+                <mkdir dir="classes/extracted/${filename}"/>
+                <unwar src="@{file}" dest="classes/extracted/${filename}"/>
+                <delete file="@{file}"/>
+
+		        <copy todir="classes/extracted/${filename}/WEB-INF/lib">
+		            <fileset dir="output">
+			            <include name="*.jar"/>
+		            </fileset>
+		        </copy>
+
+                <jar destfile="output/aspects.aop" basedir="classes/aspects">
+                    <metainf dir="conf" includes="jboss-aop.xml"/>
+                </jar>
+
+                <war destfile="output/${filename}" basedir="classes/extracted/${filename}"/>
+                <delete dir="classes/extracted/${filename}"/>
+
+	            <ear destfile="output/${filename}.ear" appxml="conf/application.xml">
+		            <!--<metainf dir="build/META-INF"/>-->
+		            <fileset dir="output" includes="*.war,*.aop"/>
+	            </ear>
+
+            </sequential>
+        </for>
+
+        <delete dir="classes/extracted"/>
+        <delete dir="classes" />
+    </target>
+
+    <target name="deploy" depends="aopc">
+        <delete file="/home/lee/DICE/jboss5/server/default/deploy/jgossip.war.ear"/>
+        <copy todir="/home/lee/DICE/jboss5/server/default/deploy">
+            <fileset dir="output">
+                <include name="jgossip.war.ear"/>
+            </fileset>
+        </copy>
+    </target>
+
+</project>

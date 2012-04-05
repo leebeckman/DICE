@@ -15,7 +15,6 @@ public class DBCPTaint {
 	}
 
     public Object processResultSetAccess(MethodInvocation invocation) throws Throwable {
-//    	TaintLogger.getTaintLogger().log("PRSA");
     	Object ret = invocation.invokeNext();
     	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
 //    		result = new String((String)result, true);
@@ -27,8 +26,7 @@ public class DBCPTaint {
     }
     
     public Object processResultSetCreation(MethodInvocation invocation) throws Throwable {
-//    	TaintLogger.getTaintLogger().log("PRSC");
-    	ResultSet rs = (ResultSet)invocation.invokeNext();
+		ResultSet rs = (ResultSet)invocation.invokeNext();
 		ResultSetMetaData metaData = null;
 		try {
     		metaData = (ResultSetMetaData) rs.getMetaData();

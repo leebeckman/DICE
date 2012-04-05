@@ -1,0 +1,279 @@
+<%--
+/* ***** BEGIN LICENSE BLOCK *****
+ * The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in 
+ * compliance with the License. You may obtain a copy of the License 
+ * at http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See
+ * the License for the specific language governing rights and 
+ * limitations under the License.
+ *
+ * The Original Code is JGossip forum code.
+ *
+ * The Initial Developer of the Original Code is the JResearch, Org. 
+ * Portions created by the Initial Developer are Copyright (C) 2004 
+ * the Initial Developer. All Rights Reserved. 
+ * 
+ * Contributor(s): 
+ *              Dmitry Belov <bel@jresearch.org>
+ *        
+ * ***** END LICENSE BLOCK ***** */
+--%>
+<%@ page import="org.jresearch.gossip.util.MessageProcessor,
+                org.jresearch.gossip.util.HtmlCodec,
+                java.util.Iterator,
+                java.util.HashMap" %>
+<table width="98%" cellspacing="0" cellpadding="0">
+		<tr>
+			<td><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="110" height="1" border="0">
+			</td>
+			<c:if test="${empty pageScope.MESSAGE_ACTION_KEY}">
+			    <c:set var="MESSAGE_ACTION_KEY" value="messages.REPLY"/>
+			</c:if>
+			<td class="top_tab" nowrap>	&nbsp;&nbsp;<span class="caption_l"><fmt:message key="${MESSAGE_ACTION_KEY}"/></span>&nbsp;&nbsp;
+			</td>
+			<td>&nbsp;
+			</td>
+			<td>
+			</td>
+		</tr>
+		<tr>
+			<td class="tb_o" height="4"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+			<td class="lr_g_tb_o"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+			<td class="tb_o" colspan="2"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+		</tr>
+		<tr>
+			<td height="8"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+			<td class="lr_g"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+			<td class="b_g" colspan="2"><img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/blank.gif" alt="" width="1" height="1" border="0"></td>
+		</tr>
+		<tr>
+			<td  align="right">
+				&nbsp;
+			</td>
+			<td class="l_g">&nbsp;
+			</td>
+			<td width="70%">&nbsp;
+			</td>
+			<td class="r_g" align="center">
+				&nbsp;&nbsp;&nbsp;&nbsp;
+			</td>
+		</tr>
+		<c:if test="${sessionScope.JRF_USER.status==0}">
+		<tr class="drk">
+			<td class="lt_g_txt_b" align="center"><fmt:message key="messages.NAME"/>
+			</td>
+			<td class="tl_g" colspan="2">&nbsp;&nbsp;<html:text property="name" size="64"  maxlength="32" value='<%=request.getParameter("name")%>'/>
+			</td>
+			<td class="lr_g_w" >&nbsp;	
+			</td>
+		</tr>
+		<tr class="lght">
+			<td class="lt_g_txt_b" align="center"><fmt:message key="messages.E-MAIL"/>
+			</td>
+			<td class="tl_g" colspan="2">&nbsp;&nbsp;<html:text property="email" size="64" maxlength="64" value='<%=request.getParameter("email")%>' />
+			</td>
+			<td class="lr_g_w" >&nbsp;	
+			</td>
+		</tr>
+		</c:if> 
+		<tr class="drk">
+			<td class="lt_g_txt_b" align="center"><fmt:message key="messages.TITLE"/>
+			</td>
+			<td class="tl_g" colspan="2">&nbsp;&nbsp;
+			<%--<html:text property="title" size="100"  maxlength="255" value='<%=request.getParameter("title")%>'/>--%>
+			<input type="text" name="title" size="100"  maxlength="255" value='<gossip:codec value="${requestScope[message_form_name].title}"/>'/>
+			</td>
+			<td class="lr_g_w" >&nbsp;	
+			</td>
+		</tr>
+		<tr class="lght">
+			<td class="lt_g_txt_b" align="center" valign="top"><fmt:message key="messages.TEXT"/>
+			<br>
+			<br>
+<c:if test="${empty applicationScope.jrf_MessHelper}"><%--TODO use cache instead application scope--%>	
+<%@ taglib uri="/WEB-INF/lib/jssplitter.jar" prefix="jr" %>		
+	<c:set var="jrf_MessHelper" scope="application">
+	<%HashMap hm=MessageProcessor.getEmoticonsMap();
+	  Iterator it=hm.keySet().iterator();%>
+			<script><jr:jssweeper> 
+			function MessHelper(targetObj){
+			    try{
+			        this.target=targetObj;
+			        this.smiles=new Array();
+			         <%while(it.hasNext()){
+			               String key=(String)it.next();%> 
+			          this.smiles["<%=key%>"]= unQuote("<%=HtmlCodec.encode((String)hm.get(key))%>");
+			          <%}%>
+			        this.append=mh_append;
+			        this.addSmile=mh_addSmile; 
+			        this.addTag=mh_addTag; 
+			     }catch(exObj){
+			        alert("error creating new MessHelper :"+exObj.message);
+			    }
+			}
+			function mh_addSmile(key){
+			    try{
+			        this.append(this.smiles[key]);
+			    }catch(exObj){
+			        alert("error in MessHelper.addSmile :"+exObj.message);
+			    }
+			}
+			function mh_addTag(tagName,single){
+			    try{
+			        if(!single&&(document.selection && document.selection.createRange)) {
+                            if(document.selection.createRange().text&&
+                                    this.target.value.indexOf(document.selection.createRange().text)>0){
+                                document.selection.createRange().text="["+tagName+"]"+document.selection.createRange().text+"[/"+tagName+"]";
+                                return true;
+                            }  
+                     }
+			        this.append("["+tagName+"]"+(single?"":"[/"+tagName+"]"));
+			    }catch(exObj){
+			        alert("error in MessHelper.addTag :"+exObj.message);
+			    }
+			}
+			function mh_append(str){
+			    try{
+			        this.target.value+=str;
+			        this.target.focus();
+			    }catch(exObj){
+			        alert("error in MessHelper.append :"+exObj.message);
+			    }
+			}
+	</jr:jssweeper></script>
+			    <table  cellspacing="1" cellpadding="1">
+			     <%it=hm.keySet().iterator();
+			       while(it.hasNext()){%> 
+			       <tr>
+			           <%for(int i=0;i<4;i++){%>
+			           <td>
+			               <%if(it.hasNext()){
+			                     String key=(String)it.next();
+			                     pageContext.setAttribute("emtcn_key",key);%>    
+			               <a href="javascript:void(0)" onClick="messHelper.addSmile('<%=key%>');return false;" title="<fmt:message key="${emtcn_key}"/>">      
+			                   <img src="<gossip:config key="<%=IConst.CONFIG.WEB_ROOT%>"/>images/emoticons/<%=key%>.gif" alt="<fmt:message key="${emtcn_key}"/>" border="0">
+			               </a>
+			               <%}else{%>
+			                   &nbsp;
+			               <%}%>
+			           </td>
+			           <%}%>
+			       </tr>
+			     <%}%>
+			    </table>
+       </c:set>
+</c:if>
+<c:out value="${applicationScope.jrf_MessHelper}" escapeXml="false"/>
+			</td>
+			<td class="tl_g" colspan="2">
+			&nbsp;<input class="but_b_cntrl" type="button" value="I" onclick="messHelper.addTag('i')">
+			<input class="but_b_cntrl" type="button" value="B" onclick="messHelper.addTag('b')">
+			<input class="but_b_cntrl" type="button" value="URL" onclick="messHelper.addTag('url')">
+			<input class="but_b_cntrl" type="button" value="IMG" onclick="messHelper.addTag('img')">
+			<input class="but_b_cntrl" type="button" value="QUOTE" onclick="messHelper.addTag('quote')">
+			<input class="but_b_cntrl" type="button" value="CODE" onclick="messHelper.addTag('code')">
+			<input class="but_b_cntrl" type="button" value="HR" onclick="messHelper.addTag('hr',true)">
+			<input class="but_b_cntrl" type="button" value="NOSMILE" onclick="messHelper.addTag('nosmile')">
+			<br>&nbsp;&nbsp;
+			<%--<html:textarea  property="text" rows="6" cols="50" style="width: 70%;" value='<%=request.getParameter("text")%>'/>--%>
+			<textarea cols="50" rows="6" name="text" style="width: 70%;"><gossip:codec value="${requestScope[message_form_name].text}"/></textarea>
+			<br><br>
+			</td>
+			<script>
+			 var messHelper=new MessHelper(document.forms['<c:out value="${message_form_name}"/>'].elements['text']);
+			</script>
+			<td class="lr_g_w" >&nbsp;	
+			</td>
+		</tr>
+		<tr class="drk">
+			<td class="lt_g_txt_b" align="center"><fmt:message key="messages.OPTIONS"/>
+			</td>
+			<td class="lt_g_txt_b" colspan="2">	
+				<html:checkbox  property="subscribe" value="<%=IConst.VALUES.TRUE%>"/>&nbsp;<fmt:message key="messages.EMR"/>
+                <c:if test="${(empty param.tid)&&sessionScope.JRF_USER.status>8}">
+						<br><html:checkbox  property="announce" value="<%=IConst.VALUES.TRUE%>"/>&nbsp;<fmt:message key="forum.MES_TOP"/>
+                </c:if>
+			</td>
+			<td class="lr_g_w" >&nbsp;	
+			</td>
+		</tr>
+		<c:if test="${!empty pageScope.jrf_AttachFiles}">
+		  <tr class="lght">
+		     <td class="lt_g_txt_b" align="center"><fmt:message key="messages.FILES"/>
+			</td>
+			<td class="lt_g_txt_b"  colspan="2">
+				<table cellpadding="3" cellspacing="0" width="100%">
+					<tr>
+						<td align="center"><span class="c_title"><fmt:message key="messages.FILE_DESC"/></span></td>
+						<td align="center" class="l_g"><span class="c_title"><fmt:message key="messages.FILE"/></span></td>
+					<tr>
+					<c:set var="maxCount"><gossip:config key="<%=IConst.CONFIG.MAX_ATTACHMENT_COUNT%>"/></c:set>
+					<c:forEach begin="0" end="${maxCount-1}" var="current">
+					<tr class="strip<c:out value="${current%2}"/>">
+						<td align="center" class="t_g"><html:textarea  property='<%="desc["+pageContext.getAttribute("current").toString()+"]"%>' cols="40" rows="3" value='<%=request.getParameter("desc["+pageContext.getAttribute("current").toString()+"]")%>'/></td>
+						<td align="center" class="tl_g"><html:file styleClass="file" size="30" property='<%="file["+pageContext.getAttribute("current").toString()+"]"%>'/></td>
+					<tr>
+					</c:forEach>
+				</table>
+			</td>
+			<td class="lr_g_w" >&nbsp;	
+			</td>
+		    </tr>
+	    </c:if>
+		<tr class="lght">
+			<td class="t_g" >	&nbsp;
+			</td>
+			<td class="tl_g" align="middle">&nbsp;
+			</td>
+			<td class="t_g" >&nbsp;	
+			</td>
+			<td class="r_g" >&nbsp;	
+			</td>
+		</tr>
+		<tr class="lght">
+			<td >	&nbsp;
+			</td>
+			<td class="bot_tab" nowrap>
+				<input type="hidden" value="add" name="dispatch">
+				<input class="but_b" type="submit" value="<fmt:message key="global.buttons.SUBMIT"/>">
+				
+				<c:if test="${pageScope.MESSAGE_ACTION_KEY!='messages.EDIT_MESSAGE'}">
+					<c:if test="${empty pageScope.jrf_AttachFiles}">
+					   &nbsp;<input class="but_b" type="submit" onClick="document.forms.addMessageForm.dispatch.value='preview';" value="<fmt:message key="global.buttons.PREVIEW"/>">
+					   <gossip:ifconfig key="<%=IConst.CONFIG.ENABLE_FILE_UPLOAD%>">
+				             &nbsp;<input class="but_b" type="submit" onClick="document.forms.addMessageForm.dispatch.value='attach';" value="<fmt:message key="global.buttons.ATTACH_FILE"/>">
+				       </gossip:ifconfig>
+				    </c:if>				    
+				</c:if>
+				<c:if test="${empty requestScope.JRF_RECORDS_DATA}">
+	                <c:choose>
+				      <c:when test="${empty param.tid}">
+				        <c:url var="jrf_href" value="ShowForum.do">
+				            <c:param name="fid" value="${param.fid}"/>
+				        </c:url>
+	                  </c:when>
+	                  <c:otherwise>
+		                <c:url var="jrf_href" value="ShowThread.do">
+		                    <c:param name="fid" value="${param.fid}"/>
+		                    <c:param name="tid" value="${param.tid}"/>
+		                    <c:if test="${!empty param.block}">
+		                        <c:param name="block" value="${param.block}"/>
+		                    </c:if>
+		                </c:url>
+		              </c:otherwise>  
+	                </c:choose>
+                   &nbsp;<input class="but_b" type="button" value="<fmt:message key="global.buttons.CANCEL"/>" onclick="top.location.href='<c:url value="${pageScope.jrf_href}" />'">
+                </c:if>
+                      <html:hidden property="tid" value='<%=request.getParameter("tid")%>'/>
+                      <html:hidden property="fid" value='<%=request.getParameter("fid")%>'/>
+                      <html:hidden property="block" value='<%=request.getParameter("block")%>'/>
+                      <html:hidden property="mid" value='<%=request.getParameter("mid")%>'/>
+			</td>
+			<td class="t_g" colspan="2">&nbsp;	
+			</td>
+
+		</tr>
+	</table>

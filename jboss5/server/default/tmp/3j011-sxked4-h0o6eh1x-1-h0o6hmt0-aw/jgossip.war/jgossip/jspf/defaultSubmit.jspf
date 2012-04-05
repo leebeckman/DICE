@@ -1,0 +1,2 @@
+<input class="but_b" type="submit" value="<fmt:message key="global.buttons.SUBMIT"/>">
+&nbsp;<input class="but_b" type="button" value="<fmt:message key="global.buttons.CANCEL"/>" onclick="top.location.href='<c:url value="Main.do"/>'">

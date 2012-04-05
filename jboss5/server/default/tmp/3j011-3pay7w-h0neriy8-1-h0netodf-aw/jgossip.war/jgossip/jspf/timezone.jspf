@@ -1,0 +1,14 @@
+<table width="98%">
+	<tr>
+		<td align="right">
+		<c:choose>		
+	       <c:when test="${empty sessionScope.JRF_USER_TIME_ZONE}" >
+			    <fmt:message key="global.TIME_GMT"/>
+		   </c:when>
+		   <c:otherwise>
+			    <fmt:message key="global.TIME_LOCAL"/> (<c:out value="${sessionScope.JRF_TIME_ZONE}"/>)
+		   </c:otherwise>
+		</c:choose>
+		</td>
+	</tr>
+</table>

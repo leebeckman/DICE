@@ -1,19 +1,20 @@
 #!/bin/bash
+rm *.log*
 rm *.log
 rm *.lck
 rm *.1
 rm ext*
 
-bash tomcat/bin/shutdown.sh
-rm -rf tomcat/webapps/jgossip
-rm tomcat/webapps/jgossip.war
-rm tomcat/logs/*
+#bash tomcat/bin/shutdown.sh
+#rm -rf tomcat/webapps/jgossip
+#rm tomcat/webapps/jgossip.war
+#rm tomcat/logs/*
 
 ant -buildfile jgossip/build.xml dist -Ddeploy_env=default
-ant -buildfile aspect/build.xml
+ant -buildfile aspect/build-loadtime.xml
 
-cp aspect/output/jgossip.war tomcat/webapps
-bash tomcat/bin/startup.sh
+#cp aspect/output/jgossip.war tomcat/webapps
+#bash tomcat/bin/startup.sh
 exit 0
 
 #bash jgossipaspect.sh 2>&1 | tee deploy.log
