@@ -1,4 +1,4 @@
-<project default="aopctomcat" name="JBoss/AOP">
+<project default="deploy" name="JBoss/AOP">
 
     <taskdef resource="net/sf/antcontrib/antlib.xml"/>
 
@@ -86,58 +86,11 @@
         <delete dir="classes" />
     </target>
 
-    <target name="aopctomcat" depends="compile">
-
-        <delete dir="output"/>
-        <mkdir dir="output"/>
-
-        <for param="file">
-            <path>
-                <fileset dir="classes" includes="*.war" />
-            </path>
-            <sequential>
-                <var name="filename" unset="true"/>
-                <property name="filename" value="@{file}" basedir="classes" relative="yes" />
-                <echo>File: @{file} ${filename}</echo>
-
-                <delete dir="classes/extracted/${filename}"/>
-                <mkdir dir="classes/extracted/${filename}"/>
-                <unwar src="@{file}" dest="classes/extracted/${filename}"/>
-                <delete file="@{file}"/>
-
-		        <!--<copy todir="classes/extracted/${filename}/WEB-INF/lib">
-		            <fileset dir="output">
-			            <include name="*.jar"/>
-		            </fileset>
-		        </copy>-->
-
-                <jar destfile="classes/extracted/${filename}/WEB-INF/lib/aspects.jar" basedir="classes/aspects">
-                </jar>
-
-                <war destfile="output/${filename}" basedir="classes/extracted/${filename}"/>
-                <delete dir="classes/extracted/${filename}"/>
-            </sequential>
-        </for>
-
-        <delete dir="classes/extracted"/>
-        <delete dir="classes" />
-    </target>
-
     <target name="deploy" depends="aopc">
         <delete file="/home/lee/DICE/jboss5/server/default/deploy/jgossip.war.ear"/>
         <copy todir="/home/lee/DICE/jboss5/server/default/deploy">
             <fileset dir="output">
                 <include name="jgossip.war.ear"/>
-            </fileset>
-        </copy>
-    </target>
-
-    <target name="deploytomcat" depends="aopctomcat">
-        <delete file="/home/lee/DICE/tomcat/webapps/jgossip.war"/>
-        <delete dir="/home/lee/DICE/tomcat/webapps/jgossip"/>
-        <copy todir="/home/lee/DICE/tomcat/webapps">
-            <fileset dir="/home/lee/DICE/jgossip/dist/default">
-                <include name="jgossip.war"/>
             </fileset>
         </copy>
     </target>

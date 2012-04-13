@@ -64,6 +64,6 @@ fi
 
 
 #export JAVA_OPTS="-Djboss.aop.path=/home/lee/DICE/aspect/jboss-aop.xml -Djboss.aop.class.path=/home/lee/DICE/aspect/output/aspects.jar"
-export JAVA_OPTS="-Djboss.aop.path=/home/lee/DICE/aspect/jboss-aop.xml -Xbootclasspath/p:/home/lee/DICE/aspect/lib/jboss-classpool-scoped.jar:/home/lee/DICE/aspect/lib/jboss-classpool.jar:/home/lee/DICE/aspect/lib/jboss-aop-single.jar -javaagent:/home/lee/DICE/aspect/lib/jboss-aop.jar"
+export JAVA_OPTS="-Djboss.aop.path=/home/lee/DICE/aspect/conf/jboss-aop.xml -Xbootclasspath/p:/home/lee/DICE/aspect/lib/jboss-classpool-scoped.jar:/home/lee/DICE/aspect/lib/jboss-classpool.jar:/home/lee/DICE/aspect/lib/jboss-aop-single.jar -javaagent:/home/lee/DICE/aspect/lib/jboss-aop.jar"
 
 exec "$PRGDIR"/"$EXECUTABLE" start "$@"

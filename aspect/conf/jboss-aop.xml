@@ -1,22 +1,75 @@
 <aop xmlns="urn:jboss:aop-beans:1.0">
-    <!-- Aspects -->
+
     <aspect class="aspect.GeneralTracker"/>
     <aspect class="aspect.DBCPTaint"/>
     <aspect class="aspect.RequestTracker"/>
     <aspect class="aspect.StringTracker"/>
 
-    <!-- Preventing advice recursion -->
-    <!--<pointcut name="notWithinAspect" expr="!withincode(* aspect.*->*(..)) AND !withincode(aspect.*->new(..))"/>-->
+    <pointcut name="notWithinAspect" expr="!withincode(* aspect.*->*(..)) AND !withincode(aspect.*->new(..))"/>
+    <pointcut name="withinAspect" expr="withincode(* aspect.*->*(..)) OR withincode(aspect.*->new(..))"/>
+    <!--<pointcut name="withinProject" expr="within(org.jresearch.*)"/>-->
     <!--<pointcut name="notAspectCall" expr="!call(* aspect.*->*(..))"/>-->
 
     <!-- Intercept all methods -->
-    <pointcut name="anyExecution" expr="execution(* org.jresearch.*->*(..)) OR execution(* org.apache.jasper.servlet.*->*(..))"/>
+    <pointcut name="anyExecution" expr="execution(* org.jresearch.*->*(..))
+                                        OR execution(* org.apache.jsp.*->*(..))
+                                        OR execution(* Acme.*->*(..))
+                                        OR execution(* com.sun.activation.*->*(..))
+                                        OR execution(* javax.activation.*->*(..))
+                                        OR execution(* com.evelopers.common.*->*(..))
+                                        OR execution(* com.mysql.*->*(..))
+                                        OR execution(* com.sleepycat.*->*(..))
+                                        OR execution(* com.sun.mail.*->*(..))
+                                        OR execution(* javax.mail.*->*(..))"/>
+<!--
+
+                                        OR execution(* org.apache.taglibs.*->*(..))
+                                        OR execution(* org.apache.commons.collections.*->*(..))
+                                        OR execution(* org.apache.commons.dbcp*->*(..))
+                                        OR execution(* org.apache.commons.jocl*->*(..))
+                                        OR execution(* org.apache.commons.beanutils.*->*(..))
+                                        OR execution(* org.apache.struts.*->*(..))
+                                        OR execution(* javax.servlet.jsp.*->*(..))
+                                        OR execution(* org.apache.commons.digester.*->*(..))
+                                        OR execution(* org.apache.commons.fileupload.*->*(..))
+                                        OR execution(* org.apache.commons.lang.*->*(..))
+                                        OR execution(* org.apache.commons.pool.*->*(..))
+                                        OR execution(* org.apache.commons.resources.*->*(..))
+                                        OR execution(* org.apache.commons.validator*->*(..))
+                                        OR execution(* org.apache.oro.*->*(..))
+                                        OR execution(* org.apache.regexp.*->*(..))
+                                        OR execution(* org.apache.log.*->*(..))
+                                        OR execution(* org.gjt.*->*(..))
+                                        OR execution(* org.quartz.*->*(..))
+                                        OR execution(* org.tiling.memo.*->*(..))
+-->
     <bind pointcut="anyExecution">
         <around name="processArgsAndReturn" aspect="aspect.GeneralTracker" />
     </bind>
 
+    <!--<pointcut name="anyExecution" expr="execution(* org.jresearch.*->*(..)) AND !execution(* org.apache.*->*(..))"/>
+    <bind pointcut="anyExecution">
+        <around name="processArgsAndReturn" aspect="aspect.GeneralTracker" />
+    </bind>-->
+
+    <!--<pointcut name="anyExecution" expr="execution(* org.jresearch.*->*(..)) OR execution(* org.apache.jsp.*->*(..))"/>
+    <bind pointcut="anyExecution">
+        <around name="processArgsAndReturn" aspect="aspect.GeneralTracker" />
+    </bind>-->
+
+    <!--<pointcut name="anyExecution" expr="execution(* *->*(..)) AND !execution(* org.apache.juli.*->*(..)) AND !execution(* org.apache.catalina.*->*(..)"/>
+    <bind pointcut="anyExecution">
+        <around name="processArgsAndReturn" aspect="aspect.GeneralTracker" />
+    </bind>-->
+
+    <!--<pointcut name="anyExecution" expr="execution(* org.jresearch.*->*(..)) "/>
+    <bind pointcut="anyExecution">
+        <around name="processArgsAndReturn" aspect="aspect.GeneralTracker" />
+    </bind>-->
+
     <!-- Taint source -->
-    <pointcut name="resultSetAccess" expr="execution(public * *ResultSet->getObject(..)) OR execution(public * *ResultSet->getString(..))"/>
+    <pointcut name="resultSetAccess" expr="execution(public * *ResultSet->getObject(..)) OR 
+                                            execution(public * *ResultSet->getString(..))"/>
     <bind pointcut="resultSetAccess">
         <around name="processResultSetAccess" aspect="aspect.DBCPTaint" />
     </bind>
@@ -54,6 +107,7 @@
         <advice name="processArrayAccess" aspect="aspect.GeneralTracker" />
     </arraybind>
 
+    <!-- String taint 
     <pointcut name="stringConstruct" expr="call(java.lang.String->new(..))"/>
     <pointcut name="stringConstructModification" expr="call(java.lang.String->new(byte[], int)) OR
 	                                                    call(java.lang.String->new(byte[], int, int)) OR
@@ -75,18 +129,14 @@
     <pointcut name="stringGetBytesModification" expr="call(public * java.lang.String->getBytes(String)) OR
                                                         call(public * java.lang.String->getBytes(Charset))"/>
     <pointcut name="stringGetBytesNoReturn" expr="call(public * java.lang.String->getBytes(int, int, byte[], int))"/>
-<!--
     <pointcut name="stringGetCharsNoReturn" expr="call(public * java.lang.String->getChars(..))"/>
--->
     <pointcut name="stringRegionMatches" expr="call(public * java.lang.String->regionMatches(..))"/>
-<!--
     <pointcut name="stringReplace" expr="call(public * java.lang.String->replace(char, char))"/>
     <pointcut name="stringSubstring" expr="call(public * java.lang.String->substring(..))"/>
     <pointcut name="stringToCharArray" expr="call(public * java.lang.String->toCharArray(..))"/>
     <pointcut name="stringToLowerCase" expr="call(public * java.lang.String->toLowerCase*(..))"/>
     <pointcut name="stringToUpperCase" expr="call(public * java.lang.String->toUpperCase*(..))"/>
     <pointcut name="stringTrim" expr="call(public * java.lang.String->trim())"/>
--->
     <pointcut name="stringValueOf" expr="call(public * java.lang.String->valueOf(char[])) OR
                                             call(public * java.lang.String->valueOf(Object))"/>
     <pointcut name="stringValueOfCharModification" expr="call(public * java.lang.String->valueOf(char[], int, int))"/>
@@ -95,14 +145,11 @@
     <pointcut name="stringReplaceString" expr="call(public * java.lang.String->replaceAll(String, String)) OR
                                                 call(public * java.lang.String->replaceFirst(String, String)) OR
                                                 call(public * java.lang.String->replace(CharSequence, CharSequence))"/>
-<!--
     <pointcut name="stringSplit" expr="call(public * java.lang.String->split(..))"/>
     <pointcut name="stringSubSequence" expr="call(public * java.lang.String->subSequence(int, int))"/>
--->
     <pointcut name="stringContains" expr="call(public * java.lang.String->contains(CharSequence))"/>
     <pointcut name="stringFormat" expr="call(public * java.lang.String->format(..))"/>
     <pointcut name="stringBuilderConstruct" expr="call(java.lang.StringBuffer->new(..))"/>
-<!--
     <pointcut name="stringBuilderAppend" expr="call(public * java.lang.StringBuilder->append(char[])) OR
                                                 call(public * java.lang.StringBuilder->append(char)) OR
                                                 call(public * java.lang.StringBuilder->append(char, boolean)) OR
@@ -139,15 +186,11 @@
     <pointcut name="stringBuilderToString" expr="call(public * java.lang.StringBuilder->toString())"/>
     <pointcut name="stringBuilderShareValue" expr="call(public * java.lang.StringBuilder->shareValue())"/>
     <pointcut name="stringBuilderSubSequence" expr="call(public * java.lang.StringBuilder->subSequence(..))"/>
--->
     <pointcut name="stringBuilderIndexOf" expr="call(public * java.lang.StringBuilder->indexOf(..))"/>
     <pointcut name="stringBuilderLastIndexOf" expr="call(public * java.lang.StringBuilder->lastIndexOf(..))"/>
-<!--
     <pointcut name="stringBuilderAppendCodePoint" expr="call(public * java.lang.StringBuilder->appendCodePoint(..))"/>
     <pointcut name="stringBuilderGetValue" expr="call(public * java.lang.StringBuilder->getValue())"/>
--->
     <pointcut name="stringBufferConstruct" expr="call(java.lang.StringBuffer->new(..))"/>
-<!--
     <pointcut name="stringBufferAppend" expr="call(public * java.lang.StringBuffer->append(char[])) OR
                                                 call(public * java.lang.StringBuffer->append(char)) OR
                                                 call(public * java.lang.StringBuffer->append(double)) OR
@@ -183,71 +226,262 @@
     <pointcut name="stringBufferToString" expr="call(public * java.lang.StringBuffer->toString())"/>
     <pointcut name="stringBufferShareValue" expr="call(public * java.lang.StringBuffer->shareValue())"/>
     <pointcut name="stringBufferSubSequence" expr="call(public * java.lang.StringBuffer->subSequence(..))"/>
--->
     <pointcut name="stringBufferIndexOf" expr="call(public * java.lang.StringBuffer->indexOf(..))"/>
     <pointcut name="stringBufferLastIndexOf" expr="call(public * java.lang.StringBuffer->lastIndexOf(..))"/>
-<!--
     <pointcut name="stringBufferGetValue" expr="call(public * java.lang.StringBuffer->getValue())"/>
     <pointcut name="stringBufferTrimToSize" expr="call(public * java.lang.StringBuffer->trimToSize())"/>
     <pointcut name="stringBufferAppendCodePoint" expr="call(public * java.lang.StringBuffer->appendCodePoint(..))"/>
--->
-    <bind pointcut="(stringConstruct OR stringBuilderConstruct OR stringBufferConstruct OR stringCopyValueOf OR stringFormat) AND within(org.jresearch.*)">
+
+    <bind pointcut="notWithinAspect AND (stringConstruct OR stringBuilderConstruct OR stringBufferConstruct OR stringCopyValueOf OR stringFormat)">
 	    <around name="processStringConstruct" aspect="aspect.StringTracker"/>
     </bind>
 
-    <bind pointcut="stringConstructModification AND within(org.jresearch.*)">
+    <bind pointcut="notWithinAspect AND stringConstructModification">
 	    <around name="processStringConstructModification" aspect="aspect.StringTracker"/>
     </bind>
 
-    <bind pointcut="(stringValueOf OR stringCopyValueOf) AND within(org.jresearch.*)">
+    <bind pointcut="notWithinAspect AND (stringValueOf OR stringCopyValueOf)">
 	    <around name="processStringValueOf" aspect="aspect.StringTracker"/>
     </bind>
 
-    <bind pointcut="(stringValueOfCharModification OR stringCopyValueOfModification) AND within(org.jresearch.*)">
+    <bind pointcut="notWithinAspect AND (stringValueOfCharModification OR stringCopyValueOfModification)">
 	    <around name="processStringCopyValueOfModification" aspect="aspect.StringTracker"/>
     </bind>
-<!--
-    <bind pointcut="(stringGetBytes OR stringToCharArray OR stringBuilderToString OR stringBuilderShareValue OR stringBuilderGetValue OR stringBufferToString OR stringBufferShareValue OR stringBufferGetValue) AND within(org.jresearch.*)">
+
+    <bind pointcut="notWithinAspect AND (stringGetBytes OR stringToCharArray OR stringBuilderToString OR stringBuilderShareValue OR stringBuilderGetValue OR stringBufferToString OR stringBufferShareValue OR stringBufferGetValue)">
 	    <around name="processStringGetBytes" aspect="aspect.StringTracker"/>
     </bind>
 
-    <bind pointcut="(stringGetBytesNoReturn OR stringGetCharsNoReturn OR stringBuilderGetChars OR stringBufferGetChars) AND within(org.jresearch.*)">
+    <bind pointcut="notWithinAspect AND (stringGetBytesNoReturn OR stringGetCharsNoReturn OR stringBuilderGetChars OR stringBufferGetChars)">
 	    <around name="processStringGetBytesNoReturn" aspect="aspect.StringTracker"/>
     </bind>
 
-    <bind pointcut="(stringGetBytesModification OR stringReplace OR stringSubstring OR stringToLowerCase OR stringToUpperCase OR stringTrim OR stringSubSequence OR stringBuilderSubstring OR stringBuilderSubSequence OR stringBufferSubstring OR stringBufferSubSequence) AND within(org.jresearch.*)">
+    <bind pointcut="notWithinAspect AND (stringGetBytesModification OR stringReplace OR stringSubstring OR stringToLowerCase OR stringToUpperCase OR stringTrim OR stringSubSequence OR stringBuilderSubstring OR stringBuilderSubSequence OR stringBufferSubstring OR stringBufferSubSequence)">
 	    <around name="processStringGetBytesModification" aspect="aspect.StringTracker"/>
     </bind>
 
-    <bind pointcut="stringSplit AND within(org.jresearch.*)">
+    <bind pointcut="notWithinAspect AND stringSplit">
 	    <around name="processStringSplit" aspect="aspect.StringTracker"/>
     </bind>
--->
-    <bind pointcut="stringConcat AND within(org.jresearch.*)">
+
+    <bind pointcut="notWithinAspect AND stringConcat">
         <around name="processStringConcat" aspect="aspect.StringTracker"/>
     </bind>
-<!--
-    <bind pointcut="stringReplaceString AND within(org.jresearch.*)">
+
+    <bind pointcut="notWithinAspect AND stringReplaceString">
 	    <around name="processStringReplaceString" aspect="aspect.StringTracker"/>
     </bind>
--->
-    <bind pointcut="(stringCompareTo OR stringEndsWith OR stringStartsWith OR stringEquals OR stringRegionMatches OR stringContentEquals OR stringMatches OR stringContains OR stringReplaceString OR stringBuilderIndexOf OR stringBuilderLastIndexOf OR stringBufferIndexOf OR stringBufferLastIndexOf) AND within(org.jresearch.*)">
+
+    <bind pointcut="notWithinAspect AND (stringCompareTo OR stringEndsWith OR stringStartsWith OR stringEquals OR stringRegionMatches OR stringContentEquals OR stringMatches OR stringContains OR stringReplaceString OR stringBuilderIndexOf OR stringBuilderLastIndexOf OR stringBufferIndexOf OR stringBufferLastIndexOf)">
 	    <around name="processStringCompareTo" aspect="aspect.StringTracker"/>
     </bind>
-<!--
-    <bind pointcut="(stringBuilderAppend OR stringBuilderInsert OR stringBuilderReplace OR stringBufferAppend OR stringBufferInsert OR stringBufferReplace) AND within(org.jresearch.*)">
+
+    <bind pointcut="notWithinAspect AND (stringBuilderAppend OR stringBuilderInsert OR stringBuilderReplace OR stringBufferAppend OR stringBufferInsert OR stringBufferReplace)">
 	    <around name="processStringBuilderAppend" aspect="aspect.StringTracker"/>
     </bind>
 
-    <bind pointcut="(stringBuilderAppendModification OR stringBuilderInsertModification OR stringBufferAppendModification OR stringBufferInsertModification) AND within(org.jresearch.*)">
+    <bind pointcut="notWithinAspect AND (stringBuilderAppendModification OR stringBuilderInsertModification OR stringBufferAppendModification OR stringBufferInsertModification)">
 	    <around name="processStringBuilderAppendModification" aspect="aspect.StringTracker"/>
     </bind>
 
-    <bind pointcut="(stringBuilderDelete OR stringBufferDelete OR stringBuilderReverse OR stringBufferReverse OR stringBuilderAppendCodePoint OR stringBufferAppendCodePoint) AND within(org.jresearch.*)">
+    <bind pointcut="notWithinAspect AND (stringBuilderDelete OR stringBufferDelete OR stringBuilderReverse OR stringBufferReverse OR stringBuilderAppendCodePoint OR stringBufferAppendCodePoint)">
 	    <around name="processStringBuilderDelete" aspect="aspect.StringTracker"/>
     </bind>
 
-    <bind pointcut="(stringBuilderSetCharAt OR stringBuilderSetLength OR stringBufferSetCharAt OR stringBufferSetLength) AND within(org.jresearch.*)">
+    <bind pointcut="notWithinAspect AND (stringBuilderSetCharAt OR stringBuilderSetLength OR stringBufferSetCharAt OR stringBufferSetLength)">
+	    <around name="processStringBuilderSetCharAt" aspect="aspect.StringTracker"/>
+    </bind>
+-->
+
+<!-- UNBOUND, WHY?
+    <bind pointcut="stringBufferTrimToSize">
+	    <around name="processStringBufferTrimToSize" aspect="aspect.StringTracker"/>
+    </bind>
+-->
+
+
+    <!-- String taint 
+    <pointcut name="stringConstruct" expr="call(java.lang.String->new(..))"/>
+    <pointcut name="stringConstructModification" expr="call(java.lang.String->new(byte[], int)) OR
+	                                                    call(java.lang.String->new(byte[], int, int)) OR
+	                                                    call(java.lang.String->new(byte[], int, int, int)) OR
+	                                                    call(java.lang.String->new(byte[], int, int, String)) OR
+	                                                    call(java.lang.String->new(byte[], String)) OR
+	                                                    call(java.lang.String->new(char[], int, int)) OR
+	                                                    call(java.lang.String->new(byte[], Charset)) OR
+	                                                    call(java.lang.String->new(byte[], int, int, Charset)) OR
+	                                                    call(java.lang.String->new(int[], int, int))"/>
+    <pointcut name="stringCompareTo" expr="call(public * java.lang.String->compareTo*(String))"/>
+    <pointcut name="stringConcat" expr="call(public * java.lang.String->concat(String))"/>
+    <pointcut name="stringCopyValueOf" expr="call(public * java.lang.String->copyValueOf(char[]))"/>
+    <pointcut name="stringCopyValueOfModification" expr="call(public * java.lang.String->valueOf(char[], int, int))"/>
+    <pointcut name="stringEndsWith" expr="call(public * java.lang.String->endsWith(..))"/>
+    <pointcut name="stringStartsWith" expr="call(public * java.lang.String->startsWith(..))"/>
+    <pointcut name="stringEquals" expr="call(public * java.lang.String->equals*(Object))"/>
+    <pointcut name="stringGetBytes" expr="call(public * java.lang.String->getBytes())"/>
+    <pointcut name="stringGetBytesModification" expr="call(public * java.lang.String->getBytes(String)) OR
+                                                        call(public * java.lang.String->getBytes(Charset))"/>
+    <pointcut name="stringGetBytesNoReturn" expr="call(public * java.lang.String->getBytes(int, int, byte[], int))"/>
+    <pointcut name="stringGetCharsNoReturn" expr="call(public * java.lang.String->getChars(..))"/>
+    <pointcut name="stringRegionMatches" expr="call(public * java.lang.String->regionMatches(..))"/>
+    <pointcut name="stringReplace" expr="call(public * java.lang.String->replace(char, char))"/>
+    <pointcut name="stringSubstring" expr="call(public * java.lang.String->substring(..))"/>
+    <pointcut name="stringToCharArray" expr="call(public * java.lang.String->toCharArray(..))"/>
+    <pointcut name="stringToLowerCase" expr="call(public * java.lang.String->toLowerCase*(..))"/>
+    <pointcut name="stringToUpperCase" expr="call(public * java.lang.String->toUpperCase*(..))"/>
+    <pointcut name="stringTrim" expr="call(public * java.lang.String->trim())"/>
+    <pointcut name="stringValueOf" expr="call(public * java.lang.String->valueOf(char[])) OR
+                                            call(public * java.lang.String->valueOf(Object))"/>
+    <pointcut name="stringValueOfCharModification" expr="call(public * java.lang.String->valueOf(char[], int, int))"/>
+    <pointcut name="stringContentEquals" expr="call(public * java.lang.String->contentEquals(..))"/>
+    <pointcut name="stringMatches" expr="call(public * java.lang.String->matches(String))"/>
+    <pointcut name="stringReplaceString" expr="call(public * java.lang.String->replaceAll(String, String)) OR
+                                                call(public * java.lang.String->replaceFirst(String, String)) OR
+                                                call(public * java.lang.String->replace(CharSequence, CharSequence))"/>
+    <pointcut name="stringSplit" expr="call(public * java.lang.String->split(..))"/>
+    <pointcut name="stringSubSequence" expr="call(public * java.lang.String->subSequence(int, int))"/>
+    <pointcut name="stringContains" expr="call(public * java.lang.String->contains(CharSequence))"/>
+    <pointcut name="stringFormat" expr="call(public * java.lang.String->format(..))"/>
+    <pointcut name="stringBuilderConstruct" expr="call(java.lang.StringBuffer->new(..))"/>
+    <pointcut name="stringBuilderAppend" expr="call(public * java.lang.StringBuilder->append(char[])) OR
+                                                call(public * java.lang.StringBuilder->append(char)) OR
+                                                call(public * java.lang.StringBuilder->append(char, boolean)) OR
+                                                call(public * java.lang.StringBuilder->append(double)) OR
+                                                call(public * java.lang.StringBuilder->append(float)) OR
+                                                call(public * java.lang.StringBuilder->append(int)) OR
+                                                call(public * java.lang.StringBuilder->append(long)) OR
+                                                call(public * java.lang.StringBuilder->append(Object)) OR
+                                                call(public * java.lang.StringBuilder->append(String)) OR
+                                                call(public * java.lang.StringBuilder->append(StringBuffer)) OR
+                                                call(public * java.lang.StringBuilder->append(CharSequence)) OR
+                                                call(public * java.lang.StringBuilder->append(boolean))"/>
+    <pointcut name="stringBuilderAppendModification" expr="call(public * java.lang.StringBuilder->append(char[], int, int)) OR
+                                                            call(public * java.lang.StringBuilder->append(CharSequence, int, int))"/>
+    <pointcut name="stringBuilderDelete" expr="call(public * java.lang.StringBuilder->delete*(..))"/>
+    <pointcut name="stringBuilderGetChars" expr="call(public * java.lang.StringBuilder->getChars(..))"/>
+    <pointcut name="stringBuilderInsert" expr="call(public * java.lang.StringBuilder->insert(int, char[])) OR
+                                                call(public * java.lang.StringBuilder->insert(int, char)) OR
+                                                call(public * java.lang.StringBuilder->insert(int, double)) OR
+                                                call(public * java.lang.StringBuilder->insert(int, float)) OR
+                                                call(public * java.lang.StringBuilder->insert(int, int)) OR
+                                                call(public * java.lang.StringBuilder->insert(int, long)) OR
+                                                call(public * java.lang.StringBuilder->insert(int, Object)) OR
+                                                call(public * java.lang.StringBuilder->insert(int, CharSequence)) OR
+                                                call(public * java.lang.StringBuilder->insert(int, boolean)) OR
+                                                call(public * java.lang.StringBuilder->insert(int, String))"/>
+    <pointcut name="stringBuilderInsertModification" expr="call(public * java.lang.StringBuilder->insert(int, char[], int, int)) OR
+                                                            call(public * java.lang.StringBuilder->insert(int, CharSequence, int, int))"/>
+    <pointcut name="stringBuilderReplace" expr="call(public * java.lang.StringBuilder->replace(..))"/>
+    <pointcut name="stringBuilderReverse" expr="call(public * java.lang.StringBuilder->reverse(..))"/>
+    <pointcut name="stringBuilderSetCharAt" expr="call(public * java.lang.StringBuilder->setCharAt(..))"/>
+    <pointcut name="stringBuilderSetLength" expr="call(public * java.lang.StringBuilder->setLength(..))"/>
+    <pointcut name="stringBuilderSubstring" expr="call(public * java.lang.StringBuilder->substring(..))"/>
+    <pointcut name="stringBuilderToString" expr="call(public * java.lang.StringBuilder->toString())"/>
+    <pointcut name="stringBuilderShareValue" expr="call(public * java.lang.StringBuilder->shareValue())"/>
+    <pointcut name="stringBuilderSubSequence" expr="call(public * java.lang.StringBuilder->subSequence(..))"/>
+    <pointcut name="stringBuilderIndexOf" expr="call(public * java.lang.StringBuilder->indexOf(..))"/>
+    <pointcut name="stringBuilderLastIndexOf" expr="call(public * java.lang.StringBuilder->lastIndexOf(..))"/>
+    <pointcut name="stringBuilderAppendCodePoint" expr="call(public * java.lang.StringBuilder->appendCodePoint(..))"/>
+    <pointcut name="stringBuilderGetValue" expr="call(public * java.lang.StringBuilder->getValue())"/>
+    <pointcut name="stringBufferConstruct" expr="call(java.lang.StringBuffer->new(..))"/>
+    <pointcut name="stringBufferAppend" expr="call(public * java.lang.StringBuffer->append(char[])) OR
+                                                call(public * java.lang.StringBuffer->append(char)) OR
+                                                call(public * java.lang.StringBuffer->append(double)) OR
+                                                call(public * java.lang.StringBuffer->append(float)) OR
+                                                call(public * java.lang.StringBuffer->append(int)) OR
+                                                call(public * java.lang.StringBuffer->append(long)) OR
+                                                call(public * java.lang.StringBuffer->append(Object)) OR
+                                                call(public * java.lang.StringBuffer->append(String)) OR
+                                                call(public * java.lang.StringBuffer->append(StringBuffer)) OR
+                                                call(public * java.lang.StringBuffer->append(CharSequence)) OR
+                                                call(public * java.lang.StringBuffer->append(boolean))"/>
+    <pointcut name="stringBufferAppendModification" expr="call(public * java.lang.StringBuffer->append(char[], int, int)) OR
+                                                            call(public * java.lang.StringBuffer->append(CharSequence, int, int))"/>
+    <pointcut name="stringBufferDelete" expr="call(public * java.lang.StringBuffer->delete*(..))"/>
+    <pointcut name="stringBufferGetChars" expr="call(public * java.lang.StringBuffer->getChars(..))"/>
+    <pointcut name="stringBufferInsert" expr="call(public * java.lang.StringBuffer->insert(int, char[])) OR
+                                                call(public * java.lang.StringBuffer->insert(int, char)) OR
+                                                call(public * java.lang.StringBuffer->insert(int, double)) OR
+                                                call(public * java.lang.StringBuffer->insert(int, float)) OR
+                                                call(public * java.lang.StringBuffer->insert(int, int)) OR
+                                                call(public * java.lang.StringBuffer->insert(int, long)) OR
+                                                call(public * java.lang.StringBuffer->insert(int, Object)) OR
+                                                call(public * java.lang.StringBuffer->insert(int, CharSequence)) OR
+                                                call(public * java.lang.StringBuffer->insert(int, boolean)) OR
+                                                call(public * java.lang.StringBuffer->insert(int, String))"/>
+    <pointcut name="stringBufferInsertModification" expr="call(public * java.lang.StringBuffer->insert(int, char[], int, int)) OR
+                                                            call(public * java.lang.StringBuffer->insert(int, CharSequence, int, int))"/>
+    <pointcut name="stringBufferReplace" expr="call(public * java.lang.StringBuffer->replace(..))"/>
+    <pointcut name="stringBufferReverse" expr="call(public * java.lang.StringBuffer->reverse(..))"/>
+    <pointcut name="stringBufferSetCharAt" expr="call(public * java.lang.StringBuffer->setCharAt(..))"/>
+    <pointcut name="stringBufferSetLength" expr="call(public * java.lang.StringBuffer->setLength(..))"/>
+    <pointcut name="stringBufferSubstring" expr="call(public * java.lang.StringBuffer->substring(..))"/>
+    <pointcut name="stringBufferToString" expr="call(public * java.lang.StringBuffer->toString())"/>
+    <pointcut name="stringBufferShareValue" expr="call(public * java.lang.StringBuffer->shareValue())"/>
+    <pointcut name="stringBufferSubSequence" expr="call(public * java.lang.StringBuffer->subSequence(..))"/>
+    <pointcut name="stringBufferIndexOf" expr="call(public * java.lang.StringBuffer->indexOf(..))"/>
+    <pointcut name="stringBufferLastIndexOf" expr="call(public * java.lang.StringBuffer->lastIndexOf(..))"/>
+    <pointcut name="stringBufferGetValue" expr="call(public * java.lang.StringBuffer->getValue())"/>
+    <pointcut name="stringBufferTrimToSize" expr="call(public * java.lang.StringBuffer->trimToSize())"/>
+    <pointcut name="stringBufferAppendCodePoint" expr="call(public * java.lang.StringBuffer->appendCodePoint(..))"/>
+
+    <bind pointcut="withinProject AND (stringConstruct OR stringBuilderConstruct OR stringBufferConstruct OR stringCopyValueOf OR stringFormat)">
+	    <around name="processStringConstruct" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND stringConstructModification">
+	    <around name="processStringConstructModification" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringValueOf OR stringCopyValueOf)">
+	    <around name="processStringValueOf" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringValueOfCharModification OR stringCopyValueOfModification)">
+	    <around name="processStringCopyValueOfModification" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringGetBytes OR stringToCharArray OR stringBuilderToString OR stringBuilderShareValue OR stringBuilderGetValue OR stringBufferToString OR stringBufferShareValue OR stringBufferGetValue)">
+	    <around name="processStringGetBytes" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringGetBytesNoReturn OR stringGetCharsNoReturn OR stringBuilderGetChars OR stringBufferGetChars)">
+	    <around name="processStringGetBytesNoReturn" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringGetBytesModification OR stringReplace OR stringSubstring OR stringToLowerCase OR stringToUpperCase OR stringTrim OR stringSubSequence OR stringBuilderSubstring OR stringBuilderSubSequence OR stringBufferSubstring OR stringBufferSubSequence)">
+	    <around name="processStringGetBytesModification" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND stringSplit">
+	    <around name="processStringSplit" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND stringConcat">
+        <around name="processStringConcat" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND stringReplaceString">
+	    <around name="processStringReplaceString" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringCompareTo OR stringEndsWith OR stringStartsWith OR stringEquals OR stringRegionMatches OR stringContentEquals OR stringMatches OR stringContains OR stringReplaceString OR stringBuilderIndexOf OR stringBuilderLastIndexOf OR stringBufferIndexOf OR stringBufferLastIndexOf)">
+	    <around name="processStringCompareTo" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringBuilderAppend OR stringBuilderInsert OR stringBuilderReplace OR stringBufferAppend OR stringBufferInsert OR stringBufferReplace)">
+	    <around name="processStringBuilderAppend" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringBuilderAppendModification OR stringBuilderInsertModification OR stringBufferAppendModification OR stringBufferInsertModification)">
+	    <around name="processStringBuilderAppendModification" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringBuilderDelete OR stringBufferDelete OR stringBuilderReverse OR stringBufferReverse OR stringBuilderAppendCodePoint OR stringBufferAppendCodePoint)">
+	    <around name="processStringBuilderDelete" aspect="aspect.StringTracker"/>
+    </bind>
+
+    <bind pointcut="withinProject AND (stringBuilderSetCharAt OR stringBuilderSetLength OR stringBufferSetCharAt OR stringBufferSetLength)">
 	    <around name="processStringBuilderSetCharAt" aspect="aspect.StringTracker"/>
     </bind>-->
 

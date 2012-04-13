@@ -9,5 +9,4 @@ tomcat-old/work
 *.out
 jgossip/build
 jgossip/dist
-aspect/classes
 aspect/output
