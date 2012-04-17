@@ -1,10 +1,10 @@
 #!/bin/bash
 
-export CLASSPATH="$HOME/DICE/src/lib/*:$HOME/DICE/tomcat/lib/*:$HOME/DICE/jgossip/database/oracle/lib/*:$HOME/DICE/jgossip/database/mysql/lib/*:$HOME/DICE/jgossip/lib/*"
-export JAVA_HOME="$HOME/DICE/ibm-java"
+export CLASSPATH="$HOME/DICE/src/lib/*:$HOME/DICE/aspect/lib/*:$HOME/DICE/tomcat/lib/*:$HOME/DICE/jgossip/database/oracle/lib/*:$HOME/DICE/jgossip/database/mysql/lib/*:$HOME/DICE/jgossip/lib/*"
 
+ajc -sourceroots $HOME/DICE/aspect/ajsrc -1.5 -log $HOME/DICE/aspectcompile.log -outjar $HOME/DICE/traceLib.jar
 
-ajc -sourceroots $HOME/DICE/src -1.5 -log $HOME/DICE/aspectcompile.log -outjar $HOME/DICE/traceLib.jar
+exit 0
 cp $HOME/DICE/traceLib.jar $HOME/DICE/tomcat/lib
 
 rm -rf $HOME/DICE/jgossipAspect

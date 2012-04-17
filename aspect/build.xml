@@ -88,7 +88,7 @@
                         <aopc compilerclasspathref="classpath" classpathref="classpath" verbose="true">
                             <classpath path="classes"/>
                             <src path="classes"/>
-                            <aoppath path="jboss-aop.xml"/>
+                            <aoppath path="conf/jboss-aop.xml"/>
                         </aopc>
                     </try>
                     <catch>
@@ -135,7 +135,7 @@
                         <aopc compilerclasspathref="classpath" classpathref="classpath" verbose="true">
                             <classpath path="classes"/>
                             <src path="classes"/>
-                            <aoppath path="jboss-aop.xml"/>
+                            <aoppath path="conf/jboss-aop.xml"/>
                         </aopc>
                     </try>
                     <catch>

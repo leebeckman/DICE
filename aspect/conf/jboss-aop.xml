@@ -20,14 +20,14 @@
                                         OR execution(* com.mysql.*->*(..))
                                         OR execution(* com.sleepycat.*->*(..))
                                         OR execution(* com.sun.mail.*->*(..))
-                                        OR execution(* javax.mail.*->*(..))"/>
-<!--
-
-                                        OR execution(* org.apache.taglibs.*->*(..))
+                                        OR execution(* javax.mail.*->*(..))
                                         OR execution(* org.apache.commons.collections.*->*(..))
                                         OR execution(* org.apache.commons.dbcp*->*(..))
                                         OR execution(* org.apache.commons.jocl*->*(..))
-                                        OR execution(* org.apache.commons.beanutils.*->*(..))
+                                        OR execution(* org.apache.commons.beanutils.*->*(..))"/>
+<!--
+
+                                        OR execution(* org.apache.taglibs.*->*(..))
                                         OR execution(* org.apache.struts.*->*(..))
                                         OR execution(* javax.servlet.jsp.*->*(..))
                                         OR execution(* org.apache.commons.digester.*->*(..))
@@ -80,10 +80,10 @@
     </bind>
 
     <!-- Application request entry point -->
-    <pointcut name="actionExecution" expr="execution(public * $instanceof{org.apache.struts.action.Action}->execute(..))"/>
+    <!--<pointcut name="actionExecution" expr="execution(public * $instanceof{org.apache.struts.action.Action}->execute(..))"/>
     <bind pointcut="actionExecution">
         <around name="processActionExecution" aspect="aspect.RequestTracker"/>
-    </bind>
+    </bind>-->
 
     <!-- Tainted field access -->
     <pointcut name="fieldGet" expr="get(* org.jresearch.*->*)"/>

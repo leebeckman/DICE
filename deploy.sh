@@ -6,14 +6,11 @@ rm *.1
 rm ext*
 
 #bash tomcat/bin/shutdown.sh
-#rm -rf tomcat/webapps/jgossip
-#rm tomcat/webapps/jgossip.war
 #rm tomcat/logs/*
-
+cp tomcat/prelib/*.jar tomcat/lib
 ant -buildfile jgossip/build.xml dist -Ddeploy_env=default
-ant -buildfile aspect/build-loadtime.xml
+ant -buildfile aspect/ajbuild.xml
 
-#cp aspect/output/jgossip.war tomcat/webapps
 #bash tomcat/bin/startup.sh
 exit 0
 
