@@ -17,9 +17,7 @@ public class TaintData {
 	
 	// A source is something which describes where the data came from
 	private IdentityHashMap<Object, Object> resultSetToSourceMap;
-	private ConcurrentHashMap<Long, Stack<WeakIdentityHashMap<Object, Object>>> taintStack;
-	
-    private ArrayList<Object> taintedArgs;
+	private ConcurrentHashMap<Long, Stack<WeakIdentityHashMap<Object, Object>>> taintStacks;
 	
 	// This is where much of the important data comes from, aside from the TaintFinder. Tainted strings map to the ResultSetMetaData responsible for them.
 	// This is fine for now as we're only concerned with data read from the database.
@@ -30,8 +28,7 @@ public class TaintData {
 	private TaintData() {
 		resultSetToSourceMap = new IdentityHashMap<Object, Object>();
 		dataToSourcesMap = new WeakIdentityHashMap<Object, SizedSources>();
-		taintStack = new ConcurrentHashMap<Long, Stack<WeakIdentityHashMap<Object, Object>>>();
-		taintedArgs = new ArrayList<Object>();
+		taintStacks = new ConcurrentHashMap<Long, Stack<WeakIdentityHashMap<Object, Object>>>();
 	}
 	
 	public static TaintData getTaintData() {
@@ -42,29 +39,18 @@ public class TaintData {
 		return self;
 	}
 	
-	public void addTaintedArg(Object taintedArg) {
-		taintedArgs.add(taintedArg);
-	}
-	
-	public ArrayList<Object> getTaintedArgs() {
-		return taintedArgs;
-	}
-	
-	public void clearTaintedArgs() {
-		taintedArgs.clear();
-	}
-
 	/*
 	 * Called when a tainted object is accessed (get pointcut) to log that the current thread at
 	 * a particular stack location accessed the tainted object.
 	 */
 	public void recordTaintAccess(Object tainted) {
 		Long threadId = Thread.currentThread().getId();
-		if (!taintStack.containsKey(threadId)) {
+		if (!taintStacks.containsKey(threadId)) {
 			TaintLogger.getTaintLogger().log("stackTaint failed");
 		}
 		else {
-			taintStack.get(threadId).peek().put(tainted, null);
+//			System.out.println("Recording taint at " + taintStacks.get(threadId).peek().getName());
+			taintStacks.get(threadId).peek().put(tainted, tainted);
 		}
 	}
 	
@@ -74,15 +60,16 @@ public class TaintData {
 	 */
 	public void pushTaintDownStack(Object taintedArg) {
 		Long threadId = Thread.currentThread().getId();
-		if (!taintStack.containsKey(threadId)) {
+		if (!taintStacks.containsKey(threadId)) {
 			TaintLogger.getTaintLogger().log("taintAccessed failed");
 		}
 		else {
-			WeakIdentityHashMap<Object, Object> top = taintStack.get(threadId).pop();
+			WeakIdentityHashMap<Object, Object> top = taintStacks.get(threadId).pop();
 			if (top.remove(taintedArg) != null) {
-				taintStack.get(threadId).peek().put(taintedArg, null);
+				taintStacks.get(threadId).peek().put(taintedArg, taintedArg);
 			}
-			taintStack.get(threadId).push(top);
+//			System.out.println("Pushing taint from " + top.getName() + ", size: " + top.size() + " to " + taintStacks.get(threadId).peek().getName() + " size is now: " + taintStacks.get(threadId).peek().size());
+			taintStacks.get(threadId).push(top);
 		}
 	}
 	
@@ -91,13 +78,15 @@ public class TaintData {
 	 */
 	public boolean taintAccessed() {
 		Long threadId = Thread.currentThread().getId();
-		if (!taintStack.containsKey(threadId)) {
+		if (!taintStacks.containsKey(threadId)) {
 			TaintLogger.getTaintLogger().log("taintAccessed failed");
 			return false;
 		}
 		else {
 //			TaintLogger.getTaintLogger().log("Checking TS " + threadId + " size: " + taintStack.get(threadId).peek().size() + " bool: " + (taintStack.get(threadId).peek().size() > 0));
-			return (taintStack.get(threadId).peek().size() > 0);
+//			System.out.println("CHECKING STACK: at " + taintStack.get(threadId).peek());
+//			System.out.println("Looking for taint in " + taintStacks.get(threadId).peek().getName());
+			return (taintStacks.get(threadId).peek().size() > 0);
 		}
 	}
 	
@@ -107,11 +96,12 @@ public class TaintData {
 	 */
 	public void startCall() {
 		Long threadId = Thread.currentThread().getId();
-		if (!taintStack.containsKey(threadId)) {
-			taintStack.put(threadId, new Stack<WeakIdentityHashMap<Object, Object>>());
+		if (!taintStacks.containsKey(threadId)) {
+			taintStacks.put(threadId, new Stack<WeakIdentityHashMap<Object, Object>>());
 //			TaintLogger.getTaintLogger().log("TID: " + threadId + " startfail: " + taintStack.contains(threadId));
 		}
-		taintStack.get(threadId).push(new WeakIdentityHashMap<Object, Object>());
+		taintStacks.get(threadId).push(new WeakIdentityHashMap<Object, Object>());
+//		System.out.println("TOP IS: " + taintStack.get(threadId).peek());
 	}
 	
 	/*
@@ -119,12 +109,12 @@ public class TaintData {
 	 */
 	public void endCall() {
 		Long threadId = Thread.currentThread().getId();
-		if (!taintStack.containsKey(threadId)) {
+		if (!taintStacks.containsKey(threadId)) {
 //			TaintLogger.getTaintLogger().log("TID: " + threadId + " endfail ");
-			taintStack.put(threadId, new Stack<WeakIdentityHashMap<Object, Object>>());
+			taintStacks.put(threadId, new Stack<WeakIdentityHashMap<Object, Object>>());
 		}
-		if (!taintStack.get(threadId).empty())
-			taintStack.get(threadId).pop().clear();
+		if (!taintStacks.get(threadId).empty())
+			taintStacks.get(threadId).pop().clear();
 	}
 	
 	public void mapResultSetToSource(Object resultSet, Object source) {
@@ -196,16 +186,22 @@ public class TaintData {
 			String ret = "";
 			for (Object source : sources.keySet()) {
 				ret = ret + (sources.get(source).toString() + '-');
-				try {
-					ResultSetMetaData metaData = (ResultSetMetaData) source;
-					int colCount = metaData.getColumnCount();
-					for (int i = 1; i <= colCount; i++) {
-						ret = ret + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
+				// For simple testing
+				if (source instanceof String) {
+					ret = ret + source;
+				}
+				else {
+					try {
+						ResultSetMetaData metaData = (ResultSetMetaData) source;
+						int colCount = metaData.getColumnCount();
+						for (int i = 1; i <= colCount; i++) {
+							ret = ret + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
+						}
+					} catch (SQLException e) {
+						ret = "SQLException";
+						ret = ret + ": " + e.getMessage();
+						e.printStackTrace();
 					}
-				} catch (SQLException e) {
-					ret = "SQLException";
-					ret = ret + ": " + e.getMessage();
-					e.printStackTrace();
 				}
 			}
 			return ret;

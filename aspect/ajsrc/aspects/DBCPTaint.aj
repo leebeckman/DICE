@@ -40,6 +40,11 @@ public aspect DBCPTaint {
     	}
     }
     
+    // For testing
+    after() returning (Object ret): execution(* simple.TaintSource.getTaintedData(..)) {
+    	TaintData.getTaintData().mapDataToSource(ret, "TAINTSOURCE");
+    }
+    
 }
 
 //package taint;

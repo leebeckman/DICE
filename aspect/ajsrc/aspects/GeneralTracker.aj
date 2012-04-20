@@ -578,9 +578,10 @@ public aspect GeneralTracker {
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = TaintUtil.getStackTracePath();
-    	
-		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis())) {
+    	// TODO: IMPORTANT, BECAUSE IT'S A CALL PC, NOT EXECUTION, NEED TO USE GETTARGET, NOT GETTHIS. UPDATE OTHER ADVICES
+		if (TaintData.getTaintData().isTainted(thisJoinPoint.getTarget())) {
 	    	composed.add(thisJoinPoint.getThis());
+//	    	System.out.println("LOGGING PROPAGATION");
 	    	TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPREPLACETHIS", thisJoinPoint.getThis(), ret);
 	    	TaintData.getTaintData().propagateSources(thisJoinPoint.getThis(), ret);
 		}
@@ -805,14 +806,12 @@ public aspect GeneralTracker {
 	
     /*
      * Generic advice to note taint call/return
-     * 
-     * TODO: Totally not instrumenting constructors
      */
     before(): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
     	TaintData.getTaintData().startCall();
     }
     
-    after() returning (Object ret): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
+    after() returning (Object ret): execution(* *.*(..)) && !cflow(myAdvice()) {
     	TaintUtil.StackPath location = null;
         Object[] args = thisJoinPoint.getArgs();
         
@@ -824,9 +823,6 @@ public aspect GeneralTracker {
         	 */
         
         boolean taintAccessed = TaintData.getTaintData().taintAccessed();
-        
-//        location = TaintUtil.getStackTracePath();
-//        TaintLogger.getTaintLogger().log("INVOKED: " + location);
         
         ArrayList<Object> taintedArgs = new ArrayList<Object>();
         for (int i = 0; i < args.length; i++) {
@@ -876,6 +872,7 @@ public aspect GeneralTracker {
     			if (location == null)
     				location = TaintUtil.getStackTracePath();
     			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret);
+    			TaintData.getTaintData().pushTaintDownStack(ret);
     		}
     	}
     	else if (taintAccessed && ret != null && ret instanceof Object) {
@@ -886,7 +883,95 @@ public aspect GeneralTracker {
 				/*
 				 * TODO: fuzzy propagate here as well
 				 */
-				TaintLogger.getTaintLogger().logReturning(location, "EXECUTEOBJECTRETURN", objTaint);
+				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURN", ret, objTaint);
+				for (Object taintedObject : objTaint.keySet()) {
+					TaintData.getTaintData().pushTaintDownStack(taintedObject);
+				}
+			}
+		}
+    	/*
+    	 * Second check to see if anything remains in the accessed taint list. If so, couldn't source
+    	 * all taint to args.
+    	 */
+    	if (TaintData.getTaintData().taintAccessed()) {
+//    		TaintLogger.getTaintLogger().log("Non-arg taint accessed");
+    	}
+
+    }
+    
+    after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) {
+    	TaintUtil.StackPath location = null;
+        Object[] args = thisJoinPoint.getArgs();
+        
+        	/*
+        	 *  search through args. Look for taint, and as it is found
+        	 *  push it down in the stack.
+        	 *  
+        	 *  Everything is discarded in the end.
+        	 */
+        
+        boolean taintAccessed = TaintData.getTaintData().taintAccessed();
+//        System.out.println("location: " + location + " acc: " + taintAccessed);
+        
+        ArrayList<Object> taintedArgs = new ArrayList<Object>();
+        for (int i = 0; i < args.length; i++) {
+        	//TODO: Deal with the fact that I added ResultSet here
+        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
+        		if (TaintData.getTaintData().isTainted(args[i])) {
+//        	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
+        			if (location == null)
+        				location = TaintUtil.getStackTracePath();
+        			taintedArgs.add(args[i]);
+        			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARGCONSTRUCT", args[i]);
+        			TaintData.getTaintData().pushTaintDownStack(args[i]);			
+        		}
+        	}
+        	else if (taintAccessed && args[i] != null && args[i] instanceof Object) {
+        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
+        		if (objTaint != null && objTaint.size() > 0) {
+        			if (location == null)
+        				location = TaintUtil.getStackTracePath();
+        			/*
+        			 * TODO: add to taintedArgs here as well
+        			 */
+    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARGCONSTRUCT", args[i], objTaint);
+    				for (Object taintedObject : objTaint.keySet()) {
+    					TaintData.getTaintData().pushTaintDownStack(taintedObject);
+    				}
+        		}
+        	}
+        }
+
+    	//TODO: Deal with the fact that I added ResultSet here
+    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
+    		if (!TaintData.getTaintData().isTainted(ret)) {
+				for (Object arg : taintedArgs) {
+					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
+							Math.abs(arg.toString().length() - ret.toString().length()) + 
+							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
+							Math.min(arg.toString().length(), ret.toString().length()) > 0) {
+						TaintLogger.getTaintLogger().logFuzzyPropagation(location, "FUZZYPROP", arg, ret);
+						TaintData.getTaintData().propagateSources(arg, ret);
+						break;
+					}
+				}
+    		}
+    		
+    		if (TaintData.getTaintData().isTainted(ret)) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath();
+    			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURNCONSTRUCT", ret);
+    		}
+    	}
+    	else if (taintAccessed && ret != null && ret instanceof Object) {
+			IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
+			if (objTaint.size() > 0) {
+				if (location == null)
+    				location = TaintUtil.getStackTracePath();
+				/*
+				 * TODO: fuzzy propagate here as well
+				 */
+				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURNCONSTRUCT", ret, objTaint);
 			}
 		}
     	/*

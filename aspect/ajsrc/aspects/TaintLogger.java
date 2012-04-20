@@ -348,10 +348,10 @@ public class TaintLogger {
 	
 	private void addLocationElement(Element root, StackPath location, String adviceType) {
 		Element locationElem = new Element("location");
-		locationElem.setAttribute(new Attribute("srcMethod", location.srcMethod));
 		locationElem.setAttribute(new Attribute("srcClass", location.srcClass));
-		locationElem.setAttribute(new Attribute("destMethod", location.destMethod));
+		locationElem.setAttribute(new Attribute("srcMethod", location.srcMethod));
 		locationElem.setAttribute(new Attribute("destClass", location.destClass));
+		locationElem.setAttribute(new Attribute("destMethod", location.destMethod));
 		locationElem.setAttribute(new Attribute("adviceType", adviceType.toString()));
 		
 		root.addContent(locationElem);
@@ -387,19 +387,26 @@ public class TaintLogger {
 			if (TaintData.getTaintData().getDataSources(object) != null) {
 				HashMap<Object, Integer> sources = TaintData.getTaintData().getDataSources(object).getSources();
 				for (Object source : sources.keySet()) {
-					try {
-						String sourceStr = "";
-						ResultSetMetaData metaData = (ResultSetMetaData) source;
-						int colCount = metaData.getColumnCount();
-						for (int i = 1; i <= colCount; i++) {
-							sourceStr = sourceStr + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
-						}
-						
+					if (source instanceof String) {
 						Element taintRecordElem = new Element("taintRecord");
-						taintRecordElem.setText(sourceStr);
+						taintRecordElem.setText((String)source);
 						objectElem.addContent(taintRecordElem);
-					} catch (SQLException e) {
-						e.printStackTrace();
+					}
+					else {
+						try {
+							String sourceStr = "";
+							ResultSetMetaData metaData = (ResultSetMetaData) source;
+							int colCount = metaData.getColumnCount();
+							for (int i = 1; i <= colCount; i++) {
+								sourceStr = sourceStr + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
+							}
+							
+							Element taintRecordElem = new Element("taintRecord");
+							taintRecordElem.setText(sourceStr);
+							objectElem.addContent(taintRecordElem);
+						} catch (SQLException e) {
+							e.printStackTrace();
+						}
 					}
 				}
 			}
