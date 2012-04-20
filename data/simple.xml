@@ -1,0 +1,34 @@
+<root>
+<taintlog type="FIELDSET" reqHash="0"><location srcClass="simple.Driver" srcMethod="main" destClass="simple.TaintWrapper" destMethod="&lt;init&gt;" adviceType="NORMAL" /><taintedObject taintID="28057572" type="java.lang.String" value="startvalue"><taintRecord>TAINTSOURCE</taintRecord></taintedObject><field targetClass="simple.TaintWrapper" targetField="myValue" /></taintlog>
+
+<taintlog type="CALLING" reqHash="0"><location srcClass="simple.Driver" srcMethod="main" destClass="simple.TaintWrapper" destMethod="&lt;init&gt;" adviceType="EXECUTESTRINGARGCONSTRUCT" /><taintedObject taintID="28057572" type="java.lang.String" value="startvalue"><taintRecord>TAINTSOURCE</taintRecord></taintedObject></taintlog>
+
+<taintlog type="RETURNING" reqHash="0"><location srcClass="simple.Driver" srcMethod="main" destClass="simple.TaintWrapper" destMethod="&lt;init&gt;" adviceType="EXECUTEOBJECTRETURNCONSTRUCT" /><taintedObject taintID="0" type="simple.TaintWrapper" value="simple.TaintWrapper@192b996"><subTaintedObject taintID="28057572" type="java.lang.String" value="startvalue"><taintRecord>TAINTSOURCE</taintRecord></subTaintedObject></taintedObject></taintlog>
+
+<taintlog type="FIELDGET" reqHash="0"><location srcClass="simple.PipeB" srcMethod="handle" destClass="simple.TaintWrapper" destMethod="getValue" adviceType="NORMAL" /><taintedObject taintID="28057572" type="java.lang.String" value="startvalue"><taintRecord>TAINTSOURCE</taintRecord></taintedObject><field targetClass="simple.TaintWrapper" targetField="myValue" /></taintlog>
+
+<taintlog type="RETURNING" reqHash="0"><location srcClass="simple.PipeB" srcMethod="handle" destClass="simple.TaintWrapper" destMethod="getValue" adviceType="EXECUTESTRINGRETURN" /><taintedObject taintID="28057572" type="java.lang.String" value="startvalue"><taintRecord>TAINTSOURCE</taintRecord></taintedObject></taintlog>
+
+<taintlog type="PROPAGATION" reqHash="0"><location srcClass="simple.PipeA" srcMethod="handle" destClass="simple.PipeB" destMethod="handle" adviceType="STRINGPROPREPLACETHIS" /><sourceObject taintID="0" type="simple.PipeB" value="simple.PipeB@1df38fd" /><targetObject taintID="0" type="java.lang.String" value="endvalue" /></taintlog>
+
+<taintlog type="MODIFICATION" reqHash="0"><location srcClass="simple.PipeA" srcMethod="handle" destClass="simple.PipeB" destMethod="handle" adviceType="STRINGMODREPLACEARG" /><targetObject taintID="0" type="java.lang.String" value="start" /></taintlog>
+
+<taintlog type="FIELDSET" reqHash="0"><location srcClass="simple.PipeB" srcMethod="handle" destClass="simple.TaintWrapper" destMethod="&lt;init&gt;" adviceType="NORMAL" /><taintedObject taintID="19526581" type="java.lang.String" value="endvalue" /><field targetClass="simple.TaintWrapper" targetField="myValue" /></taintlog>
+
+<taintlog type="CALLING" reqHash="0"><location srcClass="simple.PipeB" srcMethod="handle" destClass="simple.TaintWrapper" destMethod="&lt;init&gt;" adviceType="EXECUTESTRINGARGCONSTRUCT" /><taintedObject taintID="19526581" type="java.lang.String" value="endvalue" /></taintlog>
+
+<taintlog type="RETURNING" reqHash="0"><location srcClass="simple.PipeB" srcMethod="handle" destClass="simple.TaintWrapper" destMethod="&lt;init&gt;" adviceType="EXECUTEOBJECTRETURNCONSTRUCT" /><taintedObject taintID="0" type="simple.TaintWrapper" value="simple.TaintWrapper@13f3045"><subTaintedObject taintID="19526581" type="java.lang.String" value="endvalue" /></taintedObject></taintlog>
+
+<taintlog type="CALLING" reqHash="0"><location srcClass="simple.PipeA" srcMethod="handle" destClass="simple.PipeB" destMethod="handle" adviceType="EXECUTEOBJECTARG" /><taintedObject taintID="0" type="simple.TaintWrapper" value="simple.TaintWrapper@192b996"><subTaintedObject taintID="28057572" type="java.lang.String" value="startvalue"><taintRecord>TAINTSOURCE</taintRecord></subTaintedObject></taintedObject></taintlog>
+
+<taintlog type="RETURNING" reqHash="0"><location srcClass="simple.PipeA" srcMethod="handle" destClass="simple.PipeB" destMethod="handle" adviceType="EXECUTEOBJECTRETURN" /><taintedObject taintID="0" type="simple.TaintWrapper" value="simple.TaintWrapper@13f3045"><subTaintedObject taintID="19526581" type="java.lang.String" value="endvalue" /></taintedObject></taintlog>
+
+<taintlog type="CALLING" reqHash="0"><location srcClass="simple.Driver" srcMethod="main" destClass="simple.PipeA" destMethod="handle" adviceType="EXECUTEOBJECTARG" /><taintedObject taintID="0" type="simple.TaintWrapper" value="simple.TaintWrapper@192b996"><subTaintedObject taintID="28057572" type="java.lang.String" value="startvalue"><taintRecord>TAINTSOURCE</taintRecord></subTaintedObject></taintedObject></taintlog>
+
+<taintlog type="RETURNING" reqHash="0"><location srcClass="simple.Driver" srcMethod="main" destClass="simple.PipeA" destMethod="handle" adviceType="EXECUTEOBJECTRETURN" /><taintedObject taintID="0" type="simple.TaintWrapper" value="simple.TaintWrapper@13f3045"><subTaintedObject taintID="19526581" type="java.lang.String" value="endvalue" /></taintedObject></taintlog>
+
+<taintlog type="FIELDGET" reqHash="0"><location srcClass="simple.Driver" srcMethod="main" destClass="simple.TaintWrapper" destMethod="getValue" adviceType="NORMAL" /><taintedObject taintID="19526581" type="java.lang.String" value="endvalue" /><field targetClass="simple.TaintWrapper" targetField="myValue" /></taintlog>
+
+<taintlog type="RETURNING" reqHash="0"><location srcClass="simple.Driver" srcMethod="main" destClass="simple.TaintWrapper" destMethod="getValue" adviceType="EXECUTESTRINGRETURN" /><taintedObject taintID="19526581" type="java.lang.String" value="endvalue" /></taintlog>
+
+</root>
