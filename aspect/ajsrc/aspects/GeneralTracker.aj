@@ -1,13 +1,13 @@
 package aspects;
 
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 
 import org.aspectj.lang.reflect.FieldSignature;
 
-import aspects.DBCPTaint;
 import aspects.TaintUtil.StackPath;
 
 public aspect GeneralTracker {
@@ -18,7 +18,7 @@ public aspect GeneralTracker {
 	/*
 	 * Use this to stop advice from triggering advice, which leads to infinite recursion
 	 */
-	pointcut myAdvice(): adviceexecution() && (within(GeneralTracker) || within(DBCPTaint) || within(RequestTracker) || within(TaintLogger) || within(TaintData) || within(TaintUtil));
+	pointcut myAdvice(): adviceexecution() && within(aspects.*);
     
     /*
      * For managing taint at the String level
@@ -809,179 +809,188 @@ public aspect GeneralTracker {
      */
     before(): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
     	TaintData.getTaintData().startCall();
+    	StackPath loc = TaintUtil.getStackTracePath();
+//    	System.out.println("LOC: " + loc);
+    	
+    	boolean scan = TaintData.getTaintData().checkCallerTaint();
+    	
+    	if (scan) {
+    		TaintUtil.StackPath location = null;
+            Object[] args = thisJoinPoint.getArgs();
+            
+            	/*
+            	 *  search through args. Look for taint, and as it is found
+            	 *  push it down in the stack.
+            	 *  
+            	 *  Everything is discarded in the end.
+            	 */
+            
+            // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
+            ArrayList<Object> taintedArgs = new ArrayList<Object>();
+            for (int i = 0; i < args.length; i++) {
+            	//TODO: Deal with the fact that I added ResultSet here
+            	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
+            		if (TaintData.getTaintData().isTainted(args[i])) {
+//            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
+            			if (location == null)
+            				location = TaintUtil.getStackTracePath();
+            			taintedArgs.add(args[i]);
+            			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i]);
+            			TaintData.getTaintData().setCurrentTaint();
+            			TaintLogger.getTaintLogger().log("SETTAINT CURRENT STRINGARG " + args[i].toString() + " AT " + location);
+            		}
+            	}
+            	else if (args[i] != null && args[i] instanceof Object) {
+            		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
+            		if (objTaint != null && objTaint.size() > 0) {
+            			if (location == null)
+            				location = TaintUtil.getStackTracePath();
+            			/*
+            			 * TODO: add to taintedArgs here as well
+            			 */
+        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint);
+            			TaintData.getTaintData().setCurrentTaint();
+            			TaintLogger.getTaintLogger().log("SETTAINT CURRENT OBJARG " + args[i].toString() + " AT " + location);
+            		}
+            	}
+            }
+    	}
     }
     
     after() returning (Object ret): execution(* *.*(..)) && !cflow(myAdvice()) {
-    	TaintUtil.StackPath location = null;
-        Object[] args = thisJoinPoint.getArgs();
-        
-        	/*
-        	 *  search through args. Look for taint, and as it is found
-        	 *  push it down in the stack.
-        	 *  
-        	 *  Everything is discarded in the end.
-        	 */
-        
-        boolean taintAccessed = TaintData.getTaintData().taintAccessed();
-        
-        ArrayList<Object> taintedArgs = new ArrayList<Object>();
-        for (int i = 0; i < args.length; i++) {
+    	boolean scan = TaintData.getTaintData().checkCurrentTaint();
+    	
+    	if (scan) {
+    		TaintUtil.StackPath location = null;
+            
+        	Object[] args = thisJoinPoint.getArgs();
+            
+            	/*
+            	 *  search through args. Look for taint, and as it is found
+            	 *  push it down in the stack.
+            	 *  
+            	 *  Everything is discarded in the end.
+            	 */
+            
+            for (int i = 0; i < args.length; i++) {
+            	//TODO: Deal with the fact that I added ResultSet here
+            	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
+            		if (TaintData.getTaintData().isTainted(args[i])) {
+//            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
+            			if (location == null)
+            				location = TaintUtil.getStackTracePath();
+            			TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
+            			TaintData.getTaintData().setCallerTaint();
+            			TaintLogger.getTaintLogger().log("SETTAINT CALLER STRINGPOSTARG " + args[i].toString() + " AT " + location);
+            		}
+            	}
+            	else if (args[i] != null && args[i] instanceof Object) {
+            		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
+            		if (objTaint != null && objTaint.size() > 0) {
+            			if (location == null)
+            				location = TaintUtil.getStackTracePath();
+            			/*
+            			 * TODO: add to taintedArgs here as well
+            			 */
+        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objTaint);
+            			TaintData.getTaintData().setCallerTaint();
+            			TaintLogger.getTaintLogger().log("SETTAINT CALLER OBJPOSTARG " + args[i].toString() + " AT " + location);
+            		}
+            	}
+            }
+
         	//TODO: Deal with the fact that I added ResultSet here
-        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-        		if (TaintData.getTaintData().isTainted(args[i])) {
-//        	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
+        	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
+        		if (TaintData.getTaintData().isTainted(ret)) {
         			if (location == null)
         				location = TaintUtil.getStackTracePath();
-        			taintedArgs.add(args[i]);
-        			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i]);
-        			TaintData.getTaintData().pushTaintDownStack(args[i]);			
+        			/* TODO: Read fuzzy prop */
+        			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret);
+        			TaintData.getTaintData().setCallerTaint();
+        			TaintLogger.getTaintLogger().log("SETTAINT CALLER RETSTRING " + ret.toString() + " AT " + location);
         		}
         	}
-        	else if (taintAccessed && args[i] != null && args[i] instanceof Object) {
-        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-        		if (objTaint != null && objTaint.size() > 0) {
-        			if (location == null)
+        	else if (ret != null && ret instanceof Object) {
+    			IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
+    			if (objTaint.size() > 0) {
+    				if (location == null)
         				location = TaintUtil.getStackTracePath();
-        			/*
-        			 * TODO: add to taintedArgs here as well
-        			 */
-    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint);
-    				for (Object taintedObject : objTaint.keySet()) {
-    					TaintData.getTaintData().pushTaintDownStack(taintedObject);
-    				}
-        		}
-        	}
-        }
-
-    	//TODO: Deal with the fact that I added ResultSet here
-    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
-    		if (!TaintData.getTaintData().isTainted(ret)) {
-				for (Object arg : taintedArgs) {
-					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
-							Math.abs(arg.toString().length() - ret.toString().length()) + 
-							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
-							Math.min(arg.toString().length(), ret.toString().length()) > 0) {
-						TaintLogger.getTaintLogger().logFuzzyPropagation(location, "FUZZYPROP", arg, ret);
-						TaintData.getTaintData().propagateSources(arg, ret);
-						break;
-					}
-				}
-    		}
-    		
-    		if (TaintData.getTaintData().isTainted(ret)) {
-    			if (location == null)
-    				location = TaintUtil.getStackTracePath();
-    			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret);
-    			TaintData.getTaintData().pushTaintDownStack(ret);
+    				/*
+    				 * TODO: fuzzy propagate here as well
+    				 */
+    				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURN", ret, objTaint);
+        			TaintData.getTaintData().setCallerTaint();
+        			TaintLogger.getTaintLogger().log("SETTAINT CALLER RETOBJ " + ret.toString() + " AT " + location);
+    			}
     		}
     	}
-    	else if (taintAccessed && ret != null && ret instanceof Object) {
-			IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
-			if (objTaint.size() > 0) {
-				if (location == null)
-    				location = TaintUtil.getStackTracePath();
-				/*
-				 * TODO: fuzzy propagate here as well
-				 */
-				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURN", ret, objTaint);
-				for (Object taintedObject : objTaint.keySet()) {
-					TaintData.getTaintData().pushTaintDownStack(taintedObject);
-				}
-			}
-		}
-    	/*
-    	 * Second check to see if anything remains in the accessed taint list. If so, couldn't source
-    	 * all taint to args.
-    	 */
-    	if (TaintData.getTaintData().taintAccessed()) {
-//    		TaintLogger.getTaintLogger().log("Non-arg taint accessed");
-    	}
-
     }
     
     after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) {
-    	TaintUtil.StackPath location = null;
-        Object[] args = thisJoinPoint.getArgs();
-        
-        	/*
-        	 *  search through args. Look for taint, and as it is found
-        	 *  push it down in the stack.
-        	 *  
-        	 *  Everything is discarded in the end.
-        	 */
-        
-        boolean taintAccessed = TaintData.getTaintData().taintAccessed();
-//        System.out.println("location: " + location + " acc: " + taintAccessed);
-        
-        ArrayList<Object> taintedArgs = new ArrayList<Object>();
-        for (int i = 0; i < args.length; i++) {
-        	//TODO: Deal with the fact that I added ResultSet here
-        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-        		if (TaintData.getTaintData().isTainted(args[i])) {
-//        	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
-        			if (location == null)
-        				location = TaintUtil.getStackTracePath();
-        			taintedArgs.add(args[i]);
-        			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARGCONSTRUCT", args[i]);
-        			TaintData.getTaintData().pushTaintDownStack(args[i]);			
-        		}
-        	}
-        	else if (taintAccessed && args[i] != null && args[i] instanceof Object) {
-        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-        		if (objTaint != null && objTaint.size() > 0) {
-        			if (location == null)
-        				location = TaintUtil.getStackTracePath();
-        			/*
-        			 * TODO: add to taintedArgs here as well
-        			 */
-    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARGCONSTRUCT", args[i], objTaint);
-    				for (Object taintedObject : objTaint.keySet()) {
-    					TaintData.getTaintData().pushTaintDownStack(taintedObject);
-    				}
-        		}
-        	}
-        }
-
-    	//TODO: Deal with the fact that I added ResultSet here
-    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
-    		if (!TaintData.getTaintData().isTainted(ret)) {
-				for (Object arg : taintedArgs) {
-					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
-							Math.abs(arg.toString().length() - ret.toString().length()) + 
-							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
-							Math.min(arg.toString().length(), ret.toString().length()) > 0) {
-						TaintLogger.getTaintLogger().logFuzzyPropagation(location, "FUZZYPROP", arg, ret);
-						TaintData.getTaintData().propagateSources(arg, ret);
-						break;
-					}
+		boolean scan = TaintData.getTaintData().checkCurrentTaint();
+    	
+    	if (scan) {
+	    	TaintUtil.StackPath location = null;
+	        Object[] args = thisJoinPoint.getArgs();
+	        
+	        	/*
+	        	 *  search through args. Look for taint, and as it is found
+	        	 *  push it down in the stack.
+	        	 *  
+	        	 *  Everything is discarded in the end.
+	        	 */
+	        
+	        for (int i = 0; i < args.length; i++) {
+	        	//TODO: Deal with the fact that I added ResultSet here
+	        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
+	        		if (TaintData.getTaintData().isTainted(args[i])) {
+	//        	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
+	        			if (location == null)
+	        				location = TaintUtil.getStackTracePath();
+	        			TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
+            			TaintData.getTaintData().setCallerTaint();
+            			TaintLogger.getTaintLogger().log("SETTAINT CALLER STRINGPOSTARG " + args[i].toString() + " AT " + location);
+	        		}
+	        	}
+	        	else if (args[i] != null && args[i] instanceof Object) {
+	        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
+	        		if (objTaint != null && objTaint.size() > 0) {
+	        			if (location == null)
+	        				location = TaintUtil.getStackTracePath();
+	        			/*
+	        			 * TODO: add to taintedArgs here as well
+	        			 */
+	    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objTaint);
+            			TaintData.getTaintData().setCallerTaint();
+            			TaintLogger.getTaintLogger().log("SETTAINT CALLER OBJPOSTARG " + args[i].toString() + " AT " + location);
+	        		}
+	        	}
+	        }
+	
+	    	//TODO: Deal with the fact that I added ResultSet here
+	    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
+	    		if (TaintData.getTaintData().isTainted(ret)) {
+	    			if (location == null)
+	    				location = TaintUtil.getStackTracePath();
+	    			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURNCONSTRUCT", ret);
+        			TaintData.getTaintData().setCallerTaint();
+        			TaintLogger.getTaintLogger().log("SETTAINT CALLER RETSTRING " + ret.toString() + " AT " + location);
+	    		}
+	    	}
+	    	else if (ret != null && ret instanceof Object) {
+				IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
+				if (objTaint.size() > 0) {
+					if (location == null)
+	    				location = TaintUtil.getStackTracePath();
+					/*
+					 * TODO: fuzzy propagate here as well
+					 */
+					TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURNCONSTRUCT", ret, objTaint);
+        			TaintData.getTaintData().setCallerTaint();
+        			TaintLogger.getTaintLogger().log("SETTAINT CALLER RETOBJ " + ret.toString() + " AT " + location);
 				}
-    		}
-    		
-    		if (TaintData.getTaintData().isTainted(ret)) {
-    			if (location == null)
-    				location = TaintUtil.getStackTracePath();
-    			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURNCONSTRUCT", ret);
-    		}
-    	}
-    	else if (taintAccessed && ret != null && ret instanceof Object) {
-			IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
-			if (objTaint.size() > 0) {
-				if (location == null)
-    				location = TaintUtil.getStackTracePath();
-				/*
-				 * TODO: fuzzy propagate here as well
-				 */
-				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURNCONSTRUCT", ret, objTaint);
 			}
-		}
-    	/*
-    	 * Second check to see if anything remains in the accessed taint list. If so, couldn't source
-    	 * all taint to args.
-    	 */
-    	if (TaintData.getTaintData().taintAccessed()) {
-//    		TaintLogger.getTaintLogger().log("Non-arg taint accessed");
     	}
-
     }
 
     after(): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
@@ -989,16 +998,41 @@ public aspect GeneralTracker {
     }
    
     
-    after() returning(Object accessed): get(* *) && !cflow(myAdvice()) {
+    after() returning(Object accessed): get(!static * *) && !cflow(myAdvice()) {
     	if (accessed != null && TaintData.getTaintData().isTainted(accessed)) {
 //    			(accessed instanceof String || accessed instanceof StringBuilder || accessed instanceof StringBuffer || accessed instanceof ResultSet) &&
-			TaintData.getTaintData().recordTaintAccess(accessed);
+//			TaintData.getTaintData().recordTaintAccess(accessed);
 			StackPath location = TaintUtil.getStackTracePath();
 			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, ((FieldSignature)thisJoinPoint.getSignature()).getField());
 		}
     }
     
-    before(): set(* *) && !cflow(myAdvice()) {
+    after() returning(Object accessed): get(static * *) && !cflow(myAdvice()) {
+    	StackPath location = null;
+    	if (accessed != null) {
+	    	if ((accessed instanceof String || accessed instanceof StringBuffer || accessed instanceof StringBuilder || accessed instanceof ResultSet) &&
+	    			TaintData.getTaintData().isTainted(accessed)) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath();
+	    		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, ((FieldSignature)thisJoinPoint.getSignature()).getField());
+    			TaintData.getTaintData().setCurrentTaint();
+    			TaintLogger.getTaintLogger().log("SETTAINT CURRENT STATICSTRINGACC " + ((FieldSignature)thisJoinPoint.getSignature()).getField().toGenericString() + " AT " + location);
+	    	}
+	    	else if (accessed instanceof Object) {
+	    		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(accessed);
+        		if (objTaint != null && objTaint.size() > 0) {
+        			if (location == null)
+        				location = TaintUtil.getStackTracePath();
+        			//TODO: log subobjects
+        			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, ((FieldSignature)thisJoinPoint.getSignature()).getField());
+        			TaintData.getTaintData().setCurrentTaint();
+        			TaintLogger.getTaintLogger().log("SETTAINT CURRENT STATICOBJACC " + ((FieldSignature)thisJoinPoint.getSignature()).getField().toGenericString() + " AT " + location);
+        		}
+	    	}
+    	}
+    }
+    
+    before(): set(!static * *) && !cflow(myAdvice()) {
 		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
 		field.setAccessible(true);
 		
@@ -1010,13 +1044,56 @@ public aspect GeneralTracker {
 		}
 		Object value = thisJoinPoint.getArgs()[0];
 		
+		
 		if (value != null && TaintData.getTaintData().isTainted(value)) {
 //			if (value instanceof String || value instanceof StringBuilder || value instanceof StringBuffer || value instanceof ResultSet) {
-			TaintData.getTaintData().recordTaintAccess(value);
+//			TaintData.getTaintData().recordTaintAccess(value);
 //			}
 			StackPath location = TaintUtil.getStackTracePath();
 			TaintData.getTaintData().propagateSources(value, target);
 			TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", value, field);
+		}
+	}
+    
+    //TODO: Add stored in java.* objects
+    before(): set(static * *) && !cflow(myAdvice()) {
+		boolean scan = TaintData.getTaintData().checkCurrentTaint();
+
+		if (scan) {
+			StackPath location = null;
+			Field field = ((FieldSignature) thisJoinPoint.getSignature())
+					.getField();
+			field.setAccessible(true);
+
+			Object target = null;
+			try {
+				target = field.get(thisJoinPoint.getTarget());
+			} catch (IllegalArgumentException e) {
+			} catch (IllegalAccessException e) {
+			}
+			Object value = thisJoinPoint.getArgs()[0];
+
+			if (value != null) {
+				if ((value instanceof String || value instanceof StringBuffer
+						|| value instanceof StringBuilder || value instanceof ResultSet)
+						&& TaintData.getTaintData().isTainted(value)) {
+					if (location == null)
+						location = TaintUtil.getStackTracePath();
+					TaintData.getTaintData().propagateSources(value, target);
+					TaintLogger.getTaintLogger().logFieldSet(location,
+							"NORMAL", value, field);
+				} else if (value instanceof Object) {
+					IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder
+							.findTaint(value);
+					if (objTaint != null && objTaint.size() > 0) {
+						if (location == null)
+							location = TaintUtil.getStackTracePath();
+						// TODO: log subobjects
+						TaintLogger.getTaintLogger().logFieldSet(location,
+								"NORMAL", value, field);
+					}
+				}
+			}
 		}
 	}
     

@@ -354,6 +354,8 @@ public class TaintLogger {
 		locationElem.setAttribute(new Attribute("destMethod", location.destMethod));
 		locationElem.setAttribute(new Attribute("adviceType", adviceType.toString()));
 		
+		locationElem.setText(location.getDeeperString(10));
+		
 		root.addContent(locationElem);
 	}
 	

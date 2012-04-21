@@ -89,8 +89,8 @@ public class TaintUtil {
     private static StackPath stackTraceToPath(StackTraceElement[] stack) {
     	String destClass;
 		String destMethod;
-		String srcClass;
-		String srcMethod;
+		String srcClass = null;
+		String srcMethod = null;
 		
 		int startIndex = 0;
 		while ((stack[startIndex].getClassName().startsWith("java.lang.Thread") && stack[startIndex].getMethodName().startsWith("getStackTrace")) || 
@@ -100,24 +100,28 @@ public class TaintUtil {
 			startIndex++;
 		}
 		
+		int goodIndex = startIndex;
+		
 		destClass = stack[startIndex].getClassName();
 		destMethod = stack[startIndex].getMethodName();
 		startIndex++;
 		
-		srcClass = stack[startIndex].getClassName();
-		srcMethod = stack[startIndex].getMethodName();
-		startIndex++;
+		if (startIndex < stack.length) {
+			srcClass = stack[startIndex].getClassName();
+			srcMethod = stack[startIndex].getMethodName();
+			startIndex++;
+		}
 		
 		StackPath result = new StackPath(destClass, destMethod, srcClass, srcMethod);
 		
 		/*
 		 * Debugging, log additional stack levels
 		 */
-//		startIndex = 0;
-//		while (startIndex < stack.length) {
-//			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
-//			startIndex++;
-//		}
+		startIndex = goodIndex;
+		while (startIndex < stack.length) {
+			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
+			startIndex++;
+		}
 		
 		return result; 
     }
@@ -164,7 +168,7 @@ public class TaintUtil {
     			if (i >= this.deeperStack.size() - 1)
     				break;
     			if (i != levels - 1)
-    				result = result + " -> \n";
+    				result = result + " -- \n";
     		}
     		return result;
     	}

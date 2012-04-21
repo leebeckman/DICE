@@ -4,8 +4,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
-import aspects.TaintUtil.StackPath;
-
 public aspect DBCPTaint {
 	
 	public DBCPTaint() {
@@ -23,9 +21,28 @@ public aspect DBCPTaint {
     after() returning (Object ret): resultSetAccess() {
     	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
 //    		result = new String((String)result, true);
-    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
-    		StackPath location = TaintUtil.getStackTracePath();
-    		TaintLogger.getTaintLogger().logReturning(location, "RESULTSETACCESS", ret);
+    		boolean skip = false;
+    		try {
+				ResultSetMetaData metaData = (ResultSetMetaData) TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis());
+				if (metaData != null) {
+					int colCount = metaData.getColumnCount();
+					for (int i = 1; i <= colCount; i++) {
+						String metaString = metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i);
+						if (metaString.contains("/COLLATIONS") || metaString.contains("/VARIABLES") || metaString.contains("//round('inf')")) {
+							skip = true;
+							break;
+						}
+					}
+				}
+				else
+					skip = true;
+			} catch (SQLException e) {
+				
+			}
+    		if (!skip) {
+	    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
+	        	TaintData.getTaintData().setCurrentTaint();
+    		}
     	}
     }
     
@@ -33,8 +50,19 @@ public aspect DBCPTaint {
 		ResultSetMetaData metaData = null;
 		try {
     		metaData = (ResultSetMetaData) rs.getMetaData();
-    		TaintData.getTaintData().mapDataToSource(rs, metaData);
-        	TaintData.getTaintData().mapResultSetToSource(rs, metaData);
+    		boolean skip = false;
+			int colCount = metaData.getColumnCount();
+			for (int i = 1; i <= colCount; i++) {
+				String metaString = metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i);
+				if (metaString.contains("/COLLATIONS") || metaString.contains("/VARIABLES") || metaString.contains("//round('inf')")) {
+					skip = true;
+					break;
+				}
+			}
+			if (!skip) {
+				TaintData.getTaintData().mapDataToSource(rs, metaData);
+				TaintData.getTaintData().mapResultSetToSource(rs, metaData);
+			}
     	} catch (SQLException e) {
     		TaintLogger.getTaintLogger().log("FAIL GETTING METADATA FROM RESULTSET: " + e.getMessage());
     	}
@@ -43,6 +71,7 @@ public aspect DBCPTaint {
     // For testing
     after() returning (Object ret): execution(* simple.TaintSource.getTaintedData(..)) {
     	TaintData.getTaintData().mapDataToSource(ret, "TAINTSOURCE");
+    	TaintData.getTaintData().setCurrentTaint();
     }
     
 }

@@ -17,7 +17,7 @@ public class TaintData {
 	
 	// A source is something which describes where the data came from
 	private IdentityHashMap<Object, Object> resultSetToSourceMap;
-	private ConcurrentHashMap<Long, Stack<WeakIdentityHashMap<Object, Object>>> taintStacks;
+	private ConcurrentHashMap<Long, Stack<SettableBoolean>> taintStacks;
 	
 	// This is where much of the important data comes from, aside from the TaintFinder. Tainted strings map to the ResultSetMetaData responsible for them.
 	// This is fine for now as we're only concerned with data read from the database.
@@ -28,7 +28,7 @@ public class TaintData {
 	private TaintData() {
 		resultSetToSourceMap = new IdentityHashMap<Object, Object>();
 		dataToSourcesMap = new WeakIdentityHashMap<Object, SizedSources>();
-		taintStacks = new ConcurrentHashMap<Long, Stack<WeakIdentityHashMap<Object, Object>>>();
+		taintStacks = new ConcurrentHashMap<Long, Stack<SettableBoolean>>();
 	}
 	
 	public static TaintData getTaintData() {
@@ -43,52 +43,33 @@ public class TaintData {
 	 * Called when a tainted object is accessed (get pointcut) to log that the current thread at
 	 * a particular stack location accessed the tainted object.
 	 */
-	public void recordTaintAccess(Object tainted) {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("stackTaint failed");
-		}
-		else {
-//			System.out.println("Recording taint at " + taintStacks.get(threadId).peek().getName());
-			taintStacks.get(threadId).peek().put(tainted, tainted);
-		}
-	}
-	
-	/*
-	 * Checks if taint found in arguments was accessed. This indicates that accessed taint came from
-	 * arguments, and so it should be searched for in the last method on the stack as well.
-	 */
-	public void pushTaintDownStack(Object taintedArg) {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("taintAccessed failed");
-		}
-		else {
-			WeakIdentityHashMap<Object, Object> top = taintStacks.get(threadId).pop();
-			if (top.remove(taintedArg) != null) {
-				taintStacks.get(threadId).peek().put(taintedArg, taintedArg);
-			}
-//			System.out.println("Pushing taint from " + top.getName() + ", size: " + top.size() + " to " + taintStacks.get(threadId).peek().getName() + " size is now: " + taintStacks.get(threadId).peek().size());
-			taintStacks.get(threadId).push(top);
-		}
-	}
+//	public void recordTaintAccess(Object tainted) {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+//			TaintLogger.getTaintLogger().log("stackTaint failed");
+//		}
+//		else {
+////			System.out.println("Recording taint at " + taintStacks.get(threadId).peek().getName());
+//			taintStacks.get(threadId).peek().put(tainted, tainted);
+//		}
+//	}
 	
 	/*
 	 * Checks if any taint was accessed for the current thread at a particular stack location.
 	 */
-	public boolean taintAccessed() {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("taintAccessed failed");
-			return false;
-		}
-		else {
-//			TaintLogger.getTaintLogger().log("Checking TS " + threadId + " size: " + taintStack.get(threadId).peek().size() + " bool: " + (taintStack.get(threadId).peek().size() > 0));
-//			System.out.println("CHECKING STACK: at " + taintStack.get(threadId).peek());
-//			System.out.println("Looking for taint in " + taintStacks.get(threadId).peek().getName());
-			return (taintStacks.get(threadId).peek().size() > 0);
-		}
-	}
+//	public boolean taintAccessed() {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+//			TaintLogger.getTaintLogger().log("taintAccessed failed");
+//			return false;
+//		}
+//		else {
+////			TaintLogger.getTaintLogger().log("Checking TS " + threadId + " size: " + taintStack.get(threadId).peek().size() + " bool: " + (taintStack.get(threadId).peek().size() > 0));
+////			System.out.println("CHECKING STACK: at " + taintStack.get(threadId).peek());
+////			System.out.println("Looking for taint in " + taintStacks.get(threadId).peek().getName());
+//			return (taintStacks.get(threadId).peek().size() > 0);
+//		}
+//	}
 	
 	/*
 	 * Called on method entry, to keep track of the stack location and associate tainted object 
@@ -97,10 +78,9 @@ public class TaintData {
 	public void startCall() {
 		Long threadId = Thread.currentThread().getId();
 		if (!taintStacks.containsKey(threadId)) {
-			taintStacks.put(threadId, new Stack<WeakIdentityHashMap<Object, Object>>());
-//			TaintLogger.getTaintLogger().log("TID: " + threadId + " startfail: " + taintStack.contains(threadId));
+			taintStacks.put(threadId, new Stack<SettableBoolean>());
 		}
-		taintStacks.get(threadId).push(new WeakIdentityHashMap<Object, Object>());
+		taintStacks.get(threadId).push(new SettableBoolean(false));
 //		System.out.println("TOP IS: " + taintStack.get(threadId).peek());
 	}
 	
@@ -111,10 +91,62 @@ public class TaintData {
 		Long threadId = Thread.currentThread().getId();
 		if (!taintStacks.containsKey(threadId)) {
 //			TaintLogger.getTaintLogger().log("TID: " + threadId + " endfail ");
-			taintStacks.put(threadId, new Stack<WeakIdentityHashMap<Object, Object>>());
+			taintStacks.put(threadId, new Stack<SettableBoolean>());
 		}
 		if (!taintStacks.get(threadId).empty())
-			taintStacks.get(threadId).pop().clear();
+			taintStacks.get(threadId).pop();
+	}
+	
+	public void setCurrentTaint() {
+		Long threadId = Thread.currentThread().getId();
+		if (!taintStacks.containsKey(threadId)) {
+			TaintLogger.getTaintLogger().log("taintAccessed failed");
+		}
+		else {
+			taintStacks.get(threadId).peek().setTruth(true);
+		}
+	}
+	
+	public void setCallerTaint() {
+		Long threadId = Thread.currentThread().getId();
+		if (!taintStacks.containsKey(threadId)) {
+			TaintLogger.getTaintLogger().log("taintAccessed failed");
+		}
+		else {
+			SettableBoolean top = taintStacks.get(threadId).pop();
+			if (taintStacks.get(threadId).size() > 0)
+				taintStacks.get(threadId).peek().setTruth(true);
+			taintStacks.get(threadId).push(top);
+		}
+	}
+	
+	public boolean checkCurrentTaint() {
+		Long threadId = Thread.currentThread().getId();
+		if (!taintStacks.containsKey(threadId)) {
+			TaintLogger.getTaintLogger().log("taintAccessed failed");
+			return false;
+		}
+		else {
+			if (taintStacks.get(threadId).size() > 0)
+				return taintStacks.get(threadId).peek().getTruth();
+			return false;
+		}
+	}
+	
+	public boolean checkCallerTaint() {
+		Long threadId = Thread.currentThread().getId();
+		if (!taintStacks.containsKey(threadId)) {
+			TaintLogger.getTaintLogger().log("taintAccessed failed");
+			return false;
+		}
+		else {
+			SettableBoolean top = taintStacks.get(threadId).pop();
+			boolean check = false;
+			if (taintStacks.get(threadId).size() > 0)
+				check = taintStacks.get(threadId).peek().getTruth();
+			taintStacks.get(threadId).push(top);
+			return check;
+		}
 	}
 	
 	public void mapResultSetToSource(Object resultSet, Object source) {
@@ -122,8 +154,8 @@ public class TaintData {
 	}
 	
 	public Object getResultSetSource(Object resultSet) {
-		if (!resultSetToSourceMap.containsKey(resultSet))
-			TaintLogger.getTaintLogger().log("getResultSetSourceNULL");
+//		if (!resultSetToSourceMap.containsKey(resultSet))
+//			TaintLogger.getTaintLogger().log("getResultSetSourceNULL");
 		return resultSetToSourceMap.get(resultSet);
 	}
 	
