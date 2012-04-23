@@ -2,6 +2,10 @@ package aspects;
 
 import java.util.ArrayList;
 
+import org.aspectj.lang.Signature;
+import org.aspectj.lang.reflect.ConstructorSignature;
+import org.aspectj.lang.reflect.MethodSignature;
+
 public class TaintUtil {
 	
 	public static int getLevenshteinDistance(String s, String t) {
@@ -80,15 +84,23 @@ public class TaintUtil {
 	public static StackPath getStackTracePath() {
     	Thread current = Thread.currentThread();
     	StackTraceElement[] stack = current.getStackTrace();
-    	StackPath path = stackTraceToPath(stack);
+    	StackPath path = stackTraceToPath(stack, null);
+    	
+    	return path;
+    }
+	
+	public static StackPath getStackTracePath(Signature calleeSignature) {
+    	Thread current = Thread.currentThread();
+    	StackTraceElement[] stack = current.getStackTrace();
+    	StackPath path = stackTraceToPath(stack, calleeSignature);
     	
     	return path;
     }
     
     
-    private static StackPath stackTraceToPath(StackTraceElement[] stack) {
-    	String destClass;
-		String destMethod;
+    private static StackPath stackTraceToPath(StackTraceElement[] stack, Signature calleeSignature) {
+    	String destClass = null;
+		String destMethod = null;
 		String srcClass = null;
 		String srcMethod = null;
 		
@@ -102,9 +114,21 @@ public class TaintUtil {
 		
 		int goodIndex = startIndex;
 		
-		destClass = stack[startIndex].getClassName();
-		destMethod = stack[startIndex].getMethodName();
-		startIndex++;
+		if (calleeSignature == null) {
+			destClass = stack[startIndex].getClassName();
+			destMethod = stack[startIndex].getMethodName();
+			startIndex++;
+		}
+		else {
+			if (calleeSignature instanceof MethodSignature) {
+				destClass = calleeSignature.getDeclaringTypeName();
+				destMethod = calleeSignature.getName();
+			}
+			else if (calleeSignature instanceof ConstructorSignature) {
+				destClass = calleeSignature.getDeclaringTypeName();
+				destMethod = calleeSignature.getName();
+			}
+		}
 		
 		if (startIndex < stack.length) {
 			srcClass = stack[startIndex].getClassName();

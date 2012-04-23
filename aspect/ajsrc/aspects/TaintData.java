@@ -1,5 +1,6 @@
 package aspects;
 
+import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -23,12 +24,17 @@ public class TaintData {
 	// This is fine for now as we're only concerned with data read from the database.
 	private WeakIdentityHashMap<Object, SizedSources> dataToSourcesMap;
 	
+	private WeakIdentityHashMap<Object, Object> taintedJavaObjects;
+	private WeakIdentityHashMap<Object, Field> fieldJavaObjects;
+	
 	// TODO: Probably need to change this to a WeakIdentityHashMap
 	
 	private TaintData() {
 		resultSetToSourceMap = new IdentityHashMap<Object, Object>();
 		dataToSourcesMap = new WeakIdentityHashMap<Object, SizedSources>();
 		taintStacks = new ConcurrentHashMap<Long, Stack<SettableBoolean>>();
+		taintedJavaObjects = new WeakIdentityHashMap<Object, Object>();
+		fieldJavaObjects = new WeakIdentityHashMap<Object, Field>();
 	}
 	
 	public static TaintData getTaintData() {
@@ -103,6 +109,7 @@ public class TaintData {
 			TaintLogger.getTaintLogger().log("taintAccessed failed");
 		}
 		else {
+//			System.out.println("setting true at " + taintStacks.get(threadId).peek().getCount());
 			taintStacks.get(threadId).peek().setTruth(true);
 		}
 	}
@@ -114,8 +121,9 @@ public class TaintData {
 		}
 		else {
 			SettableBoolean top = taintStacks.get(threadId).pop();
-			if (taintStacks.get(threadId).size() > 0)
+			if (taintStacks.get(threadId).size() > 0) {
 				taintStacks.get(threadId).peek().setTruth(true);
+			}
 			taintStacks.get(threadId).push(top);
 		}
 	}
@@ -127,8 +135,10 @@ public class TaintData {
 			return false;
 		}
 		else {
-			if (taintStacks.get(threadId).size() > 0)
+			if (taintStacks.get(threadId).size() > 0) {
+//				System.out.println("getting truth at " + taintStacks.get(threadId).peek().getCount());
 				return taintStacks.get(threadId).peek().getTruth();
+			}
 			return false;
 		}
 	}
@@ -142,11 +152,33 @@ public class TaintData {
 		else {
 			SettableBoolean top = taintStacks.get(threadId).pop();
 			boolean check = false;
-			if (taintStacks.get(threadId).size() > 0)
+			if (taintStacks.get(threadId).size() > 0) {
+//				System.out.println("checkCallerTaint");
 				check = taintStacks.get(threadId).peek().getTruth();
+			}
 			taintStacks.get(threadId).push(top);
 			return check;
 		}
+	}
+	
+	public void taintJavaObject(Object javaObject) {
+		taintedJavaObjects.put(javaObject, javaObject);
+	}
+	
+	public boolean isTaintedJavaObject(Object javaObject) {
+		return taintedJavaObjects.containsKey(javaObject);
+	}
+	
+	public void recordJavaField(Object javaObject, Field field) {
+		fieldJavaObjects.put(javaObject, field);
+	}
+	
+	public Field getJavaObjectField(Object javaObject) {
+		return fieldJavaObjects.get(javaObject);
+	}
+	
+	public void clearJavaFieldLog() {
+		fieldJavaObjects.clear();
 	}
 	
 	public void mapResultSetToSource(Object resultSet, Object source) {

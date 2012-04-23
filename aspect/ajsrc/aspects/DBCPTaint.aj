@@ -71,6 +71,7 @@ public aspect DBCPTaint {
     // For testing
     after() returning (Object ret): execution(* simple.TaintSource.getTaintedData(..)) {
     	TaintData.getTaintData().mapDataToSource(ret, "TAINTSOURCE");
+//    	System.out.println("SET CURRENT TAINT DBCP");
     	TaintData.getTaintData().setCurrentTaint();
     }
     
