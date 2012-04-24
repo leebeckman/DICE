@@ -6,8 +6,8 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.FieldSignature;
-import org.aspectj.lang.reflect.MethodSignature;
 
 import aspects.TaintUtil.StackPath;
 
@@ -20,6 +20,12 @@ public aspect GeneralTracker {
 	 * Use this to stop advice from triggering advice, which leads to infinite recursion
 	 */
 	pointcut myAdvice(): adviceexecution() && within(aspects.*);
+	pointcut tooBigErrorExclude(): within(com.mysql.jdbc.TimeUtil) || 
+									within(org.apache.catalina.startup.WebRuleSet) ||
+									within(org.eclipse.jdt.internal.compiler..*) ||
+									within(org.apache.jasper.tagplugins.jstl.core.Import) ||
+									within(org.apache.jasper.xmlparser.XMLChar) ||
+									within(org.apache.jasper.xmlparser.EncodingMap);
     
     /*
      * For managing taint at the String level
@@ -810,7 +816,7 @@ public aspect GeneralTracker {
     /*
      * BEFORE JAVA CALL
      */
-    before(): call(* java..*.*(..)) && !within(aspects.*) && !cflow(myAdvice()) {
+    public static void beforeJavaCall(JoinPoint tjp) {
 //		System.out.println(">>>startJavaCall");
     	TaintData.getTaintData().startCall();
     	
@@ -819,7 +825,7 @@ public aspect GeneralTracker {
     	
     	if (scan) {
     		TaintUtil.StackPath location = null;
-            Object[] args = thisJoinPoint.getArgs();
+            Object[] args = tjp.getArgs();
             
             	/*
             	 *  search through args. Look for taint, and as it is found
@@ -836,15 +842,15 @@ public aspect GeneralTracker {
             		if (TaintData.getTaintData().isTainted(args[i])) {
 //            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
             			if (location == null)
-            				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+            				location = TaintUtil.getStackTracePath(tjp.getSignature());
             			taintedArgs.add(args[i]);
-            			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
+            			Field javaObjField = TaintData.getTaintData().getJavaObjectField(tjp.getTarget());
             			if (javaObjField == null)
             				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i]);
             			else
             				TaintLogger.getTaintLogger().logJavaInput(location, "JAVACALLSTRINGARG", args[i], javaObjField);
-//        				System.out.println("TAINTING JAVA OBJECT " + thisJoinPoint.getTarget());
-            			TaintData.getTaintData().taintJavaObject(thisJoinPoint.getTarget());
+//        				System.out.println("TAINTING JAVA OBJECT " + tjp.getTarget());
+            			TaintData.getTaintData().taintJavaObject(tjp.getTarget());
 //            			TaintLogger.getTaintLogger().log("SETTAINT CURRENT STRINGARG " + args[i].toString() + " AT " + location);
             		}
             	}
@@ -852,17 +858,17 @@ public aspect GeneralTracker {
             		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
             		if (objTaint != null && objTaint.size() > 0) {
             			if (location == null)
-            				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+            				location = TaintUtil.getStackTracePath(tjp.getSignature());
             			/*
             			 * TODO: add to taintedArgs here as well
             			 */
-            			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
+            			Field javaObjField = TaintData.getTaintData().getJavaObjectField(tjp.getTarget());
             			if (javaObjField == null)
             				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLOBJECTARG", args[i], objTaint);
             			else
             				TaintLogger.getTaintLogger().logJavaInput(location, "JAVACALLOBJECTARG", args[i], objTaint, javaObjField);
-//        				System.out.println("TAINTING JAVA OBJECT " + thisJoinPoint.getTarget());
-            			TaintData.getTaintData().taintJavaObject(thisJoinPoint.getTarget());
+//        				System.out.println("TAINTING JAVA OBJECT " + tjp.getTarget());
+            			TaintData.getTaintData().taintJavaObject(tjp.getTarget());
 //            			TaintLogger.getTaintLogger().log("SETTAINT CURRENT OBJARG " + args[i].toString() + " AT " + location);
             		}
             	}
@@ -870,10 +876,14 @@ public aspect GeneralTracker {
     	}
     }
     
+    before(): call(* java..*.*(..)) && !within(aspects.*) && !cflow(myAdvice()) && !tooBigErrorExclude() {
+    	beforeJavaCall(thisJoinPoint);
+    }
+    
     /*
      * BEFORE JAVA CONSTRUCTOR CALL
      */
-    before(): call(java..*.new(..)) && !within(aspects.*) && !cflow(myAdvice()) {
+    public static void beforeJavaConsCall(JoinPoint tjp) {
 //		System.out.println(">>>startJavaConsCall");
     	TaintData.getTaintData().startCall();
     	
@@ -882,7 +892,7 @@ public aspect GeneralTracker {
     	
     	if (scan) {
     		TaintUtil.StackPath location = null;
-            Object[] args = thisJoinPoint.getArgs();
+            Object[] args = tjp.getArgs();
             
             	/*
             	 *  search through args. Look for taint, and as it is found
@@ -899,7 +909,7 @@ public aspect GeneralTracker {
             		if (TaintData.getTaintData().isTainted(args[i])) {
 //            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
             			if (location == null)
-            				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+            				location = TaintUtil.getStackTracePath(tjp.getSignature());
             			taintedArgs.add(args[i]);
         				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i]);
 //            			TaintLogger.getTaintLogger().log("SETTAINT CURRENT STRINGARG " + args[i].toString() + " AT " + location);
@@ -909,7 +919,7 @@ public aspect GeneralTracker {
             		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
             		if (objTaint != null && objTaint.size() > 0) {
             			if (location == null)
-            				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+            				location = TaintUtil.getStackTracePath(tjp.getSignature());
             			/*
             			 * TODO: add to taintedArgs here as well
             			 */
@@ -921,17 +931,21 @@ public aspect GeneralTracker {
     	}
     }
     
+    before(): call(java..*.new(..)) && !within(aspects.*) && !cflow(myAdvice()) && !tooBigErrorExclude() {
+    	beforeJavaConsCall(thisJoinPoint);
+    }
+    
     /*
      * AFTER JAVA METHOD CALL
      */
-    after() returning (Object ret): call(* java..*.*(..)) && !cflow(myAdvice()) {
+    public static void afterJavaCall(JoinPoint tjp, Object ret) {
 		TaintUtil.StackPath location = null;
-//    	System.out.println("after call: " + TaintUtil.getStackTracePath((MethodSignature)thisJoinPoint.getSignature()));
+//    	System.out.println("after call: " + TaintUtil.getStackTracePath((MethodSignature)tjp.getSignature()));
 
-//    	System.out.println("CHECK TAINT ON " + thisJoinPoint.getTarget() + " " + TaintData.getTaintData().isTaintedJavaObject(thisJoinPoint.getTarget()));
+//    	System.out.println("CHECK TAINT ON " + tjp.getTarget() + " " + TaintData.getTaintData().isTaintedJavaObject(tjp.getTarget()));
     	
-    	if (TaintData.getTaintData().isTaintedJavaObject(thisJoinPoint.getTarget())) {
-	    	Object[] args = thisJoinPoint.getArgs();
+    	if (TaintData.getTaintData().isTaintedJavaObject(tjp.getTarget())) {
+	    	Object[] args = tjp.getArgs();
 	        
 	        	/*
 	        	 *  search through args. Look for taint, and as it is found
@@ -946,7 +960,7 @@ public aspect GeneralTracker {
 	        		if (TaintData.getTaintData().isTainted(args[i])) {
 	//            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
 	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+	        				location = TaintUtil.getStackTracePath(tjp.getSignature());
 	        			TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLPOSTARG", args[i]);
 //	        			System.out.println("SETTAINT JAVA CURRENT STRINGPOSTARG");
 	        			TaintData.getTaintData().setCallerTaint();
@@ -957,7 +971,7 @@ public aspect GeneralTracker {
 	        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
 	        		if (objTaint != null && objTaint.size() > 0) {
 	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+	        				location = TaintUtil.getStackTracePath(tjp.getSignature());
 	        			/*
 	        			 * TODO: add to taintedArgs here as well
 	        			 */
@@ -973,9 +987,9 @@ public aspect GeneralTracker {
 	    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
 	    		if (TaintData.getTaintData().isTainted(ret)) {
 	    			if (location == null)
-	    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+	    				location = TaintUtil.getStackTracePath(tjp.getSignature());
 	    			/* TODO: Read fuzzy prop */
-	    			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
+	    			Field javaObjField = TaintData.getTaintData().getJavaObjectField(tjp.getTarget());
         			if (javaObjField == null)
         				TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURN", ret);
         			else
@@ -989,11 +1003,11 @@ public aspect GeneralTracker {
 				IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
 				if (objTaint.size() > 0) {
 					if (location == null)
-	    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+	    				location = TaintUtil.getStackTracePath(tjp.getSignature());
 					/*
 					 * TODO: fuzzy propagate here as well
 					 */
-					Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
+					Field javaObjField = TaintData.getTaintData().getJavaObjectField(tjp.getTarget());
         			if (javaObjField == null)
         				TaintLogger.getTaintLogger().logReturningObject(location, "JAVACALLOBJECTRETURN", ret, objTaint);
         			else
@@ -1006,19 +1020,22 @@ public aspect GeneralTracker {
     	}
     }
     
+    after() returning (Object ret): call(* java..*.*(..)) && !cflow(myAdvice()) && !tooBigErrorExclude() {
+    	afterJavaCall(thisJoinPoint, ret);
+    }
+    
     /*
      * AFTER JAVA CONSTRUCTOR CALL
      */
-    after(Object ret) returning: this(ret) && (call(java..*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) {
-
-//    	System.out.println("after call: " + TaintUtil.getStackTracePath(thisJoinPoint.getSignature()));
+    public static void afterJavaConsCall(JoinPoint tjp, Object ret) {
+//    	System.out.println("after call: " + TaintUtil.getStackTracePath(tjp.getSignature()));
 		
 		boolean scan = TaintData.getTaintData().checkCurrentTaint();
 //    	System.out.println("CHECK TAINT IS: " + scan);
     	
     	if (scan) {
 	    	TaintUtil.StackPath location = null;
-	        Object[] args = thisJoinPoint.getArgs();
+	        Object[] args = tjp.getArgs();
 	        
 	        	/*
 	        	 *  search through args. Look for taint, and as it is found
@@ -1033,8 +1050,8 @@ public aspect GeneralTracker {
 	        		if (TaintData.getTaintData().isTainted(args[i])) {
 	//        	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
 	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-            			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
+	        				location = TaintUtil.getStackTracePath(tjp.getSignature());
+            			Field javaObjField = TaintData.getTaintData().getJavaObjectField(tjp.getTarget());
             			if (javaObjField == null)
             				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLPOSTARG", args[i]);
             			else
@@ -1049,11 +1066,11 @@ public aspect GeneralTracker {
 	        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
 	        		if (objTaint != null && objTaint.size() > 0) {
 	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+	        				location = TaintUtil.getStackTracePath(tjp.getSignature());
 	        			/*
 	        			 * TODO: add to taintedArgs here as well
 	        			 */
-	        			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
+	        			Field javaObjField = TaintData.getTaintData().getJavaObjectField(tjp.getTarget());
             			if (javaObjField == null)
             				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLPOSTOBJECTARG", args[i], objTaint);
             			else
@@ -1069,7 +1086,7 @@ public aspect GeneralTracker {
 	    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
 	    		if (TaintData.getTaintData().isTainted(ret)) {
 	    			if (location == null)
-	    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+	    				location = TaintUtil.getStackTracePath(tjp.getSignature());
 	    			TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURNCONSTRUCT", ret);
 //        			System.out.println("SETTAINT JAVA CURRENT RET");
         			TaintData.getTaintData().setCallerTaint();
@@ -1080,7 +1097,7 @@ public aspect GeneralTracker {
 				IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
 				if (objTaint.size() > 0) {
 					if (location == null)
-	    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+	    				location = TaintUtil.getStackTracePath(tjp.getSignature());
 					/*
 					 * TODO: fuzzy propagate here as well
 					 */
@@ -1091,6 +1108,10 @@ public aspect GeneralTracker {
 				}
 			}
     	}
+    }
+    
+    after(Object ret) returning: this(ret) && (call(java..*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) && !tooBigErrorExclude() {
+    	afterJavaConsCall(thisJoinPoint, ret);
     }
 
     /*
@@ -1104,7 +1125,7 @@ public aspect GeneralTracker {
     /*
      * BEFORE EXECUTION
      */
-    before(): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
+    public static void beforeExecution(JoinPoint tjp) {
 //		System.out.println(">>>startCall");
     	TaintData.getTaintData().startCall();
     	
@@ -1115,7 +1136,7 @@ public aspect GeneralTracker {
     	
     	if (scan) {
     		TaintUtil.StackPath location = null;
-            Object[] args = thisJoinPoint.getArgs();
+            Object[] args = tjp.getArgs();
             
             	/*
             	 *  search through args. Look for taint, and as it is found
@@ -1156,10 +1177,14 @@ public aspect GeneralTracker {
     	}
     }
     
+    before(): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
+    	beforeExecution(thisJoinPoint);
+    }
+    
     /*
      * AFTER METHOD EXECUTION
      */
-    after() returning (Object ret): execution(* *.*(..)) && !cflow(myAdvice()) {
+    public static void afterExecution(JoinPoint tjp, Object ret) {
     	boolean scan = TaintData.getTaintData().checkCurrentTaint();
 
 //    	System.out.println("after exec: " + TaintUtil.getStackTracePath());
@@ -1167,7 +1192,7 @@ public aspect GeneralTracker {
     	if (scan) {
     		TaintUtil.StackPath location = null;
             
-        	Object[] args = thisJoinPoint.getArgs();
+        	Object[] args = tjp.getArgs();
             
             	/*
             	 *  search through args. Look for taint, and as it is found
@@ -1230,17 +1255,21 @@ public aspect GeneralTracker {
     	}
     }
     
+    after() returning (Object ret): execution(* *.*(..)) && !cflow(myAdvice()) {
+    	afterExecution(thisJoinPoint, ret);
+    }
+    
     /*
      * AFTER CONSTRUCTOR EXECUTION
      */
-    after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) {
+    public static void afterConsExecution(JoinPoint tjp, Object ret) {
 		boolean scan = TaintData.getTaintData().checkCurrentTaint();
 
 //    	System.out.println("after exec: " + TaintUtil.getStackTracePath());
 //    	System.out.println("CHECK TAINT IS: " + scan);
     	if (scan) {
 	    	TaintUtil.StackPath location = null;
-	        Object[] args = thisJoinPoint.getArgs();
+	        Object[] args = tjp.getArgs();
 	        
 	        	/*
 	        	 *  search through args. Look for taint, and as it is found
@@ -1300,6 +1329,10 @@ public aspect GeneralTracker {
 				}
 			}
     	}
+    }
+    
+    after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) {
+    	afterConsExecution(thisJoinPoint, ret);
     }
 
     /*
