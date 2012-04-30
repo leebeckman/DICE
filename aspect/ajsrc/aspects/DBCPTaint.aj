@@ -15,7 +15,7 @@ public aspect DBCPTaint {
     	execution(public * *ResultSet.getString(..)));
     
     pointcut resultSetCreation():
-    	execution(public *ResultSet *.*(..));
+    	call(public *ResultSet *.*(..));
 //    	(execution(public * org.apache.commons.dbcp..*PreparedStatement.executeQuery(..)) ||
 
     after() returning (Object ret): resultSetAccess() {
@@ -62,6 +62,7 @@ public aspect DBCPTaint {
 			if (!skip) {
 				TaintData.getTaintData().mapDataToSource(rs, metaData);
 				TaintData.getTaintData().mapResultSetToSource(rs, metaData);
+				TaintData.getTaintData().taintJavaObject(rs);
 			}
     	} catch (SQLException e) {
     		TaintLogger.getTaintLogger().log("FAIL GETTING METADATA FROM RESULTSET: " + e.getMessage());
@@ -69,11 +70,11 @@ public aspect DBCPTaint {
     }
     
     // For testing
-    after() returning (Object ret): execution(* simple.TaintSource.getTaintedData(..)) {
-    	TaintData.getTaintData().mapDataToSource(ret, "TAINTSOURCE");
-//    	System.out.println("SET CURRENT TAINT DBCP");
-    	TaintData.getTaintData().setCurrentTaint();
-    }
+//    after() returning (Object ret): execution(* simple.TaintSource.getTaintedData(..)) {
+//    	TaintData.getTaintData().mapDataToSource(ret, "TAINTSOURCE");
+////    	System.out.println("SET CURRENT TAINT DBCP");
+//    	TaintData.getTaintData().setCurrentTaint();
+//    }
     
 }
 

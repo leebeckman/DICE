@@ -17,8 +17,13 @@
         <delete dir="${aspect.dir}/build"/>
         <mkdir dir="${aspect.dir}/build"/>
 
+        <!--
         <property name="webapp.name" value="TestWebApp" />
         <unwar src="${dice.dir}/srcwars/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
+        -->
+
+        <property name="webapp.name" value="jgossip" />
+        <unwar src="${dice.dir}/jgossip/dist/default/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
         <property name="webapp.path" value="${aspect.dir}/build/${webapp.name}" />
 
         <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">

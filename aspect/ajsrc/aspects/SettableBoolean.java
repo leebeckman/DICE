@@ -5,11 +5,9 @@ public class SettableBoolean {
 	private boolean truth;
 	private int count;
 	
-	static int counter = 0;
-	
-	public SettableBoolean(boolean truth) {
+	public SettableBoolean(boolean truth, int base) {
 		this.truth = truth;
-		this.count = SettableBoolean.counter++;
+		this.count = base + 1;
 	}
 	
 	public boolean getTruth() {

@@ -24,8 +24,42 @@ public class TaintData {
 	// This is fine for now as we're only concerned with data read from the database.
 	private WeakIdentityHashMap<Object, SizedSources> dataToSourcesMap;
 	
+	/* Since we can't see what happens inside of Java objects, we mark them as tainted when taint flows
+	 * into them. When data is read from such an object we see if it's tainted.
+	 */
+	
 	private WeakIdentityHashMap<Object, Object> taintedJavaObjects;
 	private WeakIdentityHashMap<Object, Field> fieldJavaObjects;
+	
+	/* Dangerous heuristic here. Doing too much scanning for static reads, so will only scan
+	 * if the static field has received tainted data. The problem is if a subobject of the field
+	 * is tainted without accessing this field itself. Then the scan will not happen and miss the taint.
+	 * Hopefully this is a rare thing.
+	 * 
+	 * Say the field is an array list. Only want to scan if that list has had taint put in it.
+	 * The arraylist itself does not matter. Scan only if the arraylist has been modified, accessed?
+	 * 
+	 * field = emptylist
+	 * 
+	 * field.add(taint)
+	 * field.get()
+	 * 
+	 * first the first, it will be gotten in the presence of taint, so we mark the field as tainted.
+	 * for the second, it is marked, so we scan
+	 * 
+	 * if the original add was not there, the field is not tainted, and get is not in the presence
+	 * of taint, so no scan needed.
+	 * 
+	 * If it's a get in the presence of taint, scan anyways
+	 * 
+	 * For a set, scan for taint.
+	 * 
+	 * this will involve a set, followed by two gets. Only want to scan when the list has been modified
+	 * Could also be an array. Will not know when it is modified.
+	 * 
+	 * 
+	 */
+	private WeakIdentityHashMap<Field, Object> taintedStaticFields; 
 	
 	// TODO: Probably need to change this to a WeakIdentityHashMap
 	
@@ -35,6 +69,7 @@ public class TaintData {
 		taintStacks = new ConcurrentHashMap<Long, Stack<SettableBoolean>>();
 		taintedJavaObjects = new WeakIdentityHashMap<Object, Object>();
 		fieldJavaObjects = new WeakIdentityHashMap<Object, Field>();
+		taintedStaticFields = new WeakIdentityHashMap<Field, Object>();
 	}
 	
 	public static TaintData getTaintData() {
@@ -43,6 +78,14 @@ public class TaintData {
 		}
 		
 		return self;
+	}
+	
+	public void markStaticFieldTainted(Field field) {
+		taintedStaticFields.put(field, null);
+	}
+	
+	public boolean checkStaticFieldTainted(Field field) {
+		return taintedStaticFields.containsKey(field);
 	}
 	
 	/*
@@ -86,7 +129,10 @@ public class TaintData {
 		if (!taintStacks.containsKey(threadId)) {
 			taintStacks.put(threadId, new Stack<SettableBoolean>());
 		}
-		taintStacks.get(threadId).push(new SettableBoolean(false));
+		if (taintStacks.get(threadId).size() > 0)
+			taintStacks.get(threadId).push(new SettableBoolean(false, taintStacks.get(threadId).peek().getCount()));
+		else
+			taintStacks.get(threadId).push(new SettableBoolean(false, -1));
 //		System.out.println("TOP IS: " + taintStack.get(threadId).peek());
 	}
 	
@@ -158,6 +204,39 @@ public class TaintData {
 			}
 			taintStacks.get(threadId).push(top);
 			return check;
+		}
+	}
+	
+	public int getCurrentCount() {
+		Long threadId = Thread.currentThread().getId();
+		if (!taintStacks.containsKey(threadId)) {
+			TaintLogger.getTaintLogger().log("taintAccessed failed");
+			return -1;
+		}
+		else {
+			if (taintStacks.get(threadId).size() > 0) {
+//				System.out.println("getting truth at " + taintStacks.get(threadId).peek().getCount());
+				return taintStacks.get(threadId).peek().getCount();
+			}
+			return -1;
+		}
+	}
+	
+	public int getCallerCount() {
+		Long threadId = Thread.currentThread().getId();
+		if (!taintStacks.containsKey(threadId)) {
+			TaintLogger.getTaintLogger().log("taintAccessed failed");
+			return -1;
+		}
+		else {
+			SettableBoolean top = taintStacks.get(threadId).pop();
+			int count = -1;
+			if (taintStacks.get(threadId).size() > 0) {
+//				System.out.println("checkCallerTaint");
+				count = taintStacks.get(threadId).peek().getCount();
+			}
+			taintStacks.get(threadId).push(top);
+			return count;
 		}
 	}
 	

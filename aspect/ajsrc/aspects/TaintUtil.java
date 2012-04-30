@@ -8,6 +8,28 @@ import org.aspectj.lang.reflect.MethodSignature;
 
 public class TaintUtil {
 	
+	public static ArrayList<Integer> dcounter = null; 
+	
+	public static void dinc(int index) {
+		if (dcounter == null) {
+			dcounter = new ArrayList<Integer>();
+			for (int i = 0; i < 14; i++) {
+				dcounter.add(new Integer(0));
+			}
+		}
+		
+		dcounter.set(index, dcounter.get(index) + 1);
+	}
+	
+	public static String dprint() {
+		String ret = "";
+		for (int i = 0; i < 14; i++) {
+			ret = (ret + "i: " + i + " count: " + dcounter.get(i) + "\n");
+			dcounter.add(new Integer(0));
+		}
+		return ret;
+	}
+	
 	public static int getLevenshteinDistance(String s, String t) {
 		if (s == null || t == null) {
 			throw new IllegalArgumentException("Strings must not be null");
@@ -141,11 +163,11 @@ public class TaintUtil {
 		/*
 		 * Debugging, log additional stack levels
 		 */
-		startIndex = goodIndex;
-		while (startIndex < stack.length) {
-			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
-			startIndex++;
-		}
+//		startIndex = goodIndex;
+//		while (startIndex < stack.length) {
+//			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
+//			startIndex++;
+//		}
 		
 		return result; 
     }
@@ -185,16 +207,18 @@ public class TaintUtil {
     		this.deeperStack.add(srcClass + ":" + srcMethod);
     	}
     	
+    	/* Debug Method */
     	public String getDeeperString(int levels) {
-    		String result = "";
-    		for (int i = 0; i < levels; i++) {
-    			result = result + this.deeperStack.get(i);
-    			if (i >= this.deeperStack.size() - 1)
-    				break;
-    			if (i != levels - 1)
-    				result = result + " -- \n";
-    		}
-    		return result;
+    		return "";
+//    		String result = "";
+//    		for (int i = 0; i < levels; i++) {
+//    			result = result + this.deeperStack.get(i);
+//    			if (i >= this.deeperStack.size() - 1)
+//    				break;
+//    			if (i != levels - 1)
+//    				result = result + " -- \n";
+//    		}
+//    		return result;
     	}
     }
 	
