@@ -60,6 +60,7 @@ public class TaintData {
 	 * 
 	 */
 	private WeakIdentityHashMap<Field, Object> taintedStaticFields; 
+	private WeakIdentityHashMap<Object, Object> taintedObjects;
 	
 	// TODO: Probably need to change this to a WeakIdentityHashMap
 	
@@ -70,6 +71,7 @@ public class TaintData {
 		taintedJavaObjects = new WeakIdentityHashMap<Object, Object>();
 		fieldJavaObjects = new WeakIdentityHashMap<Object, Field>();
 		taintedStaticFields = new WeakIdentityHashMap<Field, Object>();
+		taintedObjects = new WeakIdentityHashMap<Object, Object>();
 	}
 	
 	public static TaintData getTaintData() {
@@ -86,6 +88,16 @@ public class TaintData {
 	
 	public boolean checkStaticFieldTainted(Field field) {
 		return taintedStaticFields.containsKey(field);
+	}
+	
+	//Hack
+	public void markObjectTainted(Object obj) {
+		taintedObjects.put(obj, null);
+	}
+	
+	//Hack
+	public boolean checkObjectTainted(Object obj) {
+		return taintedObjects.containsKey(obj);
 	}
 	
 	/*
@@ -276,11 +288,17 @@ public class TaintData {
 //			size = ((String)data).length();
 			size = 0;
 //			TaintLogger.getTaintLogger().log("Mapping: " + data + " code: " + data.hashCode());
-			dataToSourcesMap.put(data, new SizedSources(size, source));
+			//data may already be mapped to other result set sources.
+			//data should be mapped to a single source...
+			//TODO: careful of this heuristic. Using it to prevent excessive mapping due to ResultSet delegation
+			if (!dataToSourcesMap.containsKey(data)) {
+				dataToSourcesMap.put(data, new SizedSources(size, source));
+			}
 		}
 	}
 	
 	public void propagateSources(Object sourceData, Object targetData) {
+//		System.out.println("Propagate from " + sourceData.hashCode() + " to " + targetData.hashCode());
 		if (dataToSourcesMap.get(targetData) == null) {
 			dataToSourcesMap.put(targetData, new SizedSources(0, null));
 		}

@@ -163,11 +163,11 @@ public class TaintUtil {
 		/*
 		 * Debugging, log additional stack levels
 		 */
-//		startIndex = goodIndex;
-//		while (startIndex < stack.length) {
-//			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
-//			startIndex++;
-//		}
+		startIndex = goodIndex;
+		while (startIndex < stack.length && startIndex < 10) {
+			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
+			startIndex++;
+		}
 		
 		return result; 
     }
@@ -209,16 +209,16 @@ public class TaintUtil {
     	
     	/* Debug Method */
     	public String getDeeperString(int levels) {
-    		return "";
-//    		String result = "";
-//    		for (int i = 0; i < levels; i++) {
-//    			result = result + this.deeperStack.get(i);
-//    			if (i >= this.deeperStack.size() - 1)
-//    				break;
-//    			if (i != levels - 1)
-//    				result = result + " -- \n";
-//    		}
-//    		return result;
+//    		return "";
+    		String result = "";
+    		for (int i = 0; i < levels; i++) {
+    			result = result + this.deeperStack.get(i);
+    			if (i >= this.deeperStack.size() - 1)
+    				break;
+    			if (i != levels - 1)
+    				result = result + " -- \n";
+    		}
+    		return result;
     	}
     }
 	

@@ -128,7 +128,7 @@ public class TaintLogger {
 		
 		addLocationElement(logRoot, location, adviceType);
 		
-		addObjectElement(logRoot, "sourceObject", source, true);
+		addObjectElement(logRoot, "taintedObject", source, true);
 		addObjectElement(logRoot, "targetObject", target, true);
 		
 		Document logDoc = new Document(logRoot);

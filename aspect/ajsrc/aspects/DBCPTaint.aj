@@ -41,6 +41,8 @@ public aspect DBCPTaint {
 			}
     		if (!skip) {
 	    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
+
+//    			System.out.println("Tainting: " + TaintData.getTaintData().getTaintHashCode(ret));
 	        	TaintData.getTaintData().setCurrentTaint();
     		}
     	}
