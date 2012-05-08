@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
@@ -250,14 +251,14 @@ public class TaintLogger {
 	 * 
 	 * </taintlog>
 	 */
-	public void logCallingObjectArg(StackPath location, String adviceType, Object taintSource, IdentityHashMap<Object, ArrayList<String>> subTaintSources) {
+	public void logCallingObjectArg(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
 		Element logRoot = getLogRoot("CALLING");
 //		System.out.println(location + " --- " + taintSource + " --- " + subTaintSources);
 		
 		addLocationElement(logRoot, location, adviceType);
 
 		Element baseObject = addObjectElement(logRoot, "taintedObject", taintSource, true);
-		for (Object taintedObject : subTaintSources.keySet()) {
+		for (Object taintedObject : subTaintSources) {
 			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
 		}
 		
@@ -288,13 +289,13 @@ public class TaintLogger {
 		log(xmlOut.outputString(logDoc));
 	}
 	
-	public void logJavaFieldSet(StackPath location, String adviceType, Object taintSource, IdentityHashMap<Object, ArrayList<String>> subTaintSources, Field targetField) {
+	public void logJavaFieldSet(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
 		Element logRoot = getLogRoot("JAVAFIELDSET");
 		
 		addLocationElement(logRoot, location, adviceType);
 
 		Element baseObject = addObjectElement(logRoot, "taintedObject", taintSource, true);
-		for (Object taintedObject : subTaintSources.keySet()) {
+		for (Object taintedObject : subTaintSources) {
 			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
 		}
 		addFieldElement(logRoot, targetField);
@@ -315,13 +316,13 @@ public class TaintLogger {
 		log(xmlOut.outputString(logDoc));
 	}
 	
-	public void logJavaFieldGet(StackPath location, String adviceType, Object taintSource, IdentityHashMap<Object, ArrayList<String>> subTaintSources, Field targetField) {
+	public void logJavaFieldGet(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
 		Element logRoot = getLogRoot("JAVAFIELDGET");
 		
 		addLocationElement(logRoot, location, adviceType);
 
 		Element baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
-		for (Object taintedObject : subTaintSources.keySet()) {
+		for (Object taintedObject : subTaintSources) {
 			addObjectElement(baseObject, "subTaintedObject", taintedObject);
 		}
 		addFieldElement(logRoot, targetField);
@@ -347,13 +348,13 @@ public class TaintLogger {
 	 * 
 	 * </taintlog>
 	 */
-	public void logReturningObject(StackPath location, String adviceType, Object taintSource, IdentityHashMap<Object, ArrayList<String>> subTaintSources) {
+	public void logReturningObject(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
 		Element logRoot = getLogRoot("RETURNING");
 		
 		addLocationElement(logRoot, location, adviceType);
 
 		Element baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
-		for (Object taintedObject : subTaintSources.keySet()) {
+		for (Object taintedObject : subTaintSources) {
 			addObjectElement(baseObject, "subTaintedObject", taintedObject);
 		}
 		
@@ -383,11 +384,41 @@ public class TaintLogger {
 		log(xmlOut.outputString(logDoc));
 	}
 	
+	public void logFieldSet(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
+		Element logRoot = getLogRoot("FIELDSET");
+		
+		addLocationElement(logRoot, location, adviceType);
+		
+		Element baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
+		for (Object taintedObject : subTaintSources) {
+			addObjectElement(baseObject, "subTaintedObject", taintedObject);
+		}
+		addFieldElement(logRoot, targetField);
+		
+		Document logDoc = new Document(logRoot);
+		log(xmlOut.outputString(logDoc));
+	}
+	
 	public void logFieldGet(StackPath location, String adviceType, Object value, Field targetField) {
 		Element logRoot = getLogRoot("FIELDGET");
 		
 		addLocationElement(logRoot, location, adviceType);
 		addObjectElement(logRoot, "taintedObject", value, true);
+		addFieldElement(logRoot, targetField);
+		
+		Document logDoc = new Document(logRoot);
+		log(xmlOut.outputString(logDoc));
+	}
+	
+	public void logFieldGet(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
+		Element logRoot = getLogRoot("FIELDGET");
+		
+		addLocationElement(logRoot, location, adviceType);
+		
+		Element baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
+		for (Object taintedObject : subTaintSources) {
+			addObjectElement(baseObject, "subTaintedObject", taintedObject);
+		}
 		addFieldElement(logRoot, targetField);
 		
 		Document logDoc = new Document(logRoot);

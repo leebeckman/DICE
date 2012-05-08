@@ -43,7 +43,6 @@ public aspect DBCPTaint {
 	    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
 
 //    			System.out.println("Tainting: " + TaintData.getTaintData().getTaintHashCode(ret));
-	        	TaintData.getTaintData().setCurrentTaint();
     		}
     	}
     }
@@ -64,7 +63,6 @@ public aspect DBCPTaint {
 			if (!skip) {
 				TaintData.getTaintData().mapDataToSource(rs, metaData);
 				TaintData.getTaintData().mapResultSetToSource(rs, metaData);
-				TaintData.getTaintData().taintJavaObject(rs);
 			}
     	} catch (SQLException e) {
     		TaintLogger.getTaintLogger().log("FAIL GETTING METADATA FROM RESULTSET: " + e.getMessage());

@@ -1,11 +1,14 @@
 package aspects;
 
 import java.lang.reflect.Field;
-import java.nio.charset.Charset;
-import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.IdentityHashMap;
-import java.util.SortedMap;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.aspectj.lang.reflect.FieldSignature;
 
@@ -846,408 +849,179 @@ public aspect GeneralTracker {
     /*
      * BEFORE JAVA CALL
      */
-    //TODO: Could speed up stack get by using start/stop call to keep own stack trace
     before(): call(* java..*.*(..)) && !within(aspects.*) && !cflow(myAdvice()) && !tooBigErrorExclude() {
-    	TaintData.getTaintData().startCall();
-    	
-    	boolean scan = TaintData.getTaintData().checkCallerTaint();
-//    	StackPath loc = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-//    	if (loc.toString().contains("add"))
-//    		System.out.println("Java Caller Check Taint: " + scan + " at: " + loc);
-    	
-//    	if (loc.getDeeperString(10).contains("ResultImpl")) {
-//    		TaintLogger.getTaintLogger().log(">>>startJavaCall " + loc + " scanning: " + scan);
-//    	} 
-    	if (scan) {
-    		TaintUtil.StackPath location = null;
-            Object[] args = thisJoinPoint.getArgs();
-            
-            	/*
-            	 *  search through args. Look for taint, and as it is found
-            	 *  push it down in the stack.
-            	 *  
-            	 *  Everything is discarded in the end.
-            	 */
-            
-            // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
-            ArrayList<Object> taintedArgs = new ArrayList<Object>();
-            for (int i = 0; i < args.length; i++) {
-            	//TODO: Deal with the fact that I added ResultSet here
-            	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-            		if (TaintData.getTaintData().isTainted(args[i])) {
-//            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
-            			if (location == null)
-            				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-            			taintedArgs.add(args[i]);
-            			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
-            			if (javaObjField == null)
-            				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i]);
-            			else
-            				TaintLogger.getTaintLogger().logJavaFieldSet(location, "JAVACALLSTRINGARG", args[i], javaObjField);
-//        				System.out.println("TAINTING JAVA OBJECT " + thisJoinPoint.getTarget());
-            			TaintData.getTaintData().taintJavaObject(thisJoinPoint.getTarget());
-//            			TaintLogger.getTaintLogger().log("SETTAINT CURRENT STRINGARG " + args[i].toString() + " AT " + location);
-            		}
-            	}
-            	else if (args[i] != null && args[i] instanceof Object) {
-//            		TaintUtil.dinc(1);
-            		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-//            		if (loc.getDeeperString(10).contains("ResultImpl")) {
-//                		TaintLogger.getTaintLogger().log(">>>Scanned for java obj Taint: " + objTaint);
-//                		if (args[i] instanceof SortedMap) {
-//                			SortedMap smap = (SortedMap) args[i];
-//                			TaintLogger.getTaintLogger().log(">>>smap size for java obj Taint: " + smap.size());
-//                			for (Object key : smap.keySet()) {
-//                				TaintLogger.getTaintLogger().log("key: " + key + " - " + TaintData.getTaintData().isTainted(key) + " value: " + smap.get(key) + " - " + TaintData.getTaintData().isTainted(smap.get(key)));
-//                			}
-//                		}
-//                	} 
-            		if (objTaint != null && objTaint.size() > 0) {
-            			if (location == null)
-            				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-            			/*
-            			 * TODO: add to taintedArgs here as well
-            			 */
-            			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
-            			if (javaObjField == null)
-            				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLOBJECTARG", args[i], objTaint);
-            			else
-            				TaintLogger.getTaintLogger().logJavaFieldSet(location, "JAVACALLOBJECTARG", args[i], objTaint, javaObjField);
-//        				System.out.println("TAINTING JAVA OBJECT " + thisJoinPoint.getTarget());
-            			//TODO: May be an issue later, but not tainting java objects on construction. Java objects are tainted so that we only scan returns from tainted objects.
-            			TaintData.getTaintData().taintJavaObject(thisJoinPoint.getTarget());
-//            			TaintLogger.getTaintLogger().log("SETTAINT CURRENT OBJARG " + args[i].toString() + " AT " + location);
-            		}
-            	}
-            }
-    	}
-//    	if (loc.getDeeperString(10).contains("ResultImpl")) {
-//    		TaintLogger.getTaintLogger().log(">>>DONEstartJavaCall " + loc + " scanning: " + scan);
-//    	} 
+		TaintUtil.StackPath location = null;
+        Object[] args = thisJoinPoint.getArgs();
+        
+        // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
+        ArrayList<Object> taintedArgs = new ArrayList<Object>();
+        for (int i = 0; i < args.length; i++) {
+        	//TODO: Deal with the fact that I added ResultSet here
+        	if (ReferenceMaster.isPrimaryTainted(args[i])) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+    			taintedArgs.add(args[i]);
+//    			if (javaObjField == null)
+    				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i]);
+//    			else
+//    				TaintLogger.getTaintLogger().logJavaFieldSet(location, "JAVACALLSTRINGARG", args[i], javaObjField);
+        	}
+        	else {
+        		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
+        		if (objTaint != null && objTaint.size() > 0) {
+        			if (location == null)
+        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+        			/*
+        			 * TODO: add to taintedArgs here as well
+        			 */
+//        			if (javaObjField == null)
+        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLOBJECTARG", args[i], objTaint);
+//        			else
+//        				TaintLogger.getTaintLogger().logJavaFieldSet(location, "JAVACALLOBJECTARG", args[i], objTaint, javaObjField);
+        		}
+        	}
+        }
     }
     
     /*
      * BEFORE JAVA CONSTRUCTOR CALL
      */
-    
     before(): call(java..*.new(..)) && !within(aspects.*) && !cflow(myAdvice()) && !tooBigErrorExclude() {
-//		System.out.println(">>>startJavaConsCall");
-//    	StackPath loc = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-//    	if (loc.getDeeperString(10).contains("DBAccess")) {
-//    		System.out.println(">>>startJavaConsCall " + loc);
-//    	}
-    	TaintData.getTaintData().startCall();
-    	
-    	boolean scan = TaintData.getTaintData().checkCallerTaint();
-//    	System.out.println("CHECK TAINT IS: " + scan);
-    	
-    	if (scan) {
-    		TaintUtil.StackPath location = null;
-            Object[] args = thisJoinPoint.getArgs();
-            
-            	/*
-            	 *  search through args. Look for taint, and as it is found
-            	 *  push it down in the stack.
-            	 *  
-            	 *  Everything is discarded in the end.
-            	 */
-            
-            // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
-            ArrayList<Object> taintedArgs = new ArrayList<Object>();
-            for (int i = 0; i < args.length; i++) {
-            	//TODO: Deal with the fact that I added ResultSet here
-            	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-            		if (TaintData.getTaintData().isTainted(args[i])) {
-//            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
-            			if (location == null)
-            				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-            			taintedArgs.add(args[i]);
-        				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i]);
-//            			TaintLogger.getTaintLogger().log("SETTAINT CURRENT STRINGARG " + args[i].toString() + " AT " + location);
-            		}
-            	}
-            	else if (args[i] != null && args[i] instanceof Object) {
-//            		TaintUtil.dinc(2);
-            		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-            		if (objTaint != null && objTaint.size() > 0) {
-            			if (location == null)
-            				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-            			/*
-            			 * TODO: add to taintedArgs here as well
-            			 */
-        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLOBJECTARG", args[i], objTaint);
-//            			TaintLogger.getTaintLogger().log("SETTAINT CURRENT OBJARG " + args[i].toString() + " AT " + location);
-            		}
-            	}
-            }
-    	}
+		TaintUtil.StackPath location = null;
+        Object[] args = thisJoinPoint.getArgs();
+        
+        // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
+        ArrayList<Object> taintedArgs = new ArrayList<Object>();
+        for (int i = 0; i < args.length; i++) {
+        	//TODO: Deal with the fact that I added ResultSet here
+        	if (ReferenceMaster.isPrimaryTainted(args[i])) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+    			taintedArgs.add(args[i]);
+				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i]);
+        	}
+        	else {
+        		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
+        		if (objTaint != null && objTaint.size() > 0) {
+        			if (location == null)
+        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+        			/*
+        			 * TODO: add to taintedArgs here as well
+        			 */
+    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLOBJECTARG", args[i], objTaint);
+        		}
+        	}
+        }
     }
     
     /*
      * AFTER JAVA METHOD CALL
      */
-    
     after() returning (Object ret): call(* java..*.*(..)) && !cflow(myAdvice()) && !tooBigErrorExclude() {
 		TaintUtil.StackPath location = null;
-//		StackPath loc = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-//    	if (loc.getDeeperString(10).contains("DBAccess")) {
-//    		System.out.println("checking after java call: " + loc);
-//    	}
-    	
-    	if (TaintData.getTaintData().isTaintedJavaObject(thisJoinPoint.getTarget())) {
-	    	Object[] args = thisJoinPoint.getArgs();
-	        
-	        	/*
-	        	 *  search through args. Look for taint, and as it is found
-	        	 *  push it down in the stack.
-	        	 *  
-	        	 *  Everything is discarded in the end.
-	        	 */
-	        
-	        for (int i = 0; i < args.length; i++) {
-	        	//TODO: Deal with the fact that I added ResultSet here
-	        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-	        		if (TaintData.getTaintData().isTainted(args[i])) {
-	//            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
-	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-	        			TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLPOSTARG", args[i]);
-//	        			System.out.println("SETTAINT JAVA CURRENT STRINGPOSTARG");
-	        			TaintData.getTaintData().setCallerTaint();
-	//            			TaintLogger.getTaintLogger().log("SETTAINT CALLER STRINGPOSTARG " + args[i].toString() + " AT " + location);
-	        		}
-	        	}
-	        	else if (args[i] != null && args[i] instanceof Object) {
-//            		TaintUtil.dinc(3);
-	        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-	        		if (objTaint != null && objTaint.size() > 0) {
-	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-	        			/*
-	        			 * TODO: add to taintedArgs here as well
-	        			 */
-	    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLPOSTOBJECTARG", args[i], objTaint);
-//	        			System.out.println("SETTAINT JAVA CURRENT OBJECTPOSTARG");
-	        			TaintData.getTaintData().setCallerTaint();
-	//            			TaintLogger.getTaintLogger().log("SETTAINT CALLER OBJPOSTARG " + args[i].toString() + " AT " + location);
-	        		}
-	        	}
-	        }
-	
-	    	//TODO: Deal with the fact that I added ResultSet here
-	    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
-	    		//TESTCODE
-//	        	if (loc.getDeeperString(10).contains("DBAccess")) {
-//	        		System.out.println("checking java ret " + ret + " at " + loc);
-//	        	}
-	        	//\TESTCODE
-	    		if (TaintData.getTaintData().isTainted(ret)) {
-	    			if (location == null)
-	    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-	    			/* TODO: Read fuzzy prop */
-	    			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
-        			if (javaObjField == null)
-        				TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURN", ret);
-        			else 
-        				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLSTRINGRETURN", ret, javaObjField);
-//	    			System.out.println("SETTAINT JAVA CURRENT RET");
-	    			TaintData.getTaintData().setCallerTaint();
-	//        			TaintLogger.getTaintLogger().log("SETTAINT CALLER RETSTRING " + ret.toString() + " AT " + location);
-	    		}
-	    	}
-	    	else if (ret != null && ret instanceof Object) {
-	    		//TESTCODE
-//	        	if (loc.getDeeperString(10).contains("DBAccess")) {
-//	        		System.out.println("checking java ret " + ret + " at " + loc);
-//	        	}
-	        	//\TESTCODE
-//        		TaintUtil.dinc(4);
-				IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
-				if (objTaint.size() > 0) {
-					if (location == null)
-	    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-					/*
-					 * TODO: fuzzy propagate here as well
-					 */
-					Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
-        			if (javaObjField == null)
-        				TaintLogger.getTaintLogger().logReturningObject(location, "JAVACALLOBJECTRETURN", ret, objTaint);
-        			else
-        				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLOBJECTRETURN", ret, objTaint, javaObjField);
-//	    			System.out.println("SETTAINT JAVA CURRENT RETOBJ");
-	    			TaintData.getTaintData().setCallerTaint();
-	//        			TaintLogger.getTaintLogger().log("SETTAINT CALLER RETOBJ " + ret.toString() + " AT " + location);
-				}
-			}
+    	Object[] args = thisJoinPoint.getArgs();
+
+    	for (int i = 0; i < args.length; i++) {
+        	//TODO: Deal with the fact that I added ResultSet here
+    		if (ReferenceMaster.isPrimaryTainted(args[i])) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+    			TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLPOSTARG", args[i]);
+        	}
+    		else {
+        		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
+        		if (objTaint != null && objTaint.size() > 0) {
+        			if (location == null)
+        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+        			/*
+        			 * TODO: add to taintedArgs here as well
+        			 */
+    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLPOSTOBJECTARG", args[i], objTaint);
+        		}
+        	}
+        }
+
+    	//TODO: Deal with the fact that I added ResultSet here
+    	if (ReferenceMaster.isPrimaryTainted(ret)) {
+			if (location == null)
+				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+			/* TODO: Read fuzzy prop */
+//			if (javaObjField == null)
+				TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURN", ret);
+//			else 
+//				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLSTRINGRETURN", ret, javaObjField);
     	}
+    	else {
+    		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(ret);
+    		if (objTaint != null && objTaint.size() > 0) {
+				if (location == null)
+    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+				/*
+				 * TODO: fuzzy propagate here as well
+				 */
+//    			if (javaObjField == null)
+    				TaintLogger.getTaintLogger().logReturningObject(location, "JAVACALLOBJECTRETURN", ret, objTaint);
+//    			else
+//    				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLOBJECTRETURN", ret, objTaint, javaObjField);
+			}
+		}
     }
     
     /*
      * AFTER JAVA CONSTRUCTOR CALL
      */
-    
     after(Object ret) returning: this(ret) && (call(java..*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) && !tooBigErrorExclude() {
-//    	System.out.println("after call: " + TaintUtil.getStackTracePath(thisJoinPoint.getSignature()));
-		
-		boolean scan = TaintData.getTaintData().checkCurrentTaint();
-//    	System.out.println("CHECK TAINT IS: " + scan);
-    	
-    	if (scan) {
 	    	TaintUtil.StackPath location = null;
 	        Object[] args = thisJoinPoint.getArgs();
 	        
-	        	/*
-	        	 *  search through args. Look for taint, and as it is found
-	        	 *  push it down in the stack.
-	        	 *  
-	        	 *  Everything is discarded in the end.
-	        	 */
-	        
-	        //TODO: Seems unlikely that args would be modified when constructing java objects
-//	        for (int i = 0; i < args.length; i++) {
-//	        	//TODO: Deal with the fact that I added ResultSet here
-//	        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-//	        		if (TaintData.getTaintData().isTainted(args[i])) {
-//	//        	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
-//	        			if (location == null)
-//	        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-//            			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
-//            			if (javaObjField == null)
-//            				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLPOSTARG", args[i]);
-//            			else
-//            				TaintLogger.getTaintLogger().logJavaFieldSet(location, "JAVACALLSTRINGARG", args[i], javaObjField);
-//            				
-////	        			System.out.println("SETTAINT JAVA CURRENT STRINGPOSTARG");
-//            			TaintData.getTaintData().setCallerTaint();
-////            			TaintLogger.getTaintLogger().log("SETTAINT CALLER STRINGPOSTARG " + args[i].toString() + " AT " + location);
-//	        		}
-//	        	}
-//	        	else if (args[i] != null && args[i] instanceof Object) {
-////            		TaintUtil.dinc(5);
-//	        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-//	        		if (objTaint != null && objTaint.size() > 0) {
-//	        			if (location == null)
-//	        				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-//	        			/*
-//	        			 * TODO: add to taintedArgs here as well
-//	        			 */
-//	        			Field javaObjField = TaintData.getTaintData().getJavaObjectField(thisJoinPoint.getTarget());
-//            			if (javaObjField == null)
-//            				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLPOSTOBJECTARG", args[i], objTaint);
-//            			else
-//            				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLOBJECTARG", args[i], objTaint, javaObjField);
-////	        			System.out.println("SETTAINT JAVA CURRENT OBJECTPOSTARG");
-//            			TaintData.getTaintData().setCallerTaint();
-////            			TaintLogger.getTaintLogger().log("SETTAINT CALLER OBJPOSTARG " + args[i].toString() + " AT " + location);
-//	        		}
-//	        	}
-//	        }
-	
-	    	//TODO: Deal with the fact that I added ResultSet here
-	    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
-	    		if (TaintData.getTaintData().isTainted(ret)) {
-	    			if (location == null)
-	    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-	    			TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURNCONSTRUCT", ret);
-//        			System.out.println("SETTAINT JAVA CURRENT RET");
-        			TaintData.getTaintData().setCallerTaint();
-//        			TaintLogger.getTaintLogger().log("SETTAINT CALLER RETSTRING " + ret.toString() + " AT " + location);
-	    		}
-	    	}
-	    	else if (ret != null && ret instanceof Object) {
-//        		TaintUtil.dinc(6);
-				IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
-				if (objTaint.size() > 0) {
-					if (location == null)
-	    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-					/*
-					 * TODO: fuzzy propagate here as well
-					 */
-					TaintLogger.getTaintLogger().logReturningObject(location, "JAVACALLOBJECTRETURNCONSTRUCT", ret, objTaint);
-//        			System.out.println("SETTAINT JAVA CURRENT RETOBJ");
-        			TaintData.getTaintData().setCallerTaint();
-//        			TaintLogger.getTaintLogger().log("SETTAINT CALLER RETOBJ " + ret.toString() + " AT " + location);
-				}
-			}
+    	//TODO: Deal with the fact that I added ResultSet here
+        if (ReferenceMaster.isPrimaryTainted(ret)) {
+			if (location == null)
+				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+			TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURNCONSTRUCT", ret);
     	}
+        else {
+    		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(ret);
+    		if (objTaint != null && objTaint.size() > 0) {
+				if (location == null)
+    				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
+				/*
+				 * TODO: fuzzy propagate here as well
+				 */
+				TaintLogger.getTaintLogger().logReturningObject(location, "JAVACALLOBJECTRETURNCONSTRUCT", ret, objTaint);
+			}
+		}
     }
 
     /*
-     * AFTER JAVA CALL
-     */
-    after(): (call(* java..*.*(..)) || (call(java..*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
-//    	StackPath loc = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-//    	if (loc.getDeeperString(10).contains("DBAccess")) {
-//    		System.out.println("<<<endCall " + loc);
-//    	}
-//		System.out.println("<<<endJavaCall " + TaintUtil.getStackTracePath(thisJoinPoint.getSignature()));
-    	
-    	TaintData.getTaintData().endCall();
-    }
-    
-    /*
      * BEFORE EXECUTION
      */
-    
     before(): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
-//    	StackPath loc = TaintUtil.getStackTracePath();
-//    	if (loc.getDeeperString(10).contains("DBAccess")) {
-//    		System.out.println(">>>startCall " + loc);
-//    	}
-    	TaintData.getTaintData().startCall();
-    	
-//    	System.out.println("before exec: " + TaintUtil.getStackTracePath());
-    	
-    	boolean scan = TaintData.getTaintData().checkCallerTaint();
-//    	System.out.println("CHECK TAINT IS: " + scan);
-    	
-    	if (scan) {
-    		TaintUtil.StackPath location = null;
-            Object[] args = thisJoinPoint.getArgs();
-            
-            	/*
-            	 *  search through args. Look for taint, and as it is found
-            	 *  push it down in the stack.
-            	 *  
-            	 *  Everything is discarded in the end.
-            	 */
-            
-            // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
-            ArrayList<Object> taintedArgs = new ArrayList<Object>();
-            for (int i = 0; i < args.length; i++) {
-            	//TODO: Deal with the fact that I added ResultSet here
-            	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-            		if (TaintData.getTaintData().isTainted(args[i])) {
-//            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
-            			if (location == null)
-            				location = TaintUtil.getStackTracePath();
-            			taintedArgs.add(args[i]);
-            			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i]);
-//            			System.out.println("SETTAINT CURRENT STRINGARG");
-            			TaintData.getTaintData().setCurrentTaint();
-            		}
-            	}
-            	else if (args[i] != null && args[i] instanceof Object) { // COULD BE A PROBLEM
-//            		TaintUtil.dinc(7);
-            		try {
-	            		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-	            		if (objTaint != null && objTaint.size() > 0) {
-	            			if (location == null)
-	            				location = TaintUtil.getStackTracePath();
-	            			/*
-	            			 * TODO: add to taintedArgs here as well
-	            			 */
-	        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint);
-	//            			System.out.println("SETTAINT CURRENT OBJARG ");
-	        				TaintData.getTaintData().setCurrentTaint();
-	            		}
-            		} catch (Exception e) {
-                    	TaintLogger.getTaintLogger().log("STRANGE FAIL: " + e.getMessage() + " arg: " + args[i]);
-                    	e.printStackTrace();
-                    }
-            	}
-            }
-    	}
+		TaintUtil.StackPath location = null;
+        Object[] args = thisJoinPoint.getArgs();
+        
+        // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
+        ArrayList<Object> taintedArgs = new ArrayList<Object>();
+        for (int i = 0; i < args.length; i++) {
+        	//TODO: Deal with the fact that I added ResultSet here
+        	if (ReferenceMaster.isPrimaryTainted(args[i])) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath();
+    			taintedArgs.add(args[i]);
+    			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i]);
+        	}
+        	else {
+        		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
+        		if (objTaint != null && objTaint.size() > 0) {
+        			if (location == null)
+        				location = TaintUtil.getStackTracePath();
+        			/*
+        			 * TODO: add to taintedArgs here as well
+        			 */
+    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint);
+        		}
+        	}
+        }
     }
     
     /*
@@ -1255,77 +1029,47 @@ public aspect GeneralTracker {
      */
     
     after() returning (Object ret): execution(* *.*(..)) && !cflow(myAdvice()) {
-    	boolean scan = TaintData.getTaintData().checkCurrentTaint();
-
-//    	System.out.println("after exec: " + TaintUtil.getStackTracePath());
-//    	System.out.println("CHECK TAINT IS: " + scan);
-    	if (scan) {
-    		TaintUtil.StackPath location = null;
-            
-        	Object[] args = thisJoinPoint.getArgs();
-            
-            	/*
-            	 *  search through args. Look for taint, and as it is found
-            	 *  push it down in the stack.
-            	 *  
-            	 *  Everything is discarded in the end.
-            	 */
-            
-            for (int i = 0; i < args.length; i++) {
-            	//TODO: Deal with the fact that I added ResultSet here
-            	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-            		if (TaintData.getTaintData().isTainted(args[i])) {
-//            	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
-            			if (location == null)
-            				location = TaintUtil.getStackTracePath();
-            			TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
-//            			System.out.println("SETTAINT CALLER STRINGPOSTARG ");
-            			TaintData.getTaintData().setCallerTaint();
-            		}
-            	}
-            	else if (args[i] != null && args[i] instanceof Object) {
-//            		TaintUtil.dinc(8);
-            		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-            		if (objTaint != null && objTaint.size() > 0) {
-            			if (location == null)
-            				location = TaintUtil.getStackTracePath();
-            			/*
-            			 * TODO: add to taintedArgs here as well
-            			 */
-        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objTaint);
-//            			System.out.println("SETTAINT CALLER OBJPOSTARG ");
-            			TaintData.getTaintData().setCallerTaint();
-            		}
-            	}
-            }
-
+		TaintUtil.StackPath location = null;
+    	Object[] args = thisJoinPoint.getArgs();
+        
+        for (int i = 0; i < args.length; i++) {
         	//TODO: Deal with the fact that I added ResultSet here
-        	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
-        		if (TaintData.getTaintData().isTainted(ret)) {
+        	if (ReferenceMaster.isPrimaryTainted(args[i])) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath();
+    			TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
+        	}
+        	else {
+        		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
+        		if (objTaint != null && objTaint.size() > 0) {
         			if (location == null)
         				location = TaintUtil.getStackTracePath();
-        			/* TODO: Read fuzzy prop */
-        			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret);
-//        			System.out.println("Setting Caller taint at: " + location + " stackcount: " + TaintData.getTaintData().getCallerCount());
-//        			System.out.println("SETTAINT CALLER RETSTRING ");
-        			TaintData.getTaintData().setCallerTaint();
+        			/*
+        			 * TODO: add to taintedArgs here as well
+        			 */
+    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objTaint);
         		}
         	}
-        	if (ret != null && ret instanceof Object) {
-//        		TaintUtil.dinc(9);
-    			IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
-    			if (objTaint.size() > 0) {
-    				if (location == null)
-        				location = TaintUtil.getStackTracePath();
-    				/*
-    				 * TODO: fuzzy propagate here as well
-    				 */
-    				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURN", ret, objTaint);
-//        			System.out.println("SETTAINT CALLER RETOBJ ");
-        			TaintData.getTaintData().setCallerTaint();
-    			}
-    		}
+        }
+
+    	//TODO: Deal with the fact that I added ResultSet here
+        if (ReferenceMaster.isPrimaryTainted(ret)) {
+			if (location == null)
+				location = TaintUtil.getStackTracePath();
+			/* TODO: Read fuzzy prop */
+			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret);
     	}
+        else {
+    		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(ret);
+    		if (objTaint != null && objTaint.size() > 0) {
+				if (location == null)
+    				location = TaintUtil.getStackTracePath();
+				/*
+				 * TODO: fuzzy propagate here as well
+				 */
+				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURN", ret, objTaint);
+			}
+		}
     }
     
     /*
@@ -1333,284 +1077,609 @@ public aspect GeneralTracker {
      */
     
     after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) {
-		boolean scan = TaintData.getTaintData().checkCurrentTaint();
+    	TaintUtil.StackPath location = null;
+        Object[] args = thisJoinPoint.getArgs();
+        
+        for (int i = 0; i < args.length; i++) {
+        	//TODO: Deal with the fact that I added ResultSet here
+        	if (ReferenceMaster.isPrimaryTainted(args[i])) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath();
+    			TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
+        	}
+        	else {
+        		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
+        		if (objTaint != null && objTaint.size() > 0) {
+        			if (location == null)
+        				location = TaintUtil.getStackTracePath();
+        			/*
+        			 * TODO: add to taintedArgs here as well
+        			 */
+    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objTaint);
+        		}
+        	}
+        }
 
-//    	System.out.println("after exec: " + TaintUtil.getStackTracePath());
-//    	System.out.println("CHECK TAINT IS: " + scan);
-    	if (scan) {
-	    	TaintUtil.StackPath location = null;
-	        Object[] args = thisJoinPoint.getArgs();
-	        
-	        	/*
-	        	 *  search through args. Look for taint, and as it is found
-	        	 *  push it down in the stack.
-	        	 *  
-	        	 *  Everything is discarded in the end.
-	        	 */
-	        
-	        for (int i = 0; i < args.length; i++) {
-	        	//TODO: Deal with the fact that I added ResultSet here
-	        	if (args[i] != null && (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) || args[i] instanceof ResultSet) {
-	        		if (TaintData.getTaintData().isTainted(args[i])) {
-	//        	        TaintLogger.getTaintLogger().log("THREADID " + Thread.currentThread().getId());
-	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath();
-	        			TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
-//            			System.out.println("SETTAINT CALLER STRINGPOSTARG ");
-            			TaintData.getTaintData().setCallerTaint();
-	        		}
-	        	}
-	        	else if (args[i] != null && args[i] instanceof Object) {
-//            		TaintUtil.dinc(10);
-	        		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(args[i]);
-	        		if (objTaint != null && objTaint.size() > 0) {
-	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath();
-	        			/*
-	        			 * TODO: add to taintedArgs here as well
-	        			 */
-	    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objTaint);
-//            			System.out.println("SETTAINT CALLER OBJPOSTARG ");
-            			TaintData.getTaintData().setCallerTaint();
-	        		}
-	        	}
-	        }
-	
-	    	//TODO: Deal with the fact that I added ResultSet here
-	    	if (ret != null && (ret instanceof String || ret instanceof StringBuffer || ret instanceof StringBuilder || ret instanceof ResultSet)) {
-	    		if (TaintData.getTaintData().isTainted(ret)) {
-	    			if (location == null)
-	    				location = TaintUtil.getStackTracePath();
-	    			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURNCONSTRUCT", ret);
-//        			System.out.println("SETTAINT CALLER RETSTRING ");
-        			TaintData.getTaintData().setCallerTaint();
-	    		}
-	    	}
-	    	else if (ret != null && ret instanceof Object) {
-//        		TaintUtil.dinc(11);
-				IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(ret);
-				if (objTaint.size() > 0) {
-					if (location == null)
-	    				location = TaintUtil.getStackTracePath();
-					/*
-					 * TODO: fuzzy propagate here as well
-					 */
-					TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURNCONSTRUCT", ret, objTaint);
-//        			System.out.println("SETTAINT CALLER RETOBJ ");
-        			TaintData.getTaintData().setCallerTaint();
-				}
-			}
+    	//TODO: Deal with the fact that I added ResultSet here
+        if (ReferenceMaster.isPrimaryTainted(ret)) {
+			if (location == null)
+				location = TaintUtil.getStackTracePath();
+			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURNCONSTRUCT", ret);
     	}
+        else {
+    		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(ret);
+    		if (objTaint != null && objTaint.size() > 0) {
+				if (location == null)
+    				location = TaintUtil.getStackTracePath();
+				/*
+				 * TODO: fuzzy propagate here as well
+				 */
+				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURNCONSTRUCT", ret, objTaint);
+			}
+		}
     }
 
     /*
-     * AFTER ANY EXECUTION
+     * Advice for new reference tracking system
      */
-    after(): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
-//		System.out.println("<<<endCall ");
-//    	StackPath loc = TaintUtil.getStackTracePath();
-//    	if (loc.getDeeperString(10).contains("DBAccess")) {
-//    		System.out.println("<<<endCall " + loc);
-//    	}
-    	TaintData.getTaintData().endCall();
+    after() returning(Object accessed): get(!static * *) && !cflow(myAdvice()) {
+    	StackPath location = null;
+		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
+		
+		if (ReferenceMaster.isPrimaryTainted(accessed)) {
+			if (location == null)
+				location = TaintUtil.getStackTracePath();
+    		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field);
+    	}
+    	else {
+			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(accessed);
+    		if (objTaint != null && objTaint.size() > 0) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath();
+    			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, objTaint, field);
+    		}
+    	}
     }
+	
+    before(): set(!static * *) && !cflow(myAdvice()) {
+		Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
+		field.setAccessible(true);
+		Object target = thisJoinPoint.getTarget();
+		Object oldValue = null;
+		try {
+			oldValue = field.get(target);
+		} catch (Exception e) {
+		}
+		Object newValue = thisJoinPoint.getArgs()[0];
+
+		ReferenceMaster.cleanupOldValue(oldValue, target);
+		ReferenceMaster.setNewValue(newValue, target);
+		
+		StackPath location = null;
+		
+		if (ReferenceMaster.isPrimaryTainted(newValue)) {
+			if (location == null)
+				location = TaintUtil.getStackTracePath();
+			TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, field);
+		} else {
+			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(newValue);
+			if (objTaint != null && objTaint.size() > 0) {
+				if (location == null)
+					location = TaintUtil.getStackTracePath();
+				TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, objTaint, field);
+			}
+		}
+    }
+    
+    after() returning(Object accessed): get(static * *) && !cflow(myAdvice()) {
+    	StackPath location = null;
+		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
+		
+		if (ReferenceMaster.isPrimaryTainted(accessed)) {
+			if (location == null)
+				location = TaintUtil.getStackTracePath();
+    		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field);
+    	}
+    	else {
+			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(accessed);
+    		if (objTaint != null && objTaint.size() > 0) {
+    			if (location == null)
+    				location = TaintUtil.getStackTracePath();
+    			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, objTaint, field);
+    		}
+    	}
+    }
+    
+    before(): set(static * *) && !cflow(myAdvice()) {
+    	Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
+		field.setAccessible(true);
+		Object newValue = thisJoinPoint.getArgs()[0];
+
+		StackPath location = null;
+		
+		if (ReferenceMaster.isPrimaryTainted(newValue)) {
+			if (location == null)
+				location = TaintUtil.getStackTracePath();
+			TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, field);
+		} else {
+			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(newValue);
+			if (objTaint != null && objTaint.size() > 0) {
+				if (location == null)
+					location = TaintUtil.getStackTracePath();
+				TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, objTaint, field);
+			}
+		}
+	}
+    
+    pointcut collectionOp(): !(call(* java.beans.beancontext.BeanContext+.*(..)) || 
+    		call(* javax.management.AttributeList+.*(..)) || 
+    		call(* javax.management.relation.RoleList+.*(..)) || 
+    		call(* javax.management.relation.RoleUnresolvedList+.*(..)) || 
+    		call(* java.util.Vector+.*(..)) ||
+    		call(* java.util.EnumSet+.*(..)) ||
+    		call(* javax.print.attribute.standard.JobStateReasons+.*(..))) 
+    		&& !within(aspects.*) && !cflow(myAdvice());
+    
+    pointcut mapOp(): !(call(* java.security.AuthProvider+.*(..)) ||
+    		call(* java.util.EnumMap+.*(..)) ||
+    		call(* java.util.LinkedHashMap+.*(..)) ||
+    		call(* javax.print.attribute.standard.PrinterStateReasons+.*(..)) ||
+    		call(* java.util.Properties+.*(..)) ||
+    		call(* java.security.Provider+.*(..)) ||
+    		call(* java.awt.RenderingHints+.*(..)) ||
+    		call(* javax.script.SimpleBindings+.*(..)) ||
+    		call(* javax.management.openmbean.TabularDataSupport+.*(..)) ||
+    		call(* javax.swing.UIDefaults+.*(..)));
+    
+    after(Object ret) returning: this(ret) && call(java.util.Collection+.new(..)) && collectionOp() {
+    	Object[] args = thisJoinPoint.getArgs();
+    	
+    	for (int i = 0; i < args.length; i++) {
+    		if (args[i] instanceof Collection) {
+    			for (Object item : (Collection)args[i]) {
+    				ReferenceMaster.setNewValue(item, ret);
+    			}
+    			break;
+    		}
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.add(..)) && collectionOp() {
+    	// Object (ret bool)
+    	if ((Boolean)ret == true) {
+	    	Object[] args = thisJoinPoint.getArgs();
+	    	Object thisOb = thisJoinPoint.getThis();
+	    	
+			ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.addAll(..)) && collectionOp() {
+    	// Collection (ret bool)
+    	if ((Boolean)ret == true) {
+	    	Object[] args = thisJoinPoint.getArgs();
+	    	Object thisOb = thisJoinPoint.getThis();
+	    	
+	    	if (args[0] instanceof Collection) {
+    			for (Object item : (Collection)args[0]) {
+    				ReferenceMaster.setNewValue(item, thisOb);
+    			}
+    		}
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.addAllAbsent(..)) && collectionOp() {
+    	// Collection (ret int)
+    	Integer count = (Integer) ret;
+    	if (count > 0) {
+    		CopyOnWriteArrayList thisOb = (CopyOnWriteArrayList)thisJoinPoint.getThis();
+    		
+    		for (int index = thisOb.size() - count; index < thisOb.size(); index++) {
+    			ReferenceMaster.setNewValue(thisOb.get(index), thisOb);
+    		}
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.addIfAbsent(..)) && collectionOp() {
+    	// Object (ret bool)
+    	if ((Boolean)ret == true) {
+	    	Object[] args = thisJoinPoint.getArgs();
+	    	Object thisOb = thisJoinPoint.getThis();
+	    	
+			ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.addFirst(..)) && collectionOp() {
+    	// Object
+    	Deque thisOb = (Deque)thisJoinPoint.getThis();
+    	Object[] args = thisJoinPoint.getArgs();
+    	if (args[0] == thisOb.getFirst()) {
+    		ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.addLast(..)) && collectionOp() {
+    	// Object
+    	Deque thisOb = (Deque)thisJoinPoint.getThis();
+    	Object[] args = thisJoinPoint.getArgs();
+    	if (args[0] == thisOb.getLast()) {
+    		ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    before(): call(* java.util.Collection+.clear(..)) && collectionOp() {
+    	Collection thisOb = (Collection) thisJoinPoint.getThis();
+    	for (Object item : thisOb) {
+    		ReferenceMaster.cleanupOldValue(item, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.drainTo(..)) && collectionOp() {
+    	TaintLogger.getTaintLogger().log("DRAIN CALLED");
+    }
+    after() returning (Object ret): call(* java.util.Collection+.offer(..)) && collectionOp() {
+    	// Object (ret bool) || Object, timeout, unit (ret bool)
+    	if ((Boolean)ret == true) {
+	    	Object[] args = thisJoinPoint.getArgs();
+	    	Object thisOb = thisJoinPoint.getThis();
+	    	
+			ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.offerFirst(..)) && collectionOp() {
+    	// Object (ret bool) || Object, timeout, unit (ret bool)
+    	if ((Boolean)ret == true) {
+	    	Object[] args = thisJoinPoint.getArgs();
+	    	Object thisOb = thisJoinPoint.getThis();
+	    	
+			ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.offerLast(..)) && collectionOp() {
+    	// Object (ret bool) || Object, timeout, unit (ret bool)
+    	if ((Boolean)ret == true) {
+	    	Object[] args = thisJoinPoint.getArgs();
+	    	Object thisOb = thisJoinPoint.getThis();
+	    	
+			ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.poll(..)) && collectionOp() {
+    	// timeout (ret removed)
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.pollFirst(..)) && collectionOp() {
+    	// timeout (ret removed)
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.pollLast(..)) && collectionOp() {
+    	//timeout (ret removed)
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.pop(..)) && collectionOp() {
+    	// ret Object
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.push(..)) && collectionOp() {
+    	// Object
+    	if (thisJoinPoint.getThis() instanceof Deque) {
+	    	Deque thisOb = (Deque)thisJoinPoint.getThis();
+	    	Object[] args = thisJoinPoint.getArgs();
+	    	if (args[0] == thisOb.peek()) {
+	    		ReferenceMaster.setNewValue(args[0], thisOb);
+	    	}
+    	}
+    	else if (thisJoinPoint.getThis() instanceof Stack) {
+	    	Stack thisOb = (Stack)thisJoinPoint.getThis();
+	    	Object[] args = thisJoinPoint.getArgs();
+	    	if (args[0] == thisOb.peek()) {
+	    		ReferenceMaster.setNewValue(args[0], thisOb);
+	    	}
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.put(..)) && collectionOp() {
+    	// Object
+    	Deque thisOb = (Deque)thisJoinPoint.getThis();
+    	Object[] args = thisJoinPoint.getArgs();
+    	if (args[0] == thisOb.getLast()) {
+    		ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.putFirst(..)) && collectionOp() {
+    	// Object
+    	Deque thisOb = (Deque)thisJoinPoint.getThis();
+    	Object[] args = thisJoinPoint.getArgs();
+    	if (args[0] == thisOb.getFirst()) {
+    		ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.putLast(..)) && collectionOp() {
+    	// Object
+    	Deque thisOb = (Deque)thisJoinPoint.getThis();
+    	Object[] args = thisJoinPoint.getArgs();
+    	if (args[0] == thisOb.getLast()) {
+    		ReferenceMaster.setNewValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.remove(..)) && collectionOp() {
+    	// Object (ret bool) || blank (returns Removed)
+    	Object[] args = thisJoinPoint.getArgs();
+		Object thisOb = thisJoinPoint.getThis();
+    	if (args.length > 0) {
+    		if (args[0] instanceof Object) {
+	    		if ((Boolean)ret == true) {
+	    			ReferenceMaster.cleanupOldValue(args[0], thisOb);
+	    		}
+    		}
+    		else {
+    			ReferenceMaster.cleanupOldValue(ret, thisOb);
+    		}
+    	}
+    	else {
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.removeAll(..)) && collectionOp() {
+    	// Collection (ret bool)
+    	Collection arg = (Collection)thisJoinPoint.getArgs()[0];
+		Object thisOb = thisJoinPoint.getThis();
+		if ((Boolean)ret == true) {
+			for (Object item : arg) {
+				ReferenceMaster.cleanupOldValue(item, thisOb);
+			}
+		}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.removeFirst(..)) && collectionOp() {
+    	// ret object (first)
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.removeFirstOccurrence(..)) && collectionOp() {
+    	// Object (ret bool)
+    	if ((Boolean)ret == true) {
+    		Object thisOb = thisJoinPoint.getThis();
+        	Object[] args = thisJoinPoint.getArgs();
+    		
+    		ReferenceMaster.cleanupOldValue(args[0], thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.removeLast(..)) && collectionOp() {
+    	// ret object (last)
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.removeLastOccurrence(..)) && collectionOp() {
+    	// Object (ret bool)
+    	if ((Boolean)ret == true) {
+    		Object thisOb = thisJoinPoint.getThis();
+        	Object[] args = thisJoinPoint.getArgs();
+    		
+    		ReferenceMaster.cleanupOldValue(args[0], thisOb);
+    	}
+    }
+    before(): call(* java.util.Collection+.retainAll(..)) && collectionOp() {
+    	// Collection (ret bool)
+    	Collection arg = (Collection)thisJoinPoint.getArgs()[0];
+		Collection thisOb = (Collection)thisJoinPoint.getThis();
+		for (Object item : thisOb) {
+			if (!arg.contains(item)) {
+				ReferenceMaster.cleanupOldValue(item, thisOb);
+			}
+		}
+    }
+    before(): call(* java.util.Collection+.set(..)) && collectionOp() {
+    	// int, Object
+    	Object[] args = thisJoinPoint.getArgs();
+    	Integer target = (Integer)args[0];
+    	Object newVal = (Object)args[1];
+		List thisOb = (List)thisJoinPoint.getThis();
+    	Object oldVal = thisOb.get(target);
+    	
+    	ReferenceMaster.cleanupOldValue(oldVal, thisOb);
+    	ReferenceMaster.setNewValue(newVal, thisOb);
+    }
+    after() returning (Object ret): call(* java.util.Collection+.take(..)) && collectionOp() {
+    	// blank (ret removed)
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.takeFirst(..)) && collectionOp() {
+    	// blank (ret removed)
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Collection+.takeLast(..)) && collectionOp() {
+    	// blank (ret removed)
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		
+    		ReferenceMaster.cleanupOldValue(ret, thisOb);
+    	}
+    }
+    
+    after(Object ret) returning: this(ret) && call(java.util.Map+.new(..)) && mapOp() {
+    	// look for map
+    	Object[] args = thisJoinPoint.getArgs();
+    	
+    	for (int i = 0; i < args.length; i++) {
+    		if (args[i] instanceof Map) {
+    			for (Object item : ((Map)args[i]).entrySet()) {
+    				Map.Entry entry = (Map.Entry)item;
+    				ReferenceMaster.setNewValue(entry.getKey(), ret);
+    				ReferenceMaster.setNewValue(entry.getValue(), ret);
+    			}
+    			break;
+    		}
+    	}
+    }
+    before(): call(* java.util.Map+.clear(..)) && mapOp() {
+		Map thisOb = (Map)thisJoinPoint.getThis();
+		for (Object item : thisOb.entrySet()) {
+			Map.Entry entry = (Map.Entry)item;
+			ReferenceMaster.cleanupOldValue(entry.getKey(), thisOb);
+			ReferenceMaster.cleanupOldValue(entry.getValue(), thisOb);
+		}
+    }
+    after() returning (Object ret): call(* java.util.Map+.put(..)) && mapOp() {
+    	// Object key, Object value
+    	Map thisOb = (Map)thisJoinPoint.getThis();
+    	Object[] args = thisJoinPoint.getArgs();
+    	Object key = args[0];
+    	Object value = args[0];
+    	
+    	ReferenceMaster.setNewValue(key, thisOb);
+    	ReferenceMaster.setNewValue(value, thisOb);
+    }
+    after() returning (Object ret): call(* java.util.Map+.putAll(..)) && mapOp() {
+    	// Map 
+    	Map thisOb = (Map)thisJoinPoint.getThis();
+    	Object[] args = thisJoinPoint.getArgs();
+    	if (args[0] instanceof Map) {
+			for (Object item : ((Map)args[0]).entrySet()) {
+				Map.Entry entry = (Map.Entry)item;
+				ReferenceMaster.setNewValue(entry.getKey(), thisOb);
+				ReferenceMaster.setNewValue(entry.getValue(), thisOb);
+			}
+		}
+    }
+    after() returning (Object ret): call(* java.util.Map+.putValue(..)) && mapOp() {
+    	// String key, String value
+    	Map thisOb = (Map)thisJoinPoint.getThis();
+    	Object[] args = thisJoinPoint.getArgs();
+    	String key = (String)args[0];
+    	String value = (String)args[0];
+    	
+    	ReferenceMaster.setNewValue(key, thisOb);
+    	ReferenceMaster.setNewValue(value, thisOb);
+    }
+    before(): call(* java.util.Map+.putIfAbsent(..)) && mapOp() {
+    	// Object key, Object value
+    	Map thisOb = (Map)thisJoinPoint.getThis();
+    	Object[] args = thisJoinPoint.getArgs();
+    	String key = (String)args[0];
+    	String value = (String)args[0];
+    	if (!thisOb.containsKey(key)) {    	
+	    	ReferenceMaster.setNewValue(key, thisOb);
+	    	ReferenceMaster.setNewValue(value, thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Map+.pollFirstEntry(..)) && mapOp() {
+    	// ret Map.Entry
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		Map.Entry entry = (Map.Entry)ret;
+    		
+    		ReferenceMaster.cleanupOldValue(entry.getKey(), thisOb);
+    		ReferenceMaster.cleanupOldValue(entry.getValue(), thisOb);
+    	}
+    }
+    after() returning (Object ret): call(* java.util.Map+.pollLastEntry(..)) && mapOp() {
+    	// ret Map.Entry
+    	if (ret != null) {
+    		Object thisOb = thisJoinPoint.getThis();
+    		Map.Entry entry = (Map.Entry)ret;
+    		
+    		ReferenceMaster.cleanupOldValue(entry.getKey(), thisOb);
+    		ReferenceMaster.cleanupOldValue(entry.getValue(), thisOb);
+    	}
+    }
+    before(): call(* java.util.Map+.remove(..)) && mapOp() {
+    	// Object key || Object key, Object value
+    	Map thisOb = (Map)thisJoinPoint.getThis();
+		Object[] args = thisJoinPoint.getArgs();
+		Object key = args[0];
+		if (args.length > 1) {
+			Object value = args[1];
+			if (thisOb.get(key) == value) {
+				ReferenceMaster.cleanupOldValue(key, thisOb);
+				ReferenceMaster.cleanupOldValue(thisOb.get(key), thisOb);
+			}
+		}
+		else {
+			ReferenceMaster.cleanupOldValue(key, thisOb);
+			ReferenceMaster.cleanupOldValue(thisOb.get(key), thisOb);
+		}
+    }
+    before(): call(* java.util.Map+.replace(..)) && mapOp() {
+    	// Object key, Object value || Object key, Object value, Object oldValue
+    	Map thisOb = (Map)thisJoinPoint.getThis();
+		Object[] args = thisJoinPoint.getArgs();
+		Object key = args[0];
+		Object newValue = args[1];
+		if (args.length > 2) {
+			Object oldValue = args[2];
+			if (thisOb.get(key) == oldValue && thisOb.get(key) != null) {
+				ReferenceMaster.cleanupOldValue(thisOb.get(key), thisOb);
+				ReferenceMaster.setNewValue(newValue, thisOb);
+			}
+		}
+		else {
+			if (thisOb.get(key) != null) {
+				ReferenceMaster.cleanupOldValue(thisOb.get(key), thisOb);
+				ReferenceMaster.setNewValue(newValue, thisOb);
+			}
+		}
+    }
+    
+    /*
+     * Advice for new reference tracking system
+     */
+    
+    /*
+     * Think of java objects like regular ones.
+     * You can ask if they're tainted (O(1))
+     * They can be marked with arrays (require scanning)
+     * Objects will point to check as their parent, and be removed (this is key)
+     * Getting them to point to other objects as parent is already done
+     * 
+     * Have a pointcut group for various known collection operations, catch all else for advanced handling
+     * 
+     * Or think of them like arrays, require scanning
+     * 
+     * Could keep track of all subjava objects and treat them as black boxes to be scanned, unless they are collections (can
+     * log all collections operations so we know what needs to be handled.
+     * 
+     * Replace set/get with modification monitoring (can turn it off for some java objects if they are problematic)
+     * 
+     * 
+     * call/ret pointcuts
+     * scan object for inputs, link inputs back to parent java object
+     */
    
     /*
      * AFTER NON-STATIC GET
      */
-    after() returning(Object accessed): get(!static * *) && !cflow(myAdvice()) && !tooBigErrorExcludeFields() {
-    	StackPath location = null;
-		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
-		if (field.getType().getName().startsWith("java.")) {
-			TaintData.getTaintData().recordJavaField(accessed, field);
-		}
-		
-    	if (accessed != null) {
-    		//Hack, should be at level of fields but it not.
-    		if (TaintData.getTaintData().checkObjectTainted(thisJoinPoint.getThis())) {
-		    	if ((accessed instanceof String || accessed instanceof StringBuffer || accessed instanceof StringBuilder || accessed instanceof ResultSet) &&
-		    			TaintData.getTaintData().isTainted(accessed)) {
-	    			if (location == null)
-	    				location = TaintUtil.getStackTracePath();
-		    		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field);
-	//    			System.out.println("SETTAINT CURRENT STATICSTRINGACC ");
-	    			TaintData.getTaintData().setCurrentTaint();
-		    	}
-		    	else if (accessed instanceof Object) {
-	//	        		TaintUtil.dinc(12);
-		    		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(accessed);
-	        		if (objTaint != null && objTaint.size() > 0) {
-	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath();
-	        			//TODO: log subobjects
-	        			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field);
-	//        			System.out.println("SETTAINT CURRENT STATICOBJACC ");
-	        			TaintData.getTaintData().setCurrentTaint();
-	        		}
-		    	}
-    		}
-    	}
-    	
-    	if (TaintData.getTaintData().checkCurrentTaint()) {
-    		TaintData.getTaintData().markObjectTainted(thisJoinPoint.getThis());
-    	}
-    }
-    
-    /*
-     * AFTER STATIC GET
-     */
-    after() returning(Object accessed): get(static * *) && !cflow(myAdvice()) {
-    	StackPath location = null;
-		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
-		if (field.getType().getName().startsWith("java.")) {
-			TaintData.getTaintData().recordJavaField(accessed, field);
-		}
-		
-		// Only scan if field is tainted, so check if field in tainted
-		
-    	if (accessed != null) {
-    		if (TaintData.getTaintData().checkStaticFieldTainted(field)) {
-		    	if ((accessed instanceof String || accessed instanceof StringBuffer || accessed instanceof StringBuilder || accessed instanceof ResultSet) &&
-		    			TaintData.getTaintData().isTainted(accessed)) {
-	    			if (location == null)
-	    				location = TaintUtil.getStackTracePath();
-		    		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field);
-	//    			System.out.println("SETTAINT CURRENT STATICSTRINGACC ");
-	    			TaintData.getTaintData().setCurrentTaint();
-		    	}
-		    	else if (accessed instanceof Object) {
-//	        		TaintUtil.dinc(12);
-		    		IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder.findTaint(accessed);
-	        		if (objTaint != null && objTaint.size() > 0) {
-	        			if (location == null)
-	        				location = TaintUtil.getStackTracePath();
-	        			//TODO: log subobjects
-	        			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field);
-	//        			System.out.println("SETTAINT CURRENT STATICOBJACC ");
-	        			TaintData.getTaintData().setCurrentTaint();
-	        		}
-		    	}
-    		}
-    	}
-    	
-    	if (TaintData.getTaintData().checkCurrentTaint()) {
-    		TaintData.getTaintData().markStaticFieldTainted(field);
-    	}
-    }
-    
-    /*
-     * BEFORE NON-STATIC SET
-     */
-    before(): set(!static * *) && !cflow(myAdvice()) && !tooBigErrorExcludeFields() {
-		boolean scan = TaintData.getTaintData().checkCurrentTaint();
-
-		if (scan) {
-			StackPath location = null;
-			Field field = ((FieldSignature) thisJoinPoint.getSignature())
-					.getField();
-			field.setAccessible(true);
-
-//			Object target = null;
-//			try {
-//				target = field.get(thisJoinPoint.getTarget());
-//			} catch (IllegalArgumentException e) {
-//			} catch (IllegalAccessException e) {
-//			}
-			Object value = thisJoinPoint.getArgs()[0];
-
-			if (value != null) {
-				if ((value instanceof String || value instanceof StringBuffer
-						|| value instanceof StringBuilder || value instanceof ResultSet)
-						&& TaintData.getTaintData().isTainted(value)) {
-					if (location == null)
-						location = TaintUtil.getStackTracePath();
-//					TaintData.getTaintData().propagateSources(value, target);
-					TaintLogger.getTaintLogger().logFieldSet(location,
-							"NORMAL", value, field);
-					TaintData.getTaintData().markObjectTainted(thisJoinPoint.getThis());
-				} else if (value instanceof Object) {
-//            		TaintUtil.dinc(13);
-					IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder
-							.findTaint(value);
-					if (objTaint != null && objTaint.size() > 0) {
-						if (location == null)
-							location = TaintUtil.getStackTracePath();
-						// TODO: log subobjects
-						TaintLogger.getTaintLogger().logFieldSet(location,
-								"NORMAL", value, field);
-						TaintData.getTaintData().markObjectTainted(thisJoinPoint.getThis());
-					}
-				}
-			}
-		}
-	}
-    
-    /*
-     * BEFORE STATIC SET
-     */
-    //TODO: Add stored in java.* objects
-    before(): set(static * *) && !cflow(myAdvice()) {
-		boolean scan = TaintData.getTaintData().checkCurrentTaint();
-
-		if (scan) {
-			StackPath location = null;
-			Field field = ((FieldSignature) thisJoinPoint.getSignature())
-					.getField();
-			field.setAccessible(true);
-
-//			Object target = null;
-//			try {
-//				target = field.get(thisJoinPoint.getTarget());
-//			} catch (IllegalArgumentException e) {
-//			} catch (IllegalAccessException e) {
-//			}
-			Object value = thisJoinPoint.getArgs()[0];
-
-			if (value != null) {
-				if ((value instanceof String || value instanceof StringBuffer
-						|| value instanceof StringBuilder || value instanceof ResultSet)
-						&& TaintData.getTaintData().isTainted(value)) {
-					if (location == null)
-						location = TaintUtil.getStackTracePath();
-//					TaintData.getTaintData().propagateSources(value, target);
-					TaintLogger.getTaintLogger().logFieldSet(location,
-							"STATIC", value, field);
-		    		TaintData.getTaintData().markStaticFieldTainted(field);
-				} else if (value instanceof Object) {
-//            		TaintUtil.dinc(13);
-					IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder
-							.findTaint(value);
-					if (objTaint != null && objTaint.size() > 0) {
-						if (location == null)
-							location = TaintUtil.getStackTracePath();
-						// TODO: log subobjects
-						TaintLogger.getTaintLogger().logFieldSet(location,
-								"STATIC", value, field);
-			    		TaintData.getTaintData().markStaticFieldTainted(field);
-					}
-				}
-			}
-		}
-	}
-    
-//    
-//    /*
-//     * AFTER NON-STATIC GET
-//     */
-//    after() returning(Object accessed): get(!static * *) && !cflow(myAdvice()) {
-//		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
-//		afterNonStaticGet(field, accessed, thisJoinPoint.getThis());
-//    }
-//    
-//    public static void afterNonStaticGet(Field field, Object accessed, Object thisObj) {
+//    after() returning(Object accessed): get(!static * *) && !cflow(myAdvice()) && !tooBigErrorExcludeFields() {
 //    	StackPath location = null;
+//		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
 //		if (field.getType().getName().startsWith("java.")) {
 //			TaintData.getTaintData().recordJavaField(accessed, field);
 //		}
 //		
 //    	if (accessed != null) {
 //    		//Hack, should be at level of fields but it not.
-//    		if (TaintData.getTaintData().checkObjectTainted(thisObj)) {
+//    		if (TaintData.getTaintData().checkObjectTainted(thisJoinPoint.getThis())) {
 //		    	if ((accessed instanceof String || accessed instanceof StringBuffer || accessed instanceof StringBuilder || accessed instanceof ResultSet) &&
 //		    			TaintData.getTaintData().isTainted(accessed)) {
 //	    			if (location == null)
@@ -1635,20 +1704,16 @@ public aspect GeneralTracker {
 //    	}
 //    	
 //    	if (TaintData.getTaintData().checkCurrentTaint()) {
-//    		TaintData.getTaintData().markObjectTainted(thisObj);
+//    		TaintData.getTaintData().markObjectTainted(thisJoinPoint.getThis());
 //    	}
 //    }
-//    
-//    /*
-//     * AFTER STATIC GET
-//     */
+    
+    /*
+     * AFTER STATIC GET
+     */
 //    after() returning(Object accessed): get(static * *) && !cflow(myAdvice()) {
-//		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
-//    	afterStaticGet(field, accessed);
-//    }
-//    
-//    public static void afterStaticGet(Field field, Object accessed) {
 //    	StackPath location = null;
+//		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
 //		if (field.getType().getName().startsWith("java.")) {
 //			TaintData.getTaintData().recordJavaField(accessed, field);
 //		}
@@ -1684,21 +1749,17 @@ public aspect GeneralTracker {
 //    		TaintData.getTaintData().markStaticFieldTainted(field);
 //    	}
 //    }
-//    
-//    /*
-//     * BEFORE NON-STATIC SET
-//     */
-//    before(): set(!static * *) && !cflow(myAdvice()) {
-//		Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
-//		Object value = thisJoinPoint.getArgs()[0];
-//		beforeNonStaticSet(field, value, thisJoinPoint.getThis());
-//	}
-//    
-//    public static void beforeNonStaticSet(Field field, Object value, Object thisObj) {
-//    	boolean scan = TaintData.getTaintData().checkCurrentTaint();
+    
+    /*
+     * BEFORE NON-STATIC SET
+     */
+//    before(): set(!static * *) && !cflow(myAdvice()) && !tooBigErrorExcludeFields() {
+//		boolean scan = TaintData.getTaintData().checkCurrentTaint();
 //
 //		if (scan) {
 //			StackPath location = null;
+//			Field field = ((FieldSignature) thisJoinPoint.getSignature())
+//					.getField();
 //			field.setAccessible(true);
 //
 ////			Object target = null;
@@ -1707,6 +1768,7 @@ public aspect GeneralTracker {
 ////			} catch (IllegalArgumentException e) {
 ////			} catch (IllegalAccessException e) {
 ////			}
+//			Object value = thisJoinPoint.getArgs()[0];
 //
 //			if (value != null) {
 //				if ((value instanceof String || value instanceof StringBuffer
@@ -1717,7 +1779,7 @@ public aspect GeneralTracker {
 ////					TaintData.getTaintData().propagateSources(value, target);
 //					TaintLogger.getTaintLogger().logFieldSet(location,
 //							"NORMAL", value, field);
-//					TaintData.getTaintData().markObjectTainted(thisObj);
+//					TaintData.getTaintData().markObjectTainted(thisJoinPoint.getThis());
 //				} else if (value instanceof Object) {
 ////            		TaintUtil.dinc(13);
 //					IdentityHashMap<Object, ArrayList<String>> objTaint = TaintFinder
@@ -1728,28 +1790,24 @@ public aspect GeneralTracker {
 //						// TODO: log subobjects
 //						TaintLogger.getTaintLogger().logFieldSet(location,
 //								"NORMAL", value, field);
-//						TaintData.getTaintData().markObjectTainted(thisObj);
+//						TaintData.getTaintData().markObjectTainted(thisJoinPoint.getThis());
 //					}
 //				}
 //			}
 //		}
-//    }
-//    
-//    /*
-//     * BEFORE STATIC SET
-//     */
-//    //TODO: Add stored in java.* objects
-//    before(): set(static * *) && !cflow(myAdvice()) {
-//		Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
-//		Object value = thisJoinPoint.getArgs()[0];
-//    	beforeStaticSet(field, value);
 //	}
-//    
-//    public static void beforeStaticSet(Field field, Object value) {
-//    	boolean scan = TaintData.getTaintData().checkCurrentTaint();
+    
+    /*
+     * BEFORE STATIC SET
+     */
+    //TODO: Add stored in java.* objects
+//    before(): set(static * *) && !cflow(myAdvice()) {
+//		boolean scan = TaintData.getTaintData().checkCurrentTaint();
 //
 //		if (scan) {
 //			StackPath location = null;
+//			Field field = ((FieldSignature) thisJoinPoint.getSignature())
+//					.getField();
 //			field.setAccessible(true);
 //
 ////			Object target = null;
@@ -1758,6 +1816,7 @@ public aspect GeneralTracker {
 ////			} catch (IllegalArgumentException e) {
 ////			} catch (IllegalAccessException e) {
 ////			}
+//			Object value = thisJoinPoint.getArgs()[0];
 //
 //			if (value != null) {
 //				if ((value instanceof String || value instanceof StringBuffer
@@ -1784,6 +1843,6 @@ public aspect GeneralTracker {
 //				}
 //			}
 //		}
-//    }
+//	}
     
 }

@@ -82,23 +82,23 @@ public class TaintData {
 		return self;
 	}
 	
-	public void markStaticFieldTainted(Field field) {
-		taintedStaticFields.put(field, null);
-	}
-	
-	public boolean checkStaticFieldTainted(Field field) {
-		return taintedStaticFields.containsKey(field);
-	}
-	
-	//Hack
-	public void markObjectTainted(Object obj) {
-		taintedObjects.put(obj, null);
-	}
-	
-	//Hack
-	public boolean checkObjectTainted(Object obj) {
-		return taintedObjects.containsKey(obj);
-	}
+//	public void markStaticFieldTainted(Field field) {
+//		taintedStaticFields.put(field, null);
+//	}
+//	
+//	public boolean checkStaticFieldTainted(Field field) {
+//		return taintedStaticFields.containsKey(field);
+//	}
+//	
+//	//Hack
+//	public void markObjectTainted(Object obj) {
+//		taintedObjects.put(obj, null);
+//	}
+//	
+//	//Hack
+//	public boolean checkObjectTainted(Object obj) {
+//		return taintedObjects.containsKey(obj);
+//	}
 	
 	/*
 	 * Called when a tainted object is accessed (get pointcut) to log that the current thread at
@@ -136,141 +136,141 @@ public class TaintData {
 	 * Called on method entry, to keep track of the stack location and associate tainted object 
 	 * access with that location.
 	 */
-	public void startCall() {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			taintStacks.put(threadId, new Stack<SettableBoolean>());
-		}
-		if (taintStacks.get(threadId).size() > 0)
-			taintStacks.get(threadId).push(new SettableBoolean(false, taintStacks.get(threadId).peek().getCount()));
-		else
-			taintStacks.get(threadId).push(new SettableBoolean(false, -1));
-//		System.out.println("TOP IS: " + taintStack.get(threadId).peek());
-	}
+//	public void startCall() {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+//			taintStacks.put(threadId, new Stack<SettableBoolean>());
+//		}
+//		if (taintStacks.get(threadId).size() > 0)
+//			taintStacks.get(threadId).push(new SettableBoolean(false, taintStacks.get(threadId).peek().getCount()));
+//		else
+//			taintStacks.get(threadId).push(new SettableBoolean(false, -1));
+////		System.out.println("TOP IS: " + taintStack.get(threadId).peek());
+//	}
+//	
+//	/*
+//	 * Used with startCall() to keep track of the stack location. Called on method exit.
+//	 */
+//	public void endCall() {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+////			TaintLogger.getTaintLogger().log("TID: " + threadId + " endfail ");
+//			taintStacks.put(threadId, new Stack<SettableBoolean>());
+//		}
+//		if (!taintStacks.get(threadId).empty())
+//			taintStacks.get(threadId).pop();
+//	}
 	
-	/*
-	 * Used with startCall() to keep track of the stack location. Called on method exit.
-	 */
-	public void endCall() {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-//			TaintLogger.getTaintLogger().log("TID: " + threadId + " endfail ");
-			taintStacks.put(threadId, new Stack<SettableBoolean>());
-		}
-		if (!taintStacks.get(threadId).empty())
-			taintStacks.get(threadId).pop();
-	}
+//	public void setCurrentTaint() {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+//			TaintLogger.getTaintLogger().log("taintAccessed failed");
+//		}
+//		else {
+////			System.out.println("setting true at " + taintStacks.get(threadId).peek().getCount());
+//			taintStacks.get(threadId).peek().setTruth(true);
+//		}
+//	}
+//	
+//	public void setCallerTaint() {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+//			TaintLogger.getTaintLogger().log("taintAccessed failed");
+//		}
+//		else {
+//			SettableBoolean top = taintStacks.get(threadId).pop();
+//			if (taintStacks.get(threadId).size() > 0) {
+//				taintStacks.get(threadId).peek().setTruth(true);
+//			}
+//			taintStacks.get(threadId).push(top);
+//		}
+//	}
+//	
+//	public boolean checkCurrentTaint() {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+//			TaintLogger.getTaintLogger().log("taintAccessed failed");
+//			return false;
+//		}
+//		else {
+//			if (taintStacks.get(threadId).size() > 0) {
+////				System.out.println("getting truth at " + taintStacks.get(threadId).peek().getCount());
+//				return taintStacks.get(threadId).peek().getTruth();
+//			}
+//			return false;
+//		}
+//	}
+//	
+//	public boolean checkCallerTaint() {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+//			TaintLogger.getTaintLogger().log("taintAccessed failed");
+//			return false;
+//		}
+//		else {
+//			SettableBoolean top = taintStacks.get(threadId).pop();
+//			boolean check = false;
+//			if (taintStacks.get(threadId).size() > 0) {
+////				System.out.println("checkCallerTaint");
+//				check = taintStacks.get(threadId).peek().getTruth();
+//			}
+//			taintStacks.get(threadId).push(top);
+//			return check;
+//		}
+//	}
 	
-	public void setCurrentTaint() {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("taintAccessed failed");
-		}
-		else {
-//			System.out.println("setting true at " + taintStacks.get(threadId).peek().getCount());
-			taintStacks.get(threadId).peek().setTruth(true);
-		}
-	}
+//	public int getCurrentCount() {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+//			TaintLogger.getTaintLogger().log("taintAccessed failed");
+//			return -1;
+//		}
+//		else {
+//			if (taintStacks.get(threadId).size() > 0) {
+////				System.out.println("getting truth at " + taintStacks.get(threadId).peek().getCount());
+//				return taintStacks.get(threadId).peek().getCount();
+//			}
+//			return -1;
+//		}
+//	}
+//	
+//	public int getCallerCount() {
+//		Long threadId = Thread.currentThread().getId();
+//		if (!taintStacks.containsKey(threadId)) {
+//			TaintLogger.getTaintLogger().log("taintAccessed failed");
+//			return -1;
+//		}
+//		else {
+//			SettableBoolean top = taintStacks.get(threadId).pop();
+//			int count = -1;
+//			if (taintStacks.get(threadId).size() > 0) {
+////				System.out.println("checkCallerTaint");
+//				count = taintStacks.get(threadId).peek().getCount();
+//			}
+//			taintStacks.get(threadId).push(top);
+//			return count;
+//		}
+//	}
 	
-	public void setCallerTaint() {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("taintAccessed failed");
-		}
-		else {
-			SettableBoolean top = taintStacks.get(threadId).pop();
-			if (taintStacks.get(threadId).size() > 0) {
-				taintStacks.get(threadId).peek().setTruth(true);
-			}
-			taintStacks.get(threadId).push(top);
-		}
-	}
-	
-	public boolean checkCurrentTaint() {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("taintAccessed failed");
-			return false;
-		}
-		else {
-			if (taintStacks.get(threadId).size() > 0) {
-//				System.out.println("getting truth at " + taintStacks.get(threadId).peek().getCount());
-				return taintStacks.get(threadId).peek().getTruth();
-			}
-			return false;
-		}
-	}
-	
-	public boolean checkCallerTaint() {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("taintAccessed failed");
-			return false;
-		}
-		else {
-			SettableBoolean top = taintStacks.get(threadId).pop();
-			boolean check = false;
-			if (taintStacks.get(threadId).size() > 0) {
-//				System.out.println("checkCallerTaint");
-				check = taintStacks.get(threadId).peek().getTruth();
-			}
-			taintStacks.get(threadId).push(top);
-			return check;
-		}
-	}
-	
-	public int getCurrentCount() {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("taintAccessed failed");
-			return -1;
-		}
-		else {
-			if (taintStacks.get(threadId).size() > 0) {
-//				System.out.println("getting truth at " + taintStacks.get(threadId).peek().getCount());
-				return taintStacks.get(threadId).peek().getCount();
-			}
-			return -1;
-		}
-	}
-	
-	public int getCallerCount() {
-		Long threadId = Thread.currentThread().getId();
-		if (!taintStacks.containsKey(threadId)) {
-			TaintLogger.getTaintLogger().log("taintAccessed failed");
-			return -1;
-		}
-		else {
-			SettableBoolean top = taintStacks.get(threadId).pop();
-			int count = -1;
-			if (taintStacks.get(threadId).size() > 0) {
-//				System.out.println("checkCallerTaint");
-				count = taintStacks.get(threadId).peek().getCount();
-			}
-			taintStacks.get(threadId).push(top);
-			return count;
-		}
-	}
-	
-	public void taintJavaObject(Object javaObject) {
-		taintedJavaObjects.put(javaObject, javaObject);
-	}
-	
-	public boolean isTaintedJavaObject(Object javaObject) {
-		return taintedJavaObjects.containsKey(javaObject);
-	}
-	
-	public void recordJavaField(Object javaObject, Field field) {
-		fieldJavaObjects.put(javaObject, field);
-	}
-	
-	public Field getJavaObjectField(Object javaObject) {
-		return fieldJavaObjects.get(javaObject);
-	}
-	
-	public void clearJavaFieldLog() {
-		fieldJavaObjects.clear();
-	}
+//	public void taintJavaObject(Object javaObject) {
+//		taintedJavaObjects.put(javaObject, javaObject);
+//	}
+//	
+//	public boolean isTaintedJavaObject(Object javaObject) {
+//		return taintedJavaObjects.containsKey(javaObject);
+//	}
+//	
+//	public void recordJavaField(Object javaObject, Field field) {
+//		fieldJavaObjects.put(javaObject, field);
+//	}
+//	
+//	public Field getJavaObjectField(Object javaObject) {
+//		return fieldJavaObjects.get(javaObject);
+//	}
+//	
+//	public void clearJavaFieldLog() {
+//		fieldJavaObjects.clear();
+//	}
 	
 	public void mapResultSetToSource(Object resultSet, Object source) {
 		resultSetToSourceMap.put(resultSet, source);
