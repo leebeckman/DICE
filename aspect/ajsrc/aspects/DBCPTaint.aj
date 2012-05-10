@@ -23,7 +23,7 @@ public aspect DBCPTaint {
 //    		result = new String((String)result, true);
     		boolean skip = false;
     		try {
-				ResultSetMetaData metaData = (ResultSetMetaData) TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis());
+				ResultSetMetaData metaData = (ResultSetMetaData) ReferenceMaster.getResultSetSource(thisJoinPoint.getThis());
 				if (metaData != null) {
 					int colCount = metaData.getColumnCount();
 					for (int i = 1; i <= colCount; i++) {
@@ -40,7 +40,7 @@ public aspect DBCPTaint {
 				
 			}
     		if (!skip) {
-	    		TaintData.getTaintData().mapDataToSource(ret, TaintData.getTaintData().getResultSetSource(thisJoinPoint.getThis()));
+    			ReferenceMaster.doPrimaryTaint(ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()));
 
 //    			System.out.println("Tainting: " + TaintData.getTaintData().getTaintHashCode(ret));
     		}
@@ -61,8 +61,8 @@ public aspect DBCPTaint {
 				}
 			}
 			if (!skip) {
-				TaintData.getTaintData().mapDataToSource(rs, metaData);
-				TaintData.getTaintData().mapResultSetToSource(rs, metaData);
+				ReferenceMaster.doPrimaryTaint(rs, metaData);
+				ReferenceMaster.mapResultSetToSource(rs, metaData);
 			}
     	} catch (SQLException e) {
     		TaintLogger.getTaintLogger().log("FAIL GETTING METADATA FROM RESULTSET: " + e.getMessage());
@@ -70,11 +70,9 @@ public aspect DBCPTaint {
     }
     
     // For testing
-//    after() returning (Object ret): execution(* simple.TaintSource.getTaintedData(..)) {
-//    	TaintData.getTaintData().mapDataToSource(ret, "TAINTSOURCE");
-////    	System.out.println("SET CURRENT TAINT DBCP");
-//    	TaintData.getTaintData().setCurrentTaint();
-//    }
+    after() returning (Object ret): execution(* simple.TaintSource.getTaintedData(..)) {
+    	ReferenceMaster.doPrimaryTaint(ret, "TAINTSOURCE");
+    }
     
 }
 

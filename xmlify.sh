@@ -1,6 +1,6 @@
 #!/bin/bash
 
-touch $1
-echo "<root>" >> $1
-cat taintlog.log >> $1
-echo "</root>" >> $1
+touch $1 $2
+echo "<root>" >> $2
+cat $1 >> $2
+echo "</root>" >> $2

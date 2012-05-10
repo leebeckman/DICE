@@ -24,6 +24,7 @@
 
         <property name="webapp.name" value="jgossip" />
         <unwar src="${dice.dir}/jgossip/dist/default/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
+
         <property name="webapp.path" value="${aspect.dir}/build/${webapp.name}" />
 
         <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
@@ -166,9 +167,10 @@
         <war destfile="${aspect.dir}/output/${webapp.name}.war" basedir="${aspect.dir}/build/${webapp.name}"/>
         <delete dir="${aspect.dir}/build"/>
 
+        <!-- DISABLE FOR NOW TO SAVE ON RIDICULOUS EXECUTION COSTS, ESP AT STARTUP
         <for param="file">
             <path>
-                <fileset dir="${dice.dir}/tomcat/prelib" includes="*.jar" excludes="aspectjrt.jar" />
+                <fileset dir="${dice.dir}/tomcat/prelib" includes="*.jar" excludes="aspectjrt.jar,xerces.jar" />
             </path>
             <sequential>
                 <var name="filename" unset="true"/>
@@ -195,6 +197,7 @@
                 </iajc>
             </sequential>
         </for>
+        -->
     </target>
 
     <!--<target name="weaveddeploy" depends="rewar">-->

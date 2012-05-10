@@ -11,7 +11,8 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ReferenceMaster {
 
@@ -27,8 +28,6 @@ public class ReferenceMaster {
 	 * 	if argument is tainted, use CHILD-PARENT MAP to go up heirarchy (block cycles) to add taint to OBJECT-TAINT MAP
 	 * 	if argument has arrays of any kind, go up heirarchy to add self to OBJECT-CHILD ARRAYS MAP
 	 * 	if argument is an array, add to OBJECT-DIRECT ARRAYS MAP, go up heirarchy to add self to OBJECT-CHILD ARRAYS MAP
-	 * 
-	 * 
 	 * 
 	 * regular get
 	 * 	NO ONE CARES (log normally)
@@ -46,13 +45,181 @@ public class ReferenceMaster {
 	 *  
 	 */
 	
-	private static WeakIdentityHashMap<Object, CountingMap<Object>> childParentMap = new WeakIdentityHashMap<Object, CountingMap<Object>>();
-	private static WeakIdentityHashMap<Object, CountingMap<Object>> objectTaintMap = new WeakIdentityHashMap<Object, CountingMap<Object>>();
-	private static WeakIdentityHashMap<Object, CountingMap<Object[]>> objectArraysMap = new WeakIdentityHashMap<Object, CountingMap<Object[]>>();
-	private static WeakIdentityHashMap<Object, CountingMap<Object>> objectJavasMap = new WeakIdentityHashMap<Object, CountingMap<Object>>();
-	private static WeakIdentityHashMap<Object, SizedSources> taintSourcesMap = new WeakIdentityHashMap<Object, SizedSources>();
+	private static IdentityHashMap<Object, CountingMap> childParentMap = new IdentityHashMap<Object, CountingMap>();
 	
-	public static void cleanupOldValue(Object oldValue, Object oldParent) {
+	private static IdentityHashMap<Object, CountingMap> objectTaintMap = new IdentityHashMap<Object, CountingMap>();
+	private static IdentityHashMap<Object, IdentityHashMap<Object, CountingMap>> objectTaintSourcesMap = new IdentityHashMap<Object, IdentityHashMap<Object,CountingMap>>();
+	
+	private static IdentityHashMap<Object, CountingMap> objectArraysMap = new IdentityHashMap<Object, CountingMap>();
+	private static IdentityHashMap<Object, IdentityHashMap<Object, CountingMap>> objectArraysSourcesMap = new IdentityHashMap<Object, IdentityHashMap<Object,CountingMap>>();
+	
+	private static IdentityHashMap<Object, CountingMap> objectJavasMap = new IdentityHashMap<Object, CountingMap>();
+	private static IdentityHashMap<Object, IdentityHashMap<Object, CountingMap>> objectJavasSourcesMap = new IdentityHashMap<Object, IdentityHashMap<Object,CountingMap>>();
+	
+	private static IdentityHashMap<Object, SizedSources> taintSourcesMap = new IdentityHashMap<Object, SizedSources>();
+	private static IdentityHashMap<Object, Object> resultSetToSourceMap = new IdentityHashMap<Object, Object>();
+	
+	public static synchronized void mapResultSetToSource(Object resultSet, Object source) {
+		resultSetToSourceMap.put(resultSet, source);
+	}
+	
+	public static synchronized Object getResultSetSource(Object resultSet) {
+	//if (!resultSetToSourceMap.containsKey(resultSet))
+	//	TaintLogger.getTaintLogger().log("getResultSetSourceNULL");
+		return resultSetToSourceMap.get(resultSet);
+	}
+	
+	public static synchronized void propagateAddRecords(Object visiting, IdentityHashMap<Object, Object> visited, IdentityHashMap<Object, CountingMap> objectMap, IdentityHashMap<Object, IdentityHashMap<Object, CountingMap>> objectSourcesMap, CountingMap source) {
+		if (source == null)
+			return;
+		if (!source.nonEmpty())
+			return;
+		
+		CountingMap visitingMapping = objectMap.get(visiting);
+		if (visitingMapping == null) {
+			visitingMapping = new CountingMap();
+			objectMap.put(visiting, visitingMapping);
+		}
+		visitingMapping.mergeMappings(source);
+		
+		CountingMap parents = childParentMap.get(visiting);
+
+		IdentityHashMap<Object, Object> newVisited = new IdentityHashMap<Object, Object>(visited);
+		newVisited.put(visiting, visiting);
+		
+		if (parents == null)
+			return;
+		for (Object parent : parents.getContents()) {
+			if (newVisited.containsKey(parent))
+				continue;
+			
+			IdentityHashMap<Object, CountingMap> parentEdgeMappings = objectSourcesMap.get(visiting);
+			if (parentEdgeMappings == null) {
+				parentEdgeMappings = new IdentityHashMap<Object, CountingMap>();
+				objectSourcesMap.put(visiting, parentEdgeMappings);
+			}
+			CountingMap parentEdgeMapping = parentEdgeMappings.get(parent);
+			if (parentEdgeMapping == null) {
+				parentEdgeMapping = new CountingMap();
+				parentEdgeMappings.put(parent, parentEdgeMapping);
+			}
+			
+//			System.out.println("ADD EDGE MAPPING " + parentEdgeMapping + " edge from " + visiting + " to " + parent);
+			parentEdgeMapping.mergeMappings(source);
+			
+			propagateAddRecords(parent, newVisited, objectMap, objectSourcesMap, source);
+		}
+	}
+	
+	public static synchronized void propagateAddRecords(Object visiting, Object targettedParent, IdentityHashMap<Object, Object> visited, IdentityHashMap<Object, CountingMap> objectMap, IdentityHashMap<Object, IdentityHashMap<Object, CountingMap>> objectSourcesMap, CountingMap source) {
+		if (source == null)
+			return;
+		if (!source.nonEmpty())
+			return;
+		
+		IdentityHashMap<Object, Object> newVisited = new IdentityHashMap<Object, Object>(visited);
+		newVisited.put(visiting, visiting);
+		
+		if (newVisited.containsKey(targettedParent))
+			return;
+		
+		IdentityHashMap<Object, CountingMap> parentEdgeMappings = objectSourcesMap.get(visiting);
+		if (parentEdgeMappings == null) {
+			parentEdgeMappings = new IdentityHashMap<Object, CountingMap>();
+			objectSourcesMap.put(visiting, parentEdgeMappings);
+		}
+		CountingMap parentEdgeMapping = parentEdgeMappings.get(targettedParent);
+		if (parentEdgeMapping == null) {
+			parentEdgeMapping = new CountingMap();
+			parentEdgeMappings.put(targettedParent, parentEdgeMapping);
+		}
+		
+//		System.out.println("ADD DEDGE MAPPING " + parentEdgeMapping + " edge from " + visiting + " to " + targettedParent);
+		parentEdgeMapping.mergeMappings(source);
+		
+//		CountingMap parentMapping = objectMap.get(targettedParent);
+//		if (parentMapping == null) {
+//			parentMapping = new CountingMap();
+//			objectMap.put(targettedParent, parentMapping);
+//		}
+//		
+//		parentMapping.mergeMappings(source);
+		
+		propagateAddRecords(targettedParent, newVisited, objectMap, objectSourcesMap, source);
+	}
+	
+	public static synchronized void propagateRemoveRecords(Object visiting, IdentityHashMap<Object, Object> visited, IdentityHashMap<Object, CountingMap> objectMap, IdentityHashMap<Object, IdentityHashMap<Object, CountingMap>> objectSourcesMap, CountingMap source) {
+		if (source == null)
+			return;
+		if (!source.nonEmpty())
+			return;
+		
+		CountingMap visitingMapping = objectMap.get(visiting);
+		if (visitingMapping == null)
+			return;
+		
+		visitingMapping.unMergeMappings(source);
+		
+		CountingMap parents = childParentMap.get(visiting);
+
+		IdentityHashMap<Object, Object> newVisited = new IdentityHashMap<Object, Object>(visited);
+		newVisited.put(visiting, visiting);
+
+		if (parents == null)
+			return;
+		for (Object parent : parents.getContents()) {
+			if (newVisited.containsKey(parent))
+				continue;
+			
+			IdentityHashMap<Object, CountingMap> parentEdgeMappings = objectSourcesMap.get(visiting);
+			if (parentEdgeMappings == null) {
+				continue;
+			}
+			CountingMap parentEdgeMapping = parentEdgeMappings.get(parent);
+			if (parentEdgeMapping == null) {
+				continue;
+			}
+			
+//			System.out.println("REMOVE EDGE MAPPING " + parentEdgeMapping + " edge from " + visiting + " to " + parent);
+			boolean removed = parentEdgeMapping.unMergeMappings(source);
+			
+			if (removed)
+				propagateRemoveRecords(parent, newVisited, objectMap, objectSourcesMap, source);
+		}
+	}
+	
+	public static synchronized void propagateRemoveRecords(Object visiting, Object targettedParent, IdentityHashMap<Object, Object> visited, IdentityHashMap<Object, CountingMap> objectMap, IdentityHashMap<Object, IdentityHashMap<Object, CountingMap>> objectSourcesMap, CountingMap source) {
+		if (source == null)
+			return;
+		if (!source.nonEmpty())
+			return;
+		
+		IdentityHashMap<Object, Object> newVisited = new IdentityHashMap<Object, Object>(visited);
+		newVisited.put(visiting, visiting);
+		
+		if (newVisited.containsKey(targettedParent))
+			return;
+		
+		IdentityHashMap<Object, CountingMap> parentEdgeMappings = objectSourcesMap.get(visiting);
+		if (parentEdgeMappings == null) {
+			return;
+		}
+		CountingMap parentEdgeMapping = parentEdgeMappings.get(targettedParent);
+		if (parentEdgeMapping == null) {
+			return;
+		}
+
+//		System.out.println("REMOVE DEDGE MAPPING " + parentEdgeMapping + " edge from " + visiting + " to " + targettedParent);
+		boolean removed = parentEdgeMapping.unMergeMappings(source);
+		
+//		CountingMap parentMapping = objectMap.get(targettedParent);
+//		parentMapping.unMergeMappings(source);
+		
+		if (removed)
+			propagateRemoveRecords(targettedParent, newVisited, objectMap, objectSourcesMap, source);
+	}
+	
+	public static synchronized void cleanupOldValue(Object oldValue, Object oldParent) {
 		if (oldValue != null) {
 			if (isValidArrayType(oldValue))
 				removeObjectDirectArray((Object[])oldValue, oldParent);
@@ -73,7 +240,8 @@ public class ReferenceMaster {
 		}
 	}
 	
-	public static void setNewValue(Object newValue, Object newParent) {
+	public static synchronized void setNewValue(Object newValue, Object newParent) {
+//		System.out.println("PARENT IS " + newParent);
 		if (newValue != null) {
 			mapChildParent(newValue, newParent);
 			
@@ -82,19 +250,20 @@ public class ReferenceMaster {
 			else if (isPrimaryTainted(newValue))
 				addObjectDirectTaint(newValue, newParent);
 			else if (isNonCollectionJavaType(newValue))
-				removeObjectDirectJavas(newValue, newParent);
+				addObjectDirectJavas(newValue, newParent);
 			else {
 				if (checkObjectHasArrays(newValue))
 					addObjectChildArrays(newValue, newParent);
-				if (checkObjectHasTaint(newValue))
+				if (checkObjectHasTaint(newValue)) {
 					addObjectChildTaint(newValue, newParent);
+				}
 				if (checkObjectHasJavas(newValue))
 					addObjectChildJavas(newValue, newParent);
 			}
 		}
 	}
 	
-	public static void doPrimaryTaint(Object target, Object taintSource) {
+	public static synchronized void doPrimaryTaint(Object target, Object taintSource) {
 		int size = 0;
 		if (target instanceof String || target instanceof StringBuffer || target instanceof StringBuilder || target instanceof ResultSet) {
 			size = 0;
@@ -104,20 +273,20 @@ public class ReferenceMaster {
 		}
 	}
 	
-	public static int getTaintHashCode(Object obj) {
+	public static synchronized int getTaintHashCode(Object obj) {
 		if (isPrimaryTainted(obj)) {
 			return System.identityHashCode(taintSourcesMap.get(obj));
 		}
 		return 0;
 	}
 	
-	public static void propagateTaintSources(Object sourceData, Object targetData) {
+	public static synchronized void propagateTaintSources(Object sourceData, Object targetData) {
 		if (taintSourcesMap.get(targetData) == null)
 			taintSourcesMap.put(targetData, new SizedSources(0, null));
 		taintSourcesMap.get(targetData).addSources(taintSourcesMap.get(sourceData));
 	}
 	
-	public static boolean isPrimaryTainted(Object obj) {
+	public static synchronized boolean isPrimaryTainted(Object obj) {
 		if (obj != null) {
 			if (obj instanceof String || obj instanceof StringBuilder || obj instanceof StringBuffer || obj instanceof ResultSet)
 				return taintSourcesMap.containsKey(obj);
@@ -125,80 +294,135 @@ public class ReferenceMaster {
 		return false;
 	}
 	
-	public static Set<Object> fullTaintCheck(Object obj) {
+	public static SizedSources getDataSources(Object data) {
+		return taintSourcesMap.get(data);
+	}
+	
+	public static synchronized Set<Object> fullTaintCheck(Object obj) {
 		Set<Object> taint = new HashSet<Object>();
 		IdentityHashMap<Object, Object> visited = new IdentityHashMap<Object, Object>();
 		
-		fullTaintCheck(obj, taint, visited);
+		fullTaintCheck(null, obj, taint, visited);
 		
 		return taint;
 	}
 	
-	public static void fullTaintCheck(Object obj, Set<Object> taint, IdentityHashMap<Object, Object> visited) {
-		// Check if obj is direct tainted
-		// Check if obj is valid array
-			// Scan and apply full Taint Check
-		// Check if obj is java
-			// Deep scan and appy full taint Check
-		// Check if object has arrays
-			// Get them, scan them all for full taintCheck
-		// Check if object has javas
-			// Get them, scan them all for full taintCheck
+	public static synchronized Set<Object> fullTaintCheck(Object field, Object obj) {
+		Set<Object> taint = new HashSet<Object>();
+		IdentityHashMap<Object, Object> visited = new IdentityHashMap<Object, Object>();
+		
+		fullTaintCheck(field, obj, taint, visited);
+		
+		return taint;
+	}
+	
+	/* Profiling */
+//	public static HashMap<String, Long> timings = new HashMap<String, Long>();
+//	public static int counter = 0;
+	
+	private static synchronized void fullTaintCheck(Object field, Object obj, Set<Object> taint, IdentityHashMap<Object, Object> visited) {
 		if (obj == null)
 			return;
 		if (visited.containsKey(obj))
 			return;
 		visited.put(obj, null);
 		
+		/* Profiling */
+//		Long start = System.currentTimeMillis();
+		
 		if (isPrimaryTainted(obj)) {
 			taint.add(obj);
-			return;
 		}
-		if (checkObjectHasTaint(obj)) {
-			taint.addAll(objectTaintMap.get(obj).getContents());
-		}
-		if (isValidArrayType(obj)) {
-			Object[] visit = (Object[]) obj;
-			for (int i = 0; i < visit.length; i++) {
-				fullTaintCheck(visit[i], taint, visited);
+		// if not PrimaryTainted but one of these types, no hope for it. Otherwise we end up with lengthy ResultSet scans
+		// Adding other exclusions to boost performance. Taint is not likely to end up here.
+		else if (!(obj instanceof String || obj instanceof StringBuilder || obj instanceof StringBuffer || obj instanceof ResultSet
+				|| obj.getClass().getName().contains("RowDataStatic")
+				|| obj.getClass().getName().contains("java.lang.reflect.Method")
+				|| obj.getClass().getName().contains("[Ljava.lang.reflect.Field")
+				|| obj.getClass().getName().contains("java.lang.reflect.Field")
+				|| obj.getClass().getName().contains("java.lang.ref.SoftReference")
+				|| obj.getClass().getName().contains("java.lang.Class")
+				|| obj.getClass().getName().contains("[Ljava.lang.Class")
+				|| obj.getClass().getName().contains("org.apache.commons.digester.Digester")
+				|| obj.getClass().getName().contains("org.apache.commons.digester.RulesBase")
+				|| obj.getClass().getName().contains("org.apache.commons.validator.Form")
+				|| obj.getClass().getName().contains("org.quartz.simpl.SimpleThreadPool")
+				|| obj.getClass().getName().contains("java.lang.ThreadGroup")
+				|| obj.getClass().getName().contains("java.lang.Thread")
+				|| obj.getClass().getName().contains("[Ljava.lang.Thread"))) {
+			//
+			//java.beans.PropertyDescriptor
+			//
+			if (checkObjectHasTaint(obj)) {
+				taint.addAll(objectTaintMap.get(obj).getContents());
 			}
-			return;
-		}
-		if (isNonCollectionJavaType(obj)) {
-			Class clazz = obj.getClass();
-			while (clazz != null) {
-				Field[] fields = clazz.getDeclaredFields();
-				for (int i = 0; i < fields.length; i++) {
-					//TODO: is it bad that this only scans non-static fields?
-					if (!Modifier.isStatic(fields[i].getModifiers())) {
-						if (!fields[i].getType().isPrimitive()) {
-							fields[i].setAccessible(true);
-							try {
-								Object visit = fields[i].get(obj);
-								fullTaintCheck(visit, taint, visited);
-							} catch (IllegalAccessException ex) {
-								assert false;
+			
+			if (isValidArrayType(obj)) {
+				Object[] visit = (Object[]) obj;
+				for (int i = 0; i < visit.length; i++) {
+					fullTaintCheck(field, visit[i], taint, visited);
+				}
+			}
+			else if (isNonCollectionJavaType(obj)) {
+				Class clazz = obj.getClass();
+				while (clazz != null) {
+					Field[] fields = clazz.getDeclaredFields();
+					for (int i = 0; i < fields.length; i++) {
+						//TODO: is it bad that this only scans non-static fields?
+						if (!Modifier.isStatic(fields[i].getModifiers())) {
+							if (!fields[i].getType().isPrimitive()) {
+								fields[i].setAccessible(true);
+								try {
+									Object visit = fields[i].get(obj);
+									fullTaintCheck(field, visit, taint, visited);
+								} catch (IllegalAccessException ex) {
+									assert false;
+								}
 							}
 						}
 					}
+					clazz = clazz.getSuperclass();
 				}
-				clazz = clazz.getSuperclass();
 			}
-			return;
-		}
-		if (checkObjectHasArrays(obj)) {
-			for (Object visit : objectArraysMap.get(obj).getContents()) {
-				fullTaintCheck(visit, taint, visited);
+			else {
+				if (checkObjectHasArrays(obj)) {
+					for (Object visit : objectArraysMap.get(obj).getContents()) {
+						fullTaintCheck(field, visit, taint, visited);
+					}
+				}
+				if (checkObjectHasJavas(obj)) {
+					for (Object visit : objectJavasMap.get(obj).getContents()) {
+						fullTaintCheck(field, visit, taint, visited);
+					}
+				}
 			}
 		}
-		if (checkObjectHasJavas(obj)) {
-			for (Object visit : objectJavasMap.get(obj).getContents()) {
-				fullTaintCheck(visit, taint, visited);
-			}
-		}
+		
+		/* Profiling */
+//		if (obj.getClass().getName().contains("org.apache.xerces.parsers.XML11Configuration"))
+//			return;
+//		Long end = System.currentTimeMillis();
+//		Long total = end - start;
+//		Long update = timings.get(obj.getClass().getName());
+//		if (update == null)
+//			timings.put(obj.getClass().getName(), total);
+//		else
+//			timings.put(obj.getClass().getName(), update + total);
+//		
+//		counter++;
+//		if (counter > 100000) {
+//			counter = 0;
+//			
+//			Set<String> keys = new HashSet<String>(timings.keySet());
+//			TaintLogger.getTaintLogger().log("PERF LOG START");
+//			for (String key : keys) {
+//				TaintLogger.getTaintLogger().log(timings.get(key) + " - " + key);
+//			}
+//			TaintLogger.getTaintLogger().log("PERF LOG END");
+//		}
 	}
 
-	public static boolean isNonCollectionJavaType(Object check) {
+	public static synchronized boolean isNonCollectionJavaType(Object check) {
 		if ((check instanceof Collection || check instanceof Map) && 
 				!(check instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
 						check instanceof javax.management.AttributeList ||
@@ -218,12 +442,15 @@ public class ReferenceMaster {
 						check instanceof javax.management.openmbean.TabularDataSupport ||
 						check instanceof javax.swing.UIDefaults))
 			return false;
-		if (check.getClass().getName().startsWith("java."))
+//		if ((check instanceof Collection || check instanceof Map))
+//			return false;
+		if (check.getClass().getName().startsWith("java.")) {
 			return true;
+		}
 		return false;
 	}
 	
-	public static boolean isValidArrayType(Object check) {
+	public static synchronized boolean isValidArrayType(Object check) {
 		if (check.getClass().isArray()) {
 			if (!check.getClass().getComponentType().isPrimitive()) {
 				if (check.getClass().getComponentType().equals(Integer.class) ||
@@ -238,29 +465,57 @@ public class ReferenceMaster {
 		return false;
 	}
 
-	public static void mapChildParent(Object child, Object parent) {
-		CountingMap<Object> mapping = childParentMap.get(child);
+	/*
+	 * Possible sets
+	 * buildCollationMapping
+	 * 
+	 */
+	
+	public static synchronized void mapChildParent(Object child, Object parent) {
+		CountingMap mapping = childParentMap.get(child);
+//		if (field != null) {
+//			if (field.getName().contains("indexToCharsetMapping")) {
+//				System.out.println("Child: " + child + " mapped to parent: " + parent + " on field: " + field);
+////				Object[] arr = (Object[])child;
+////				for (int i = 0; i < arr.length; i++) {
+////					System.out.println("GOODARR: " + child + " : " + arr[i]);
+////				}
+//			}
+//		}
 		if (mapping != null)
 			mapping.put(parent);
 		else {
-			mapping = new CountingMap<Object>();
+			mapping = new CountingMap();
 			mapping.put(parent);
 			childParentMap.put(child, mapping);
 		}
 	}
 	
-	public static void unmapChildParent(Object child, Object parent) {
-		CountingMap<Object> mapping = childParentMap.get(child);
+	public static synchronized void unmapChildParent(Object child, Object parent) {
+		CountingMap mapping = childParentMap.get(child);
+//		if (field != null) {
+//			if (field.getName().contains("indexToCharsetMapping")) {
+//				System.out.println("Child: " + child + " unmapped from parent: " + parent + " on field: " + field);
+//			}
+//		}
 		if (mapping != null)
 			mapping.remove(parent);
 		else {
-			TaintLogger.getTaintLogger().log("UNMAP CHILD PARENT FAIL");
+			try {
+//				Object[] arr = (Object[])child;
+//				for (int i = 0; i < arr.length; i++) {
+//					System.out.println("FAILARR: " + child + " : " + arr[i]);
+//				}
+//				System.out.println("UNMAP CHILD PARENT FAIL on child: " + child + " from parent: " + parent + " on field: " + field);
+			} catch (Exception e) {
+//				e.printStackTrace();
+			}
 			childParentMap.put(child, mapping);
 		}
 	}
 	
-	public static boolean checkObjectHasArrays(Object obj) {
-		CountingMap<Object[]> arraysMapping = objectArraysMap.get(obj);
+	public static synchronized boolean checkObjectHasArrays(Object obj) {
+		CountingMap arraysMapping = objectArraysMap.get(obj);
 		if (arraysMapping != null) {
 			return arraysMapping.nonEmpty();
 		}
@@ -268,8 +523,17 @@ public class ReferenceMaster {
 			return false;
 	}
 	
-	public static boolean checkObjectHasJavas(Object obj) {
-		CountingMap<Object> javasMapping = objectJavasMap.get(obj);
+	public static synchronized CountingMap getObjectArrays(Object obj) {
+		CountingMap arraysMapping = objectArraysMap.get(obj);
+		if (arraysMapping != null) {
+			return arraysMapping;
+		}
+		else
+			return null;
+	}
+	
+	public static synchronized boolean checkObjectHasJavas(Object obj) {
+		CountingMap javasMapping = objectJavasMap.get(obj);
 		if (javasMapping != null) {
 			return javasMapping.nonEmpty();
 		}
@@ -277,8 +541,8 @@ public class ReferenceMaster {
 			return false;
 	}
 	
-	public static boolean checkObjectHasTaint(Object obj) {
-		CountingMap<Object> mapping = objectTaintMap.get(obj);
+	public static synchronized boolean checkObjectHasTaint(Object obj) {
+		CountingMap mapping = objectTaintMap.get(obj);
 		if (mapping != null) {
 			return mapping.nonEmpty();
 		}
@@ -286,304 +550,157 @@ public class ReferenceMaster {
 			return false;
 	}
 	
-	public static void addObjectDirectArray(Object[] obj, Object newParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void addObjectDirectArray(Object[] obj, Object newParent) {
+		CountingMap sourceMapping = new CountingMap();
+		sourceMapping.put(obj);
 		
-		toVisit.add(newParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object[]> targetMapping = objectArraysMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object[]>();
-					objectArraysMap.put(visit, targetMapping);
-				}
-				targetMapping.put(obj);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateAddRecords(newParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectArraysMap, 
+				objectArraysSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void addObjectChildArrays(Object obj, Object newParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void addObjectChildArrays(Object obj, Object newParent) {
+		CountingMap sourceMapping = objectArraysMap.get(obj);
 		
-		CountingMap<Object[]> sourceMapping = objectArraysMap.get(obj);
-		
-		toVisit.add(newParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object[]> targetMapping = objectArraysMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object[]>();
-					objectArraysMap.put(visit, targetMapping);
-				}
-				targetMapping.mergeMappings(sourceMapping);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateAddRecords(obj, 
+				newParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectArraysMap,
+				objectArraysSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void addObjectDirectJavas(Object obj, Object newParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void addObjectDirectJavas(Object obj, Object newParent) {
+		CountingMap sourceMapping = new CountingMap();
+		sourceMapping.put(obj);
 		
-		toVisit.add(newParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object> targetMapping = objectJavasMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object>();
-					objectJavasMap.put(visit, targetMapping);
-				}
-				targetMapping.put(obj);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateAddRecords(newParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectJavasMap, 
+				objectJavasSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void addObjectChildJavas(Object obj, Object newParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void addObjectChildJavas(Object obj, Object newParent) {
+		CountingMap sourceMapping = objectJavasMap.get(obj);
 		
-		CountingMap<Object> sourceMapping = objectJavasMap.get(obj);
-		
-		toVisit.add(newParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object> targetMapping = objectJavasMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object>();
-					objectJavasMap.put(visit, targetMapping);
-				}
-				targetMapping.mergeMappings(sourceMapping);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateAddRecords(obj, 
+				newParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectJavasMap,
+				objectJavasSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void addObjectDirectTaint(Object obj, Object newParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void addObjectDirectTaint(Object obj, Object newParent) {
+		CountingMap sourceMapping = new CountingMap();
+		sourceMapping.put(obj);
 		
-		toVisit.add(newParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object> targetMapping = objectTaintMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object>();
-					objectTaintMap.put(visit, targetMapping);
-				}
-				targetMapping.put(obj);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateAddRecords(newParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectTaintMap, 
+				objectTaintSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void addObjectChildTaint(Object obj, Object newParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void addObjectChildTaint(Object obj, Object newParent) {
+		CountingMap sourceMapping = objectTaintMap.get(obj);
 		
-		CountingMap<Object> sourceMapping = objectTaintMap.get(obj);
-		
-		toVisit.add(newParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object> targetMapping = objectTaintMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object>();
-					objectTaintMap.put(visit, targetMapping);
-				}
-				targetMapping.mergeMappings(sourceMapping);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateAddRecords(obj, 
+				newParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectTaintMap,
+				objectTaintSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void removeObjectDirectArray(Object[] obj, Object oldParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void removeObjectDirectArray(Object[] obj, Object oldParent) {
+		CountingMap sourceMapping = new CountingMap();
+		sourceMapping.put(obj);
 		
-		toVisit.add(oldParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object[]> targetMapping = objectArraysMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object[]>();
-					objectArraysMap.put(visit, targetMapping);
-				}
-				targetMapping.remove(obj);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+//		if (oldParent instanceof Connection && field.getName().contains("indexToCharsetMapping")) {
+//			System.out.println("WARNING on field " + field);
+//		}
+		propagateRemoveRecords(oldParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectArraysMap, 
+				objectArraysSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void removeObjectChildArrays(Object obj, Object oldParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void removeObjectChildArrays(Object obj, Object oldParent) {
+		IdentityHashMap<Object, CountingMap> sourceMappings = objectArraysSourcesMap.get(obj);
+		if (sourceMappings == null)
+			return;
+		CountingMap sourceMappingOrig = sourceMappings.get(oldParent);
+		if (sourceMappingOrig == null)
+			return;
+		CountingMap sourceMapping = sourceMappingOrig.copy();
 		
-		CountingMap<Object[]> sourceMapping = objectArraysMap.get(obj);
-		
-		toVisit.add(oldParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object[]> targetMapping = objectArraysMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object[]>();
-					objectArraysMap.put(visit, targetMapping);
-				}
-				targetMapping.unMergeMappings(sourceMapping);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateRemoveRecords(obj, 
+				oldParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectArraysMap,
+				objectArraysSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void removeObjectDirectJavas(Object obj, Object oldParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void removeObjectDirectJavas(Object obj, Object oldParent) {
+		CountingMap sourceMapping = new CountingMap();
+		sourceMapping.put(obj);
 		
-		toVisit.add(oldParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object> targetMapping = objectJavasMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object>();
-					objectJavasMap.put(visit, targetMapping);
-				}
-				targetMapping.remove(obj);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateRemoveRecords(oldParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectJavasMap, 
+				objectJavasSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void removeObjectChildJavas(Object obj, Object oldParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void removeObjectChildJavas(Object obj, Object oldParent) {
+		IdentityHashMap<Object, CountingMap> sourceMappings = objectJavasSourcesMap.get(obj);
+		if (sourceMappings == null)
+			return;
+		CountingMap sourceMappingOrig = sourceMappings.get(oldParent);
+		if (sourceMappingOrig == null)
+			return;
+		CountingMap sourceMapping = sourceMappingOrig.copy();
 		
-		CountingMap<Object> sourceMapping = objectJavasMap.get(obj);
-		
-		toVisit.add(oldParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object> targetMapping = objectJavasMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object>();
-					objectJavasMap.put(visit, targetMapping);
-				}
-				targetMapping.unMergeMappings(sourceMapping);
-				CountingMap<Object> parentMapping = objectJavasMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateRemoveRecords(obj, 
+				oldParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectJavasMap,
+				objectJavasSourcesMap, 
+				sourceMapping);
 	}
 	
-	public static void removeObjectDirectTaint(Object obj, Object oldParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void removeObjectDirectTaint(Object obj, Object oldParent) {
+		CountingMap sourceMapping = new CountingMap();
+		sourceMapping.put(obj);
 		
-		toVisit.add(oldParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object> targetMapping = objectTaintMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object>();
-					objectTaintMap.put(visit, targetMapping);
-				}
-				targetMapping.remove(obj);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateRemoveRecords(oldParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectTaintMap, 
+				objectTaintSourcesMap, 
+				sourceMapping);
 	}
 
-	public static void removeObjectChildTaint(Object obj, Object oldParent) {
-		HashSet<Object> visited = new HashSet<Object>();
-		Stack<Object> toVisit = new Stack<Object>();
+	public static synchronized void removeObjectChildTaint(Object obj, Object oldParent) {
+		IdentityHashMap<Object, CountingMap> sourceMappings = objectTaintSourcesMap.get(obj);
+		if (sourceMappings == null)
+			return;
+		CountingMap sourceMappingOrig = sourceMappings.get(oldParent);
+		if (sourceMappingOrig == null)
+			return;
+		CountingMap sourceMapping = sourceMappingOrig.copy();
 		
-		CountingMap<Object> sourceMapping = objectTaintMap.get(obj);
-		
-		toVisit.add(oldParent);
-		
-		while (!toVisit.empty()) {
-			Object visit = toVisit.pop();
-			if (!visited.contains(visit)) {
-				visited.add(visit);
-				
-				CountingMap<Object> targetMapping = objectTaintMap.get(visit);
-				if (targetMapping == null) {
-					targetMapping = new CountingMap<Object>();
-					objectTaintMap.put(visit, targetMapping);
-				}
-				targetMapping.unMergeMappings(sourceMapping);
-				CountingMap<Object> parentMapping = childParentMap.get(visit);
-				if (parentMapping != null)
-					toVisit.addAll(parentMapping.getContents());
-			}
-		}
+		propagateRemoveRecords(obj, 
+				oldParent, 
+				new IdentityHashMap<Object, Object>(), 
+				objectTaintMap,
+				objectTaintSourcesMap, 
+				sourceMapping);
 	}
 	
 	/*

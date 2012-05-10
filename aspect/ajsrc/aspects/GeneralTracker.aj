@@ -1,16 +1,8 @@
 package aspects;
 
-import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
-import java.util.concurrent.CopyOnWriteArrayList;
-
-import org.aspectj.lang.reflect.FieldSignature;
 
 import aspects.TaintUtil.StackPath;
 
@@ -22,7 +14,7 @@ public aspect GeneralTracker {
 	/*
 	 * Use this to stop advice from triggering advice, which leads to infinite recursion
 	 */
-	pointcut myAdvice(): adviceexecution() && within(aspects.*);
+	pointcut myAdvice(): adviceexecution() || within(aspects.*);
 	pointcut tooBigErrorExclude(): within(com.mysql.jdbc.TimeUtil) || 
 									within(org.apache.catalina.startup.WebRuleSet) ||
 									within(org.eclipse.jdt.internal.compiler..*) ||
@@ -50,13 +42,16 @@ public aspect GeneralTracker {
 									within(javax.mail.search.OrTerm) ||
 									within(javax.mail.search.AndTerm) ||
 									within(org.quartz.core.QuartzScheduler_Skel) ||
-									withincode(* org.apache.jsp.jgossip.content.PreviewMessage_jsp._jspService(..)) ||
-									withincode(* org.apache.jsp.jgossip.content.AttachFiles_jsp._jspService(..)) ||
-									withincode(* org.apache.jsp.jgossip.content.AddMessage_jsp._jspService(..)) ||
-									withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
-									withincode(* org.apache.jsp.jgossip.content.EditMessage_jsp._jspService(..)) ||
 									withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..)) ||
-									withincode(* org.apache.jsp.jgossip.content.ShowForum_jsp._jspService(..));
+									withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..));
+	
+//									||
+//									withincode(* org.apache.jsp.jgossip.content.PreviewMessage_jsp._jspService(..)) ||
+//									withincode(* org.apache.jsp.jgossip.content.AttachFiles_jsp._jspService(..)) ||
+//									withincode(* org.apache.jsp.jgossip.content.AddMessage_jsp._jspService(..)) ||
+//									withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
+//									withincode(* org.apache.jsp.jgossip.content.EditMessage_jsp._jspService(..)) ||
+//									withincode(* org.apache.jsp.jgossip.content.ShowForum_jsp._jspService(..));
 	
 	pointcut tooBigErrorExcludeFields(): withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
     
@@ -423,7 +418,7 @@ public aspect GeneralTracker {
      * 		-Composition (multiple tainted arguments should imply this)
      * 
      */
-    after() returning (Object ret): (stringConstruct() || stringBuilderConstruct() || stringBufferConstruct() || stringCopyValueOf() || stringFormat()) && !cflow(myAdvice()) {
+    after() returning (Object ret): (stringConstruct() || stringBuilderConstruct() || stringBufferConstruct() || stringCopyValueOf() || stringFormat()) && !(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = TaintUtil.getStackTracePath();
@@ -437,12 +432,12 @@ public aspect GeneralTracker {
 	    			args[i] instanceof char[] ||
 	    			args[i] instanceof byte[] ||
 	    			args[i] instanceof int[]) {
-//	        		TaintLogger.getTaintLogger().log("Checking arg for taint: " + args[i] + " code: " + args[i].hashCode());
-	        		if (TaintData.getTaintData().isTainted(args[i])) {
+//	        TaintData.getTaintData().propagateSources		TaintLogger.getTaintLogger().log("Checking arg for taint: " + args[i] + " code: " + args[i].hashCode());
+	        		if (ReferenceMaster.isPrimaryTainted(args[i])) {
 //		        		TaintLogger.getTaintLogger().log("taintfound");
 	        			composed.add(args[i]);
 	        			TaintLogger.getTaintLogger().logPropagation(location, "STRINGCONSTRUCT", args[i], ret);
-	        			TaintData.getTaintData().propagateSources(args[i], ret);
+	        			ReferenceMaster.propagateTaintSources(args[i], ret);
 	        		}
 	        	}
 	        }
@@ -465,13 +460,13 @@ public aspect GeneralTracker {
 	 * byte[], int, int, Charset truncates and converts
 	 * int[], int, int truncates
 	 */
-    after() returning (Object ret): stringConstructModification() && !cflow(myAdvice()) {
+    after() returning (Object ret): stringConstructModification() && !(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = TaintUtil.getStackTracePath();
     	
     	for (int i = 0; i < args.length; i++) {
         	if (args[i] instanceof char[] || args[i] instanceof byte[] || args[i] instanceof int[]) {
-        		if (TaintData.getTaintData().isTainted(args[i]))
+        		if (ReferenceMaster.isPrimaryTainted(args[i]))
         			TaintLogger.getTaintLogger().logModification(location, "STRINGCONSTRUCTMOD", args[i]);
         	}
         }
@@ -480,14 +475,14 @@ public aspect GeneralTracker {
     /*
      * Static propagation without modification
      */
-    after() returning (Object ret): (stringValueOf() || stringCopyValueOf()) && !cflow(myAdvice()) {
+    after() returning (Object ret): (stringValueOf() || stringCopyValueOf()) && !(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = TaintUtil.getStackTracePath();
     	
     	if (args[0] instanceof Object || args[0] instanceof char[]) {
-    		if (TaintData.getTaintData().isTainted(args[0])) {
+    		if (ReferenceMaster.isPrimaryTainted(args[0])) {
     			TaintLogger.getTaintLogger().logPropagation(location, "STRINGSTATICPROPNOMOD", args[0], ret);
-    			TaintData.getTaintData().propagateSources(args[0], ret);
+    			ReferenceMaster.propagateTaintSources(args[0], ret);
     		}
     	}
     }
@@ -495,14 +490,14 @@ public aspect GeneralTracker {
     /*
      * Static propagation with modification
      */
-    after() returning (Object ret): (stringValueOfCharModification() || stringCopyValueOfModification()) && !cflow(myAdvice()) {
+    after() returning (Object ret): (stringValueOfCharModification() || stringCopyValueOfModification()) && !(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = TaintUtil.getStackTracePath();
     	
     	if (args[0] instanceof Object || args[0] instanceof char[]) {
-    		if (TaintData.getTaintData().isTainted(args[0])) {
+    		if (ReferenceMaster.isPrimaryTainted(args[0])) {
 	    		TaintLogger.getTaintLogger().logPropagation(location, "STRINGSTATICPROPMOD", args[0], ret);
-	    		TaintData.getTaintData().propagateSources(args[0], ret);
+	    		ReferenceMaster.propagateTaintSources(args[0], ret);
 	    		//Note that source is modified
 	    		TaintLogger.getTaintLogger().logModification(location, "STRINGSTATICMOD", args[0]);
     		}
@@ -513,13 +508,13 @@ public aspect GeneralTracker {
      * Propagation without modification
      */
     after() returning (Object ret): 	(stringGetBytes() || stringToCharArray() || stringBuilderToString() || stringBuilderShareValue() ||
-    					stringBuilderGetValue() || stringBufferToString() || stringBufferShareValue() || stringBufferGetValue()) && !cflow(myAdvice()) {
+    					stringBuilderGetValue() || stringBufferToString() || stringBufferShareValue() || stringBufferGetValue()) && !(myAdvice()) {
     	StackPath location = TaintUtil.getStackTracePath();
 
-		if (TaintData.getTaintData().isTainted(thisJoinPoint.getTarget())) {
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
 			//TODO: target is not what we want, target is the string being operated on, this should probably be whatever gets the value
 			TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPNOMOD", thisJoinPoint.getTarget(), ret);
-			TaintData.getTaintData().propagateSources(thisJoinPoint.getTarget(), ret);
+			ReferenceMaster.propagateTaintSources(thisJoinPoint.getTarget(), ret);
 		}
     }
     
@@ -527,20 +522,20 @@ public aspect GeneralTracker {
      * Propagation to arguments with modification (void return)
      */
     
-    before(): (stringGetBytesNoReturn() || stringGetCharsNoReturn() || stringBuilderGetChars() || stringBufferGetChars()) && !cflow(myAdvice()) {
+    before(): (stringGetBytesNoReturn() || stringGetCharsNoReturn() || stringBuilderGetChars() || stringBufferGetChars()) && !(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = TaintUtil.getStackTracePath();
     	
     	for (int i = 0; i < args.length; i++) {
         	if (args[i] instanceof char[] ||
     			args[i] instanceof byte[]) {
-        		if (TaintData.getTaintData().isTainted(thisJoinPoint.getTarget())) {
+        		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
 	        		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPARGMOD", thisJoinPoint.getTarget(), args[i]);
-	        		TaintData.getTaintData().propagateSources(thisJoinPoint.getTarget(), args[i]);
+	        		ReferenceMaster.propagateTaintSources(thisJoinPoint.getTarget(), args[i]);
 	        		//Note modification of this and args[i]
 	        		TaintLogger.getTaintLogger().logModification(location, "STRINGARGMODSRC", thisJoinPoint.getTarget());
         		}
-        		if (TaintData.getTaintData().isTainted(args[i]))
+        		if (ReferenceMaster.isPrimaryTainted(args[i]))
 	        		TaintLogger.getTaintLogger().logModification(location, "STRINGARGMODDEST", args[i]);
         	}
         }
@@ -550,12 +545,12 @@ public aspect GeneralTracker {
      * Propagation with modification
      */
     after() returning (Object ret): 	(stringGetBytesModification() || stringReplace() || stringSubstring() || stringToLowerCase() || stringToUpperCase()  || 
-    					stringTrim() || stringSubSequence() || stringBuilderSubstring() || stringBuilderSubSequence() || stringBufferSubstring() || stringBufferSubSequence()) && !cflow(myAdvice()) {
+    					stringTrim() || stringSubSequence() || stringBuilderSubstring() || stringBuilderSubSequence() || stringBufferSubstring() || stringBufferSubSequence()) && !(myAdvice()) {
     	StackPath location = TaintUtil.getStackTracePath();
 
-		if (TaintData.getTaintData().isTainted(thisJoinPoint.getTarget())) {
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
 			TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPMOD", thisJoinPoint.getTarget(), ret);
-			TaintData.getTaintData().propagateSources(thisJoinPoint.getTarget(), ret);
+			ReferenceMaster.propagateTaintSources(thisJoinPoint.getTarget(), ret);
 			TaintLogger.getTaintLogger().logModification(location, "STRINGMOD", thisJoinPoint.getTarget());
 		}
     }
@@ -563,17 +558,17 @@ public aspect GeneralTracker {
     /*
      * Propagation by splitting
      */
-    after() returning (Object ret): stringSplit() && !cflow(myAdvice()) {
+    after() returning (Object ret): stringSplit() && !(myAdvice()) {
     	StackPath location = TaintUtil.getStackTracePath();
 		
-		if (TaintData.getTaintData().isTainted(thisJoinPoint.getTarget())) {
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
 			TaintLogger.getTaintLogger().logPropagation(location, "STRINGSPLITPROP", thisJoinPoint.getTarget(), ret);
-			TaintData.getTaintData().propagateSources(thisJoinPoint.getTarget(), ret);
+			ReferenceMaster.propagateTaintSources(thisJoinPoint.getTarget(), ret);
 			if (ret instanceof String[]) {
 				String[] splitString = (String[]) ret;
 				for (int i = 0; i < splitString.length; i++) {
 					TaintLogger.getTaintLogger().logPropagation(location, "STRINGSPLITPROPSUB", thisJoinPoint.getTarget(), splitString[i]);
-					TaintData.getTaintData().propagateSources(thisJoinPoint.getTarget(), splitString[i]);
+					ReferenceMaster.propagateTaintSources(thisJoinPoint.getTarget(), splitString[i]);
 				}
 			}
 		}
@@ -582,22 +577,22 @@ public aspect GeneralTracker {
     /*
      * Concat propagates and composes this and argument
      */
-    after() returning (Object ret): stringConcat() && !cflow(myAdvice()) {
+    after() returning (Object ret): stringConcat() && !(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = TaintUtil.getStackTracePath();
     	
-    	if (TaintData.getTaintData().isTainted(thisJoinPoint.getTarget())) {
+    	if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
         	composed.add(thisJoinPoint.getTarget());
 	    	TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPCONCATTHIS", thisJoinPoint.getTarget(), ret);
-	    	TaintData.getTaintData().propagateSources(thisJoinPoint.getTarget(), ret);
+	    	ReferenceMaster.propagateTaintSources(thisJoinPoint.getTarget(), ret);
     	}
     	
     	if (args[0] != null) {
-    		if (TaintData.getTaintData().isTainted(args[0])) {
+    		if (ReferenceMaster.isPrimaryTainted(args[0])) {
 	    		composed.add(args[0]);
 	    		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPCONCATARG", args[0], ret);
-	    		TaintData.getTaintData().propagateSources(args[0], ret);
+	    		ReferenceMaster.propagateTaintSources(args[0], ret);
     		}
     	}
     	
@@ -605,7 +600,7 @@ public aspect GeneralTracker {
     	if (composed.size() > 1)
     		TaintLogger.getTaintLogger().logComposition(location, "STRINGCOMPCONCAT", composed, ret);
     	else if (composed.size() == 1) {
-    		if (TaintData.getTaintData().isTainted(thisJoinPoint.getTarget()))
+    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
     			TaintLogger.getTaintLogger().logModification(location, "STRINGMODCONCATTHIS", thisJoinPoint.getTarget());
     		else
     			TaintLogger.getTaintLogger().logModification(location, "STRINGMODCONCATARG", args[0]);
@@ -615,25 +610,25 @@ public aspect GeneralTracker {
     /*
      * Currently finds composition from relaceAll, replaceFirst
      */
-    after() returning (Object ret): stringReplaceString() && !cflow(myAdvice()) {
+    after() returning (Object ret): stringReplaceString() && !(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = TaintUtil.getStackTracePath();
     	// TODO: FIX THIS, SEMANTICS ARE ALL BORKED
-		if (TaintData.getTaintData().isTainted(thisJoinPoint.getTarget())) {
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
 	    	composed.add(thisJoinPoint.getTarget());
 //	    	System.out.println("LOGGING PROPAGATION");
 	    	TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPREPLACETHIS", thisJoinPoint.getTarget(), ret);
-	    	TaintData.getTaintData().propagateSources(thisJoinPoint.getTarget(), ret);
+	    	ReferenceMaster.propagateTaintSources(thisJoinPoint.getTarget(), ret);
 		}
     	
     	// Mixing still happens with args[0], will want to note this. Added to following aspect which handles general association
     	
     	if (args[1] != null) {
-    		if (TaintData.getTaintData().isTainted(args[0])) {
+    		if (ReferenceMaster.isPrimaryTainted(args[0])) {
     			composed.add(args[1]);
         		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPREPLACEARG", args[1], ret);
-    			TaintData.getTaintData().propagateSources(args[1], ret);
+    			ReferenceMaster.propagateTaintSources(args[1], ret);
     		}
     	}
     	
@@ -643,7 +638,7 @@ public aspect GeneralTracker {
     		TaintLogger.getTaintLogger().logModification(location, "STRINGMODREPLACE", thisJoinPoint.getTarget());
     	}
     	else if (composed.size() == 1) {
-    		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis()))
+    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
     			TaintLogger.getTaintLogger().logModification(location, "STRINGMODREPLACETHIS", thisJoinPoint.getTarget());
     		else
     			TaintLogger.getTaintLogger().logModification(location, "STRINGMODREPLACEARG", args[0]);
@@ -655,13 +650,13 @@ public aspect GeneralTracker {
      */
     after() returning (Object ret): 	(stringCompareTo() || stringEndsWith() || stringStartsWith() || stringEquals() || 
     					stringRegionMatches() || stringContentEquals() || stringMatches() || stringContains() || stringReplaceString() ||
-    					stringBuilderIndexOf() || stringBuilderLastIndexOf() || stringBufferIndexOf() || stringBufferLastIndexOf()) && !cflow(myAdvice()) {
+    					stringBuilderIndexOf() || stringBuilderLastIndexOf() || stringBufferIndexOf() || stringBufferLastIndexOf()) && !(myAdvice()) {
     	
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> associated = new ArrayList<Object>();
 		StackPath location = TaintUtil.getStackTracePath();
 		
-		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis()))
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
 			associated.add(thisJoinPoint.getThis());
     	
     	for (int i = 0; i < args.length; i++) {
@@ -669,7 +664,7 @@ public aspect GeneralTracker {
     			args[i] instanceof Object || 
     			args[i] instanceof StringBuffer || 
     			args[i] instanceof CharSequence) {
-        		if (TaintData.getTaintData().isTainted(args[i]))
+        		if (ReferenceMaster.isPrimaryTainted(args[i]))
         			associated.add(args[i]);
         	}
         }
@@ -683,13 +678,13 @@ public aspect GeneralTracker {
      * Advice for modification of this but not arguments
      */
     after() returning (Object ret): 	(stringBuilderAppend() || stringBuilderInsert() || stringBuilderReplace() ||
-    					stringBufferAppend() || stringBufferInsert() || stringBufferReplace()) && !cflow(myAdvice()) {
+    					stringBufferAppend() || stringBufferInsert() || stringBufferReplace()) && !(myAdvice()) {
 //    	System.out.println("this mod");
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = TaintUtil.getStackTracePath();
 		
-		if (TaintData.getTaintData().isTainted(thisJoinPoint.getTarget()))
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
 			composed.add(thisJoinPoint.getTarget());
     	
     	for (int i = 0; i < args.length; i++) {
@@ -697,12 +692,12 @@ public aspect GeneralTracker {
     			args[i] instanceof CharSequence || 
     			args[i] instanceof StringBuffer || 
     			args[i] instanceof char[]) {
-        		if (TaintData.getTaintData().isTainted(args[i])) {
-	        		if (!TaintData.getTaintData().isTainted(thisJoinPoint.getTarget()))
+        		if (ReferenceMaster.isPrimaryTainted(args[i])) {
+	        		if (!ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
 	        			TaintLogger.getTaintLogger().logModification(location, "STRINGMODARGS", args[i]);
 	        		composed.add(args[i]);
 	        		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPTHIS", args[i], thisJoinPoint.getTarget());
-	        		TaintData.getTaintData().propagateSources(args[i], thisJoinPoint.getTarget());
+	        		ReferenceMaster.propagateTaintSources(args[i], thisJoinPoint.getTarget());
         		}
         	}
         }
@@ -714,7 +709,7 @@ public aspect GeneralTracker {
     		TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
     	}
     	else if (composed.size() == 1) {
-    		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis()))
+    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
     			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
     	}
     }
@@ -723,7 +718,7 @@ public aspect GeneralTracker {
      * Advice for modification of this and arguments
      */
     after() returning (Object ret): 	(stringBuilderAppendModification() || stringBuilderInsertModification() ||
-    					stringBufferAppendModification() || stringBufferInsertModification()) && !cflow(myAdvice()) {
+    					stringBufferAppendModification() || stringBufferInsertModification()) && !(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackPath location = TaintUtil.getStackTracePath();
@@ -735,10 +730,10 @@ public aspect GeneralTracker {
     			args[i] instanceof CharSequence || 
     			args[i] instanceof StringBuffer || 
     			args[i] instanceof char[]) {
-        		if (TaintData.getTaintData().isTainted(args[i])) {
+        		if (ReferenceMaster.isPrimaryTainted(args[i])) {
 	        		composed.add(args[i]);
 	        		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPTHIS", args[i], thisJoinPoint.getThis());
-	        		TaintData.getTaintData().propagateSources(args[i], thisJoinPoint.getThis());
+	        		ReferenceMaster.propagateTaintSources(args[i], thisJoinPoint.getThis());
 	        		TaintLogger.getTaintLogger().logModification(location, "STRINGMODARGS", args[i]);
         		}
         	}
@@ -751,7 +746,7 @@ public aspect GeneralTracker {
     		TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
     	}
     	else if (composed.size() == 1) {
-    		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis()))
+    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
     			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
     	}
     }
@@ -761,11 +756,11 @@ public aspect GeneralTracker {
      */
     
     after() returning (Object ret):	(stringBuilderDelete() || stringBufferDelete() || stringBuilderReverse() || stringBufferReverse() ||
-    					stringBuilderAppendCodePoint() || stringBufferAppendCodePoint()) && !cflow(myAdvice()) {
+    					stringBuilderAppendCodePoint() || stringBufferAppendCodePoint()) && !(myAdvice()) {
     	StackPath location = TaintUtil.getStackTracePath();
 		
     	// Note modification of this
-		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis()))
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
 			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
     }
     
@@ -773,10 +768,10 @@ public aspect GeneralTracker {
      * Advice for modification of this (void return)
      */
     
-    before(): (stringBuilderSetCharAt() || stringBufferSetCharAt() || stringBuilderSetLength() || stringBufferSetLength()) && !cflow(myAdvice()) {
+    before(): (stringBuilderSetCharAt() || stringBufferSetCharAt() || stringBuilderSetLength() || stringBufferSetLength()) && !(myAdvice()) {
     	StackPath location = TaintUtil.getStackTracePath();
 		
-		if (TaintData.getTaintData().isTainted(thisJoinPoint.getThis()))
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
 			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHISVOID", thisJoinPoint.getThis());
     	// Note modification of this
     }
@@ -784,28 +779,28 @@ public aspect GeneralTracker {
     /*
      * Monitors all method invocations and returns for fuzzy propagation
      */
-    after() returning (Object ret): execution(public * org.jresearch..*.*(..)) && !cflow(myAdvice()) {
+    after() returning (Object ret): execution(public * org.jresearch..*.*(..)) && !(myAdvice()) {
     	Object[] args = thisJoinPoint.getArgs();
 		StackPath location = TaintUtil.getStackTracePath();
 
 		ArrayList<Object> taintedArgs = new ArrayList<Object>();
 		for (int i = 0; i < args.length; i++) {
 			if (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) { // TODO: add StringBuffer/Builder
-				if (args[i] != null && TaintData.getTaintData().isTainted(args[i])) {
+				if (args[i] != null && ReferenceMaster.isPrimaryTainted(args[i])) {
 					taintedArgs.add(args[i]);
 				}
 			} 
 		}
 		
 		if (taintedArgs.size() > 0 && ret != null) {
-			if (!TaintData.getTaintData().isTainted(ret)) {
+			if (!ReferenceMaster.isPrimaryTainted(ret)) {
 				for (Object arg : taintedArgs) {
 					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
 							Math.abs(arg.toString().length() - ret.toString().length()) + 
 							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
 							Math.min(arg.toString().length(), ret.toString().length()) > 0) {
 						TaintLogger.getTaintLogger().logFuzzyPropagation(location, "FUZZYPROP", arg, ret);
-						TaintData.getTaintData().propagateSources(arg, ret);
+						ReferenceMaster.propagateTaintSources(arg, ret);
 						break;
 					}
 				}
@@ -822,21 +817,21 @@ public aspect GeneralTracker {
 ////		ArrayList<Object> taintedArgs = new ArrayList<Object>();
 ////		for (int i = 0; i < args.length; i++) {
 ////			if (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) { // TODO: add StringBuffer/Builder
-////				if (args[i] != null && TaintData.getTaintData().isTainted(args[i])) {
+////				if (args[i] != null && ReferenceMaster.isPrimaryTainted(args[i])) {
 ////					taintedArgs.add(args[i]);
 ////				}
 ////			} 
 ////		}
 ////		
 ////		if (taintedArgs.size() > 0 && ret != null) {
-////			if (!TaintData.getTaintData().isTainted(ret)) {
+////			if (!ReferenceMaster.isPrimaryTainted(ret)) {
 ////				for (Object arg : taintedArgs) {
 ////					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
 ////							Math.abs(arg.toString().length() - ret.toString().length()) + 
 ////							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
 ////							Math.min(arg.toString().length(), ret.toString().length()) > 0) {
 ////						TaintLogger.getTaintLogger().logFuzzyPropagation(location, "FUZZYPROP", arg, ret);
-////						TaintData.getTaintData().propagateSources(arg, ret);
+////						ReferenceMaster.propagateTaintSources(arg, ret);
 ////						break;
 ////					}
 ////				}
@@ -849,7 +844,9 @@ public aspect GeneralTracker {
     /*
      * BEFORE JAVA CALL
      */
-    before(): call(* java..*.*(..)) && !within(aspects.*) && !cflow(myAdvice()) && !tooBigErrorExclude() {
+    before(): call(* java..*.*(..)) && !within(aspects.*) && !(myAdvice()) && !tooBigErrorExclude() {
+    	if (!TaintUtil.getAJLock())
+    		return;
 		TaintUtil.StackPath location = null;
         Object[] args = thisJoinPoint.getArgs();
         
@@ -866,7 +863,7 @@ public aspect GeneralTracker {
 //    			else
 //    				TaintLogger.getTaintLogger().logJavaFieldSet(location, "JAVACALLSTRINGARG", args[i], javaObjField);
         	}
-        	else {
+        	else if (args[i] != null) {
         		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
         		if (objTaint != null && objTaint.size() > 0) {
         			if (location == null)
@@ -881,12 +878,15 @@ public aspect GeneralTracker {
         		}
         	}
         }
+        TaintUtil.releaseAJLock();
     }
     
     /*
      * BEFORE JAVA CONSTRUCTOR CALL
      */
-    before(): call(java..*.new(..)) && !within(aspects.*) && !cflow(myAdvice()) && !tooBigErrorExclude() {
+    before(): call(java..*.new(..)) && !within(aspects.*) && !(myAdvice()) && !tooBigErrorExclude() {
+    	if (!TaintUtil.getAJLock())
+    		return;
 		TaintUtil.StackPath location = null;
         Object[] args = thisJoinPoint.getArgs();
         
@@ -900,7 +900,7 @@ public aspect GeneralTracker {
     			taintedArgs.add(args[i]);
 				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i]);
         	}
-        	else {
+        	else if (args[i] != null) {
         		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
         		if (objTaint != null && objTaint.size() > 0) {
         			if (location == null)
@@ -912,12 +912,15 @@ public aspect GeneralTracker {
         		}
         	}
         }
+        TaintUtil.releaseAJLock();
     }
     
     /*
      * AFTER JAVA METHOD CALL
      */
-    after() returning (Object ret): call(* java..*.*(..)) && !cflow(myAdvice()) && !tooBigErrorExclude() {
+    after() returning (Object ret): call(* java..*.*(..)) && !(myAdvice()) && !tooBigErrorExclude() {
+    	if (!TaintUtil.getAJLock())
+    		return;
 		TaintUtil.StackPath location = null;
     	Object[] args = thisJoinPoint.getArgs();
 
@@ -928,7 +931,7 @@ public aspect GeneralTracker {
     				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
     			TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLPOSTARG", args[i]);
         	}
-    		else {
+    		else if (args[i] != null) {
         		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
         		if (objTaint != null && objTaint.size() > 0) {
         			if (location == null)
@@ -951,7 +954,7 @@ public aspect GeneralTracker {
 //			else 
 //				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLSTRINGRETURN", ret, javaObjField);
     	}
-    	else {
+    	else if (ret != null) {
     		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(ret);
     		if (objTaint != null && objTaint.size() > 0) {
 				if (location == null)
@@ -965,14 +968,17 @@ public aspect GeneralTracker {
 //    				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLOBJECTRETURN", ret, objTaint, javaObjField);
 			}
 		}
+        TaintUtil.releaseAJLock();
     }
     
     /*
      * AFTER JAVA CONSTRUCTOR CALL
      */
-    after(Object ret) returning: this(ret) && (call(java..*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) && !tooBigErrorExclude() {
-	    	TaintUtil.StackPath location = null;
-	        Object[] args = thisJoinPoint.getArgs();
+    after(Object ret) returning: this(ret) && (call(java..*.new(..)) && !within(aspects.*)) && !(myAdvice()) && !tooBigErrorExclude() {
+    	if (!TaintUtil.getAJLock())
+    		return;
+		TaintUtil.StackPath location = null;
+        Object[] args = thisJoinPoint.getArgs();
 	        
     	//TODO: Deal with the fact that I added ResultSet here
         if (ReferenceMaster.isPrimaryTainted(ret)) {
@@ -980,7 +986,7 @@ public aspect GeneralTracker {
 				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
 			TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURNCONSTRUCT", ret);
     	}
-        else {
+        else if (ret != null) {
     		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(ret);
     		if (objTaint != null && objTaint.size() > 0) {
 				if (location == null)
@@ -991,12 +997,15 @@ public aspect GeneralTracker {
 				TaintLogger.getTaintLogger().logReturningObject(location, "JAVACALLOBJECTRETURNCONSTRUCT", ret, objTaint);
 			}
 		}
+        TaintUtil.releaseAJLock();
     }
 
     /*
      * BEFORE EXECUTION
      */
-    before(): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !cflow(myAdvice()) {
+    before(): (execution(* *.*(..)) || (execution(*.new(..)) && !within(aspects.*))) && !(myAdvice()) {
+    	if (!TaintUtil.getAJLock())
+    		return;
 		TaintUtil.StackPath location = null;
         Object[] args = thisJoinPoint.getArgs();
         
@@ -1010,7 +1019,7 @@ public aspect GeneralTracker {
     			taintedArgs.add(args[i]);
     			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i]);
         	}
-        	else {
+        	else if (args[i] != null) {
         		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
         		if (objTaint != null && objTaint.size() > 0) {
         			if (location == null)
@@ -1022,13 +1031,16 @@ public aspect GeneralTracker {
         		}
         	}
         }
+        TaintUtil.releaseAJLock();
     }
     
     /*
      * AFTER METHOD EXECUTION
      */
     
-    after() returning (Object ret): execution(* *.*(..)) && !cflow(myAdvice()) {
+    after() returning (Object ret): execution(* *.*(..)) && !(myAdvice()) {
+    	if (!TaintUtil.getAJLock())
+    		return;
 		TaintUtil.StackPath location = null;
     	Object[] args = thisJoinPoint.getArgs();
         
@@ -1039,7 +1051,7 @@ public aspect GeneralTracker {
     				location = TaintUtil.getStackTracePath();
     			TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
         	}
-        	else {
+        	else if (args[i] != null) {
         		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
         		if (objTaint != null && objTaint.size() > 0) {
         			if (location == null)
@@ -1059,7 +1071,7 @@ public aspect GeneralTracker {
 			/* TODO: Read fuzzy prop */
 			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret);
     	}
-        else {
+        else if (ret != null) {
     		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(ret);
     		if (objTaint != null && objTaint.size() > 0) {
 				if (location == null)
@@ -1070,14 +1082,17 @@ public aspect GeneralTracker {
 				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURN", ret, objTaint);
 			}
 		}
+        TaintUtil.releaseAJLock();
     }
     
     /*
      * AFTER CONSTRUCTOR EXECUTION
      */
     
-    after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !cflow(myAdvice()) {
-    	TaintUtil.StackPath location = null;
+    after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !(myAdvice()) {
+    	if (!TaintUtil.getAJLock())
+    		return;
+		TaintUtil.StackPath location = null;
         Object[] args = thisJoinPoint.getArgs();
         
         for (int i = 0; i < args.length; i++) {
@@ -1087,7 +1102,7 @@ public aspect GeneralTracker {
     				location = TaintUtil.getStackTracePath();
     			TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
         	}
-        	else {
+        	else if (args[i] != null) {
         		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
         		if (objTaint != null && objTaint.size() > 0) {
         			if (location == null)
@@ -1106,7 +1121,7 @@ public aspect GeneralTracker {
 				location = TaintUtil.getStackTracePath();
 			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURNCONSTRUCT", ret);
     	}
-        else {
+        else if (ret != null) {
     		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(ret);
     		if (objTaint != null && objTaint.size() > 0) {
 				if (location == null)
@@ -1117,530 +1132,10 @@ public aspect GeneralTracker {
 				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURNCONSTRUCT", ret, objTaint);
 			}
 		}
+        TaintUtil.releaseAJLock();
     }
 
-    /*
-     * Advice for new reference tracking system
-     */
-    after() returning(Object accessed): get(!static * *) && !cflow(myAdvice()) {
-    	StackPath location = null;
-		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
-		
-		if (ReferenceMaster.isPrimaryTainted(accessed)) {
-			if (location == null)
-				location = TaintUtil.getStackTracePath();
-    		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field);
-    	}
-    	else {
-			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(accessed);
-    		if (objTaint != null && objTaint.size() > 0) {
-    			if (location == null)
-    				location = TaintUtil.getStackTracePath();
-    			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, objTaint, field);
-    		}
-    	}
-    }
-	
-    before(): set(!static * *) && !cflow(myAdvice()) {
-		Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
-		field.setAccessible(true);
-		Object target = thisJoinPoint.getTarget();
-		Object oldValue = null;
-		try {
-			oldValue = field.get(target);
-		} catch (Exception e) {
-		}
-		Object newValue = thisJoinPoint.getArgs()[0];
-
-		ReferenceMaster.cleanupOldValue(oldValue, target);
-		ReferenceMaster.setNewValue(newValue, target);
-		
-		StackPath location = null;
-		
-		if (ReferenceMaster.isPrimaryTainted(newValue)) {
-			if (location == null)
-				location = TaintUtil.getStackTracePath();
-			TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, field);
-		} else {
-			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(newValue);
-			if (objTaint != null && objTaint.size() > 0) {
-				if (location == null)
-					location = TaintUtil.getStackTracePath();
-				TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, objTaint, field);
-			}
-		}
-    }
     
-    after() returning(Object accessed): get(static * *) && !cflow(myAdvice()) {
-    	StackPath location = null;
-		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
-		
-		if (ReferenceMaster.isPrimaryTainted(accessed)) {
-			if (location == null)
-				location = TaintUtil.getStackTracePath();
-    		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field);
-    	}
-    	else {
-			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(accessed);
-    		if (objTaint != null && objTaint.size() > 0) {
-    			if (location == null)
-    				location = TaintUtil.getStackTracePath();
-    			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, objTaint, field);
-    		}
-    	}
-    }
-    
-    before(): set(static * *) && !cflow(myAdvice()) {
-    	Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
-		field.setAccessible(true);
-		Object newValue = thisJoinPoint.getArgs()[0];
-
-		StackPath location = null;
-		
-		if (ReferenceMaster.isPrimaryTainted(newValue)) {
-			if (location == null)
-				location = TaintUtil.getStackTracePath();
-			TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, field);
-		} else {
-			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(newValue);
-			if (objTaint != null && objTaint.size() > 0) {
-				if (location == null)
-					location = TaintUtil.getStackTracePath();
-				TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, objTaint, field);
-			}
-		}
-	}
-    
-    pointcut collectionOp(): !(call(* java.beans.beancontext.BeanContext+.*(..)) || 
-    		call(* javax.management.AttributeList+.*(..)) || 
-    		call(* javax.management.relation.RoleList+.*(..)) || 
-    		call(* javax.management.relation.RoleUnresolvedList+.*(..)) || 
-    		call(* java.util.Vector+.*(..)) ||
-    		call(* java.util.EnumSet+.*(..)) ||
-    		call(* javax.print.attribute.standard.JobStateReasons+.*(..))) 
-    		&& !within(aspects.*) && !cflow(myAdvice());
-    
-    pointcut mapOp(): !(call(* java.security.AuthProvider+.*(..)) ||
-    		call(* java.util.EnumMap+.*(..)) ||
-    		call(* java.util.LinkedHashMap+.*(..)) ||
-    		call(* javax.print.attribute.standard.PrinterStateReasons+.*(..)) ||
-    		call(* java.util.Properties+.*(..)) ||
-    		call(* java.security.Provider+.*(..)) ||
-    		call(* java.awt.RenderingHints+.*(..)) ||
-    		call(* javax.script.SimpleBindings+.*(..)) ||
-    		call(* javax.management.openmbean.TabularDataSupport+.*(..)) ||
-    		call(* javax.swing.UIDefaults+.*(..)));
-    
-    after(Object ret) returning: this(ret) && call(java.util.Collection+.new(..)) && collectionOp() {
-    	Object[] args = thisJoinPoint.getArgs();
-    	
-    	for (int i = 0; i < args.length; i++) {
-    		if (args[i] instanceof Collection) {
-    			for (Object item : (Collection)args[i]) {
-    				ReferenceMaster.setNewValue(item, ret);
-    			}
-    			break;
-    		}
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.add(..)) && collectionOp() {
-    	// Object (ret bool)
-    	if ((Boolean)ret == true) {
-	    	Object[] args = thisJoinPoint.getArgs();
-	    	Object thisOb = thisJoinPoint.getThis();
-	    	
-			ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.addAll(..)) && collectionOp() {
-    	// Collection (ret bool)
-    	if ((Boolean)ret == true) {
-	    	Object[] args = thisJoinPoint.getArgs();
-	    	Object thisOb = thisJoinPoint.getThis();
-	    	
-	    	if (args[0] instanceof Collection) {
-    			for (Object item : (Collection)args[0]) {
-    				ReferenceMaster.setNewValue(item, thisOb);
-    			}
-    		}
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.addAllAbsent(..)) && collectionOp() {
-    	// Collection (ret int)
-    	Integer count = (Integer) ret;
-    	if (count > 0) {
-    		CopyOnWriteArrayList thisOb = (CopyOnWriteArrayList)thisJoinPoint.getThis();
-    		
-    		for (int index = thisOb.size() - count; index < thisOb.size(); index++) {
-    			ReferenceMaster.setNewValue(thisOb.get(index), thisOb);
-    		}
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.addIfAbsent(..)) && collectionOp() {
-    	// Object (ret bool)
-    	if ((Boolean)ret == true) {
-	    	Object[] args = thisJoinPoint.getArgs();
-	    	Object thisOb = thisJoinPoint.getThis();
-	    	
-			ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.addFirst(..)) && collectionOp() {
-    	// Object
-    	Deque thisOb = (Deque)thisJoinPoint.getThis();
-    	Object[] args = thisJoinPoint.getArgs();
-    	if (args[0] == thisOb.getFirst()) {
-    		ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.addLast(..)) && collectionOp() {
-    	// Object
-    	Deque thisOb = (Deque)thisJoinPoint.getThis();
-    	Object[] args = thisJoinPoint.getArgs();
-    	if (args[0] == thisOb.getLast()) {
-    		ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    before(): call(* java.util.Collection+.clear(..)) && collectionOp() {
-    	Collection thisOb = (Collection) thisJoinPoint.getThis();
-    	for (Object item : thisOb) {
-    		ReferenceMaster.cleanupOldValue(item, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.drainTo(..)) && collectionOp() {
-    	TaintLogger.getTaintLogger().log("DRAIN CALLED");
-    }
-    after() returning (Object ret): call(* java.util.Collection+.offer(..)) && collectionOp() {
-    	// Object (ret bool) || Object, timeout, unit (ret bool)
-    	if ((Boolean)ret == true) {
-	    	Object[] args = thisJoinPoint.getArgs();
-	    	Object thisOb = thisJoinPoint.getThis();
-	    	
-			ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.offerFirst(..)) && collectionOp() {
-    	// Object (ret bool) || Object, timeout, unit (ret bool)
-    	if ((Boolean)ret == true) {
-	    	Object[] args = thisJoinPoint.getArgs();
-	    	Object thisOb = thisJoinPoint.getThis();
-	    	
-			ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.offerLast(..)) && collectionOp() {
-    	// Object (ret bool) || Object, timeout, unit (ret bool)
-    	if ((Boolean)ret == true) {
-	    	Object[] args = thisJoinPoint.getArgs();
-	    	Object thisOb = thisJoinPoint.getThis();
-	    	
-			ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.poll(..)) && collectionOp() {
-    	// timeout (ret removed)
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.pollFirst(..)) && collectionOp() {
-    	// timeout (ret removed)
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.pollLast(..)) && collectionOp() {
-    	//timeout (ret removed)
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.pop(..)) && collectionOp() {
-    	// ret Object
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.push(..)) && collectionOp() {
-    	// Object
-    	if (thisJoinPoint.getThis() instanceof Deque) {
-	    	Deque thisOb = (Deque)thisJoinPoint.getThis();
-	    	Object[] args = thisJoinPoint.getArgs();
-	    	if (args[0] == thisOb.peek()) {
-	    		ReferenceMaster.setNewValue(args[0], thisOb);
-	    	}
-    	}
-    	else if (thisJoinPoint.getThis() instanceof Stack) {
-	    	Stack thisOb = (Stack)thisJoinPoint.getThis();
-	    	Object[] args = thisJoinPoint.getArgs();
-	    	if (args[0] == thisOb.peek()) {
-	    		ReferenceMaster.setNewValue(args[0], thisOb);
-	    	}
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.put(..)) && collectionOp() {
-    	// Object
-    	Deque thisOb = (Deque)thisJoinPoint.getThis();
-    	Object[] args = thisJoinPoint.getArgs();
-    	if (args[0] == thisOb.getLast()) {
-    		ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.putFirst(..)) && collectionOp() {
-    	// Object
-    	Deque thisOb = (Deque)thisJoinPoint.getThis();
-    	Object[] args = thisJoinPoint.getArgs();
-    	if (args[0] == thisOb.getFirst()) {
-    		ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.putLast(..)) && collectionOp() {
-    	// Object
-    	Deque thisOb = (Deque)thisJoinPoint.getThis();
-    	Object[] args = thisJoinPoint.getArgs();
-    	if (args[0] == thisOb.getLast()) {
-    		ReferenceMaster.setNewValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.remove(..)) && collectionOp() {
-    	// Object (ret bool) || blank (returns Removed)
-    	Object[] args = thisJoinPoint.getArgs();
-		Object thisOb = thisJoinPoint.getThis();
-    	if (args.length > 0) {
-    		if (args[0] instanceof Object) {
-	    		if ((Boolean)ret == true) {
-	    			ReferenceMaster.cleanupOldValue(args[0], thisOb);
-	    		}
-    		}
-    		else {
-    			ReferenceMaster.cleanupOldValue(ret, thisOb);
-    		}
-    	}
-    	else {
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.removeAll(..)) && collectionOp() {
-    	// Collection (ret bool)
-    	Collection arg = (Collection)thisJoinPoint.getArgs()[0];
-		Object thisOb = thisJoinPoint.getThis();
-		if ((Boolean)ret == true) {
-			for (Object item : arg) {
-				ReferenceMaster.cleanupOldValue(item, thisOb);
-			}
-		}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.removeFirst(..)) && collectionOp() {
-    	// ret object (first)
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.removeFirstOccurrence(..)) && collectionOp() {
-    	// Object (ret bool)
-    	if ((Boolean)ret == true) {
-    		Object thisOb = thisJoinPoint.getThis();
-        	Object[] args = thisJoinPoint.getArgs();
-    		
-    		ReferenceMaster.cleanupOldValue(args[0], thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.removeLast(..)) && collectionOp() {
-    	// ret object (last)
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.removeLastOccurrence(..)) && collectionOp() {
-    	// Object (ret bool)
-    	if ((Boolean)ret == true) {
-    		Object thisOb = thisJoinPoint.getThis();
-        	Object[] args = thisJoinPoint.getArgs();
-    		
-    		ReferenceMaster.cleanupOldValue(args[0], thisOb);
-    	}
-    }
-    before(): call(* java.util.Collection+.retainAll(..)) && collectionOp() {
-    	// Collection (ret bool)
-    	Collection arg = (Collection)thisJoinPoint.getArgs()[0];
-		Collection thisOb = (Collection)thisJoinPoint.getThis();
-		for (Object item : thisOb) {
-			if (!arg.contains(item)) {
-				ReferenceMaster.cleanupOldValue(item, thisOb);
-			}
-		}
-    }
-    before(): call(* java.util.Collection+.set(..)) && collectionOp() {
-    	// int, Object
-    	Object[] args = thisJoinPoint.getArgs();
-    	Integer target = (Integer)args[0];
-    	Object newVal = (Object)args[1];
-		List thisOb = (List)thisJoinPoint.getThis();
-    	Object oldVal = thisOb.get(target);
-    	
-    	ReferenceMaster.cleanupOldValue(oldVal, thisOb);
-    	ReferenceMaster.setNewValue(newVal, thisOb);
-    }
-    after() returning (Object ret): call(* java.util.Collection+.take(..)) && collectionOp() {
-    	// blank (ret removed)
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.takeFirst(..)) && collectionOp() {
-    	// blank (ret removed)
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Collection+.takeLast(..)) && collectionOp() {
-    	// blank (ret removed)
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		
-    		ReferenceMaster.cleanupOldValue(ret, thisOb);
-    	}
-    }
-    
-    after(Object ret) returning: this(ret) && call(java.util.Map+.new(..)) && mapOp() {
-    	// look for map
-    	Object[] args = thisJoinPoint.getArgs();
-    	
-    	for (int i = 0; i < args.length; i++) {
-    		if (args[i] instanceof Map) {
-    			for (Object item : ((Map)args[i]).entrySet()) {
-    				Map.Entry entry = (Map.Entry)item;
-    				ReferenceMaster.setNewValue(entry.getKey(), ret);
-    				ReferenceMaster.setNewValue(entry.getValue(), ret);
-    			}
-    			break;
-    		}
-    	}
-    }
-    before(): call(* java.util.Map+.clear(..)) && mapOp() {
-		Map thisOb = (Map)thisJoinPoint.getThis();
-		for (Object item : thisOb.entrySet()) {
-			Map.Entry entry = (Map.Entry)item;
-			ReferenceMaster.cleanupOldValue(entry.getKey(), thisOb);
-			ReferenceMaster.cleanupOldValue(entry.getValue(), thisOb);
-		}
-    }
-    after() returning (Object ret): call(* java.util.Map+.put(..)) && mapOp() {
-    	// Object key, Object value
-    	Map thisOb = (Map)thisJoinPoint.getThis();
-    	Object[] args = thisJoinPoint.getArgs();
-    	Object key = args[0];
-    	Object value = args[0];
-    	
-    	ReferenceMaster.setNewValue(key, thisOb);
-    	ReferenceMaster.setNewValue(value, thisOb);
-    }
-    after() returning (Object ret): call(* java.util.Map+.putAll(..)) && mapOp() {
-    	// Map 
-    	Map thisOb = (Map)thisJoinPoint.getThis();
-    	Object[] args = thisJoinPoint.getArgs();
-    	if (args[0] instanceof Map) {
-			for (Object item : ((Map)args[0]).entrySet()) {
-				Map.Entry entry = (Map.Entry)item;
-				ReferenceMaster.setNewValue(entry.getKey(), thisOb);
-				ReferenceMaster.setNewValue(entry.getValue(), thisOb);
-			}
-		}
-    }
-    after() returning (Object ret): call(* java.util.Map+.putValue(..)) && mapOp() {
-    	// String key, String value
-    	Map thisOb = (Map)thisJoinPoint.getThis();
-    	Object[] args = thisJoinPoint.getArgs();
-    	String key = (String)args[0];
-    	String value = (String)args[0];
-    	
-    	ReferenceMaster.setNewValue(key, thisOb);
-    	ReferenceMaster.setNewValue(value, thisOb);
-    }
-    before(): call(* java.util.Map+.putIfAbsent(..)) && mapOp() {
-    	// Object key, Object value
-    	Map thisOb = (Map)thisJoinPoint.getThis();
-    	Object[] args = thisJoinPoint.getArgs();
-    	String key = (String)args[0];
-    	String value = (String)args[0];
-    	if (!thisOb.containsKey(key)) {    	
-	    	ReferenceMaster.setNewValue(key, thisOb);
-	    	ReferenceMaster.setNewValue(value, thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Map+.pollFirstEntry(..)) && mapOp() {
-    	// ret Map.Entry
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		Map.Entry entry = (Map.Entry)ret;
-    		
-    		ReferenceMaster.cleanupOldValue(entry.getKey(), thisOb);
-    		ReferenceMaster.cleanupOldValue(entry.getValue(), thisOb);
-    	}
-    }
-    after() returning (Object ret): call(* java.util.Map+.pollLastEntry(..)) && mapOp() {
-    	// ret Map.Entry
-    	if (ret != null) {
-    		Object thisOb = thisJoinPoint.getThis();
-    		Map.Entry entry = (Map.Entry)ret;
-    		
-    		ReferenceMaster.cleanupOldValue(entry.getKey(), thisOb);
-    		ReferenceMaster.cleanupOldValue(entry.getValue(), thisOb);
-    	}
-    }
-    before(): call(* java.util.Map+.remove(..)) && mapOp() {
-    	// Object key || Object key, Object value
-    	Map thisOb = (Map)thisJoinPoint.getThis();
-		Object[] args = thisJoinPoint.getArgs();
-		Object key = args[0];
-		if (args.length > 1) {
-			Object value = args[1];
-			if (thisOb.get(key) == value) {
-				ReferenceMaster.cleanupOldValue(key, thisOb);
-				ReferenceMaster.cleanupOldValue(thisOb.get(key), thisOb);
-			}
-		}
-		else {
-			ReferenceMaster.cleanupOldValue(key, thisOb);
-			ReferenceMaster.cleanupOldValue(thisOb.get(key), thisOb);
-		}
-    }
-    before(): call(* java.util.Map+.replace(..)) && mapOp() {
-    	// Object key, Object value || Object key, Object value, Object oldValue
-    	Map thisOb = (Map)thisJoinPoint.getThis();
-		Object[] args = thisJoinPoint.getArgs();
-		Object key = args[0];
-		Object newValue = args[1];
-		if (args.length > 2) {
-			Object oldValue = args[2];
-			if (thisOb.get(key) == oldValue && thisOb.get(key) != null) {
-				ReferenceMaster.cleanupOldValue(thisOb.get(key), thisOb);
-				ReferenceMaster.setNewValue(newValue, thisOb);
-			}
-		}
-		else {
-			if (thisOb.get(key) != null) {
-				ReferenceMaster.cleanupOldValue(thisOb.get(key), thisOb);
-				ReferenceMaster.setNewValue(newValue, thisOb);
-			}
-		}
-    }
     
     /*
      * Advice for new reference tracking system
@@ -1681,7 +1176,7 @@ public aspect GeneralTracker {
 //    		//Hack, should be at level of fields but it not.
 //    		if (TaintData.getTaintData().checkObjectTainted(thisJoinPoint.getThis())) {
 //		    	if ((accessed instanceof String || accessed instanceof StringBuffer || accessed instanceof StringBuilder || accessed instanceof ResultSet) &&
-//		    			TaintData.getTaintData().isTainted(accessed)) {
+//		    			ReferenceMaster.isPrimaryTainted(accessed)) {
 //	    			if (location == null)
 //	    				location = TaintUtil.getStackTracePath();
 //		    		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field);
@@ -1723,7 +1218,7 @@ public aspect GeneralTracker {
 //    	if (accessed != null) {
 //    		if (TaintData.getTaintData().checkStaticFieldTainted(field)) {
 //		    	if ((accessed instanceof String || accessed instanceof StringBuffer || accessed instanceof StringBuilder || accessed instanceof ResultSet) &&
-//		    			TaintData.getTaintData().isTainted(accessed)) {
+//		    			ReferenceMaster.isPrimaryTainted(accessed)) {
 //	    			if (location == null)
 //	    				location = TaintUtil.getStackTracePath();
 //		    		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field);
@@ -1773,10 +1268,10 @@ public aspect GeneralTracker {
 //			if (value != null) {
 //				if ((value instanceof String || value instanceof StringBuffer
 //						|| value instanceof StringBuilder || value instanceof ResultSet)
-//						&& TaintData.getTaintData().isTainted(value)) {
+//						&& ReferenceMaster.isPrimaryTainted(value)) {
 //					if (location == null)
 //						location = TaintUtil.getStackTracePath();
-////					TaintData.getTaintData().propagateSources(value, target);
+////					ReferenceMaster.propagateTaintSources(value, target);
 //					TaintLogger.getTaintLogger().logFieldSet(location,
 //							"NORMAL", value, field);
 //					TaintData.getTaintData().markObjectTainted(thisJoinPoint.getThis());
@@ -1821,10 +1316,10 @@ public aspect GeneralTracker {
 //			if (value != null) {
 //				if ((value instanceof String || value instanceof StringBuffer
 //						|| value instanceof StringBuilder || value instanceof ResultSet)
-//						&& TaintData.getTaintData().isTainted(value)) {
+//						&& ReferenceMaster.isPrimaryTainted(value)) {
 //					if (location == null)
 //						location = TaintUtil.getStackTracePath();
-////					TaintData.getTaintData().propagateSources(value, target);
+////					ReferenceMaster.propagateTaintSources(value, target);
 //					TaintLogger.getTaintLogger().logFieldSet(location,
 //							"STATIC", value, field);
 //		    		TaintData.getTaintData().markStaticFieldTainted(field);

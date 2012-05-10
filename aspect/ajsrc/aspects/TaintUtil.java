@@ -1,6 +1,7 @@
 package aspects;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.ConstructorSignature;
@@ -10,25 +11,49 @@ public class TaintUtil {
 	
 	public static ArrayList<Integer> dcounter = null; 
 	
-	public static void dinc(int index) {
-		if (dcounter == null) {
-			dcounter = new ArrayList<Integer>();
-			for (int i = 0; i < 14; i++) {
-				dcounter.add(new Integer(0));
-			}
-		}
+	private static HashMap<Long, Boolean> ajLock = new HashMap<Long, Boolean>();
+	
+	public static synchronized boolean getAJLock() {
+		Long threadID = Thread.currentThread().getId();
+		Boolean locked = ajLock.get(threadID);
 		
-		dcounter.set(index, dcounter.get(index) + 1);
+		if (locked == null) {
+			ajLock.put(threadID, new Boolean(true));
+			return true;
+		}
+		else if (!locked) {
+			ajLock.put(threadID, new Boolean(true));
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
-	public static String dprint() {
-		String ret = "";
-		for (int i = 0; i < 14; i++) {
-			ret = (ret + "i: " + i + " count: " + dcounter.get(i) + "\n");
-			dcounter.add(new Integer(0));
-		}
-		return ret;
+	public static synchronized void releaseAJLock() {
+		Long threadID = Thread.currentThread().getId();
+		ajLock.put(threadID, new Boolean(false));
 	}
+	
+//	public static void dinc(int index) {
+//		if (dcounter == null) {
+//			dcounter = new ArrayList<Integer>();
+//			for (int i = 0; i < 14; i++) {
+//				dcounter.add(new Integer(0));
+//			}
+//		}
+//		
+//		dcounter.set(index, dcounter.get(index) + 1);
+//	}
+//	
+//	public static String dprint() {
+//		String ret = "";
+//		for (int i = 0; i < 14; i++) {
+//			ret = (ret + "i: " + i + " count: " + dcounter.get(i) + "\n");
+//			dcounter.add(new Integer(0));
+//		}
+//		return ret;
+//	}
 	
 	public static int getLevenshteinDistance(String s, String t) {
 		if (s == null || t == null) {
@@ -163,11 +188,11 @@ public class TaintUtil {
 		/*
 		 * Debugging, log additional stack levels
 		 */
-		startIndex = goodIndex;
-		while (startIndex < stack.length && startIndex < 10) {
-			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
-			startIndex++;
-		}
+//		startIndex = goodIndex;
+//		while (startIndex < stack.length && startIndex < 10) {
+//			result.addDeeper(stack[startIndex].getClassName(), stack[startIndex].getMethodName());
+//			startIndex++;
+//		}
 		
 		return result; 
     }
@@ -209,16 +234,16 @@ public class TaintUtil {
     	
     	/* Debug Method */
     	public String getDeeperString(int levels) {
-//    		return "";
-    		String result = "";
-    		for (int i = 0; i < levels; i++) {
-    			result = result + this.deeperStack.get(i);
-    			if (i >= this.deeperStack.size() - 1)
-    				break;
-    			if (i != levels - 1)
-    				result = result + " -- \n";
-    		}
-    		return result;
+    		return "";
+//    		String result = "";
+//    		for (int i = 0; i < levels; i++) {
+//    			result = result + this.deeperStack.get(i);
+//    			if (i >= this.deeperStack.size() - 1)
+//    				break;
+//    			if (i != levels - 1)
+//    				result = result + " -- \n";
+//    		}
+//    		return result;
     	}
     }
 	
