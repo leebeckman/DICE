@@ -7,7 +7,7 @@ public class MyAttribute {
 	
 	public MyAttribute(String name, String value) {
 		this.name = name;
-		this.value = value.replace("<", "(").replace(">", ")").replace("\"", "'");
+		this.value = value.replace("&", "&amp;").replace(">", "&gt;").replace("<", "&lt;").replace("\"", "&quot;");
 	}
 	
 	public String toString() {

@@ -273,11 +273,17 @@ public class ReferenceMaster {
 		}
 	}
 	
-	public static synchronized int getTaintHashCode(Object obj) {
+	public static synchronized String getTaintHashCode(Object obj) {
 		if (isPrimaryTainted(obj)) {
-			return System.identityHashCode(taintSourcesMap.get(obj));
+			String ret = "";
+			for (Object item : taintSourcesMap.get(obj).getSources().keySet()) {
+				ret += String.valueOf(System.identityHashCode(item)) + ",";
+			}
+			if (ret.endsWith(","))
+				ret = ret.substring(0, ret.length() - 1);
+			return ret;
 		}
-		return 0;
+		return "";
 	}
 	
 	public static synchronized void propagateTaintSources(Object sourceData, Object targetData) {

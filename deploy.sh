@@ -8,7 +8,7 @@ rm ext*
 #bash tomcat/bin/shutdown.sh
 rm tomcat/logs/*
 cp tomcat/prelib/*.jar tomcat/lib
-ant -buildfile jgossip/build.xml dist -Ddeploy_env=default
+#ant -buildfile jgossip/build.xml dist -Ddeploy_env=default
 ant -buildfile aspect/ajrubisbuild.xml
 
 #bash tomcat/bin/startup.sh

@@ -258,6 +258,70 @@ public class TaintLogger {
 		log(logRoot.toString());
 	}
 	
+	public void logOutputObjectArg(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
+		MyElement logRoot = getLogRoot("OUTPUT");
+//		System.out.println(location + " --- " + taintSource + " --- " + subTaintSources);
+		
+		addLocationElement(logRoot, location, adviceType);
+
+		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource, true);
+		for (Object taintedObject : subTaintSources) {
+			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+		}
+		
+		log(logRoot.toString());
+	}
+	
+	public void logOutputStringArg(StackPath location, String adviceType, Object taintSource) {
+		MyElement logRoot = getLogRoot("OUTPUT");
+		
+		addLocationElement(logRoot, location, adviceType);
+		
+		addObjectElement(logRoot, "taintedObject", taintSource, true);
+		
+		log(logRoot.toString());
+	}
+	
+	/* TODO: This isn't completely implemented yet. Only logs bottom level tainted objects, doesn't show nesting
+	 * <taintlog type="returning">
+	 * 
+	 * 		<location srcClass="" srcMethod="" destClass="" destMethod="" adviceType="" />
+	 * 		
+	 * 		<taintedObject type="typeName" uid="uid">
+	 * 			<taintedObject type="typeName" uid="uid">
+	 * 				<taintedObject type="typeName" uid="uid">
+	 * 				...
+	 * 					<taintRecord>record</taintRecord>
+	 * 					<taintRecord>record</taintRecord>
+	 * 				</taintedObject>
+	 * 			</taintedObject>
+	 * 		</taintedObject>
+	 * 
+	 * </taintlog>
+	 */
+	public void logReturningObject(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
+		MyElement logRoot = getLogRoot("RETURNING");
+		
+		addLocationElement(logRoot, location, adviceType);
+	
+		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
+		for (Object taintedObject : subTaintSources) {
+			addObjectElement(baseObject, "subTaintedObject", taintedObject);
+		}
+		
+		log(logRoot.toString());
+	}
+
+	public void logReturning(StackPath location, String adviceType, Object taintSource) {
+		MyElement logRoot = getLogRoot("RETURNING");
+		
+		addLocationElement(logRoot, location, adviceType);
+		
+		addObjectElement(logRoot, "taintedObject", taintSource);
+		
+		log(logRoot.toString());
+	}
+
 	public void logJavaFieldSet(StackPath location, String adviceType, Object taintSource, Field targetField) {
 		MyElement logRoot = getLogRoot("JAVAFIELDSET");
 		
@@ -308,46 +372,6 @@ public class TaintLogger {
 		log(logRoot.toString());
 	}
 
-	/* TODO: This isn't completely implemented yet. Only logs bottom level tainted objects, doesn't show nesting
-	 * <taintlog type="returning">
-	 * 
-	 * 		<location srcClass="" srcMethod="" destClass="" destMethod="" adviceType="" />
-	 * 		
-	 * 		<taintedObject type="typeName" uid="uid">
-	 * 			<taintedObject type="typeName" uid="uid">
-	 * 				<taintedObject type="typeName" uid="uid">
-	 * 				...
-	 * 					<taintRecord>record</taintRecord>
-	 * 					<taintRecord>record</taintRecord>
-	 * 				</taintedObject>
-	 * 			</taintedObject>
-	 * 		</taintedObject>
-	 * 
-	 * </taintlog>
-	 */
-	public void logReturningObject(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
-		MyElement logRoot = getLogRoot("RETURNING");
-		
-		addLocationElement(logRoot, location, adviceType);
-
-		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
-		for (Object taintedObject : subTaintSources) {
-			addObjectElement(baseObject, "subTaintedObject", taintedObject);
-		}
-		
-		log(logRoot.toString());
-	}
-	
-	public void logReturning(StackPath location, String adviceType, Object taintSource) {
-		MyElement logRoot = getLogRoot("RETURNING");
-		
-		addLocationElement(logRoot, location, adviceType);
-		
-		addObjectElement(logRoot, "taintedObject", taintSource);
-		
-		log(logRoot.toString());
-	}
-	
 	public void logFieldSet(StackPath location, String adviceType, Object value, Field targetField) {
 		MyElement logRoot = getLogRoot("FIELDSET");
 		
@@ -437,7 +461,7 @@ public class TaintLogger {
 		MyElement objectElem = new MyElement(tagName);
 		
 		if (object != null) {
-			objectElem.addAttribute("taintID", String.valueOf(ReferenceMaster.getTaintHashCode(object)));
+			objectElem.addAttribute("taintID", ReferenceMaster.getTaintHashCode(object));
 			objectElem.addAttribute("type", object.getClass().getName());
 			if (showValue)
 				objectElem.addAttribute("value", object.toString());

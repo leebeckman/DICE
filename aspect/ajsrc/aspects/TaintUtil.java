@@ -12,6 +12,7 @@ public class TaintUtil {
 	public static ArrayList<Integer> dcounter = null; 
 	
 	private static HashMap<Long, Boolean> ajLock = new HashMap<Long, Boolean>();
+	private static HashMap<Long, Object[]> argsStore = new HashMap<Long, Object[]>();
 	
 	public static synchronized boolean getAJLock() {
 		Long threadID = Thread.currentThread().getId();
@@ -33,6 +34,16 @@ public class TaintUtil {
 	public static synchronized void releaseAJLock() {
 		Long threadID = Thread.currentThread().getId();
 		ajLock.put(threadID, new Boolean(false));
+	}
+	
+	public static synchronized void storeArgs(Object[] args) {
+		Long threadID = Thread.currentThread().getId();
+		argsStore.put(threadID, args);
+	}
+	
+	public static synchronized Object[] getArgs(Object[] args) {
+		Long threadID = Thread.currentThread().getId();
+		return argsStore.get(threadID);
 	}
 	
 //	public static void dinc(int index) {

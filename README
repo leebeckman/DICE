@@ -1,36 +1,14 @@
-How to run:
+What this is:
 
-Required packages:
-   -ant
-   -mysql-server
+A tool for dataflow tomography of tainted String data in Java applications (focusing on web applications).
+Essentially it allows tagging interesting data in an application (such as what is read from databases), and 
+tracking the complete flow of that data through the application.
 
-Steps:
-   -Clone repository into home directory (otherwise default paths will be broken), creating ~/DICE.
-   -Set up MySQL for jgossip:
-      -Use dbsetup/create_database.sql to create the forum_db database.
-      -Run install.sql, and then initload.sql on forum_db to initialize jgossip database.
-         -eg. sudo mysql -p forum_db < install.sql
-   -Set up PATH for ibm-java:
-      -You can add the following to your ~/.bashrc:
+Included are tools to visualize and analyze the data collection from the tracking, to suggest useful optimizations
+for the application.
 
-if [[ -d "$HOME/DICE/ibm-java/jre/bin" && ! $PATH =~ $HOME/DICE/ibm-java/jre/bin ]]
-then
-#    echo "Adding jre bin"
-    PATH="$HOME/DICE/ibm-java/jre/bin:$PATH"
-fi
+---
 
-if [[ -d "$HOME/DICE/ibm-java/bin" && ! $PATH =~ $HOME/DICE/ibm-java/bin ]]
-then
-#    echo "Adding ibm bin"
-    PATH="$HOME/DICE/ibm-java/bin:$PATH"
-fi
+How to set it up:
 
-   -Build jgossip (from in ~/DICE) with: ant -buildfile jgossip/build.xml dist -Ddeploy_env=default
-   -Update src/taint/GeneralTracker.aj, DBCPTaint.aj so that logfiles are created in correct home directory.
-   -Do AspectJ weaving to produce weaved jgossip.war by running jgossipaspect.sh
-   -Start tomcat (port 8686 currently) with: JAVA_HOME=~/DICE/ibm-java ~/DICE/tomcat/bin/startup.sh
-   -Go to localhost:8686/manager/html (username: user, password: user)
-   -Deploy ~/DICE/jgossip.war (produced by jgossipaspect.sh)
-   -Go to localhost:8686/jgossip/jgossip
-   -jGossip should run, and taint tracking logs should be produced
-   -You can stop tomcat with: ~/DICE/tomcat/bin/shutdown.sh
+-Pending...

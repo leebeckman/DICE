@@ -40,6 +40,14 @@ public aspect DBCPTaint {
 				
 			}
     		if (!skip) {
+    			/*
+    			 * Taints the accessed value, associating it with the result set, inside of a new sizedsource.
+    			 * 
+    			 * If we id taint by source, we get a unique value everytime a value is read.
+    			 * If we taint by resultset, we know what was accessed together. Would also be nice to know both.
+    			 * So why not just get both? (Would be nice to also know the column, but let's not go crazy)
+    			 */
+    			
     			ReferenceMaster.doPrimaryTaint(ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()));
 
 //    			System.out.println("Tainting: " + TaintData.getTaintData().getTaintHashCode(ret));
@@ -67,11 +75,6 @@ public aspect DBCPTaint {
     	} catch (SQLException e) {
     		TaintLogger.getTaintLogger().log("FAIL GETTING METADATA FROM RESULTSET: " + e.getMessage());
     	}
-    }
-    
-    // For testing
-    after() returning (Object ret): execution(* simple.TaintSource.getTaintedData(..)) {
-    	ReferenceMaster.doPrimaryTaint(ret, "TAINTSOURCE");
     }
     
 }

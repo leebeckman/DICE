@@ -49,22 +49,22 @@
                 <fileset dir="${aspect.dir}/ajsrc/lib">
                     <include name="*.jar"/>
                 </fileset>
-                <fileset dir="${dice.dir}/jgossip/lib">
+                <!--<fileset dir="${dice.dir}/jgossip/lib">
                     <include name="*.jar"/>
-                </fileset>
+                </fileset>-->
             </classpath>
         </iajc>
     </target>
 
-    <target name="jspcprepare" depends="prepare"> 
+    <!--<target name="jspcprepare" depends="prepare"> 
         <jasper 
             validateXml="false" 
             uriroot="${webapp.path}" 
             webXmlFragment="${webapp.path}/WEB-INF/generated_web.xml" 
             outputDir="${webapp.path}/WEB-INF/src" /> 
-    </target> 
+    </target> -->
 
-    <target name="jspprecompile" depends="jspcprepare">
+    <!--<target name="jspprecompile" depends="jspcprepare">
         <mkdir dir="${webapp.path}/WEB-INF/classes"/>
         <mkdir dir="${webapp.path}/WEB-INF/lib"/>
 
@@ -89,7 +89,7 @@
             <include name="**" />
             <exclude name="tags/**" />
         </javac>
-    </target>
+    </target>-->
 
     <target name="rewar" depends="aspectcompile">
         <war destfile="${aspect.dir}/output/${webapp.name}.war" basedir="${aspect.dir}/build/${webapp.name}"/>
@@ -123,12 +123,12 @@
                         <fileset dir="${aspect.dir}/ajsrc/lib">
                             <include name="*.jar"/>
                         </fileset>
-                        <fileset dir="${dice.dir}/jgossip/database/mysql/lib">
+                        <!--<fileset dir="${dice.dir}/jgossip/database/mysql/lib">
                             <include name="*.jar"/>
                         </fileset>
                         <fileset dir="${dice.dir}/jgossip/database/oracle/lib">
                             <include name="*.jar"/>
-                        </fileset>
+                        </fileset>-->
                     </classpath>
                 </iajc>
             </sequential>
@@ -153,15 +153,12 @@
                 <fileset dir="${aspect.dir}/ajsrc/lib">
                     <include name="*.jar"/>
                 </fileset>
-                <fileset dir="${dice.dir}/jgossip/database/mysql/lib">
+                <!--<fileset dir="${dice.dir}/jgossip/database/mysql/lib">
                     <include name="*.jar"/>
                 </fileset>
                 <fileset dir="${dice.dir}/jgossip/database/oracle/lib">
                     <include name="*.jar"/>
-                </fileset>
-                <fileset dir="${dice.dir}/tomcat/prelib">
-                    <include name="*.jar"/>
-                </fileset>
+                </fileset>-->
                 <fileset dir="${dice.dir}/tomcat/prelib">
                     <include name="*.jar"/>
                 </fileset>
@@ -176,7 +173,7 @@
         <!-- DISABLE FOR NOW TO SAVE ON RIDICULOUS EXECUTION COSTS, ESP AT STARTUP -->
         <for param="file">
             <path>
-                <fileset dir="${dice.dir}/tomcat/prelib" includes="*.jar" excludes="aspectjrt.jar,xerces.jar,catalina*.jar,tomcat*.jar,annotations-api.jar,ant.jar,xalan.jar,xml-apis.jar" />
+                <fileset dir="${tomcat.home}/prelib" includes="*.jar" excludes="aspectjrt.jar,xerces.jar,catalina*.jar,tomcat*.jar,annotations-api.jar,ant.jar,xalan.jar,xml-apis.jar" />
             </path>
             <sequential>
                 <var name="filename" unset="true"/>
@@ -190,13 +187,16 @@
                         <pathelement location="${aspect.dir}/output/aspects.jar"/>
                     </aspectpath>
                     <classpath>
-                        <fileset dir="${tomcat.home}/lib">
+                        <fileset dir="${tomcat.home}/prelib">
                             <include name="*.jar"/>
                         </fileset>
                         <fileset dir="${tomcat.home}/bin">
                             <include name="*.jar"/>
                         </fileset>
                         <fileset dir="${aspect.dir}/lib">
+                            <include name="*.jar"/>
+                        </fileset>
+                        <fileset dir="${aspect.dir}/ajsrc/lib">
                             <include name="*.jar"/>
                         </fileset>
                     </classpath>

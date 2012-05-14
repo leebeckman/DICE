@@ -17,6 +17,14 @@ import aspects.TaintUtil.StackPath;
 
 public aspect ReferenceTracker {
 
+	pointcut allExclude(): within(javax.management.MBeanConstructorInfo) ||
+							within(javax.management.MBeanNotificationInfo) ||
+							within(javax.management.MBeanFeatureInfo) ||
+							within(javax.management.MBeanOperationInfo) ||
+							within(javax.management.MBeanInfo) ||
+							within(javax.management.MBeanNotificationInfo);
+//	pointcut allExclude(): within(javax.ejb.AccessLocalException);
+	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*);
 	pointcut tooBigErrorExcludeCollections(): within(com.mysql.jdbc.TimeUtil) ||
 												within(org.apache.jasper.xmlparser.EncodingMap) ||
@@ -25,7 +33,7 @@ public aspect ReferenceTracker {
 	/*
      * Advice for new reference tracking system
      */
-    after() returning(Object accessed): get(!static * *) && !(myAdvice()) {
+    after() returning(Object accessed): get(!static * *) && !(myAdvice()) && !allExclude() {
     	StackPath location = null;
 		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
 
@@ -36,6 +44,8 @@ public aspect ReferenceTracker {
 		if (ReferenceMaster.isPrimaryTainted(accessed)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
+			if (ThreadRequestMaster.checkStateful(accessed))
+				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
     		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field);
     	}
     	else {
@@ -43,12 +53,16 @@ public aspect ReferenceTracker {
     		if (objTaint != null && objTaint.size() > 0) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath();
+    			for (Object item : objTaint) {
+        			if (ThreadRequestMaster.checkStateful(item))
+        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
+    			}
     			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, objTaint, field);
     		}
     	}
     }
 	
-    before(): set(!static * *) && !(myAdvice()) && !withincode(*.new(..)) {
+    before(): set(!static * *) && !(myAdvice()) && !withincode(*.new(..)) && !allExclude() {
 		Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
 		field.setAccessible(true);
 		if (field.getType().isPrimitive() ||
@@ -82,12 +96,18 @@ public aspect ReferenceTracker {
 		if (ReferenceMaster.isPrimaryTainted(newValue)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
+			if (ThreadRequestMaster.checkStateful(newValue))
+				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
 			TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, field);
 		} else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, newValue);
 			if (objTaint != null && objTaint.size() > 0) {
 				if (location == null)
 					location = TaintUtil.getStackTracePath();
+				for (Object item : objTaint) {
+        			if (ThreadRequestMaster.checkStateful(item))
+        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
+    			}
 				TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, objTaint, field);
 			}
 		}
@@ -99,7 +119,7 @@ public aspect ReferenceTracker {
 //    	}
 //    }
     
-    after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !(myAdvice()) {
+    after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !(myAdvice()) && !allExclude() {
     	if (!TaintUtil.getAJLock())
     		return;// scan ret for instance fields.
     	Class clazz = ret.getClass();
@@ -108,8 +128,10 @@ public aspect ReferenceTracker {
 //    	}
     	// Skipping ResultSet sets, because we just taint the result set anyways. Probably don't
 			// care what happens inside.
-		if (ret instanceof ResultSet || ret.getClass().getName().endsWith("RowDataStatic"))
+		if (ret instanceof ResultSet || ret.getClass().getName().endsWith("RowDataStatic")) {
+			TaintUtil.releaseAJLock();
 			return;
+		}
 		while (clazz != null) {
 			Field[] fields = clazz.getDeclaredFields();
 			for (int i = 0; i < fields.length; i++) {
@@ -142,13 +164,15 @@ public aspect ReferenceTracker {
     /*
      * Static get/set
      */
-    after() returning(Object accessed): get(static * *) && !(myAdvice()) {
+    after() returning(Object accessed): get(static * *) && !(myAdvice()) && !allExclude() {
     	StackPath location = null;
 		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
 		
 		if (ReferenceMaster.isPrimaryTainted(accessed)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
+			if (ThreadRequestMaster.checkStateful(accessed))
+				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
     		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field);
     	}
     	else {
@@ -156,12 +180,16 @@ public aspect ReferenceTracker {
     		if (objTaint != null && objTaint.size() > 0) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath();
+    			for (Object item : objTaint) {
+        			if (ThreadRequestMaster.checkStateful(item))
+        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
+    			}
     			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, objTaint, field);
     		}
     	}
     }
     
-    before(): set(static * *) && !(myAdvice()) {
+    before(): set(static * *) && !(myAdvice()) && !allExclude() {
     	Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
 		field.setAccessible(true);
 		Object newValue = thisJoinPoint.getArgs()[0];
@@ -171,12 +199,18 @@ public aspect ReferenceTracker {
 		if (ReferenceMaster.isPrimaryTainted(newValue)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
+			if (ThreadRequestMaster.checkStateful(newValue))
+				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
 			TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, field);
 		} else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, newValue);
 			if (objTaint != null && objTaint.size() > 0) {
 				if (location == null)
 					location = TaintUtil.getStackTracePath();
+				for (Object item : objTaint) {
+        			if (ThreadRequestMaster.checkStateful(item))
+        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
+    			}
 				TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, objTaint, field);
 			}
 		}
@@ -206,14 +240,14 @@ public aspect ReferenceTracker {
 //    		call(* javax.swing.UIDefaults.*(..)))
 //    		&& !within(aspects.*) && !cflow(myAdvice());
     
-    pointcut collectionOp(): !within(aspects.*) && !(myAdvice());
+    pointcut collectionOp(): !within(aspects.*) && !myAdvice();
     
-    pointcut mapOp(): !within(aspects.*) && !(myAdvice());
+    pointcut mapOp(): !within(aspects.*) && !myAdvice();
 
     /*
      * Collection/Map constructors
      */
-    Object around(): call(java.util.Collection+.new(..)) && collectionOp() && !tooBigErrorExcludeCollections() {
+    Object around(): call(java.util.Collection+.new(..)) && collectionOp() && !tooBigErrorExcludeCollections() && !allExclude() {
     	Object ret = proceed();
     	if ((ret instanceof Collection) && 
 				!(ret instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
@@ -247,7 +281,7 @@ public aspect ReferenceTracker {
     	
     	return ret;
     }
-	Object around(): call(java.util.Map+.new(..)) && mapOp() && !tooBigErrorExcludeCollections() {
+	Object around(): call(java.util.Map+.new(..)) && mapOp() && !tooBigErrorExcludeCollections() && !allExclude() {
     	// look for map
 		Object ret = proceed();
 		if ((ret instanceof Map) && 
@@ -289,7 +323,7 @@ public aspect ReferenceTracker {
     /*
      * MERGED
      */
-    after() returning (Object ret): call(* java.util.Collection+.*(..)) && collectionOp() && !tooBigErrorExcludeCollections() {
+    after() returning (Object ret): call(* java.util.Collection+.*(..)) && collectionOp() && !tooBigErrorExcludeCollections() && !allExclude() {
     	// Object (ret bool)
     	Object target = thisJoinPoint.getTarget();
     	if ((target instanceof Collection) && 
@@ -534,7 +568,7 @@ public aspect ReferenceTracker {
         	}
     	}
     }
-    before(): call(* java.util.Collection+.*(..)) && !tooBigErrorExcludeCollections() {
+    before(): call(* java.util.Collection+.*(..)) && !tooBigErrorExcludeCollections() && !allExclude() {
     	Object target = thisJoinPoint.getTarget();
     	if ((target instanceof Collection) && 
 				!(target instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
@@ -584,7 +618,7 @@ public aspect ReferenceTracker {
     	}
     }
 
-    after() returning (Object ret): call(* java.util.Map+.*(..)) && mapOp() && !tooBigErrorExcludeCollections() {
+    after() returning (Object ret): call(* java.util.Map+.*(..)) && mapOp() && !tooBigErrorExcludeCollections() && !allExclude() {
     	Object target = thisJoinPoint.getTarget();
     	if ((target instanceof Map) && 
 				!(target instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
@@ -654,7 +688,7 @@ public aspect ReferenceTracker {
         	}
     	}
     }
-    before(): call(* java.util.Map+.*(..)) && mapOp() && !tooBigErrorExcludeCollections() {
+    before(): call(* java.util.Map+.*(..)) && mapOp() && !tooBigErrorExcludeCollections() && !allExclude() {
     	Object target = thisJoinPoint.getTarget();
     	if ((target instanceof Map) && 
 				!(target instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
