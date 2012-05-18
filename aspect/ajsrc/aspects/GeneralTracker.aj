@@ -1,8 +1,12 @@
 package aspects;
 
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
 
 import aspects.TaintUtil.StackPath;
 
@@ -11,15 +15,20 @@ public aspect GeneralTracker {
 	public GeneralTracker() {
 	}
 	
-	/*
-	 * Use this to stop advice from triggering advice, which leads to infinite recursion
-	 */
 	pointcut allExclude(): within(javax.management.MBeanConstructorInfo) ||
 							within(javax.management.MBeanNotificationInfo) ||
 							within(javax.management.MBeanFeatureInfo) ||
 							within(javax.management.MBeanOperationInfo) ||
 							within(javax.management.MBeanInfo) ||
-							within(javax.management.MBeanNotificationInfo);
+							within(javax.management.MBeanNotificationInfo) ||
+							within(org.apache.catalina..*) ||
+							within(org.apache.naming..*) ||
+							within(org.apache.AnnotationProcessor) ||
+							within(org.apache.PeriodicEventListener) ||
+							within(org.apache.coyote..*) ||
+							within(org.apache.jk..*) ||
+							within(org.apache.tomcat..*) ||
+							within(org.apache.tomcat.dbcp..*);
 //	pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*);
@@ -860,17 +869,21 @@ public aspect GeneralTracker {
         
         // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
         ArrayList<Object> taintedArgs = new ArrayList<Object>();
+        LinkedList<TaintedArg> taintedArgList = new LinkedList<TaintedArg>();
         for (int i = 0; i < args.length; i++) {
         	//TODO: Deal with the fact that I added ResultSet here
+        	TaintedArg taintedArg;
         	if (ReferenceMaster.isPrimaryTainted(args[i])) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
     			taintedArgs.add(args[i]);
     			ArgBackTaintChecker.addPrimary(args[i]);
 //    			if (javaObjField == null)
-    			if (ThreadRequestMaster.checkStateful(args[i]))
+    			if (ThreadRequestMaster.checkStateful(location, args[i]))
     				TaintLogger.getTaintLogger().log("STATE FOUND: " + args[i]);
-				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i]);
+    			taintedArg = new TaintedArg(args[i]);
+    			taintedArgList.add(taintedArg);
+//				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i], thisJoinPoint.getTarget());
 //    			else
 //    				TaintLogger.getTaintLogger().logJavaFieldSet(location, "JAVACALLSTRINGARG", args[i], javaObjField);
         	}
@@ -884,16 +897,21 @@ public aspect GeneralTracker {
         			 */
 //        			if (javaObjField == null)
         			for (Object item : objTaint) {
-	        			if (ThreadRequestMaster.checkStateful(item))
+	        			if (ThreadRequestMaster.checkStateful(location, item))
 	        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
         			}
+        			taintedArg = new TaintedArg(args[i]);
+        			taintedArg.setSubTaint(objTaint);
+        			taintedArgList.add(taintedArg);
         			ArgBackTaintChecker.addComplex(args[i], objTaint);
-    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLOBJECTARG", args[i], objTaint);
+//    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLOBJECTARG", args[i], objTaint, thisJoinPoint.getTarget());
 //        			else
 //        				TaintLogger.getTaintLogger().logJavaFieldSet(location, "JAVACALLOBJECTARG", args[i], objTaint, javaObjField);
         		}
         	}
         }
+        if (taintedArgList.size() > 0)
+        	TaintLogger.getTaintLogger().logCalling(location, "JAVACALL", taintedArgList, thisJoinPoint.getTarget());
         TaintUtil.releaseAJLock();
     }
     
@@ -908,15 +926,19 @@ public aspect GeneralTracker {
         
         // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
         ArrayList<Object> taintedArgs = new ArrayList<Object>();
+        LinkedList<TaintedArg> taintedArgList = new LinkedList<TaintedArg>();
         for (int i = 0; i < args.length; i++) {
+        	TaintedArg taintedArg;
         	//TODO: Deal with the fact that I added ResultSet here
         	if (ReferenceMaster.isPrimaryTainted(args[i])) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
     			taintedArgs.add(args[i]);
-    			if (ThreadRequestMaster.checkStateful(args[i]))
+    			if (ThreadRequestMaster.checkStateful(location, args[i]))
     				TaintLogger.getTaintLogger().log("STATE FOUND: " + args[i]);
-				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i]);
+    			taintedArg = new TaintedArg(args[i]);
+    			taintedArgList.add(taintedArg);
+//				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLSTRINGARG", args[i], thisJoinPoint.getTarget());
         	}
         	else if (args[i] != null) {
         		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
@@ -927,13 +949,18 @@ public aspect GeneralTracker {
         			 * TODO: add to taintedArgs here as well
         			 */
         			for (Object item : objTaint) {
-	        			if (ThreadRequestMaster.checkStateful(item))
+	        			if (ThreadRequestMaster.checkStateful(location, item))
 	        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
         			}
-    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLOBJECTARG", args[i], objTaint);
+        			taintedArg = new TaintedArg(args[i]);
+        			taintedArg.setSubTaint(objTaint);
+        			taintedArgList.add(taintedArg);
+//    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLOBJECTARG", args[i], objTaint, thisJoinPoint.getTarget());
         		}
         	}
         }
+        if (taintedArgList.size() > 0)
+        	TaintLogger.getTaintLogger().logCalling(location, "JAVACONSCALL", taintedArgList);
         TaintUtil.releaseAJLock();
     }
     
@@ -946,14 +973,18 @@ public aspect GeneralTracker {
 		TaintUtil.StackPath location = null;
     	Object[] args = thisJoinPoint.getArgs();
 
+        LinkedList<TaintedArg> taintedArgList = new LinkedList<TaintedArg>();
     	for (int i = 0; i < args.length; i++) {
+        	TaintedArg taintedArg;
         	//TODO: Deal with the fact that I added ResultSet here
     		if (ReferenceMaster.isPrimaryTainted(args[i])) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
     			if (ArgBackTaintChecker.checkPrimary(args[i])) {
-    				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLPOSTARG", args[i]);
-    				if (ThreadRequestMaster.checkStateful(args[i]))
+        			taintedArg = new TaintedArg(args[i]);
+        			taintedArgList.add(taintedArg);
+//    				TaintLogger.getTaintLogger().logCallingStringArg(location, "JAVACALLPOSTARG", args[i]);
+    				if (ThreadRequestMaster.checkStateful(location, args[i]))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + args[i]);
     			}
         	}
@@ -967,15 +998,20 @@ public aspect GeneralTracker {
         			 */
         			Set<Object> objBackTaint = ArgBackTaintChecker.checkComplex(args[i], objTaint);
         			if (objBackTaint != null && objBackTaint.size() > 0) {
-        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLPOSTOBJECTARG", args[i], objBackTaint);
+            			taintedArg = new TaintedArg(args[i]);
+            			taintedArg.setSubTaint(objBackTaint);
+            			taintedArgList.add(taintedArg);
+//        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "JAVACALLPOSTOBJECTARG", args[i], objBackTaint);
         				for (Object item : objTaint) {
-    	        			if (ThreadRequestMaster.checkStateful(item))
+    	        			if (ThreadRequestMaster.checkStateful(location, item))
     	        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
             			}
         			}
         		}
         	}
         }
+        if (taintedArgList.size() > 0)
+        	TaintLogger.getTaintLogger().logCalling(location, "JAVACALLPOSTARG", taintedArgList);
 
     	//TODO: Deal with the fact that I added ResultSet here
     	if (ReferenceMaster.isPrimaryTainted(ret)) {
@@ -983,7 +1019,7 @@ public aspect GeneralTracker {
 				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
 			/* TODO: Read fuzzy prop */
 //			if (javaObjField == null)
-			if (ThreadRequestMaster.checkStateful(ret))
+			if (ThreadRequestMaster.checkStateful(location, ret))
 				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
 			TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURN", ret);
 //			else 
@@ -999,7 +1035,7 @@ public aspect GeneralTracker {
 				 */
 //    			if (javaObjField == null)
 				for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(item))
+        			if (ThreadRequestMaster.checkStateful(location, item))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
     			}
 				TaintLogger.getTaintLogger().logReturningObject(location, "JAVACALLOBJECTRETURN", ret, objTaint);
@@ -1007,6 +1043,7 @@ public aspect GeneralTracker {
 //    				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLOBJECTRETURN", ret, objTaint, javaObjField);
 			}
 		}
+        ArgBackTaintChecker.reset();
         TaintUtil.releaseAJLock();
     }
     
@@ -1023,7 +1060,7 @@ public aspect GeneralTracker {
         if (ReferenceMaster.isPrimaryTainted(ret)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath(thisJoinPoint.getSignature());
-			if (ThreadRequestMaster.checkStateful(ret))
+			if (ThreadRequestMaster.checkStateful(location, ret))
 				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
 			TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURNCONSTRUCT", ret);
     	}
@@ -1036,7 +1073,7 @@ public aspect GeneralTracker {
 				 * TODO: fuzzy propagate here as well
 				 */
 				for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(item))
+        			if (ThreadRequestMaster.checkStateful(location, item))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
     			}
 				TaintLogger.getTaintLogger().logReturningObject(location, "JAVACALLOBJECTRETURNCONSTRUCT", ret, objTaint);
@@ -1056,16 +1093,23 @@ public aspect GeneralTracker {
         
         // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
         ArrayList<Object> taintedArgs = new ArrayList<Object>();
+        LinkedList<TaintedArg> taintedArgList = new LinkedList<TaintedArg>();
         for (int i = 0; i < args.length; i++) {
+        	TaintedArg taintedArg;
+//        	if (thisJoinPoint.getSignature().getName().contains("doGet") && args[i] instanceof HttpServletRequest) {
+//        		TaintLogger.getTaintLogger().log("doGet: " + args[i]);
+//        	}
         	//TODO: Deal with the fact that I added ResultSet here
         	if (ReferenceMaster.isPrimaryTainted(args[i])) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath();
     			taintedArgs.add(args[i]);
-    			if (ThreadRequestMaster.checkStateful(args[i]))
+    			if (ThreadRequestMaster.checkStateful(location, args[i]))
     				TaintLogger.getTaintLogger().log("STATE FOUND: " + args[i]);
+    			taintedArg = new TaintedArg(args[i]);
+    			taintedArgList.add(taintedArg);
     			ArgBackTaintChecker.addPrimary(args[i]);
-    			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i]);
+//    			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i], thisJoinPoint.getTarget());
         	}
         	else if (args[i] != null) {
         		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
@@ -1076,14 +1120,19 @@ public aspect GeneralTracker {
         			 * TODO: add to taintedArgs here as well
         			 */
         			for (Object item : objTaint) {
-            			if (ThreadRequestMaster.checkStateful(item))
+            			if (ThreadRequestMaster.checkStateful(location, item))
             				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
         			}
+        			taintedArg = new TaintedArg(args[i]);
+        			taintedArg.setSubTaint(objTaint);
+        			taintedArgList.add(taintedArg);
         			ArgBackTaintChecker.addComplex(args[i], objTaint);
-    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint);
+//    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint, thisJoinPoint.getTarget());
         		}
         	}
         }
+        if (taintedArgList.size() > 0)
+        	TaintLogger.getTaintLogger().logCalling(location, "REGULAREXECUTE", taintedArgList, thisJoinPoint.getThis());
         TaintUtil.releaseAJLock();
     }
     
@@ -1096,15 +1145,19 @@ public aspect GeneralTracker {
     		return;
 		TaintUtil.StackPath location = null;
     	Object[] args = thisJoinPoint.getArgs();
-        
+
+        LinkedList<TaintedArg> taintedArgList = new LinkedList<TaintedArg>();
         for (int i = 0; i < args.length; i++) {
+        	TaintedArg taintedArg;
         	//TODO: Deal with the fact that I added ResultSet here
         	if (ReferenceMaster.isPrimaryTainted(args[i])) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath();
     			if (ArgBackTaintChecker.checkPrimary(args[i])) {
-    				TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
-        			if (ThreadRequestMaster.checkStateful(args[i]))
+        			taintedArg = new TaintedArg(args[i]);
+        			taintedArgList.add(taintedArg);
+//    				TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
+        			if (ThreadRequestMaster.checkStateful(location, args[i]))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + args[i]);
     			}
         	}
@@ -1118,22 +1171,27 @@ public aspect GeneralTracker {
         			 */
         			Set<Object> objBackTaint = ArgBackTaintChecker.checkComplex(args[i], objTaint);
         			if (objBackTaint != null && objBackTaint.size() > 0) {
-        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objBackTaint);
+            			taintedArg = new TaintedArg(args[i]);
+            			taintedArg.setSubTaint(objBackTaint);
+            			taintedArgList.add(taintedArg);
+//        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objBackTaint);
         				for (Object item : objTaint) {
-                			if (ThreadRequestMaster.checkStateful(item))
+                			if (ThreadRequestMaster.checkStateful(location, item))
                 				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
             			}
         			}
         		}
         	}
         }
+        if (taintedArgList.size() > 0)
+        	TaintLogger.getTaintLogger().logCalling(location, "REGULARPOSTARG", taintedArgList, thisJoinPoint.getThis());
 
     	//TODO: Deal with the fact that I added ResultSet here
         if (ReferenceMaster.isPrimaryTainted(ret)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
 			/* TODO: Read fuzzy prop */
-			if (ThreadRequestMaster.checkStateful(ret))
+			if (ThreadRequestMaster.checkStateful(location, ret))
 				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
 			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret);
     	}
@@ -1146,12 +1204,18 @@ public aspect GeneralTracker {
 				 * TODO: fuzzy propagate here as well
 				 */
 				for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(item))
+        			if (ThreadRequestMaster.checkStateful(location, item))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
     			}
 				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURN", ret, objTaint);
 			}
 		}
+        // If static accessed
+        // See if static has new taint.
+        // Log that taint was passed to this static field via this method
+        StaticFieldBackTaintChecker.checkAndLogTaint();
+        StaticFieldBackTaintChecker.reset();
+        ArgBackTaintChecker.reset();
         TaintUtil.releaseAJLock();
     }
     
@@ -1164,15 +1228,19 @@ public aspect GeneralTracker {
     		return;
 		TaintUtil.StackPath location = null;
         Object[] args = thisJoinPoint.getArgs();
-        
+
+        LinkedList<TaintedArg> taintedArgList = new LinkedList<TaintedArg>();
         for (int i = 0; i < args.length; i++) {
+        	TaintedArg taintedArg;
         	//TODO: Deal with the fact that I added ResultSet here
         	if (ReferenceMaster.isPrimaryTainted(args[i])) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath();
     			if (ArgBackTaintChecker.checkPrimary(args[i])) {
-    				TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
-    				if (ThreadRequestMaster.checkStateful(args[i]))
+        			taintedArg = new TaintedArg(args[i]);
+        			taintedArgList.add(taintedArg);
+//    				TaintLogger.getTaintLogger().logCallingStringArg(location, "POSTARG", args[i]);
+    				if (ThreadRequestMaster.checkStateful(location, args[i]))
     					TaintLogger.getTaintLogger().log("STATE FOUND: " + args[i]);
     			}
         	}
@@ -1186,21 +1254,26 @@ public aspect GeneralTracker {
         			 */
         			Set<Object> objBackTaint = ArgBackTaintChecker.checkComplex(args[i], objTaint);
         			if (objBackTaint != null && objBackTaint.size() > 0) {
-        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objBackTaint);
+            			taintedArg = new TaintedArg(args[i]);
+            			taintedArg.setSubTaint(objBackTaint);
+            			taintedArgList.add(taintedArg);
+//        				TaintLogger.getTaintLogger().logCallingObjectArg(location, "POSTOBJECTARG", args[i], objBackTaint);
         				for (Object item : objTaint) {
-                			if (ThreadRequestMaster.checkStateful(item))
+                			if (ThreadRequestMaster.checkStateful(location, item))
                 				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
             			}
         			}
         		}
         	}
         }
+        if (taintedArgList.size() > 0)
+        	TaintLogger.getTaintLogger().logCalling(location, "REGULARCONSPOSTARG", taintedArgList);
 
     	//TODO: Deal with the fact that I added ResultSet here
         if (ReferenceMaster.isPrimaryTainted(ret)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
-			if (ThreadRequestMaster.checkStateful(ret))
+			if (ThreadRequestMaster.checkStateful(location, ret))
 				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
 			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURNCONSTRUCT", ret);
     	}
@@ -1213,12 +1286,13 @@ public aspect GeneralTracker {
 				 * TODO: fuzzy propagate here as well
 				 */
 				for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(item))
+        			if (ThreadRequestMaster.checkStateful(location, item))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
     			}
 				TaintLogger.getTaintLogger().logReturningObject(location, "EXECUTEOBJECTRETURNCONSTRUCT", ret, objTaint);
 			}
 		}
+        ArgBackTaintChecker.reset();
         TaintUtil.releaseAJLock();
     }
 

@@ -28,7 +28,7 @@
         -->
 
         <property name="webapp.name" value="rubis_servlets" />
-        <unwar src="${dice.dir}/rubis/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
+        <unwar src="${dice.dir}/RUBiS/Servlets/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
 
         <property name="webapp.path" value="${aspect.dir}/build/${webapp.name}" />
 
@@ -173,7 +173,7 @@
         <!-- DISABLE FOR NOW TO SAVE ON RIDICULOUS EXECUTION COSTS, ESP AT STARTUP -->
         <for param="file">
             <path>
-                <fileset dir="${tomcat.home}/prelib" includes="*.jar" excludes="aspectjrt.jar,xerces.jar,catalina*.jar,tomcat*.jar,annotations-api.jar,ant.jar,xalan.jar,xml-apis.jar" />
+                <fileset dir="${tomcat.home}/prelib" includes="*.jar" excludes="aspectjrt.jar,xerces.jar,annotations-api.jar,ant.jar,xalan.jar,xml-apis.jar" />
             </path>
             <sequential>
                 <var name="filename" unset="true"/>

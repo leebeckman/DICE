@@ -52,5 +52,15 @@
 	<classpathentry kind="lib" path="lib/xerces.jar"/>
 	<classpathentry kind="lib" path="lib/xml-apis.jar"/>
 	<classpathentry kind="lib" path="lib/xom-1.2.7.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/catalina.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/catalina-ant.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/catalina-ha.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/catalina-tribes.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/servlet-api.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/tomcat-coyote.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/tomcat-dbcp.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/tomcat-i18n-es.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/tomcat-i18n-fr.jar"/>
+	<classpathentry kind="lib" path="/home/lee/DICE/tomcat/prelib/tomcat-i18n-ja.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>

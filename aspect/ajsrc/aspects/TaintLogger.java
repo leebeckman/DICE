@@ -6,6 +6,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -59,6 +60,10 @@ public class TaintLogger {
 	}
 	
 	public void log(String message) {
+//		logger.log(Level.INFO, message);
+	}
+	
+	private void logTaint(String message) {
 		logger.log(Level.INFO, message);
 	}
 	
@@ -91,7 +96,7 @@ public class TaintLogger {
 		addObjectElement(logRoot, "sourceObject", source);
 		addObjectElement(logRoot, "targetObject", target);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	/*
@@ -119,7 +124,7 @@ public class TaintLogger {
 		addObjectElement(logRoot, "taintedObject", source, true);
 		addObjectElement(logRoot, "targetObject", target, true);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	/*
@@ -141,7 +146,7 @@ public class TaintLogger {
 		
 		addObjectElement(logRoot, "targetObject", target);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	/*
@@ -181,7 +186,7 @@ public class TaintLogger {
 		
 		addObjectElement(logRoot, "targetObject", target);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	/*
@@ -214,7 +219,7 @@ public class TaintLogger {
 		}
 		logRoot.addContent(associatedElem);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	/* TODO: This isn't completely implemented yet. Only logs bottom level tainted objects, doesn't show nesting
@@ -234,29 +239,94 @@ public class TaintLogger {
 	 * 
 	 * </taintlog>
 	 */
-	public void logCallingObjectArg(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
+	public void logCalling(StackPath location, String adviceType, LinkedList<TaintedArg> taintedArgs) {
 		MyElement logRoot = getLogRoot("CALLING");
 //		System.out.println(location + " --- " + taintSource + " --- " + subTaintSources);
 		
 		addLocationElement(logRoot, location, adviceType);
 
-		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource, true);
-		for (Object taintedObject : subTaintSources) {
-			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+		for (TaintedArg item : taintedArgs) {
+			MyElement baseObject = addObjectElement(logRoot, "taintedObject", item.getArg(), true);
+			Set<Object> subTaintSources = item.getSubTaint();
+			if (subTaintSources != null) {
+				for (Object taintedObject : subTaintSources) {
+					addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+				}
+			}
 		}
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
-	public void logCallingStringArg(StackPath location, String adviceType, Object taintSource) {
+	public void logCalling(StackPath location, String adviceType, LinkedList<TaintedArg> taintedArgs, Object target) {
 		MyElement logRoot = getLogRoot("CALLING");
+//		System.out.println(location + " --- " + taintSource + " --- " + subTaintSources);
 		
 		addLocationElement(logRoot, location, adviceType);
+
+		for (TaintedArg item : taintedArgs) {
+			MyElement baseObject = addObjectElement(logRoot, "taintedObject", item.getArg(), true);
+			Set<Object> subTaintSources = item.getSubTaint();
+			if (subTaintSources != null) {
+				for (Object taintedObject : subTaintSources) {
+					addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+				}
+			}
+		}
+		addObjectElement(logRoot, "targetObject", target, true);
 		
-		addObjectElement(logRoot, "taintedObject", taintSource, true);
-		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
+	
+//	public void logCallingObjectArg(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
+//		MyElement logRoot = getLogRoot("CALLING");
+////		System.out.println(location + " --- " + taintSource + " --- " + subTaintSources);
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//
+//		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource, true);
+//		for (Object taintedObject : subTaintSources) {
+//			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+//		}
+//		
+//		logTaint(logRoot.toString());
+//	}
+//	
+//	public void logCallingObjectArg(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Object target) {
+//		MyElement logRoot = getLogRoot("CALLING");
+////		System.out.println(location + " --- " + taintSource + " --- " + subTaintSources);
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//
+//		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource, true);
+//		for (Object taintedObject : subTaintSources) {
+//			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+//		}
+//		addObjectElement(logRoot, "targetObject", target, true);
+//		
+//		logTaint(logRoot.toString());
+//	}
+//	
+//	public void logCallingStringArg(StackPath location, String adviceType, Object taintSource) {
+//		MyElement logRoot = getLogRoot("CALLING");
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//		
+//		addObjectElement(logRoot, "taintedObject", taintSource, true);
+//		
+//		logTaint(logRoot.toString());
+//	}
+//	
+//	public void logCallingStringArg(StackPath location, String adviceType, Object taintSource, Object target) {
+//		MyElement logRoot = getLogRoot("CALLING");
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//		
+//		addObjectElement(logRoot, "taintedObject", taintSource, true);
+//		addObjectElement(logRoot, "targetObject", target, true);
+//		
+//		logTaint(logRoot.toString());
+//	}
 	
 	public void logOutputObjectArg(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
 		MyElement logRoot = getLogRoot("OUTPUT");
@@ -269,7 +339,7 @@ public class TaintLogger {
 			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
 		}
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	public void logOutputStringArg(StackPath location, String adviceType, Object taintSource) {
@@ -279,7 +349,7 @@ public class TaintLogger {
 		
 		addObjectElement(logRoot, "taintedObject", taintSource, true);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	/* TODO: This isn't completely implemented yet. Only logs bottom level tainted objects, doesn't show nesting
@@ -309,7 +379,7 @@ public class TaintLogger {
 			addObjectElement(baseObject, "subTaintedObject", taintedObject);
 		}
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 
 	public void logReturning(StackPath location, String adviceType, Object taintSource) {
@@ -319,7 +389,32 @@ public class TaintLogger {
 		
 		addObjectElement(logRoot, "taintedObject", taintSource);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
+	}
+	
+	public void logStaticFieldStore(StackPath location, String adviceType, Object taintSource, Field targetField) {
+		MyElement logRoot = getLogRoot("STATICFIELDSTORE");
+		
+		addLocationElement(logRoot, location, adviceType);
+		
+		addObjectElement(logRoot, "taintedObject", taintSource, true);
+		addFieldElement(logRoot, targetField);
+		
+		logTaint(logRoot.toString());
+	}
+	
+	public void logStaticFieldStore(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
+		MyElement logRoot = getLogRoot("STATICFIELDSTORE");
+		
+		addLocationElement(logRoot, location, adviceType);
+
+		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource, true);
+		for (Object taintedObject : subTaintSources) {
+			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+		}
+		addFieldElement(logRoot, targetField);
+		
+		logTaint(logRoot.toString());
 	}
 
 	public void logJavaFieldSet(StackPath location, String adviceType, Object taintSource, Field targetField) {
@@ -330,7 +425,7 @@ public class TaintLogger {
 		addObjectElement(logRoot, "taintedObject", taintSource, true);
 		addFieldElement(logRoot, targetField);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	public void logJavaFieldSet(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
@@ -344,7 +439,7 @@ public class TaintLogger {
 		}
 		addFieldElement(logRoot, targetField);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	public void logJavaFieldGet(StackPath location, String adviceType, Object taintSource, Field targetField) {
@@ -355,7 +450,7 @@ public class TaintLogger {
 		addObjectElement(logRoot, "taintedObject", taintSource);
 		addFieldElement(logRoot, targetField);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	public void logJavaFieldGet(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
@@ -369,7 +464,7 @@ public class TaintLogger {
 		}
 		addFieldElement(logRoot, targetField);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 
 	public void logFieldSet(StackPath location, String adviceType, Object value, Field targetField) {
@@ -379,7 +474,7 @@ public class TaintLogger {
 		addObjectElement(logRoot, "taintedObject", value, true);
 		addFieldElement(logRoot, targetField);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	public void logFieldSet(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
@@ -393,7 +488,7 @@ public class TaintLogger {
 		}
 		addFieldElement(logRoot, targetField);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	public void logFieldGet(StackPath location, String adviceType, Object value, Field targetField) {
@@ -403,7 +498,7 @@ public class TaintLogger {
 		addObjectElement(logRoot, "taintedObject", value, true);
 		addFieldElement(logRoot, targetField);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	public void logFieldGet(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
@@ -417,7 +512,7 @@ public class TaintLogger {
 		}
 		addFieldElement(logRoot, targetField);
 		
-		log(logRoot.toString());
+		logTaint(logRoot.toString());
 	}
 	
 	private MyElement getLogRoot(String logType) {
@@ -436,6 +531,7 @@ public class TaintLogger {
 		locationElem.addAttribute("destClass", location.destClass);
 		locationElem.addAttribute("destMethod", location.destMethod);
 		locationElem.addAttribute("adviceType", adviceType.toString());
+		locationElem.addAttribute("requestCounter", String.valueOf(ThreadRequestMaster.getMappedRequest()));
 		
 		locationElem.addContent(location.getDeeperString(10));
 		
@@ -463,6 +559,7 @@ public class TaintLogger {
 		if (object != null) {
 			objectElem.addAttribute("taintID", ReferenceMaster.getTaintHashCode(object));
 			objectElem.addAttribute("type", object.getClass().getName());
+			objectElem.addAttribute("objectID", String.valueOf(System.identityHashCode(object)));
 			if (showValue)
 				objectElem.addAttribute("value", object.toString());
 			
@@ -473,9 +570,7 @@ public class TaintLogger {
 				HashMap<Object, Integer> sources = ReferenceMaster.getDataSources(object).getSources();
 				for (Object source : sources.keySet()) {
 					if (source instanceof String) {
-						MyElement taintRecordElem = new MyElement("taintRecord");
-						taintRecordElem.addContent((String)source);
-						objectElem.addContent(taintRecordElem);
+						objectElem.addAttribute("taintRecord", (String)source);
 					}
 					else {
 						try {
@@ -486,9 +581,7 @@ public class TaintLogger {
 								sourceStr = sourceStr + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
 							}
 							
-							MyElement taintRecordElem = new MyElement("taintRecord");
-							taintRecordElem.addContent(sourceStr);
-							objectElem.addContent(taintRecordElem);
+							objectElem.addAttribute("taintRecord", sourceStr);
 						} catch (SQLException e) {
 							e.printStackTrace();
 						}

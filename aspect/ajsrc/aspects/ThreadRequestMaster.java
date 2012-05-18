@@ -1,25 +1,29 @@
 package aspects;
 
+import java.util.Enumeration;
 import java.util.IdentityHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
+import aspects.TaintUtil.StackPath;
+
 public class ThreadRequestMaster {
 
-	private static IdentityHashMap<Thread, HttpServletRequest> threadToRequestMap = new IdentityHashMap<Thread, HttpServletRequest>(); 
-	private static IdentityHashMap<Object, HttpServletRequest> objToRequestMap = new IdentityHashMap<Object, HttpServletRequest>(); 
+	private static int counter = 0;
+	private static IdentityHashMap<Thread, Integer> threadToRequestMap = new IdentityHashMap<Thread, Integer>(); 
+	private static IdentityHashMap<Object, Integer> objToRequestMap = new IdentityHashMap<Object, Integer>(); 
 	
-	public static void mapThreadToRequest(HttpServletRequest request) {
-		threadToRequestMap.put(Thread.currentThread(), request);
+	public static void mapThreadToRequest() {
+		threadToRequestMap.put(Thread.currentThread(), counter++);
 	}
 	
-	public static HttpServletRequest getMappedRequest() {
+	public static Integer getMappedRequest() {
 		return threadToRequestMap.get(Thread.currentThread());
 	}
 	
-	public static boolean checkStateful(Object obj) {
-		HttpServletRequest oldMapping = objToRequestMap.get(obj);
-		HttpServletRequest newMapping = getMappedRequest();
+	public static boolean checkStateful(StackPath location, Object obj) {
+		Integer oldMapping = objToRequestMap.get(obj);
+		Integer newMapping = getMappedRequest();
 		if (newMapping == null) {
 			TaintLogger.getTaintLogger().log("REQUEST MAPPING FAIL");
 			return false;

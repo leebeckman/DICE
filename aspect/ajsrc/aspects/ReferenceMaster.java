@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.sun.swing.internal.plaf.synth.resources.synth;
+
 public class ReferenceMaster {
 
 	/*
@@ -58,6 +60,8 @@ public class ReferenceMaster {
 	
 	private static IdentityHashMap<Object, SizedSources> taintSourcesMap = new IdentityHashMap<Object, SizedSources>();
 	private static IdentityHashMap<Object, Object> resultSetToSourceMap = new IdentityHashMap<Object, Object>();
+	
+	private static IdentityHashMap<Object, Field> staticAccessedMap = new IdentityHashMap<Object, Field>();
 	
 	public static synchronized void mapResultSetToSource(Object resultSet, Object source) {
 		resultSetToSourceMap.put(resultSet, source);
@@ -273,11 +277,16 @@ public class ReferenceMaster {
 		}
 	}
 	
+	/*
+	 *  code is sizedsource:taintsource. sizedsource is unique to access, 
+	 *  taintsource is unique to ResultSet (or other source)
+	 */
 	public static synchronized String getTaintHashCode(Object obj) {
 		if (isPrimaryTainted(obj)) {
 			String ret = "";
-			for (Object item : taintSourcesMap.get(obj).getSources().keySet()) {
-				ret += String.valueOf(System.identityHashCode(item)) + ",";
+			SizedSources sizedSrc = taintSourcesMap.get(obj);
+			for (Object item : sizedSrc.getSources().keySet()) {
+				ret += String.valueOf(System.identityHashCode(item)) + ":" + String.valueOf(System.identityHashCode(sizedSrc)) + ",";
 			}
 			if (ret.endsWith(","))
 				ret = ret.substring(0, ret.length() - 1);
@@ -296,6 +305,14 @@ public class ReferenceMaster {
 		if (obj != null) {
 			if (obj instanceof String || obj instanceof StringBuilder || obj instanceof StringBuffer || obj instanceof ResultSet)
 				return taintSourcesMap.containsKey(obj);
+		}
+		return false;
+	}
+	
+	public static synchronized boolean isPrimaryType(Object obj) {
+		if (obj != null) {
+			if (obj instanceof String || obj instanceof StringBuilder || obj instanceof StringBuffer || obj instanceof ResultSet)
+				return true;
 		}
 		return false;
 	}

@@ -6,6 +6,8 @@ import java.util.Set;
 
 public class ArgBackTaintChecker {
 
+	// TODO: These should maybe be further keyed by threadid
+	
 	private static IdentityHashMap<Object, IdentityHashMap<Object, String>> complexArgTaintMap = new IdentityHashMap<Object, IdentityHashMap<Object,String>>();
 	private static IdentityHashMap<Object, String> primaryArgTaintMap = new IdentityHashMap<Object, String>();
 	
@@ -44,7 +46,7 @@ public class ArgBackTaintChecker {
 		return argBackTaint;
 	}
 	
-	public void reset() {
+	public static void reset() {
 		primaryArgTaintMap.clear();
 		complexArgTaintMap.clear();
 	}

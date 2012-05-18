@@ -18,17 +18,29 @@ import aspects.TaintUtil.StackPath;
 public aspect ReferenceTracker {
 
 	pointcut allExclude(): within(javax.management.MBeanConstructorInfo) ||
-							within(javax.management.MBeanNotificationInfo) ||
-							within(javax.management.MBeanFeatureInfo) ||
-							within(javax.management.MBeanOperationInfo) ||
-							within(javax.management.MBeanInfo) ||
-							within(javax.management.MBeanNotificationInfo);
+								within(javax.management.MBeanNotificationInfo) ||
+								within(javax.management.MBeanFeatureInfo) ||
+								within(javax.management.MBeanOperationInfo) ||
+								within(javax.management.MBeanInfo) ||
+								within(javax.management.MBeanNotificationInfo) ||
+								within(org.apache.catalina..*) ||
+								within(org.apache.naming..*) ||
+								within(org.apache.AnnotationProcessor) ||
+								within(org.apache.PeriodicEventListener) ||
+								within(org.apache.coyote..*) ||
+								within(org.apache.jk..*) ||
+								within(org.apache.tomcat..*) ||
+								within(org.apache.tomcat.dbcp..*);
 //	pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*);
 	pointcut tooBigErrorExcludeCollections(): within(com.mysql.jdbc.TimeUtil) ||
 												within(org.apache.jasper.xmlparser.EncodingMap) ||
 												within(org.apache.xerces.util.EncodingMap);
+	
+	before(): call(* service(..)) {
+		ThreadRequestMaster.mapThreadToRequest();
+	}
 	
 	/*
      * Advice for new reference tracking system
@@ -44,7 +56,7 @@ public aspect ReferenceTracker {
 		if (ReferenceMaster.isPrimaryTainted(accessed)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
-			if (ThreadRequestMaster.checkStateful(accessed))
+			if (ThreadRequestMaster.checkStateful(location, accessed))
 				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
     		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field);
     	}
@@ -54,7 +66,7 @@ public aspect ReferenceTracker {
     			if (location == null)
     				location = TaintUtil.getStackTracePath();
     			for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(item))
+        			if (ThreadRequestMaster.checkStateful(location, item))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
     			}
     			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, objTaint, field);
@@ -96,7 +108,7 @@ public aspect ReferenceTracker {
 		if (ReferenceMaster.isPrimaryTainted(newValue)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
-			if (ThreadRequestMaster.checkStateful(newValue))
+			if (ThreadRequestMaster.checkStateful(location, newValue))
 				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
 			TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, field);
 		} else {
@@ -105,7 +117,7 @@ public aspect ReferenceTracker {
 				if (location == null)
 					location = TaintUtil.getStackTracePath();
 				for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(item))
+        			if (ThreadRequestMaster.checkStateful(location, item))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
     			}
 				TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, objTaint, field);
@@ -163,15 +175,34 @@ public aspect ReferenceTracker {
     
     /*
      * Static get/set
+     * 
+     * Problem: when you get a java field to add to it, the field is modified before the get is registered.
+     * Has nothing to do with call pointcut. The field is simply modified before it is gotten (from aspectJ
+     * perspective)
      */
-    after() returning(Object accessed): get(static * *) && !(myAdvice()) && !allExclude() {
+    before(): get(static * *) && !(myAdvice()) && !allExclude() {
     	StackPath location = null;
 		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
+		field.setAccessible(true);
 		
+		Object accessed = null;
+		try {
+			accessed = field.get(thisJoinPoint.getTarget());
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+
+		if (accessed == null)
+			return;
+		boolean taintFound = false;
 		if (ReferenceMaster.isPrimaryTainted(accessed)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
-			if (ThreadRequestMaster.checkStateful(accessed))
+			StaticFieldBackTaintChecker.addPrimary(field, accessed);
+			taintFound = true;
+			if (ThreadRequestMaster.checkStateful(location, accessed))
 				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
     		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field);
     	}
@@ -180,13 +211,25 @@ public aspect ReferenceTracker {
     		if (objTaint != null && objTaint.size() > 0) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath();
+    			StaticFieldBackTaintChecker.addComplex(field, accessed, objTaint);
+    			taintFound = true;
     			for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(item))
+        			if (ThreadRequestMaster.checkStateful(location, item))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
     			}
     			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, objTaint, field);
     		}
     	}
+
+//		if (location == null)
+//			location = TaintUtil.getStackTracePath();
+//    	TaintLogger.getTaintLogger().log("BEFORE STATIC GET: " + field + " taintfound: " + taintFound + " at " + location);
+		if (!taintFound && ReferenceMaster.isPrimaryType(accessed)) {
+			StaticFieldBackTaintChecker.addPrimary(field, accessed);
+		}
+		else if (!taintFound) {
+			StaticFieldBackTaintChecker.addComplex(field, accessed, null);
+		}
     }
     
     before(): set(static * *) && !(myAdvice()) && !allExclude() {
@@ -196,10 +239,15 @@ public aspect ReferenceTracker {
 
 		StackPath location = null;
 		
+		if (newValue == null)
+			return;
+		boolean taintFound = false;
 		if (ReferenceMaster.isPrimaryTainted(newValue)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
-			if (ThreadRequestMaster.checkStateful(newValue))
+			StaticFieldBackTaintChecker.addPrimary(field, newValue);
+			taintFound = true;
+			if (ThreadRequestMaster.checkStateful(location, newValue))
 				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
 			TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, field);
 		} else {
@@ -207,12 +255,21 @@ public aspect ReferenceTracker {
 			if (objTaint != null && objTaint.size() > 0) {
 				if (location == null)
 					location = TaintUtil.getStackTracePath();
+    			StaticFieldBackTaintChecker.addComplex(field, newValue, objTaint);
+    			taintFound = true;
 				for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(item))
+        			if (ThreadRequestMaster.checkStateful(location, item))
         				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
     			}
 				TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, objTaint, field);
 			}
+		}
+		
+		if (!taintFound && ReferenceMaster.isPrimaryType(newValue)) {
+			StaticFieldBackTaintChecker.addPrimary(field, newValue);
+		}
+		else if (!taintFound && newValue != null) {
+			StaticFieldBackTaintChecker.addComplex(field, newValue, null);
 		}
 	}
     
