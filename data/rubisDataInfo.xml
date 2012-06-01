@@ -1,0 +1,5 @@
+<root>
+    <databasesourceinfo catalog="rubis" table="regions" column="id" variability="STABLE" />
+    <databasesourceinfo catalog="rubis" table="regions" column="name" variability="STABLE" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" parameter="chatMessage" variability="RANDOM" />
+</root>

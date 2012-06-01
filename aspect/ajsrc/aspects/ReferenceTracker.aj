@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.apache.catalina.connector.RequestFacade;
 import org.aspectj.lang.reflect.FieldSignature;
 
 import aspects.TaintUtil.StackPath;
@@ -38,8 +39,18 @@ public aspect ReferenceTracker {
 												within(org.apache.jasper.xmlparser.EncodingMap) ||
 												within(org.apache.xerces.util.EncodingMap);
 	
+	// For associating threads with requests
 	before(): call(* service(..)) {
-		ThreadRequestMaster.mapThreadToRequest();
+		Object[] args = thisJoinPoint.getArgs();
+		String URI = null;
+		for (int i = 0; i < args.length; i++) {
+			if (args[i] instanceof RequestFacade) {
+				RequestFacade req = (RequestFacade)args[i];
+				URI = req.getRequestURI();
+				break;
+			}
+		}
+		ThreadRequestMaster.mapThreadToRequest(URI);
 	}
 	
 	/*
@@ -56,8 +67,8 @@ public aspect ReferenceTracker {
 		if (ReferenceMaster.isPrimaryTainted(accessed)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
-			if (ThreadRequestMaster.checkStateful(location, accessed))
-				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
+//			if (ThreadRequestMaster.checkStateful(location, accessed))
+//				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
     		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field);
     	}
     	else {
@@ -65,10 +76,10 @@ public aspect ReferenceTracker {
     		if (objTaint != null && objTaint.size() > 0) {
     			if (location == null)
     				location = TaintUtil.getStackTracePath();
-    			for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(location, item))
-        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
-    			}
+//    			for (Object item : objTaint) {
+//        			if (ThreadRequestMaster.checkStateful(location, item))
+//        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
+//    			}
     			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, objTaint, field);
     		}
     	}
@@ -108,18 +119,18 @@ public aspect ReferenceTracker {
 		if (ReferenceMaster.isPrimaryTainted(newValue)) {
 			if (location == null)
 				location = TaintUtil.getStackTracePath();
-			if (ThreadRequestMaster.checkStateful(location, newValue))
-				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
+//			if (ThreadRequestMaster.checkStateful(location, newValue))
+//				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
 			TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, field);
 		} else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, newValue);
 			if (objTaint != null && objTaint.size() > 0) {
 				if (location == null)
 					location = TaintUtil.getStackTracePath();
-				for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(location, item))
-        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
-    			}
+//				for (Object item : objTaint) {
+//        			if (ThreadRequestMaster.checkStateful(location, item))
+//        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
+//    			}
 				TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, objTaint, field);
 			}
 		}
@@ -202,8 +213,8 @@ public aspect ReferenceTracker {
 				location = TaintUtil.getStackTracePath();
 			StaticFieldBackTaintChecker.addPrimary(field, accessed);
 			taintFound = true;
-			if (ThreadRequestMaster.checkStateful(location, accessed))
-				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
+//			if (ThreadRequestMaster.checkStateful(location, accessed))
+//				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
     		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field);
     	}
     	else {
@@ -213,10 +224,10 @@ public aspect ReferenceTracker {
     				location = TaintUtil.getStackTracePath();
     			StaticFieldBackTaintChecker.addComplex(field, accessed, objTaint);
     			taintFound = true;
-    			for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(location, item))
-        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
-    			}
+//    			for (Object item : objTaint) {
+//        			if (ThreadRequestMaster.checkStateful(location, item))
+//        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
+//    			}
     			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, objTaint, field);
     		}
     	}
@@ -247,8 +258,8 @@ public aspect ReferenceTracker {
 				location = TaintUtil.getStackTracePath();
 			StaticFieldBackTaintChecker.addPrimary(field, newValue);
 			taintFound = true;
-			if (ThreadRequestMaster.checkStateful(location, newValue))
-				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
+//			if (ThreadRequestMaster.checkStateful(location, newValue))
+//				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
 			TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, field);
 		} else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, newValue);
@@ -257,10 +268,10 @@ public aspect ReferenceTracker {
 					location = TaintUtil.getStackTracePath();
     			StaticFieldBackTaintChecker.addComplex(field, newValue, objTaint);
     			taintFound = true;
-				for (Object item : objTaint) {
-        			if (ThreadRequestMaster.checkStateful(location, item))
-        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
-    			}
+//				for (Object item : objTaint) {
+//        			if (ThreadRequestMaster.checkStateful(location, item))
+//        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
+//    			}
 				TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, objTaint, field);
 			}
 		}

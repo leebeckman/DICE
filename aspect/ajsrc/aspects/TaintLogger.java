@@ -25,7 +25,7 @@ public class TaintLogger {
 		try {
 			LogManager lm = LogManager.getLogManager();
 			
-			FileHandler fhDB = new FileHandler("/home/lee/DICE/dbtaintlog.log");
+			FileHandler fhDB = new FileHandler("/home/lee/DICE/debbtaintlog.log");
 			FileHandler fhTaint = new FileHandler("/home/lee/DICE/taintlog.log");
 			fhDB.setFormatter(new LightFormatter());
 			fhTaint.setFormatter(new LightFormatter());
@@ -60,7 +60,7 @@ public class TaintLogger {
 	}
 	
 	public void log(String message) {
-//		logger.log(Level.INFO, message);
+		dlogger.log(Level.INFO, message);
 	}
 	
 	private void logTaint(String message) {
@@ -94,7 +94,7 @@ public class TaintLogger {
 		addLocationElement(logRoot, location, adviceType);
 		
 		addObjectElement(logRoot, "sourceObject", source);
-		addObjectElement(logRoot, "targetObject", target);
+		addObjectElement(logRoot, "destObject", target);
 		
 		logTaint(logRoot.toString());
 	}
@@ -122,7 +122,7 @@ public class TaintLogger {
 		addLocationElement(logRoot, location, adviceType);
 		
 		addObjectElement(logRoot, "taintedObject", source, true);
-		addObjectElement(logRoot, "targetObject", target, true);
+		addObjectElement(logRoot, "destObject", target, true);
 		
 		logTaint(logRoot.toString());
 	}
@@ -184,7 +184,7 @@ public class TaintLogger {
 		}
 		logRoot.addContent(composedElem);
 		
-		addObjectElement(logRoot, "targetObject", target);
+		addObjectElement(logRoot, "destObject", target);
 		
 		logTaint(logRoot.toString());
 	}
@@ -239,18 +239,59 @@ public class TaintLogger {
 	 * 
 	 * </taintlog>
 	 */
+//	public void logCalling(StackPath location, String adviceType, LinkedList<TaintedArg> taintedArgs, Long executionTime) {
+//		MyElement logRoot = getLogRoot("CALLING");
+//		logRoot.addAttribute("executionTime", String.valueOf(executionTime));
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//
+//		for (TaintedArg item : taintedArgs) {
+//			MyElement baseObject = addObjectElement(logRoot, "taintedObject", item.getArg(), true);
+//			Set<Object> subTaintSources = item.getSubTaint();
+//			if (subTaintSources != null) {
+//				for (Object taintedObject : subTaintSources) {
+//					addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+//				}
+//			}
+//		}
+//		
+//		logTaint(logRoot.toString());
+//	}
+//	
+//	public void logCalling(StackPath location, String adviceType, LinkedList<TaintedArg> taintedArgs, Object target, Long executionTime) {
+//		MyElement logRoot = getLogRoot("CALLING");
+//		logRoot.addAttribute("executionTime", String.valueOf(executionTime));
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//
+//		for (TaintedArg item : taintedArgs) {
+//			MyElement baseObject = addObjectElement(logRoot, "taintedObject", item.getArg(), true);
+//			Set<Object> subTaintSources = item.getSubTaint();
+//			if (subTaintSources != null) {
+//				for (Object taintedObject : subTaintSources) {
+//					addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+//				}
+//			}
+//		}
+//		addObjectElement(logRoot, "targetObject", target, true);
+//		
+//		logTaint(logRoot.toString());
+//	}
+	
 	public void logCalling(StackPath location, String adviceType, LinkedList<TaintedArg> taintedArgs) {
 		MyElement logRoot = getLogRoot("CALLING");
 //		System.out.println(location + " --- " + taintSource + " --- " + subTaintSources);
 		
 		addLocationElement(logRoot, location, adviceType);
 
-		for (TaintedArg item : taintedArgs) {
-			MyElement baseObject = addObjectElement(logRoot, "taintedObject", item.getArg(), true);
-			Set<Object> subTaintSources = item.getSubTaint();
-			if (subTaintSources != null) {
-				for (Object taintedObject : subTaintSources) {
-					addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+		if (taintedArgs != null) {
+			for (TaintedArg item : taintedArgs) {
+				MyElement baseObject = addObjectElement(logRoot, "taintedObject", item.getArg(), true);
+				Set<Object> subTaintSources = item.getSubTaint();
+				if (subTaintSources != null) {
+					for (Object taintedObject : subTaintSources) {
+						addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+					}
 				}
 			}
 		}
@@ -258,22 +299,25 @@ public class TaintLogger {
 		logTaint(logRoot.toString());
 	}
 	
-	public void logCalling(StackPath location, String adviceType, LinkedList<TaintedArg> taintedArgs, Object target) {
+	public void logCalling(StackPath location, String adviceType, LinkedList<TaintedArg> taintedArgs, Object calling, Object called) {
 		MyElement logRoot = getLogRoot("CALLING");
 //		System.out.println(location + " --- " + taintSource + " --- " + subTaintSources);
 		
 		addLocationElement(logRoot, location, adviceType);
 
-		for (TaintedArg item : taintedArgs) {
-			MyElement baseObject = addObjectElement(logRoot, "taintedObject", item.getArg(), true);
-			Set<Object> subTaintSources = item.getSubTaint();
-			if (subTaintSources != null) {
-				for (Object taintedObject : subTaintSources) {
-					addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+		if (taintedArgs != null) {
+			for (TaintedArg item : taintedArgs) {
+				MyElement baseObject = addObjectElement(logRoot, "taintedObject", item.getArg(), true);
+				Set<Object> subTaintSources = item.getSubTaint();
+				if (subTaintSources != null) {
+					for (Object taintedObject : subTaintSources) {
+						addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+					}
 				}
 			}
 		}
-		addObjectElement(logRoot, "targetObject", target, true);
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
 		
 		logTaint(logRoot.toString());
 	}
@@ -328,7 +372,7 @@ public class TaintLogger {
 //		logTaint(logRoot.toString());
 //	}
 	
-	public void logOutputObjectArg(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
+	public void logOutputObjectArg(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Object calling, Object called) {
 		MyElement logRoot = getLogRoot("OUTPUT");
 //		System.out.println(location + " --- " + taintSource + " --- " + subTaintSources);
 		
@@ -338,16 +382,32 @@ public class TaintLogger {
 		for (Object taintedObject : subTaintSources) {
 			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
 		}
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
 		
 		logTaint(logRoot.toString());
 	}
 	
-	public void logOutputStringArg(StackPath location, String adviceType, Object taintSource) {
+	public void logOutputStringArg(StackPath location, String adviceType, Object taintSource, Object calling, Object called) {
 		MyElement logRoot = getLogRoot("OUTPUT");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
 		addObjectElement(logRoot, "taintedObject", taintSource, true);
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
+		
+		logTaint(logRoot.toString());
+	}
+	
+	public void logNonTaintOutputStringArg(StackPath location, String adviceType, Object output, Object calling, Object called) {
+		MyElement logRoot = getLogRoot("OUTPUTNONTAINT");
+		
+		addLocationElement(logRoot, location, adviceType);
+		
+		addObjectElement(logRoot, "outputObject", output, true);
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
 		
 		logTaint(logRoot.toString());
 	}
@@ -369,8 +429,9 @@ public class TaintLogger {
 	 * 
 	 * </taintlog>
 	 */
-	public void logReturningObject(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
+	public void logReturning(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Long executionTime) {
 		MyElement logRoot = getLogRoot("RETURNING");
+		logRoot.addAttribute("executionTime", String.valueOf(executionTime));
 		
 		addLocationElement(logRoot, location, adviceType);
 	
@@ -382,12 +443,98 @@ public class TaintLogger {
 		logTaint(logRoot.toString());
 	}
 
-	public void logReturning(StackPath location, String adviceType, Object taintSource) {
+	public void logReturning(StackPath location, String adviceType, Object taintSource, Long executionTime) {
 		MyElement logRoot = getLogRoot("RETURNING");
+		logRoot.addAttribute("executionTime", String.valueOf(executionTime));
+		
+		addLocationElement(logRoot, location, adviceType);
+		
+		if (taintSource != null)
+			addObjectElement(logRoot, "taintedObject", taintSource);
+		
+		logTaint(logRoot.toString());
+	}
+	
+	public void logReturning(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources, Long executionTime, Object calling, Object called) {
+		MyElement logRoot = getLogRoot("RETURNING");
+		if (executionTime != null)
+			logRoot.addAttribute("executionTime", String.valueOf(executionTime));
+		
+		addLocationElement(logRoot, location, adviceType);
+	
+		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
+		for (Object taintedObject : subTaintSources) {
+			addObjectElement(baseObject, "subTaintedObject", taintedObject);
+		}
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
+		
+		logTaint(logRoot.toString());
+	}
+
+	public void logReturning(StackPath location, String adviceType, Object taintSource, Long executionTime, Object calling, Object called) {
+		MyElement logRoot = getLogRoot("RETURNING");
+		if (executionTime != null)
+			logRoot.addAttribute("executionTime", String.valueOf(executionTime));
+		
+		addLocationElement(logRoot, location, adviceType);
+		
+		if (taintSource != null)
+			addObjectElement(logRoot, "taintedObject", taintSource);
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
+		
+		logTaint(logRoot.toString());
+	}
+	
+	// TEMP DEBUG VERSION
+//	public void logReturning(StackPath location, String adviceType, Object taintSource, Long executionTime, Object[] args) {
+//		MyElement logRoot = getLogRoot("RETURNING");
+//		logRoot.addAttribute("executionTime", String.valueOf(executionTime));
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//		if (location.srcMethod.equals("regionList") && location.destMethod.equals("printHTML")) {
+//			logRoot.addAttribute("argVal", (String)args[0]);
+//			logRoot.addAttribute("argQual", "yes");
+//		}
+//		
+//		if (taintSource != null)
+//			addObjectElement(logRoot, "taintedObject", taintSource);
+//		
+//		logTaint(logRoot.toString());
+//	}
+//	
+//	public void logReturning(StackPath location, String adviceType, Object taintSource, Set<Object> subTaintSources) {
+//		MyElement logRoot = getLogRoot("RETURNING");
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//	
+//		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
+//		for (Object taintedObject : subTaintSources) {
+//			addObjectElement(baseObject, "subTaintedObject", taintedObject);
+//		}
+//		
+//		logTaint(logRoot.toString());
+//	}
+//
+//	public void logReturning(StackPath location, String adviceType, Object taintSource) {
+//		MyElement logRoot = getLogRoot("RETURNING");
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//		
+//		addObjectElement(logRoot, "taintedObject", taintSource);
+//		
+//		logTaint(logRoot.toString());
+//	}
+	
+	public void logReturningInput(StackPath location, String adviceType, Object taintSource, Object calling, Object called) {
+		MyElement logRoot = getLogRoot("RETURNINGINPUT");
 		
 		addLocationElement(logRoot, location, adviceType);
 		
 		addObjectElement(logRoot, "taintedObject", taintSource);
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
 		
 		logTaint(logRoot.toString());
 	}
@@ -518,7 +665,6 @@ public class TaintLogger {
 	private MyElement getLogRoot(String logType) {
 		MyElement logRoot = new MyElement("taintlog");
 		logRoot.addAttribute("type", logType);
-		logRoot.addAttribute("reqHash", String.valueOf(RequestData.getCurrentThreadRequestHash()));
 		return logRoot;
 	}
 	
@@ -528,10 +674,14 @@ public class TaintLogger {
 			locationElem.addAttribute("srcClass", location.srcClass);
 			locationElem.addAttribute("srcMethod", location.srcMethod);
 		}
-		locationElem.addAttribute("destClass", location.destClass);
-		locationElem.addAttribute("destMethod", location.destMethod);
+		if (location.destClass != null) {
+			locationElem.addAttribute("destClass", location.destClass);
+			locationElem.addAttribute("destMethod", location.destMethod);
+		}
 		locationElem.addAttribute("adviceType", adviceType.toString());
-		locationElem.addAttribute("requestCounter", String.valueOf(ThreadRequestMaster.getMappedRequest()));
+		ThreadRequestMaster.CounterURIPair counterURI = ThreadRequestMaster.getMappedRequestCounter();
+		locationElem.addAttribute("requestCounter", String.valueOf(counterURI.getCounter()));
+		locationElem.addAttribute("requestURI", counterURI.getURI());
 		
 		locationElem.addContent(location.getDeeperString(10));
 		
@@ -555,6 +705,13 @@ public class TaintLogger {
 	
 	private MyElement addObjectElement(MyElement root, String tagName, Object object, boolean showValue) {
 		MyElement objectElem = new MyElement(tagName);
+		if (object == null || root == null)
+			return null;
+		if (object instanceof ContextRecord) {
+			object = ((ContextRecord) object).getContextObject();
+		}
+		if (object == null)
+			return null;
 		
 		if (object != null) {
 			objectElem.addAttribute("taintID", ReferenceMaster.getTaintHashCode(object));
@@ -567,25 +724,8 @@ public class TaintLogger {
 			//objectElem.setAttribute("uid", String.valueOf(TaintData.getTaintData().getObjectUID(object))));
 			
 			if (ReferenceMaster.getDataSources(object) != null) {
-				HashMap<Object, Integer> sources = ReferenceMaster.getDataSources(object).getSources();
-				for (Object source : sources.keySet()) {
-					if (source instanceof String) {
-						objectElem.addAttribute("taintRecord", (String)source);
-					}
-					else {
-						try {
-							String sourceStr = "";
-							ResultSetMetaData metaData = (ResultSetMetaData) source;
-							int colCount = metaData.getColumnCount();
-							for (int i = 1; i <= colCount; i++) {
-								sourceStr = sourceStr + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
-							}
-							
-							objectElem.addAttribute("taintRecord", sourceStr);
-						} catch (SQLException e) {
-							e.printStackTrace();
-						}
-					}
+				for (String source : ReferenceMaster.getDataSources(object).getSourceStrings()) {
+					objectElem.addAttribute("taintRecord", source);
 				}
 			}
 		}

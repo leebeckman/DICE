@@ -10,30 +10,48 @@ import aspects.TaintUtil.StackPath;
 public class ThreadRequestMaster {
 
 	private static int counter = 0;
-	private static IdentityHashMap<Thread, Integer> threadToRequestMap = new IdentityHashMap<Thread, Integer>(); 
+	private static IdentityHashMap<Thread, CounterURIPair> threadToRequestMap = new IdentityHashMap<Thread, CounterURIPair>(); 
 	private static IdentityHashMap<Object, Integer> objToRequestMap = new IdentityHashMap<Object, Integer>(); 
 	
-	public static void mapThreadToRequest() {
-		threadToRequestMap.put(Thread.currentThread(), counter++);
+	public static void mapThreadToRequest(String URI) {
+		threadToRequestMap.put(Thread.currentThread(), new CounterURIPair(counter++, URI));
 	}
 	
-	public static Integer getMappedRequest() {
+	public static CounterURIPair getMappedRequestCounter() {
 		return threadToRequestMap.get(Thread.currentThread());
 	}
 	
-	public static boolean checkStateful(StackPath location, Object obj) {
-		Integer oldMapping = objToRequestMap.get(obj);
-		Integer newMapping = getMappedRequest();
-		if (newMapping == null) {
-			TaintLogger.getTaintLogger().log("REQUEST MAPPING FAIL");
-			return false;
+	public static class CounterURIPair {
+		private int counter;
+		private String URI;
+		
+		public CounterURIPair(int counter, String URI) {
+			this.counter = counter;
+			this.URI = URI;
 		}
 		
-		objToRequestMap.put(obj, newMapping);
+		public int getCounter() {
+			return this.counter;
+		}
 		
-		if (oldMapping != null && oldMapping != newMapping)
-			return true;
-		
-		return false;
+		public String getURI() {
+			return this.URI;
+		}
 	}
+	
+//	public static boolean checkStateful(StackPath location, Object obj) {
+//		Integer oldMapping = objToRequestMap.get(obj);
+//		Integer newMapping = getMappedRequest();
+//		if (newMapping == null) {
+//			TaintLogger.getTaintLogger().log("REQUEST MAPPING FAIL");
+//			return false;
+//		}
+//		
+//		objToRequestMap.put(obj, newMapping);
+//		
+//		if (oldMapping != null && oldMapping != newMapping)
+//			return true;
+//		
+//		return false;
+//	}
 }

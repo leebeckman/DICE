@@ -1,5 +1,5 @@
 package aspects;
 
 public aspect Ordering {
-	declare precedence: GeneralTracker, DBCPTaint, RequestParameterTaint;
+	declare precedence: OutputTracker, DBCPTaint, RequestParameterTaint, GeneralTracker, StringTracking;
 }

@@ -4,6 +4,8 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 
+import aspects.TaintUtil.StackPath;
+
 public aspect DBCPTaint {
 	
 	public DBCPTaint() {
@@ -47,9 +49,24 @@ public aspect DBCPTaint {
     			 * If we taint by resultset, we know what was accessed together. Would also be nice to know both.
     			 * So why not just get both? (Would be nice to also know the column, but let's not go crazy)
     			 */
+    			String columnName = null;
+    			Object[] args = thisJoinPoint.getArgs();
+    			if (args[0] instanceof String) {
+    				columnName = (String) args[0];
+    			}
+    			else if (args[0] instanceof Integer) {
+    				ResultSetMetaData metaData = (ResultSetMetaData) ReferenceMaster.getResultSetSource(thisJoinPoint.getThis());
+    				try {
+						columnName = metaData.getColumnName((Integer)args[0]);
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+    			}
     			
-    			ReferenceMaster.doPrimaryTaint(ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()));
-
+    			ReferenceMaster.doPrimaryTaint(ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()), columnName);
+    			
+    			StackPath location = TaintUtil.getStackTracePath();
+    			TaintLogger.getTaintLogger().logReturningInput(location, "DBCP", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
 //    			System.out.println("Tainting: " + TaintData.getTaintData().getTaintHashCode(ret));
     		}
     	}

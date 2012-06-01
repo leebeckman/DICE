@@ -9,12 +9,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-
-import com.sun.swing.internal.plaf.synth.resources.synth;
 
 public class ReferenceMaster {
 
@@ -277,6 +274,16 @@ public class ReferenceMaster {
 		}
 	}
 	
+	public static synchronized void doPrimaryTaint(Object target, Object taintSource, String columnName) {
+		int size = 0;
+		if (target instanceof String || target instanceof StringBuffer || target instanceof StringBuilder || target instanceof ResultSet) {
+			size = 0;
+			if (!taintSourcesMap.containsKey(target)) {
+				taintSourcesMap.put(target, new SizedSources(size, taintSource, columnName));
+			}
+		}
+	}
+	
 	/*
 	 *  code is sizedsource:taintsource. sizedsource is unique to access, 
 	 *  taintsource is unique to ResultSet (or other source)
@@ -298,7 +305,10 @@ public class ReferenceMaster {
 	public static synchronized void propagateTaintSources(Object sourceData, Object targetData) {
 		if (taintSourcesMap.get(targetData) == null)
 			taintSourcesMap.put(targetData, new SizedSources(0, null));
-		taintSourcesMap.get(targetData).addSources(taintSourcesMap.get(sourceData));
+		SizedSources source = taintSourcesMap.get(sourceData);
+		SizedSources target = taintSourcesMap.get(targetData);
+		target.addSources(source);
+		target.setColumnName(source.getColumnName());
 	}
 	
 	public static synchronized boolean isPrimaryTainted(Object obj) {
@@ -732,12 +742,29 @@ public class ReferenceMaster {
 	
 	static class SizedSources {
 		private HashMap<Object, Integer> sources;
+		private String columnName;
 		
 		public SizedSources (int size, Object source) {
 			this.sources = new HashMap<Object, Integer>();
 			if (source != null) {
 				this.sources.put(source, size);
 			}
+		}
+		
+		public SizedSources (int size, Object source, String columnName) {
+			this.sources = new HashMap<Object, Integer>();
+			this.columnName = columnName;
+			if (source != null) {
+				this.sources.put(source, size);
+			}
+		}
+		
+		public String getColumnName() {
+			return this.columnName;
+		}
+		
+		public void setColumnName(String columnName) {
+			this.columnName = columnName;
 		}
 		
 		public void addSources(SizedSources sources) {
@@ -749,29 +776,30 @@ public class ReferenceMaster {
 			return sources;
 		}
 		
-		public String toString() {
-			String ret = "";
+		public LinkedList<String> getSourceStrings() {
+			LinkedList<String> sourceStrings = new LinkedList<String>();
 			for (Object source : sources.keySet()) {
-				ret = ret + (sources.get(source).toString() + '-');
-				// For simple testing
 				if (source instanceof String) {
-					ret = ret + source;
+					sourceStrings.add((String)source);
 				}
 				else {
 					try {
+						String sourceStr = "";
 						ResultSetMetaData metaData = (ResultSetMetaData) source;
 						int colCount = metaData.getColumnCount();
 						for (int i = 1; i <= colCount; i++) {
-							ret = ret + (metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i) + '#');
+							sourceStr += "CATALOG: " + metaData.getCatalogName(i) + " TABLE: " + metaData.getTableName(i) + " COLUMN: " + metaData.getColumnName(i) + " ";
 						}
+						if (columnName != null)
+							sourceStr += "TARGETCOLUMN: " + columnName;
+						
+						sourceStrings.add(sourceStr);
 					} catch (SQLException e) {
-						ret = "SQLException";
-						ret = ret + ": " + e.getMessage();
 						e.printStackTrace();
 					}
 				}
 			}
-			return ret;
+			return sourceStrings;
 		}
 	}
 }

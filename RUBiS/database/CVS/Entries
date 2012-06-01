@@ -1,0 +1,18 @@
+/README/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/categories.sql/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/ebay_full_categories.txt/1.1.1.1/Wed Jan 23 03:28:47 2002//
+/ebay_regions.txt/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/ebay_simple_categories.txt/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/foreign_key.sql/1.1/Mon Sep 30 13:23:30 2002//
+/generate_categories.awk/1.1.1.1/Wed Jan 23 03:28:47 2002//
+/generate_regions.awk/1.1.1.1/Wed Jan 23 03:28:47 2002//
+/refresh_items_date.sql/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/regions.sql/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/rubis.postgres.sql/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/rubis.sql/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/rubis_bdb.sql/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/rubis_isam_to_bdb.sql/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/test.sql/1.1.1.1/Wed Jan 23 03:28:48 2002//
+/update_ids.sql/1.2/Thu Jan 24 18:56:12 2002//
+/update_old_items.sql/1.1.1.1/Wed Jan 23 03:28:48 2002//
+D

@@ -25,7 +25,8 @@ public class MyElement {
 	}
 	
 	public void addAttribute(String name, String value) {
-		this.attributes.add(new MyAttribute(name, value));
+		if (name != null && value != null)
+			this.attributes.add(new MyAttribute(name, value));
 	}
 	
 	public String toString() {

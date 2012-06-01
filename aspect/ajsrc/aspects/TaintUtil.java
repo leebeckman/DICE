@@ -2,6 +2,7 @@ package aspects;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Stack;
 
 import org.aspectj.lang.Signature;
 import org.aspectj.lang.reflect.ConstructorSignature;
@@ -13,7 +14,124 @@ public class TaintUtil {
 	
 	private static HashMap<Long, Boolean> ajLock = new HashMap<Long, Boolean>();
 	private static HashMap<Long, Object[]> argsStore = new HashMap<Long, Object[]>();
+	private static HashMap<Long, Stack<Long>> startTimeStore = new HashMap<Long, Stack<Long>>();
+	private static HashMap<Long, Stack<ContextRecord>> contextStore = new HashMap<Long, Stack<ContextRecord>>();
 	
+	
+	public static synchronized void pushStartTime() {
+		Long threadID = Thread.currentThread().getId();
+		Long startTime = System.currentTimeMillis();
+		Stack<Long> store = startTimeStore.get(threadID);
+		if (store == null) {
+			store = new Stack<Long>();
+			startTimeStore.put(threadID, store);
+		}
+		store.push(startTime);
+	}
+	
+	public static synchronized Long getTotalTime() {
+		Long threadID = Thread.currentThread().getId();
+		Stack<Long> store = startTimeStore.get(threadID);
+		Long totalTime = null;
+		if (store == null) {
+			TaintLogger.getTaintLogger().log("POPSTARTTIME FAIL");
+		}
+		else{
+			totalTime = System.currentTimeMillis() - store.peek();
+		}
+		return totalTime;
+	}
+	
+	public static synchronized void popStartTime() {
+		Long threadID = Thread.currentThread().getId();
+		Stack<Long> store = startTimeStore.get(threadID);
+		if (store == null) {
+			TaintLogger.getTaintLogger().log("POPSTARTTIME FAIL");
+		}
+		else {
+			store.pop();
+		}
+	}
+	
+	public static synchronized void pushContext(Object context, Signature sig) {
+		Long threadID = Thread.currentThread().getId();
+		Stack<ContextRecord> store = contextStore.get(threadID);
+		if (store == null) {
+			store = new Stack<ContextRecord>();
+			contextStore.put(threadID, store);
+		}
+		if (sig instanceof MethodSignature)  {
+			MethodSignature methodSig = (MethodSignature) sig;
+			store.push(new ContextRecord(context, methodSig.getMethod().getDeclaringClass().getName(), methodSig.getName()));
+		}
+		else if (sig instanceof ConstructorSignature) {
+			ConstructorSignature constSig = (ConstructorSignature) sig;
+			store.push(new ContextRecord(context, constSig.getDeclaringTypeName(), constSig.getName()));
+		}
+		
+//		if (context != null)
+//			TaintLogger.getTaintLogger().log("PUSHING CONTEXT: " + methodSig.getMethod().getDeclaringClass().getName() + ":" + methodSig.getName());
+//		else
+//			TaintLogger.getTaintLogger().log("PUSHING CONTEXT: " + methodSig.getMethod().getDeclaringClass().getName() + ":" + methodSig.getName());
+	}
+	
+	public static synchronized ContextRecord getLastContext() {
+		Long threadID = Thread.currentThread().getId();
+		Stack<ContextRecord> store = contextStore.get(threadID);
+		if (store == null) {
+			TaintLogger.getTaintLogger().log("GETCONTEXT FAIL");
+			return null;
+		}
+		else{
+			ContextRecord result = null;
+			if (store.size() > 0) {
+				ContextRecord popped = store.pop();
+			
+				if (store.size() > 0) {
+					result = store.peek();
+					store.push(popped);
+				}
+				else {
+					store.push(popped);
+				}
+			}
+			return result;
+		}
+	}
+	
+	public static synchronized ContextRecord getContext() {
+		Long threadID = Thread.currentThread().getId();
+		Stack<ContextRecord> store = contextStore.get(threadID);
+		if (store == null) {
+			TaintLogger.getTaintLogger().log("GETCONTEXT FAIL");
+			return null;
+		}
+		else{
+			ContextRecord result = null;
+			
+			if (store.size() > 0) {
+				result = store.peek();
+			}
+			return result;
+		}
+	}
+	
+	public static synchronized void popContext() {
+		Long threadID = Thread.currentThread().getId();
+		Stack<ContextRecord> store = contextStore.get(threadID);
+		if (store == null) {
+			TaintLogger.getTaintLogger().log("POPCONTEXT FAIL");
+		}
+		else {
+//			if (store.peek() != null)
+//				TaintLogger.getTaintLogger().log("POPPING CONTEXT: " + store.pop().getClass().getName());
+//			else
+//				TaintLogger.getTaintLogger().log("POPPING CONTEXT: " + store.pop());
+			store.pop();
+		}
+	}
+	
+	//TODO: this locking scheme will cause tracking to be missed on lock acquisition failure.
 	public static synchronized boolean getAJLock() {
 		Long threadID = Thread.currentThread().getId();
 		Boolean locked = ajLock.get(threadID);
@@ -140,60 +258,71 @@ public class TaintUtil {
 	}
 	
 	public static StackPath getStackTracePath() {
-    	Thread current = Thread.currentThread();
-    	StackTraceElement[] stack = current.getStackTrace();
-    	StackPath path = stackTraceToPath(stack, null);
+//    	Thread current = Thread.currentThread();
+//    	StackTraceElement[] stack = null;//current.getStackTrace();
+    	StackPath path = stackTraceToPath();
     	
     	return path;
     }
 	
-	public static StackPath getStackTracePath(Signature calleeSignature) {
-    	Thread current = Thread.currentThread();
-    	StackTraceElement[] stack = current.getStackTrace();
-    	StackPath path = stackTraceToPath(stack, calleeSignature);
-    	
-    	return path;
-    }
+//	public static StackPath getStackTracePath(Signature calleeSignature) {
+//    	Thread current = Thread.currentThread();
+//    	StackTraceElement[] stack = null;//current.getStackTrace();
+//    	StackPath path = stackTraceToPath(stack, calleeSignature);
+//    	
+//    	return path;
+//    }
     
     
-    private static StackPath stackTraceToPath(StackTraceElement[] stack, Signature calleeSignature) {
-    	String destClass = null;
-		String destMethod = null;
+    private static StackPath stackTraceToPath() {
+//		int startIndex = 0;
+//		while ((stack[startIndex].getClassName().startsWith("java.lang.Thread") && stack[startIndex].getMethodName().startsWith("getStackTrace")) || 
+//				stack[startIndex].getClassName().startsWith("aspects.") ||
+//				stack[startIndex].getClassName().contains("_aroundBody") ||
+//				stack[startIndex].getMethodName().contains("ajc$afterReturning")) {
+//			startIndex++;
+//		}
+//		
+//		int goodIndex = startIndex;
+//		
+//		if (calleeSignature == null) {
+//			destClass = stack[startIndex].getClassName();
+//			destMethod = stack[startIndex].getMethodName();
+//			startIndex++;
+//		}
+//		else {
+//			if (calleeSignature instanceof MethodSignature) {
+//				destClass = calleeSignature.getDeclaringTypeName();
+//				destMethod = calleeSignature.getName();
+//			}
+//			else if (calleeSignature instanceof ConstructorSignature) {
+//				destClass = calleeSignature.getDeclaringTypeName();
+//				destMethod = calleeSignature.getName();
+//			}
+//		}
+//		
+//		if (startIndex < stack.length) {
+//			srcClass = stack[startIndex].getClassName();
+//			srcMethod = stack[startIndex].getMethodName();
+//			startIndex++;
+//		}
+		
+//		StackPath result = new StackPath(destClass, destMethod, srcClass, srcMethod);
+		ContextRecord callerContext = TaintUtil.getLastContext();
+		ContextRecord calledContext = TaintUtil.getContext();
 		String srcClass = null;
 		String srcMethod = null;
-		
-		int startIndex = 0;
-		while ((stack[startIndex].getClassName().startsWith("java.lang.Thread") && stack[startIndex].getMethodName().startsWith("getStackTrace")) || 
-				stack[startIndex].getClassName().startsWith("aspects.") ||
-				stack[startIndex].getClassName().contains("_aroundBody") ||
-				stack[startIndex].getMethodName().contains("ajc$afterReturning")) {
-			startIndex++;
+		String destClass = null;
+		String destMethod = null;
+		if (callerContext != null) {
+			srcClass = callerContext.getContextClassName();
+			srcMethod = callerContext.getContextMethodName();
 		}
-		
-		int goodIndex = startIndex;
-		
-		if (calleeSignature == null) {
-			destClass = stack[startIndex].getClassName();
-			destMethod = stack[startIndex].getMethodName();
-			startIndex++;
+		if (calledContext != null) {
+			destClass = calledContext.getContextClassName();
+			destMethod = calledContext.getContextMethodName();
 		}
-		else {
-			if (calleeSignature instanceof MethodSignature) {
-				destClass = calleeSignature.getDeclaringTypeName();
-				destMethod = calleeSignature.getName();
-			}
-			else if (calleeSignature instanceof ConstructorSignature) {
-				destClass = calleeSignature.getDeclaringTypeName();
-				destMethod = calleeSignature.getName();
-			}
-		}
-		
-		if (startIndex < stack.length) {
-			srcClass = stack[startIndex].getClassName();
-			srcMethod = stack[startIndex].getMethodName();
-			startIndex++;
-		}
-		
+				
 		StackPath result = new StackPath(destClass, destMethod, srcClass, srcMethod);
 		
 		/*

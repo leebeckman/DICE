@@ -9,7 +9,11 @@ rm ext*
 rm tomcat/logs/*
 cp tomcat/prelib/*.jar tomcat/lib
 #ant -buildfile jgossip/build.xml dist -Ddeploy_env=default
+rm -rf RUBiS/Servlets/build
+rm RUBiS/Servlets/rubis_servlets.jar
+ant -buildfile RUBiS/Servlets/build.xml
 ant -buildfile aspect/ajrubisbuild.xml
+#ant -buildfile aspect/ajtestbuild.xml
 
 #bash tomcat/bin/startup.sh
 exit 0
