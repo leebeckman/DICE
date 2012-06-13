@@ -1,5 +1,8 @@
 <root>
+    <databasesourceinfo catalog="rubis" table="categories" column="id" variability="STABLE" />
+    <databasesourceinfo catalog="rubis" table="categories" column="name" variability="STABLE" />
     <databasesourceinfo catalog="rubis" table="regions" column="id" variability="STABLE" />
     <databasesourceinfo catalog="rubis" table="regions" column="name" variability="STABLE" />
     <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" parameter="chatMessage" variability="RANDOM" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="region" variability="PREDICTABLE" />
 </root>
