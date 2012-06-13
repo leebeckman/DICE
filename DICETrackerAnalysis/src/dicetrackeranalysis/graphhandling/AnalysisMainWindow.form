@@ -33,24 +33,25 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="1" attributes="0">
-                              <Component id="fileNameField" pref="678" max="32767" attributes="0"/>
+                              <Component id="fileNameField" pref="635" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="quickLoadButton" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="sourceFileName" alignment="0" pref="773" max="32767" attributes="0"/>
+                          <Component id="sourceFileName" alignment="0" pref="730" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
-                      <Component id="tabView" pref="935" max="32767" attributes="0"/>
+                      <Component id="tabView" pref="892" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="analysisButtonsPanel" alignment="0" max="32767" attributes="1"/>
-                  <Component id="jPanel1" max="32767" attributes="0"/>
+              <Group type="103" groupAlignment="0" max="-2" attributes="0">
                   <Component id="treePanel" max="32767" attributes="1"/>
+                  <Component id="jPanel1" alignment="0" max="32767" attributes="1"/>
+                  <Component id="analysisButtonsPanel" alignment="0" max="32767" attributes="1"/>
               </Group>
+              <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -115,14 +116,19 @@
               <Group type="102" alignment="0" attributes="0">
                   <Component id="deepTaintCheckBox" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
+                  <Component id="holdTaintIDButton" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="113" max="-2" attributes="0"/>
               </Group>
-              <Component id="jScrollPane1" alignment="0" pref="291" max="32767" attributes="0"/>
+              <Component id="jScrollPane1" alignment="0" pref="312" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
-                  <Component id="deepTaintCheckBox" min="-2" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="deepTaintCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="holdTaintIDButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="jScrollPane1" pref="325" max="32767" attributes="0"/>
               </Group>
@@ -152,6 +158,14 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="deepTaintCheckBoxActionPerformed"/>
           </Events>
         </Component>
+        <Component class="javax.swing.JCheckBox" name="holdTaintIDButton">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Hold"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="holdTaintIDButtonActionPerformed"/>
+          </Events>
+        </Component>
       </SubComponents>
     </Container>
     <Container class="javax.swing.JPanel" name="analysisButtonsPanel">
@@ -176,17 +190,13 @@
                           <Component id="cachingAnalysisButton" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
-                          <Component id="userStateAnalysisButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
-                          <Component id="aprAnalysisButton" min="-2" max="-2" attributes="0"/>
-                      </Group>
-                      <Group type="102" alignment="0" attributes="0">
-                          <Component id="precomputationAnalyzeButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace max="-2" attributes="0"/>
                           <Component id="postcomputationAnalyzeButton" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="userStateAnalysisButton" min="-2" max="-2" attributes="0"/>
                       </Group>
+                      <Component id="aprAnalysisButton" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="28" max="32767" attributes="0"/>
+                  <EmptySpace pref="33" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -200,14 +210,11 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="precomputationAnalyzeButton" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="postcomputationAnalyzeButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="userStateAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="userStateAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="aprAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                  </Group>
+                  <Component id="aprAnalysisButton" min="-2" max="-2" attributes="0"/>
                   <EmptySpace pref="13" max="32767" attributes="0"/>
               </Group>
           </Group>
@@ -232,7 +239,7 @@
         </Component>
         <Component class="javax.swing.JButton" name="cachingAnalysisButton">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Caching"/>
+            <Property name="text" type="java.lang.String" value="Precomputation"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cachingAnalysisButtonActionPerformed"/>
@@ -242,6 +249,9 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="User State"/>
           </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="userStateAnalysisButtonActionPerformed"/>
+          </Events>
         </Component>
         <Component class="javax.swing.JButton" name="aprAnalysisButton">
           <Properties>
@@ -249,14 +259,6 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="aprAnalysisButtonActionPerformed"/>
-          </Events>
-        </Component>
-        <Component class="javax.swing.JButton" name="precomputationAnalyzeButton">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="Precomputation"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="precomputationAnalyzeButtonActionPerformed"/>
           </Events>
         </Component>
         <Component class="javax.swing.JButton" name="postcomputationAnalyzeButton">
@@ -283,6 +285,9 @@
       </Properties>
     </Component>
     <Container class="javax.swing.JTabbedPane" name="tabView">
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="tabViewStateChanged"/>
+      </Events>
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout"/>
       <SubComponents>
@@ -305,7 +310,7 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="915" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="872" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
@@ -338,7 +343,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="analysisClearButton" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="analysisScroller" alignment="0" pref="915" max="32767" attributes="0"/>
+                  <Component id="analysisScroller" alignment="0" pref="872" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
@@ -404,14 +409,16 @@
                           <Component id="multiLightGraphButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="simpleGraphButton" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="noSBCheckbox" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="requestCounters" min="-2" pref="139" max="-2" attributes="0"/>
+                          <Component id="requestCounters" pref="227" max="32767" attributes="0"/>
                       </Group>
                   </Group>
-                  <EmptySpace pref="79" max="32767" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -422,6 +429,7 @@
                       <Component id="multiGraphButton" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="multiLightGraphButton" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="simpleGraphButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="noSBCheckbox" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
@@ -475,6 +483,14 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="requestCountersActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="noSBCheckbox">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="No SB"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="noSBCheckboxActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>

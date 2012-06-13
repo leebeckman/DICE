@@ -13,9 +13,11 @@ package dicetrackeranalysis.graphhandling;
 
 import com.sun.java.swing.plaf.gtk.GTKLookAndFeel;
 import dicetrackeranalysis.datasourceinfo.DataSourceInfoBuilder;
+import dicetrackeranalysis.graphanalysis.AccessPathAnalysis;
+import dicetrackeranalysis.graphanalysis.PostcompAnalysis;
 import dicetrackeranalysis.graphanalysis.PrecompAnalysis;
-import dicetrackeranalysis.graphanalysis.PrecomputationAnalysis;
 import dicetrackeranalysis.graphanalysis.StaticStateAnalysis;
+import dicetrackeranalysis.graphanalysis.UserstateAnalysis;
 import edu.uci.ics.jung.algorithms.layout.ISOMLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
 import edu.uci.ics.jung.graph.Graph;
@@ -53,13 +55,21 @@ import org.apache.commons.collections15.Transformer;
  */
 public class AnalysisMainWindow extends javax.swing.JFrame {
 
-    private GraphBuilder gb;
     private DataSourceInfoBuilder dsib;
-    private Graph<TaintNode, TaintEdge> graph;
-    private VisualizationViewer<TaintNode, TaintEdge> vv;
+    private DefaultMutableTreeNode mainTaintIDsRoot;
     private DefaultMutableTreeNode taintIDsRoot;
     private DefaultMutableTreeNode selectedTaintNode;
     public static JFrame mainWindow;
+    private GraphBuilder mainGraphBuilder;
+
+    HashMap<String, GraphBuilder> tabToBuilderMap;
+    HashMap<String, VisualizationViewer<TaintNode, TaintEdge>> tabToViewerMap;
+    HashMap<String, JPanel> tabToViewPanelMap;
+    HashMap<String, JButton> tabToDetailsButtonMap;
+
+    private boolean holdTaintIDSelections;
+    private HashSet<DefaultMutableTreeNode> heldTaintIDSelections;
+
 //    private Object[] selectedTaintPath;
 
     private enum GraphMode {
@@ -71,6 +81,12 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 
     /** Creates new form AnalysisMainWindow */
     public AnalysisMainWindow() {
+        tabToBuilderMap = new HashMap<String, GraphBuilder>();
+        tabToViewerMap = new HashMap<String, VisualizationViewer<TaintNode, TaintEdge>>();
+        tabToViewPanelMap = new HashMap<String, JPanel>();
+        tabToDetailsButtonMap = new HashMap<String, JButton>();
+        heldTaintIDSelections = new HashSet<DefaultMutableTreeNode>();
+
         try {
             UIManager.setLookAndFeel(new GTKLookAndFeel());
         } catch (UnsupportedLookAndFeelException ex) {
@@ -104,13 +120,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         taintIDTree = new javax.swing.JTree();
         deepTaintCheckBox = new javax.swing.JCheckBox();
+        holdTaintIDButton = new javax.swing.JCheckBox();
         analysisButtonsPanel = new javax.swing.JPanel();
         staticStateAnalyzeButton = new javax.swing.JButton();
         resetAnalysisButton = new javax.swing.JButton();
         cachingAnalysisButton = new javax.swing.JButton();
         userStateAnalysisButton = new javax.swing.JButton();
         aprAnalysisButton = new javax.swing.JButton();
-        precomputationAnalyzeButton = new javax.swing.JButton();
         postcomputationAnalyzeButton = new javax.swing.JButton();
         loadSource = new javax.swing.JButton();
         sourceFileName = new javax.swing.JTextField();
@@ -127,6 +143,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         simpleGraphButton = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         requestCounters = new javax.swing.JComboBox();
+        noSBCheckbox = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -155,19 +172,30 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
+        holdTaintIDButton.setText("Hold");
+        holdTaintIDButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                holdTaintIDButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout treePanelLayout = new javax.swing.GroupLayout(treePanel);
         treePanel.setLayout(treePanelLayout);
         treePanelLayout.setHorizontalGroup(
             treePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(treePanelLayout.createSequentialGroup()
                 .addComponent(deepTaintCheckBox)
-                .addContainerGap())
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(holdTaintIDButton)
+                .addGap(113, 113, 113))
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 312, Short.MAX_VALUE)
         );
         treePanelLayout.setVerticalGroup(
             treePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(treePanelLayout.createSequentialGroup()
-                .addComponent(deepTaintCheckBox)
+                .addGroup(treePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(deepTaintCheckBox)
+                    .addComponent(holdTaintIDButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 325, Short.MAX_VALUE))
         );
@@ -188,7 +216,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
-        cachingAnalysisButton.setText("Caching");
+        cachingAnalysisButton.setText("Precomputation");
         cachingAnalysisButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cachingAnalysisButtonActionPerformed(evt);
@@ -196,18 +224,16 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         });
 
         userStateAnalysisButton.setText("User State");
+        userStateAnalysisButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                userStateAnalysisButtonActionPerformed(evt);
+            }
+        });
 
         aprAnalysisButton.setText("Access Path Refactor");
         aprAnalysisButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 aprAnalysisButtonActionPerformed(evt);
-            }
-        });
-
-        precomputationAnalyzeButton.setText("Precomputation");
-        precomputationAnalyzeButton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                precomputationAnalyzeButtonActionPerformed(evt);
             }
         });
 
@@ -231,14 +257,11 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cachingAnalysisButton))
                     .addGroup(analysisButtonsPanelLayout.createSequentialGroup()
-                        .addComponent(userStateAnalysisButton)
+                        .addComponent(postcomputationAnalyzeButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(aprAnalysisButton))
-                    .addGroup(analysisButtonsPanelLayout.createSequentialGroup()
-                        .addComponent(precomputationAnalyzeButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(postcomputationAnalyzeButton)))
-                .addContainerGap(28, Short.MAX_VALUE))
+                        .addComponent(userStateAnalysisButton))
+                    .addComponent(aprAnalysisButton))
+                .addContainerGap(33, Short.MAX_VALUE))
         );
         analysisButtonsPanelLayout.setVerticalGroup(
             analysisButtonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -249,12 +272,10 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     .addComponent(cachingAnalysisButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(analysisButtonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(precomputationAnalyzeButton)
-                    .addComponent(postcomputationAnalyzeButton))
+                    .addComponent(postcomputationAnalyzeButton)
+                    .addComponent(userStateAnalysisButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(analysisButtonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(userStateAnalysisButton)
-                    .addComponent(aprAnalysisButton))
+                .addComponent(aprAnalysisButton)
                 .addContainerGap(13, Short.MAX_VALUE))
         );
 
@@ -267,13 +288,19 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 
         sourceFileName.setEditable(false);
 
+        tabView.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                tabViewStateChanged(evt);
+            }
+        });
+
         jungViewPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("JUNG View"));
 
         javax.swing.GroupLayout jungViewPanelLayout = new javax.swing.GroupLayout(jungViewPanel);
         jungViewPanel.setLayout(jungViewPanelLayout);
         jungViewPanelLayout.setHorizontalGroup(
             jungViewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 915, Short.MAX_VALUE)
+            .addGap(0, 872, Short.MAX_VALUE)
         );
         jungViewPanelLayout.setVerticalGroup(
             jungViewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -302,7 +329,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, analysisPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(analysisClearButton))
-            .addComponent(analysisScroller, javax.swing.GroupLayout.DEFAULT_SIZE, 915, Short.MAX_VALUE)
+            .addComponent(analysisScroller, javax.swing.GroupLayout.DEFAULT_SIZE, 872, Short.MAX_VALUE)
         );
         analysisPanelLayout.setVerticalGroup(
             analysisPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -353,6 +380,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
+        noSBCheckbox.setText("No SB");
+        noSBCheckbox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                noSBCheckboxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -364,12 +398,14 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(multiLightGraphButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(simpleGraphButton))
+                        .addComponent(simpleGraphButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(noSBCheckbox))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(requestCounters, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(79, Short.MAX_VALUE))
+                        .addComponent(requestCounters, 0, 227, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -377,7 +413,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(multiGraphButton)
                     .addComponent(multiLightGraphButton)
-                    .addComponent(simpleGraphButton))
+                    .addComponent(simpleGraphButton)
+                    .addComponent(noSBCheckbox))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
@@ -398,18 +435,19 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(fileNameField, javax.swing.GroupLayout.DEFAULT_SIZE, 678, Short.MAX_VALUE)
+                                .addComponent(fileNameField, javax.swing.GroupLayout.DEFAULT_SIZE, 635, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(quickLoadButton))
-                            .addComponent(sourceFileName, javax.swing.GroupLayout.DEFAULT_SIZE, 773, Short.MAX_VALUE))
+                            .addComponent(sourceFileName, javax.swing.GroupLayout.DEFAULT_SIZE, 730, Short.MAX_VALUE))
                         .addGap(12, 12, 12))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(tabView, javax.swing.GroupLayout.DEFAULT_SIZE, 935, Short.MAX_VALUE)
+                        .addComponent(tabView, javax.swing.GroupLayout.DEFAULT_SIZE, 892, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(analysisButtonsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(treePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(treePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(analysisButtonsPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -448,18 +486,23 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 //    }
 
     private void resetRequestCounters() {
-        this.requestCounters.removeAllItems();
+        requestCounters.removeAllItems();
+        requestCounters.revalidate();
+        requestCounters.repaint();
     }
 
     private void resetTaintIDs() {
-        this.taintIDTree.removeAll();
+        taintIDsRoot.removeAllChildren();
+        taintIDTree.removeAll();
+        taintIDTree.revalidate();
+        taintIDTree.repaint();
     }
 
     private void loadTrackingActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadTrackingActionPerformed
         JFileChooser chooser = new JFileChooser();
         int returnVal = chooser.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
-
+            resetAnalysisGraphs();
             File file = chooser.getSelectedFile();
             loadTrackingFile(file);
 
@@ -469,10 +512,38 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_loadTrackingActionPerformed
 
     private void loadTrackingFile(File file) {
+        tabView.setSelectedIndex(0);
         fileNameField.setText(file.getAbsolutePath());
 
-        gb = new GraphBuilder(file);
+        GraphBuilder gb = new GraphBuilder(file);
 
+        regenerateGraphFilters(gb, true);
+
+        Graph<TaintNode, TaintEdge> graph = gb.getLightMultiGraph();
+        VisualizationViewer<TaintNode, TaintEdge> vv = getVisualizationViewer(graph, 0);
+
+        mainGraphBuilder = gb;
+
+        tabToBuilderMap.clear();
+        tabToViewerMap.clear();
+        tabToViewPanelMap.clear();
+        
+        tabToBuilderMap.put("Graph", gb);
+        tabToViewPanelMap.put("Graph", jungViewPanel);
+        tabToViewerMap.put("Graph", vv);
+
+        redrawGraph();
+//        jungViewPanel.removeAll();
+//        jungViewPanel.add(vv);
+//        jungViewPanel.validate();
+//        jungViewPanel.repaint();
+    }
+
+    public void regenerateGraphFilters(GraphBuilder gb) {
+        regenerateGraphFilters(gb, false);
+    }
+
+    public void regenerateGraphFilters(GraphBuilder gb, boolean main) {
         resetRequestCounters();
         resetTaintIDs();
         requestCounters.addItem(null);
@@ -504,13 +575,17 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     taintIDList.remove(propagation.getDestID());
                 }
             }
-            else {
-                if (destNode == null) {
-                    destNode = new DefaultMutableTreeNode(new TaintIDTreeNode(propagation.getDestID(), propagation.getDestValue()));
-                    propagationMap.put(propagation.getDestID(), destNode);
-                    sourceNode.add(destNode);
-                    taintIDList.remove(propagation.getDestID());
-                }
+            else if (destNode == null) {
+                destNode = new DefaultMutableTreeNode(new TaintIDTreeNode(propagation.getDestID(), propagation.getDestValue()));
+                propagationMap.put(propagation.getDestID(), destNode);
+                sourceNode.add(destNode);
+                taintIDList.remove(propagation.getDestID());
+            }
+            else if (propagation.isPostProcessed()) { // Both nodes have been added to tree, this is probably one of the post-processed composition propagations
+                DefaultMutableTreeNode newDestNode = (DefaultMutableTreeNode)destNode.clone();
+                cloneTree(destNode, newDestNode);
+
+                sourceNode.add(newDestNode);
             }
         }
         for (String taintID : taintIDList) {
@@ -519,27 +594,38 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 taintIDsRoot.add(sourceNode);
             }
         }
+
         ((DefaultTreeModel)taintIDTree.getModel()).setRoot(taintIDsRoot);
 
-        graph = gb.getLightMultiGraph();
-
-        vv = getVisualizationViewer(graph, 0);
-        jungViewPanel.removeAll();
-        jungViewPanel.add(vv);
-        jungViewPanel.validate();
-        jungViewPanel.repaint();
+        if (main) {
+            mainTaintIDsRoot = (DefaultMutableTreeNode)taintIDsRoot.clone();
+            cloneTree(taintIDsRoot, mainTaintIDsRoot);
+        }
     }
 
-    public void addAnalysisGraph(Graph<TaintNode, TaintEdge> analysisGraph, String tabName, String analysisText) {
+    private void cloneTree(DefaultMutableTreeNode sourceRoot, DefaultMutableTreeNode destRoot) {
+        for (int i = 0; i < sourceRoot.getChildCount(); i++) {
+            DefaultMutableTreeNode sourceChild = (DefaultMutableTreeNode)sourceRoot.getChildAt(i);
+            DefaultMutableTreeNode destChild = (DefaultMutableTreeNode)sourceChild.clone();
+            destRoot.add(destChild);
+
+            cloneTree(sourceChild, destChild);
+        }
+    }
+
+    public void addAnalysisGraphBuilder(GraphBuilder analysisGraphBuilder, String tabName, String analysisText) {
         JPanel analysisGraphPanel = new javax.swing.JPanel();
         analysisGraphPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("JUNG View"));
         tabView.addTab(tabName, analysisGraphPanel);
         analysisGraphPanel.setLayout(new FlowLayout());
 
-        VisualizationViewer<TaintNode, TaintEdge> newViewer = getVisualizationViewer(analysisGraph, 60);
+        tabToViewPanelMap.put(tabName, analysisGraphPanel);
+        tabToBuilderMap.put(tabName, analysisGraphBuilder);
+
+        VisualizationViewer<TaintNode, TaintEdge> newViewer = getVisualizationViewer(analysisGraphBuilder.getLightMultiGraph(), 60);
         if (newViewer != null) {
-            analysisGraphPanel.removeAll();
-            analysisGraphPanel.add(newViewer);
+            tabToViewerMap.put(tabName, newViewer);
+//            analysisGraphPanel.removeAll();
 
             JButton detailsButton = new JButton("Details");
             final String analysisTextArg = analysisText;
@@ -548,16 +634,22 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     TextFrame.showText(analysisTextArg);
                 }
             });
-            
-            analysisGraphPanel.add(detailsButton);
+            tabToDetailsButtonMap.put(tabName, detailsButton);
+//            analysisGraphPanel.add(detailsButton, FlowLayout.LEFT);
+//            analysisGraphPanel.add(newViewer);
 
-            analysisGraphPanel.validate();
-            analysisGraphPanel.repaint();
+//            analysisGraphPanel.validate();
+//            analysisGraphPanel.repaint();
         }
     }
 
     private void resetAnalysisGraphs() {
-        while (tabView.getTabCount() > 3) {
+        if (mainGraphBuilder != null) {
+            for (TaintNode node : mainGraphBuilder.getMultiGraph().getVertices()) {
+                node.colorValue = 0;
+            }
+        }
+        while (tabView.getTabCount() > 2) {
             tabView.removeTabAt(2);
         }
     }
@@ -595,9 +687,16 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     }
 
     private void redrawGraph() {
+        if (tabView.getTitleAt(tabView.getSelectedIndex()).equals("Analysis"))
+            return;
+
+        GraphBuilder gb = tabToBuilderMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        VisualizationViewer<TaintNode, TaintEdge> vv = tabToViewerMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        JPanel viewPanel = tabToViewPanelMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+
         if (gb == null)
             return;
-        
+
         LinkedList<EdgeFilter> filters = null;
         Object selectedReq = requestCounters.getSelectedItem();
         if (selectedReq != null && !selectedReq.toString().isEmpty()) {
@@ -609,42 +708,75 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         if (selectedTaintNode != null && selectedTaintNode.getUserObject() instanceof TaintIDTreeNode) {
             if (filters == null)
                 filters = new LinkedList<EdgeFilter>();
-            TaintIDTreeNode taintNode = (TaintIDTreeNode) selectedTaintNode.getUserObject();
-            if (deepTaintCheckBox.isSelected()) {
-                HashSet<String> taintIDs = new HashSet<String>();
-                taintIDs.add(taintNode.getTaintID());
-                Enumeration<DefaultMutableTreeNode> childNodes = selectedTaintNode.depthFirstEnumeration();
-                while (childNodes.hasMoreElements()) {
-                    DefaultMutableTreeNode childNode = childNodes.nextElement();
-                    taintIDs.add(((TaintIDTreeNode)childNode.getUserObject()).getTaintID());
+            HashSet<String> taintIDs = new HashSet<String>();
+            if (holdTaintIDSelections) {
+                for (DefaultMutableTreeNode heldTaintNode : heldTaintIDSelections) {
+                    TaintIDTreeNode taintNode = (TaintIDTreeNode) heldTaintNode.getUserObject();
+                    if (deepTaintCheckBox.isSelected()) {
+                        taintIDs.add(taintNode.getTaintID());
+                        Enumeration<DefaultMutableTreeNode> childNodes = heldTaintNode.depthFirstEnumeration();
+                        while (childNodes.hasMoreElements()) {
+                            DefaultMutableTreeNode childNode = childNodes.nextElement();
+                            taintIDs.add(((TaintIDTreeNode)childNode.getUserObject()).getTaintID());
+                        }
+                    }
+                    else {
+                        taintIDs.add(taintNode.getTaintID());
+                    }
                 }
-                filters.add(new FilterByTaintID(taintIDs));
             }
             else {
-                filters.add(new FilterByTaintID(taintNode.getTaintID()));
+                TaintIDTreeNode taintNode = (TaintIDTreeNode) selectedTaintNode.getUserObject();
+                if (deepTaintCheckBox.isSelected()) {
+                    taintIDs.add(taintNode.getTaintID());
+                    Enumeration<DefaultMutableTreeNode> childNodes = selectedTaintNode.depthFirstEnumeration();
+                    while (childNodes.hasMoreElements()) {
+                        DefaultMutableTreeNode childNode = childNodes.nextElement();
+                        taintIDs.add(((TaintIDTreeNode)childNode.getUserObject()).getTaintID());
+                    }
+                }
+                else {
+                    taintIDs.add(taintNode.getTaintID());
+                }
             }
+            filters.add(new FilterByTaintID(taintIDs));
         }
 
+        JButton detailsButton = tabToDetailsButtonMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        int offset = 0;
+        if (detailsButton != null)
+            offset = 60;
+
+        Graph<TaintNode, TaintEdge> graph = null;
         if (graphMode == GraphMode.MULTILIGHTMODE) {
             graph = gb.getLightMultiGraph(filters);
-            vv = getVisualizationViewer(graph, 0);
         }
         else if(graphMode == GraphMode.MULTIMODE) {
             graph = gb.getMultiGraph(filters);
-            vv = getVisualizationViewer(graph, 0);
         }
         else if (graphMode == GraphMode.SIMPLEMODE) {
             graph = gb.getGraph(filters);
-            vv = getVisualizationViewer(graph, 0);
         }
+        
+        if (noSBCheckbox.isSelected()) {
+            LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
+            for (TaintNode node : nodes) {
+                if (node.toString().startsWith("java.lang.StringBuilder:toString") ||
+                        node.toString().startsWith("java.lang.StringBuilder:append"))
+                    graph.removeVertex(node);
+            }
+        }
+        vv = getVisualizationViewer(graph, offset);
 
-        jungViewPanel.removeAll();
+        viewPanel.removeAll();
 
         if (vv != null)
-            jungViewPanel.add(vv);
+            viewPanel.add(vv);
+        if (detailsButton != null)
+            viewPanel.add(detailsButton);
         
-        jungViewPanel.validate();
-        jungViewPanel.repaint();
+        viewPanel.validate();
+        viewPanel.repaint();
     }
     
     private void requestCountersActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_requestCountersActionPerformed
@@ -669,7 +801,9 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private void taintIDTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_taintIDTreeValueChanged
         if (evt.getNewLeadSelectionPath().getLastPathComponent() instanceof DefaultMutableTreeNode) {
             selectedTaintNode = (DefaultMutableTreeNode) evt.getNewLeadSelectionPath().getLastPathComponent();
-
+            if (holdTaintIDSelections) {
+                heldTaintIDSelections.add(selectedTaintNode);
+            }
         }
         else {
             selectedTaintNode = null;
@@ -682,18 +816,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_deepTaintCheckBoxActionPerformed
 
     private void staticStateAnalyzeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staticStateAnalyzeButtonActionPerformed
-        StaticStateAnalysis analysis = new StaticStateAnalysis();
-        analysis.analyze(graph);
-
-        // Have list of persistent taint IDs
-        vv.repaint();
+        resetAnalysisGraphs();
+        StaticStateAnalysis analysis = new StaticStateAnalysis(mainGraphBuilder, this, analysisText);
+        analysis.analyze();
     }//GEN-LAST:event_staticStateAnalyzeButtonActionPerformed
 
     private void resetAnalysisButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_resetAnalysisButtonActionPerformed
-        for (TaintNode node : graph.getVertices()) {
-            node.colorValue = 0;
-        }
-        vv.repaint();
+        resetAnalysisGraphs();
     }//GEN-LAST:event_resetAnalysisButtonActionPerformed
 
     private void loadSourceActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadSourceActionPerformed
@@ -714,17 +843,15 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         dsib = new DataSourceInfoBuilder(file);
     }
 
-    private void precomputationAnalyzeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_precomputationAnalyzeButtonActionPerformed
-        PrecomputationAnalysis analysis = new PrecomputationAnalysis(gb, dsib, analysisText, taintIDsRoot);
-        analysis.analyze();
-    }//GEN-LAST:event_precomputationAnalyzeButtonActionPerformed
-
     private void postcomputationAnalyzeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_postcomputationAnalyzeButtonActionPerformed
-        // TODO add your handling code here:
+        resetAnalysisGraphs();
+        PostcompAnalysis analysis = new PostcompAnalysis(mainGraphBuilder, dsib, analysisText, mainTaintIDsRoot, this);
+        analysis.analyze();
     }//GEN-LAST:event_postcomputationAnalyzeButtonActionPerformed
 
     private void cachingAnalysisButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cachingAnalysisButtonActionPerformed
-        PrecompAnalysis analysis = new PrecompAnalysis(gb, dsib, analysisText, taintIDsRoot, this);
+        resetAnalysisGraphs();
+        PrecompAnalysis analysis = new PrecompAnalysis(mainGraphBuilder, dsib, analysisText, this);
         analysis.analyze();
     }//GEN-LAST:event_cachingAnalysisButtonActionPerformed
 
@@ -741,8 +868,32 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_quickLoadButtonActionPerformed
 
     private void aprAnalysisButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aprAnalysisButtonActionPerformed
-        // TODO add your handling code here:
+        resetAnalysisGraphs();
+        AccessPathAnalysis analysis = new AccessPathAnalysis(mainGraphBuilder, dsib, analysisText, mainTaintIDsRoot, this, "edu.rice");
     }//GEN-LAST:event_aprAnalysisButtonActionPerformed
+
+    private void tabViewStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_tabViewStateChanged
+        GraphBuilder changedBuilder = tabToBuilderMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        if (changedBuilder != null)
+            regenerateGraphFilters(changedBuilder);
+        redrawGraph();
+    }//GEN-LAST:event_tabViewStateChanged
+
+    private void holdTaintIDButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_holdTaintIDButtonActionPerformed
+        heldTaintIDSelections.clear();
+        holdTaintIDSelections = holdTaintIDButton.isSelected();
+        redrawGraph();
+    }//GEN-LAST:event_holdTaintIDButtonActionPerformed
+
+    private void userStateAnalysisButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userStateAnalysisButtonActionPerformed
+        resetAnalysisGraphs();
+        UserstateAnalysis analysis = new UserstateAnalysis(mainGraphBuilder, this, analysisText);
+        analysis.analyze();
+    }//GEN-LAST:event_userStateAnalysisButtonActionPerformed
+
+    private void noSBCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_noSBCheckboxActionPerformed
+        redrawGraph();
+    }//GEN-LAST:event_noSBCheckboxActionPerformed
 
     /**
     * @param args the command line arguments
@@ -766,6 +917,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JButton cachingAnalysisButton;
     private javax.swing.JCheckBox deepTaintCheckBox;
     private javax.swing.JTextField fileNameField;
+    private javax.swing.JCheckBox holdTaintIDButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
@@ -774,8 +926,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JButton loadTracking;
     private javax.swing.JButton multiGraphButton;
     private javax.swing.JButton multiLightGraphButton;
+    private javax.swing.JCheckBox noSBCheckbox;
     private javax.swing.JButton postcomputationAnalyzeButton;
-    private javax.swing.JButton precomputationAnalyzeButton;
     private javax.swing.JButton quickLoadButton;
     private javax.swing.JComboBox requestCounters;
     private javax.swing.JButton resetAnalysisButton;

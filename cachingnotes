@@ -1,0 +1,53 @@
+        // Look thru call tree for expensive calculations
+            // A single method call may be sort of expensive, but may be called many times
+            // Can group by total path string (HashMap of total path to integer, try to take the biggest (save all grouped records though)
+
+        // What if expensive call is contributed to by down the line expensive calls? What to cache? Try to cache the shortest paths first
+        // as these are higher level.
+
+        // Map from call tree to graph, use last call in callpath (should be expensive).
+        // You will be at a node in the graph (filtered by request). Expand along nodes.
+
+        // Do a bunch of checks on the node.
+            /*
+             * Get all inputs, are they safe enough?
+             * Node cannot have nasty side effects, if it outputs to static this needs to be handled when using the cache. The data
+             * itself can be cached though.
+             * Scan down call tree, and check for any taint passing nodes. If found, see if they take data from inputs BESIDES what
+             * is already being considered. If not found GOOD
+             * If found, well, it may not depend on any input besides external, could be separately cached. Maybe you don't care about side
+             * effects at all, save to note them to the developer.
+             *
+             * MAYBE
+             * -Just get inputs, if they are unsafe, don't do it.
+             * -If they are safe, try to track back, only go while things aren't crazy.
+             *
+             * GUESS: Side effects involve tainted data, so can scan down to check for side effects, if none, GOOD
+               Will need to check that it's outputs either deal with other side effect data, or simply all come back to the originator. Get all reachable nodes.
+                It really is up to user to worry about side effects. I want to tell them about things with easy inputs, and where the outputs are, and what they can save.
+
+    So first get my expensive target node, can replace it outright if it has no side effects, which will guarantee performance savings.
+    Target node for replacement, check calls that would occur if node did not execute.
+            -If there are side effects, and they are cheap, then the original cache is still useful, and the user should deal with the side effects manually.
+            -If there are side effects, and they are expensive, then the original cache is not useful.
+                -Unless the side effects can be ignored / or cached instead
+                -Cache side effect instead: simply go to its node and try to cache, suggest that instead.
+            -WHAT IS A SIDE EFFECT?
+                -Something which if it did not execute, something would be weird. Basically it creates output somehow. If it's output is to the cache computation, it's not a side effect. If it outputs to static or elsewhere, that is an output. What if it gets more input? Which is used in cache computation?
+                        In this case, it will be registered as an input in the graph, If the input is crazy it will invalidate all.
+                        If the input is reasonable, it might be added to the cache spec.
+
+// Checking for side effects
+    Go thru all children call records, get their nodes. If the nodes are not null, follow their outputs.
+    If their outputs lead to static sets or outputs outside of original node, they are side effects. Stop looking for output if you encounter the original cache node. (If it outputs by a different path, we'll consider it a side effect for now.)
+            
+             */
+
+        // Show the user region of the graph where a cache could be (after inputs, before outputs)
+
+
+        // If the region isn't part of the precomputation graph
+        // Look for biggest range that can be expanded into, right up until inputs become too unpredictable
+        // Also make sure there are no weird ways to get into graph (be sure that we know what inputs and outputs are
+
+        //

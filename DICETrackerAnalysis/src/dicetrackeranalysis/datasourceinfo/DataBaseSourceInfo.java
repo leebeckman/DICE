@@ -38,27 +38,22 @@ public class DataBaseSourceInfo extends RecordSetter implements DataSourceInfo {
         String recordCatalog = null;
         String recordTable = null;
         String recordColumn = null;
-        String recordTargetColumn = null;
         LinkedList<MatchTriplet> recordTriplets = new LinkedList<MatchTriplet>();
+        MatchTriplet newtriplet = null;
         for (int i = 0; i < pieces.length; i++) {
             if (pieces[i].equals("CATALOG:")) {
-                recordCatalog = pieces[++i];
+                newtriplet = new MatchTriplet();
+                newtriplet.catalog = pieces[++i];
             }
             else if (pieces[i].equals("TABLE:")) {
-                recordTable = pieces[++i];
+                newtriplet.table = pieces[++i];
             }
             else if (pieces[i].equals("COLUMN:")) {
-                recordColumn = pieces[++i];
+                recordTriplets.add(newtriplet);
+                newtriplet.column = pieces[++i];
             }
             else if (pieces[i].equals("TARGETCOLUMN:")) {
-                recordTargetColumn = pieces[++i];
-            }
-            if (recordCatalog != null && recordTable != null && recordColumn != null) {
-                MatchTriplet triplet = new MatchTriplet(recordCatalog, recordTable, recordColumn);
-                recordTriplets.add(triplet);
-                recordCatalog = null;
-                recordTable = null;
-                recordColumn = null;
+                newtriplet.targetColumn = pieces[++i];
             }
         }
         
@@ -77,7 +72,7 @@ public class DataBaseSourceInfo extends RecordSetter implements DataSourceInfo {
                         match = true;
                         break;
                     }
-                    if (this.column.equals(recordTargetColumn)) {
+                    if (this.column.equals(triplet.targetColumn)) {
                         match = true;
                         break;
                     }
@@ -96,11 +91,9 @@ public class DataBaseSourceInfo extends RecordSetter implements DataSourceInfo {
         public String catalog;
         public String table;
         public String column;
+        public String targetColumn;
 
-        public MatchTriplet(String catalog, String table, String column) {
-            this.catalog = catalog;
-            this.table = table;
-            this.column = column;
+        public MatchTriplet() {
         }
     }
 

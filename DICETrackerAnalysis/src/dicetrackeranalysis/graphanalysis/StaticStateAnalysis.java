@@ -5,6 +5,8 @@
 
 package dicetrackeranalysis.graphanalysis;
 
+import dicetrackeranalysis.graphhandling.AnalysisMainWindow;
+import dicetrackeranalysis.graphhandling.GraphBuilder;
 import dicetrackeranalysis.graphhandling.TaintEdge;
 import dicetrackeranalysis.graphhandling.TaintNode;
 import edu.uci.ics.jung.graph.Graph;
@@ -13,18 +15,27 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import javax.swing.JTextArea;
 
 /**
  *
  * @author lee
  */
 public class StaticStateAnalysis {
+    private GraphBuilder gb;
+    private AnalysisMainWindow analysisMainWindow;
+    private JTextArea out;
 
-    public StaticStateAnalysis() {
-
+    public StaticStateAnalysis(GraphBuilder gb, AnalysisMainWindow analysisMainWindow, JTextArea out) {
+        this.out = out;
+        this.gb = gb;
+        this.analysisMainWindow = analysisMainWindow;
     }
 
-    public void analyze(Graph<TaintNode, TaintEdge> graph) {
+    public void analyze() {
+        out.append("Starting Static State Analysis\n");
+        GraphBuilder targetBuilder = GraphBuilder.copyGraphBuilder(gb);
+        Graph<TaintNode, TaintEdge> graph = targetBuilder.getMultiGraph();
         SortedSet<TaintEdge> sortedEdges = new TreeSet<TaintEdge>(graph.getEdges());
 
         LinkedHashMap<String, HashSet<String>> requestToTaintIDMap = new LinkedHashMap<String, HashSet<String>>();
@@ -54,8 +65,11 @@ public class StaticStateAnalysis {
         }
 
         String lastCounter = null;
+        boolean foundPersistent = false;
         for (String checkID : persistentTaintIDs) {
             for (TaintEdge edge : sortedEdges) {
+                if (edge.getType().equals("SUPPLEMENTARY"))
+                    continue;
                 HashSet<String> edgeTaint = edge.getAllTaintIDs();
                 if (edgeTaint.contains(checkID)) {
                     edge.getCalledNode().colorValue = 3;
@@ -64,10 +78,16 @@ public class StaticStateAnalysis {
                         edge.getCalledNode().colorValue = 2;
                         edge.getCallingNode().colorValue = 2;
                     }
+                    foundPersistent = true;
                     lastCounter = edge.getRequestCounter();
                 }
             }
         }
+
+        if (foundPersistent) {
+            analysisMainWindow.addAnalysisGraphBuilder(targetBuilder, "PERSISTENT", "Empty");
+        }
+        out.append("Finished Static State Analysis\n");
     }
 
 }

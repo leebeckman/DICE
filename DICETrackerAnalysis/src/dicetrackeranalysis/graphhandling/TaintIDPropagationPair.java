@@ -15,12 +15,22 @@ public class TaintIDPropagationPair {
     private String sourceValue;
     private String destID;
     private String destValue;
+    private boolean isPostProcessed;
 
     public TaintIDPropagationPair(String sourceID, String sourceValue, String destID, String destValue) {
         this.sourceID = sourceID;
         this.destID = destID;
         this.sourceValue = sourceValue;
         this.destValue = destValue;
+        this.isPostProcessed = false;
+    }
+
+    public void setIsPostProcessed() {
+        this.isPostProcessed = true;
+    }
+
+    public boolean isPostProcessed() {
+        return this.isPostProcessed;
     }
 
     public String getSourceID() {
@@ -37,5 +47,9 @@ public class TaintIDPropagationPair {
 
     public String getDestValue() {
         return this.destValue;
+    }
+
+    public String toString() {
+        return this.sourceID + " - " + this.sourceValue + " to " + this.destID + " - " + this.destValue;
     }
 }

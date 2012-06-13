@@ -20,6 +20,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.TreeSet;
 import javax.swing.JTextArea;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -43,7 +44,7 @@ public class PrecomputationAnalysis {
 
     public void analyze() {
         out.append("PRECOMPUTATION ANALYSIS:\n\n");
-        LinkedList<TaintEdge> edges = gb.edgeList;
+        LinkedList<TaintEdge> edges = gb.getOrderedEdgeList();
         LinkedList<CallRecord> callTree = new LinkedList<CallRecord>();
 
         /*
@@ -79,7 +80,7 @@ public class PrecomputationAnalysis {
         }
         CallRecord target = null;
         for (CallRecord root : callTree) {
-            if (root.getName().equals("javax.servlet.http.HttpServlet:service"))
+            if (root.getName().startsWith("javax.servlet.http.HttpServlet:service"))
                 target = root;
         }
 

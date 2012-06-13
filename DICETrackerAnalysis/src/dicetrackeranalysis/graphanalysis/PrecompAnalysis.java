@@ -12,11 +12,11 @@ import dicetrackeranalysis.graphhandling.TaintEdge;
 import dicetrackeranalysis.graphhandling.TaintNode;
 import edu.uci.ics.jung.graph.Graph;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import javax.swing.JTextArea;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -26,19 +26,18 @@ public class PrecompAnalysis {
     private GraphBuilder gb;
     private DataSourceInfoBuilder dsib;
     private JTextArea out;
-    private DefaultMutableTreeNode taintIDTree;
     private AnalysisMainWindow analysisMainWindow;
 
-    public PrecompAnalysis(GraphBuilder gb, DataSourceInfoBuilder dsib, JTextArea out, DefaultMutableTreeNode taintIDTree, AnalysisMainWindow analysisMainWindow) {
+    public PrecompAnalysis(GraphBuilder gb, DataSourceInfoBuilder dsib, JTextArea out, AnalysisMainWindow analysisMainWindow) {
         this.out = out;
         this.gb = gb;
         this.dsib = dsib;
-        this.taintIDTree = taintIDTree;
         this.analysisMainWindow = analysisMainWindow;
     }
     
     public void analyze() {
-        LinkedList<TaintEdge> edges = gb.edgeList;
+        out.append("Starting Pre-Computation/Caching Analysis\n");
+        LinkedList<TaintEdge> edges = gb.getOrderedEdgeList();
         LinkedList<CallRecord> callTree = new LinkedList<CallRecord>();
 
         /*
@@ -74,59 +73,66 @@ public class PrecompAnalysis {
         }
         CallRecord target = null;
         for (CallRecord root : callTree) {
-            if (root.getName().equals("javax.servlet.http.HttpServlet:service"))
+            if (root.getName().startsWith("javax.servlet.http.HttpServlet:service"))
                 target = root;
         }
 
         // Add record information to nodes to check side effects of nodes later
         Graph<TaintNode, TaintEdge> fullGraph = gb.getMultiGraph();
-        SearchTest addRecordsToNodes = new AddRecordsToNodes(fullGraph);
+        SearchTest addRecordsToNodes = new AddRecordsToNodes();
         deepScan(target, 0, new LinkedList<CallRecord>(), addRecordsToNodes);
 
         // These 3 graphs should be disjoint
-        Graph<TaintNode, TaintEdge> stableGraph = GraphBuilder.pruneToOnlyStableGraph(fullGraph, dsib);
-        Graph<TaintNode, TaintEdge> predictableGraph = GraphBuilder.pruneToPredictableGraph(fullGraph, dsib);
-        Graph<TaintNode, TaintEdge> randomGraph = GraphBuilder.pruneToRandomGraph(fullGraph, dsib);
+        GraphBuilder stableGraphBuilder = GraphBuilder.pruneToOnlyStableGraphBuilder(gb, dsib);
+        GraphBuilder predictableGraphBuilder = GraphBuilder.pruneToPredictableGraphBuilder(gb, dsib, analysisMainWindow);
+        GraphBuilder randomGraphBuilder = GraphBuilder.pruneToRandomGraphBuilder(gb, dsib);
 
-        LinkedList<Graph<TaintNode, TaintEdge>> stableSubGraphs = GraphBuilder.getConnectedSubGraphs(stableGraph);
-        LinkedList<Graph<TaintNode, TaintEdge>> predictableSubGraphs = GraphBuilder.getConnectedSubGraphs(predictableGraph);
-        LinkedList<Graph<TaintNode, TaintEdge>> randomSubGraphs = GraphBuilder.getConnectedSubGraphs(randomGraph);
-//        analysisMainWindow.addAnalysisGraph(GraphBuilder.convertToLightMultiGraph(stableGraph), "STABLE GRAPH");
-//        analysisMainWindow.addAnalysisGraph(GraphBuilder.convertToLightMultiGraph(predictableGraph), "PREDICTABLE GRAPH");
-//        analysisMainWindow.addAnalysisGraph(GraphBuilder.convertToLightMultiGraph(randomGraph), "RANDOM GRAPH");
+        LinkedList<GraphBuilder> stableSubGraphBuilders = GraphBuilder.getConnectedSubGraphBuilders(stableGraphBuilder);
+        LinkedList<GraphBuilder> predictableSubGraphBuilders = GraphBuilder.getConnectedSubGraphBuilders(predictableGraphBuilder);
+        LinkedList<GraphBuilder> randomSubGraphBuilders = GraphBuilder.getConnectedSubGraphBuilders(randomGraphBuilder);
 
         int graphCounter = 0;
-        HashMap<Graph<TaintNode, TaintEdge>, String> randomGraphToNameMap = new HashMap<Graph<TaintNode, TaintEdge>, String>();
-        for (Graph<TaintNode, TaintEdge> randomSubGraph : randomSubGraphs) {
+        HashMap<GraphBuilder, String> randomGraphBuilderToNameMap = new HashMap<GraphBuilder, String>();
+        for (GraphBuilder randomSubGraphBuilder : randomSubGraphBuilders) {
             String name = "RANDOM " + graphCounter++;
-            randomGraphToNameMap.put(randomSubGraph, name);
-            analysisMainWindow.addAnalysisGraph(GraphBuilder.convertToLightMultiGraph(randomSubGraph), name, name);
+            randomGraphBuilderToNameMap.put(randomSubGraphBuilder, name);
+            analysisMainWindow.addAnalysisGraphBuilder(randomSubGraphBuilder, name, name);
         }
 
-        graphCounter = 0;
-        HashMap<Graph<TaintNode, TaintEdge>, String> stableGraphToNameMap = new HashMap<Graph<TaintNode, TaintEdge>, String>();
-        for (Graph<TaintNode, TaintEdge> stableSubGraph : stableSubGraphs) {
-            if (checkSideEffectsInGraph(stableSubGraph, randomGraph, fullGraph).isEmpty()) {
-                if (checkSideEffectsInGraph(stableSubGraph, predictableGraph, fullGraph).isEmpty()) {
-                    String data = "Output Data:\n";
-                    for (TaintNode node : GraphBuilder.getOutputs(stableSubGraph)) {
-                        node.colorValue = 2;
-                        data += "Node: " + node;
 
+        graphCounter = 0;
+        HashMap<GraphBuilder, String> stableGraphBuilderToNameMap = new HashMap<GraphBuilder, String>();
+        for (GraphBuilder stableSubGraphBuilder : stableSubGraphBuilders) {
+            if (checkSideEffectsInGraph(stableSubGraphBuilder.getMultiGraph(), randomGraphBuilder.getMultiGraph(), fullGraph).isEmpty()) {
+//                out.append("PASSES RANDOM SIDE EFFECT CHECK\n");
+                if (checkSideEffectsInGraph(stableSubGraphBuilder.getMultiGraph(), predictableGraphBuilder.getMultiGraph(), fullGraph).isEmpty()) {
+//                    out.append("PASSES CACHE SIDE EFFECT CHECK\n");
+                    String data = "Output Data:\n";
+                    HashMap<TaintNode, LinkedList<TaintEdge>> outputs = GraphBuilder.getOutputs(stableSubGraphBuilder.getMultiGraph(), fullGraph);
+                    for (TaintNode outputNode : outputs.keySet()) {
+                        outputNode.colorValue = 2;
+                        data += "Node: " + outputNode + "\n";
+
+                        LinkedList<TaintEdge> outputEdges = outputs.get(outputNode);
+                        Collections.sort(outputEdges);
+                        for (TaintEdge outputEdge : outputEdges) {
+                            data += "\tData: " + outputEdge.getFirstTaintedObjectString() + "\n";
+                        }
                         // to get outputs, find outgoing edges which connect graph to full graph, log that content
+
                     }
-                    for (TaintNode node : GraphBuilder.getInputs(stableSubGraph))
+                    for (TaintNode node : GraphBuilder.getInputs(stableSubGraphBuilder.getMultiGraph()))
                         node.colorValue = 3;
                     String name = "PRECOMP " + graphCounter++;
-                    stableGraphToNameMap.put(stableSubGraph, name);
-                    analysisMainWindow.addAnalysisGraph(GraphBuilder.convertToLightMultiGraph(stableSubGraph), name, data);
+                    stableGraphBuilderToNameMap.put(stableSubGraphBuilder, name);
+                    analysisMainWindow.addAnalysisGraphBuilder(stableSubGraphBuilder, name, data);
                 }
             }
         }
 
         graphCounter = 0;
-        HashMap<Graph<TaintNode, TaintEdge>, String> predictableGraphToNameMap = new HashMap<Graph<TaintNode, TaintEdge>, String>();
-        for (Graph<TaintNode, TaintEdge> predictableSubGraph : predictableSubGraphs) {
+        HashMap<GraphBuilder, String> predictableGraphBuilderToNameMap = new HashMap<GraphBuilder, String>();
+        for (GraphBuilder predictableSubGraphBuilder : predictableSubGraphBuilders) {
             // Have initial graphs to work with.
 
             // Need to know what parts are side-effect free
@@ -148,11 +154,11 @@ public class PrecompAnalysis {
             // TODO: could add later code to do something better in this case, rather than just throwing away
 
             // Graph is expensive enough to be worth caching
-            if (checkGraphCostExceeds(predictableSubGraph, 1000)) {
-                HashMap<Graph<TaintNode, TaintEdge>, LinkedList<TaintNode>> randomSideEffectSubgraphs = new HashMap<Graph<TaintNode, TaintEdge>, LinkedList<TaintNode>>();
-                HashMap<Graph<TaintNode, TaintEdge>, LinkedList<TaintNode>> stableSideEffectSubgraphs = new HashMap<Graph<TaintNode, TaintEdge>, LinkedList<TaintNode>>();
+            if (checkGraphCostExceeds(predictableSubGraphBuilder.getMultiGraph(), 1000)) {
+                HashMap<GraphBuilder, LinkedList<TaintNode>> randomSideEffectSubGraphBuilders = new HashMap<GraphBuilder, LinkedList<TaintNode>>();
+                HashMap<GraphBuilder, LinkedList<TaintNode>> stableSideEffectSubGraphBuilders = new HashMap<GraphBuilder, LinkedList<TaintNode>>();
                 
-                HashSet<TaintNode> randomSideEffects = checkSideEffectsInGraph(predictableSubGraph, randomGraph, fullGraph);
+                HashSet<TaintNode> randomSideEffects = checkSideEffectsInGraph(predictableSubGraphBuilder.getMultiGraph(), randomGraphBuilder.getMultiGraph(), fullGraph);
                 if (!randomSideEffects.isEmpty()) {
                     long randomCost = 0;
                     for (TaintNode randomSideEffectNode : randomSideEffects) {
@@ -164,36 +170,47 @@ public class PrecompAnalysis {
                     // Random side effects are cheap enough to log and manually deal with
                     if (randomCost <= 200) {
                         // Add random graphs to append log
-                        randomSideEffectSubgraphs.putAll(getSubgraphsFromNodes(randomSideEffects, randomSubGraphs));
+                        randomSideEffectSubGraphBuilders.putAll(getSubGraphBuildersFromNodes(randomSideEffects, randomSubGraphBuilders));
                     }
                     else { // Random side effects are too expensive to do the cache
                         continue;
                     }
                 }
-                HashSet<TaintNode> stableSideEffects = checkSideEffectsInGraph(predictableSubGraph, stableGraph, fullGraph);
+                HashSet<TaintNode> stableSideEffects = checkSideEffectsInGraph(predictableSubGraphBuilder.getMultiGraph(), stableGraphBuilder.getMultiGraph(), fullGraph);
                 if (!stableSideEffects.isEmpty()) {
-                    stableSideEffectSubgraphs.putAll(getSubgraphsFromNodes(stableSideEffects, stableSubGraphs));
+                    stableSideEffectSubGraphBuilders.putAll(getSubGraphBuildersFromNodes(stableSideEffects, stableSubGraphBuilders));
                 }
 
-                for (TaintNode node : GraphBuilder.getOutputs(predictableSubGraph))
-                    node.colorValue = 2;
-                for (TaintNode node : GraphBuilder.getInputs(predictableSubGraph))
+                String data = "Output Data:\n";
+                HashMap<TaintNode, LinkedList<TaintEdge>> outputs = GraphBuilder.getOutputs(predictableSubGraphBuilder.getMultiGraph(), fullGraph);
+                for (TaintNode outputNode : outputs.keySet()) {
+                    outputNode.colorValue = 2;
+                    data += "Node: " + outputNode + "\n";
+
+                    LinkedList<TaintEdge> outputEdges = outputs.get(outputNode);
+                    Collections.sort(outputEdges);
+                    for (TaintEdge outputEdge : outputEdges) {
+                        data += "\tData: " + outputEdge.getFirstTaintedObjectString() + "\n";
+                    }
+                    // to get outputs, find outgoing edges which connect graph to full graph, log that content
+
+                }
+                for (TaintNode node : GraphBuilder.getInputs(predictableSubGraphBuilder.getMultiGraph()))
                     node.colorValue = 3;
                 String name = "CACHE " + graphCounter++;
-                predictableGraphToNameMap.put(predictableSubGraph, name);
+                predictableGraphBuilderToNameMap.put(predictableSubGraphBuilder, name);
 
-                String data = "";
-                for (Graph<TaintNode, TaintEdge> sideEffectSubGraph : randomSideEffectSubgraphs.keySet()) {
-                    String graphName = randomGraphToNameMap.get(sideEffectSubGraph);
-                    data += "Stable side effects in: " + graphName + " from Nodes: " + randomSideEffectSubgraphs.get(sideEffectSubGraph).toString() + "\n";
+                for (GraphBuilder sideEffectSubGraphBuilder : randomSideEffectSubGraphBuilders.keySet()) {
+                    String graphName = randomGraphBuilderToNameMap.get(sideEffectSubGraphBuilder);
+                    data += "Stable side effects in: " + graphName + " from Nodes: " + randomSideEffectSubGraphBuilders.get(sideEffectSubGraphBuilder).toString() + "\n";
                 }
                 data += "\n";
-                for (Graph<TaintNode, TaintEdge> sideEffectSubGraph : stableSideEffectSubgraphs.keySet()) {
-                    String graphName = stableGraphToNameMap.get(sideEffectSubGraph);
-                    data += "Random side effects in: " + graphName + " from Nodes: " + stableSideEffectSubgraphs.get(sideEffectSubGraph).toString() + "\n";
+                for (GraphBuilder sideEffectSubGraphBuilder : stableSideEffectSubGraphBuilders.keySet()) {
+                    String graphName = stableGraphBuilderToNameMap.get(sideEffectSubGraphBuilder);
+                    data += "Random side effects in: " + graphName + " from Nodes: " + stableSideEffectSubGraphBuilders.get(sideEffectSubGraphBuilder).toString() + "\n";
                 }
 
-                analysisMainWindow.addAnalysisGraph(GraphBuilder.convertToLightMultiGraph(predictableSubGraph), name, data);
+                analysisMainWindow.addAnalysisGraphBuilder(predictableSubGraphBuilder, name, data);
             }
 
             // Different things: Only suggest a cache if cost savings are there (more difficult to implement caches, this makes sense)
@@ -204,18 +221,20 @@ public class PrecompAnalysis {
                 // If there are random side effects, check if they are expensive, if yes abort, if not note them
 
         }
+        out.append("Finished Pre-Computation/Caching Analysis\n");
     }
 
-    public HashMap<Graph<TaintNode, TaintEdge>, LinkedList<TaintNode>> getSubgraphsFromNodes(Collection<TaintNode> nodes, LinkedList<Graph<TaintNode, TaintEdge>> subGraphs) {
-        HashMap<Graph<TaintNode, TaintEdge>, LinkedList<TaintNode>> output = new HashMap<Graph<TaintNode, TaintEdge>, LinkedList<TaintNode>>();
+    public HashMap<GraphBuilder, LinkedList<TaintNode>> getSubGraphBuildersFromNodes(Collection<TaintNode> nodes, LinkedList<GraphBuilder> subGraphBuilders) {
+        HashMap<GraphBuilder, LinkedList<TaintNode>> output = new HashMap<GraphBuilder, LinkedList<TaintNode>>();
 
         for (TaintNode node : nodes) {
-            for (Graph<TaintNode, TaintEdge> graph : subGraphs) {
+            for (GraphBuilder graphBuilder : subGraphBuilders) {
+                Graph<TaintNode, TaintEdge> graph = graphBuilder.getMultiGraph();
                 if (graph.containsVertex(node)) {
                     LinkedList<TaintNode> store = output.get(graph);
                     if (store == null) {
                         store = new LinkedList<TaintNode>();
-                        output.put(graph, store);
+                        output.put(graphBuilder, store);
                     }
                     store.add(node);
                     break;
@@ -231,16 +250,29 @@ public class PrecompAnalysis {
     // Only a side effect if it's in the target graph, and you can't flow to it in the full graph
     public HashSet<TaintNode> checkSideEffectsInGraph(Graph<TaintNode, TaintEdge> checkGraph, Graph<TaintNode, TaintEdge> sideEffectGraph, Graph<TaintNode, TaintEdge> fullGraph) {
         HashSet<TaintNode> sideEffects = new HashSet<TaintNode>();
+//        System.out.println("Check Graph: " + checkGraph.getEdgeCount() + "-" + checkGraph.getVertexCount() + " SE Graph: " +
+//                sideEffectGraph.getEdgeCount() + "-" + sideEffectGraph.getVertexCount() + " Full Graph: " +  fullGraph.getEdgeCount() +
+//                "-" + fullGraph.getVertexCount());
 
         for (TaintNode node : checkGraph.getVertices()) {
+//            if (node.toString().contains("13914997"))
+//                System.out.println("PreEncountered 13914997 in node");
             if (node.getCallRecords() != null) {
                 for (CallRecord callRecord : node.getCallRecords()) {
                     TaintNode sideEffectNode = callRecord.getCallEdge().getCallingNode();
+//                    if (node.toString().contains("13914997"))
+//                        System.out.println("Encountered 13914997 in node");
+//                    if (sideEffectNode.toString().contains("13914997"))
+//                        System.out.println("Encountered 13914997 in se");
                     if (sideEffectGraph.containsVertex(sideEffectNode)) {
+//                        if (node.toString().contains("13914997") && sideEffectNode.toString().contains("13914997"))
+//                            System.out.println("Encountered 13914997, SE PASS");
                         // Now need to check if the nodes are attached in the full graph, if so, not a real side effect
                         if (!fullGraph.getNeighbors(node).contains(sideEffectNode)) {
+//                            if (node.toString().contains("13914997") && sideEffectNode.toString().contains("13914997"))
+//                                System.out.println("Encountered 13914997, NEI PASS");
                             sideEffects.add(sideEffectNode);
-                            System.out.println("Adding side effect node " + sideEffectNode);
+//                            System.out.println("Adding SE, CHECK: " + node + " SIDE: " + sideEffectNode);
                             continue;
                         }
                     }
@@ -277,8 +309,10 @@ public class PrecompAnalysis {
     private void deepScan(CallRecord root, int depth, LinkedList<CallRecord> results, SearchTest test) {
         if (test != null && test.test(root))
             results.add(root);
-        for (CallRecord child : root.getSubCalls())
-            deepScan(child, depth + 1, results, test);
+        if (root != null) {
+            for (CallRecord child : root.getSubCalls())
+                deepScan(child, depth + 1, results, test);
+        }
     }
 
     private interface SearchTest {
@@ -286,17 +320,17 @@ public class PrecompAnalysis {
     }
 
     private class AddRecordsToNodes implements SearchTest {
-        private Graph<TaintNode, TaintEdge> graph;
-        public AddRecordsToNodes(Graph<TaintNode, TaintEdge> graph) {
-            this.graph = graph;
+        public AddRecordsToNodes() {
         }
 
         public boolean test(CallRecord record) {
-            TaintEdge callEdge = record.getCallEdge();
-            if (callEdge != null) {
-                TaintNode caller = callEdge.getCalledNode();
-//                Collection<TaintEdge> outEdges = graph.getOutEdges(callEdge.getCallingNode());
-                caller.addCallRecord(record);
+            if (record != null) {
+                TaintEdge callEdge = record.getCallEdge();
+                if (callEdge != null) {
+                    TaintNode caller = callEdge.getCalledNode();
+    //                Collection<TaintEdge> outEdges = graph.getOutEdges(callEdge.getCallingNode());
+                    caller.addCallRecord(record);
+                }
             }
             return false;
         }

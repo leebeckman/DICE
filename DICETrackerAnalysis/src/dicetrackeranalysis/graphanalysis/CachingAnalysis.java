@@ -5,7 +5,6 @@
 
 package dicetrackeranalysis.graphanalysis;
 
-import com.sun.media.sound.EmergencySoundbank;
 import dicetrackeranalysis.datasourceinfo.DataSourceInfoBuilder;
 import dicetrackeranalysis.graphhandling.GraphBuilder;
 import dicetrackeranalysis.graphhandling.TaintEdge;
@@ -16,6 +15,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.TreeSet;
 import javax.swing.JTextArea;
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -44,7 +44,7 @@ public class CachingAnalysis {
 
     public void analyze() {
         out.append("PRECOMPUTATION ANALYSIS:\n\n");
-        LinkedList<TaintEdge> edges = gb.edgeList;
+        LinkedList<TaintEdge> edges = gb.getOrderedEdgeList();
         LinkedList<CallRecord> callTree = new LinkedList<CallRecord>();
 
         /*
@@ -80,7 +80,7 @@ public class CachingAnalysis {
         }
         CallRecord target = null;
         for (CallRecord root : callTree) {
-            if (root.getName().equals("javax.servlet.http.HttpServlet:service"))
+            if (root.getName().startsWith("javax.servlet.http.HttpServlet:service"))
                 target = root;
         }
 
