@@ -10,27 +10,27 @@ public aspect RequestParameterTaint {
 
 	}
     
-	before(): execution(* HttpServletRequest+.getParameter(..)) {
+	before(): execution(* org.apache.catalina.connector.Request.getParameter(..)) {
 		if (!TaintUtil.getAJLock())
     		return;
 		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
     	TaintUtil.releaseAJLock();
 	}
 	
-	before(): execution(* HttpServletRequest+.getParameterValues(..)) {
+	before(): execution(* org.apache.catalina.connector.Request.getParameterValues(..)) {
 		if (!TaintUtil.getAJLock())
     		return;
 		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
     	TaintUtil.releaseAJLock();
 	}
 	
-    after() returning (Object ret): execution(* HttpServletRequest+.getParameter(..)) {
+    after() returning (Object ret): execution(* org.apache.catalina.connector.Request.getParameter(..)) {
     	if (!TaintUtil.getAJLock())
     		return;
     	// Need to manage context outside of general tracker, as general tracker excludes target pointcut
     	
     	if (ret != null) {
-    		TaintLogger.getTaintLogger().log("REQ PARAM " + thisJoinPoint.getSignature());
+//    		TaintLogger.getTaintLogger().log("REQ PARAM " + thisJoinPoint.getSignature());
     		StackLocation location = TaintUtil.getStackTraceLocation();
     		HttpServletRequest req = (HttpServletRequest)thisJoinPoint.getThis();
     		ReferenceMaster.doPrimaryTaint(ret, "URI:" + req.getRequestURI() + ":" + thisJoinPoint.getArgs()[0]);
@@ -40,12 +40,12 @@ public aspect RequestParameterTaint {
     	TaintUtil.releaseAJLock();
     }
     
-    after() returning (Object ret): execution(* HttpServletRequest+.getParameterValues(..)) {
+    after() returning (Object ret): execution(* org.apache.catalina.connector.Request.getParameterValues(..)) {
     	if (!TaintUtil.getAJLock())
     		return;
     	
     	if (ret != null) {
-    		TaintLogger.getTaintLogger().log("REQ PARAM " + thisJoinPoint.getSignature());
+//    		TaintLogger.getTaintLogger().log("REQ PARAM " + thisJoinPoint.getSignature());
     		StackLocation location = TaintUtil.getStackTraceLocation();
     		HttpServletRequest req = (HttpServletRequest)thisJoinPoint.getThis();
     		String[] values = (String[])ret;

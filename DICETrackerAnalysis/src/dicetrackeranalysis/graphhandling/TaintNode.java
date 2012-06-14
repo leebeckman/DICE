@@ -71,6 +71,10 @@ public class TaintNode {
             return this.name;
     }
 
+    public String getID() {
+        return this.id;
+    }
+
     public String getClassID() {
         return this.className + ":" + this.id;
     }

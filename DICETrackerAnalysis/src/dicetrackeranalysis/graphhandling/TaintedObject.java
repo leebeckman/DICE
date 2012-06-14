@@ -64,6 +64,10 @@ public class TaintedObject extends RecordSetter {
         return this.type;
     }
 
+    public String getObjectID() {
+        return this.objectID;
+    }
+
     public LinkedList<TaintedObject> getSubTaintedObjects() {
         return this.subTaintedObjects;
     }

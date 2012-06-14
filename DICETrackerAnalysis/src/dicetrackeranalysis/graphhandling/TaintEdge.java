@@ -334,6 +334,27 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         return taintIDs;
     }
 
+    public boolean carriesTarget(String objectID) {
+        boolean carries = false;
+        outer:
+        for (TaintedObject taintedObj : taintedObjects) {
+            if (taintedObj.getObjectID().equals(objectID)) {
+                carries = true;
+                break;
+            }
+            if (taintedObj.getSubTaintedObjects() != null) {
+                for (TaintedObject subTaintedObj : taintedObj.getSubTaintedObjects()) {
+                    if (subTaintedObj.getObjectID().equals(objectID)) {
+                        carries = true;
+                        break outer;
+                    }
+                }
+            }
+        }
+
+        return carries;
+    }
+
     public long estimateTaintCommunicationCost() {
         long cost = 0;
         for (TaintedObject taintedObj : taintedObjects) {

@@ -5,24 +5,8 @@
 
 package dicetrackeranalysis.datasourceinfo;
 
-import dicetrackeranalysis.graphhandling.AnalysisMainWindow;
-import dicetrackeranalysis.graphhandling.EdgeFilter;
-import dicetrackeranalysis.graphhandling.FilterByIsUniqueEdge;
-import dicetrackeranalysis.graphhandling.RequestCounterURIPair;
-import dicetrackeranalysis.graphhandling.TaintEdge;
-import dicetrackeranalysis.graphhandling.TaintIDPropagationPair;
-import dicetrackeranalysis.graphhandling.TaintNode;
-import dicetrackeranalysis.graphhandling.TaintedField;
-import dicetrackeranalysis.graphhandling.TaintedObject;
-import dicetrackeranalysis.graphhandling.TargetObject;
-import edu.uci.ics.jung.graph.DirectedSparseGraph;
-import edu.uci.ics.jung.graph.DirectedSparseMultigraph;
-import edu.uci.ics.jung.graph.Graph;
 import java.io.File;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import javax.swing.ProgressMonitor;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;

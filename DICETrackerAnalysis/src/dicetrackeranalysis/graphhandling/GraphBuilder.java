@@ -56,6 +56,7 @@ public class GraphBuilder {
         fillEdgeListFromFile(input);
         
         addSupplementaryEdges();
+        connectReadsToResultSets();
     }
 
     public GraphBuilder(GraphBuilder input) {
@@ -74,6 +75,64 @@ public class GraphBuilder {
         taintIDPropagations = new LinkedList<TaintIDPropagationPair>();
         taintIDToInputMap = new HashMap<String, TaintNode>();
         requestCounters = new HashMap<String, RequestCounterURIPair>();
+    }
+
+    // In the graph data tainted data can come from resultsets. These resultsets themselves are also tainted and flow in the graph.
+    // This method modifies the graph to indicate how the read data actually comes from these result sets.
+    private void connectReadsToResultSets() {
+        Graph<TaintNode, TaintEdge> fullGraph = this.getMultiGraph();
+
+        // Simply look for resultset get string nodes, see where they go, in context, look for input resultset
+        for (TaintNode node : fullGraph.getVertices()) {
+            if (node.getName().startsWith("java.sql.ResultSet:getString") ||
+                    node.getName().startsWith("com.mysql.jdbc.ResultSet:getString")) {
+                String resultSetID = node.getID();
+                for (TaintEdge dataEdge : fullGraph.getOutEdges(node)) {
+                    TaintNode destNode = fullGraph.getDest(dataEdge);
+
+                    String dataContext = dataEdge.getInputContextCounter();
+
+                    for (TaintEdge rsEdge : fullGraph.getInEdges(destNode)) {
+                        if (rsEdge != dataEdge) {
+                            if (rsEdge.carriesTarget(resultSetID)) {
+                                String rsContext = rsEdge.getInputContextCounter();
+
+                                if (rsContext.equals(dataContext)) {
+                                    // need to change rsEdge destination to be the data source for the getString
+                                    TaintNode newDest = GraphBuilder.walkToSource(fullGraph, node, new HashSet<TaintNode>());
+                                    System.out.println("RECONNECTING GRAPH: edge: " + rsEdge + " to new destnode: " + newDest + " walked from: " + node);
+                                    rsEdge.setCalledNode(newDest);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static TaintNode walkToSource(Graph<TaintNode, TaintEdge> graph, TaintNode start, HashSet<TaintNode> visited) {
+        if (visited.contains(start))
+            return null;
+        visited.add(start);
+
+        System.out.println("Walking " + start);
+
+        Collection<TaintEdge> inEdges = graph.getInEdges(start);
+        if (inEdges == null || inEdges.isEmpty())
+            return start;
+
+        TaintNode found = null;
+
+        for (TaintEdge inEdge : inEdges) {
+            TaintNode check = walkToSource(graph, graph.getSource(inEdge), visited);
+            if (check != null) {
+                found = check;
+                break;
+            }
+        }
+
+        return found;
     }
 
     private void addSupplementaryEdges() {
@@ -174,6 +233,8 @@ public class GraphBuilder {
             }
         }
     }
+
+
 
     private HashSet<String> getPropagatedTaintIDs(HashSet<String> taintIDs, HashMap<String, LinkedList<String>> propagationMap) {
         HashSet<String> output = new HashSet<String>(taintIDs);
@@ -370,6 +431,7 @@ public class GraphBuilder {
                     String fieldName = taintEdge.getFieldName();
 
                     if (taintEdge.getType().equals("RETURNINGINPUT")) {
+                        System.out.println("Relabeling " + destName + " to " + taintEdge.getDataSourceDest());
                         destName = taintEdge.getDataSourceDest();
                     }
 
@@ -570,7 +632,7 @@ public class GraphBuilder {
 //            return unfilteredMultiGraph;
 
 //        unfilteredMultiGraph = ;
-        return getMultiGraph(null);
+        return getMultiGraph(new LinkedList<EdgeFilter>());
     }
 
     public Graph<TaintNode, TaintEdge> getLightMultiGraph() {
@@ -579,7 +641,6 @@ public class GraphBuilder {
         LinkedList<EdgeFilter> filters = new LinkedList<EdgeFilter>();
         
         filters.add(new FilterByIsUniqueEdge());
-        filters.add(new FilterByRINRETExclude());
         unfilteredLightMultiGraph = getMultiGraph(filters);
         return unfilteredLightMultiGraph;
     }
@@ -588,7 +649,6 @@ public class GraphBuilder {
         if (filters == null)
             filters = new LinkedList<EdgeFilter>();
         filters.add(new FilterByIsUniqueEdge());
-        filters.add(new FilterByRINRETExclude());
         return getMultiGraph(filters);
     }
 
@@ -600,9 +660,10 @@ public class GraphBuilder {
     }
 
     public Graph<TaintNode, TaintEdge> getMultiGraph(LinkedList<EdgeFilter> filters) {
+        filters.add(new FilterByRINRETExclude());
+        
         Graph<TaintNode, TaintEdge> g = new DirectedSparseMultigraph<TaintNode, TaintEdge>();
         loadGraph(g, filters);
-
         return g;
     }
 
