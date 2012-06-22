@@ -34,10 +34,11 @@ public class DataBaseSourceInfo extends RecordSetter implements DataSourceInfo {
         if (!recordInfo.startsWith("CATALOG:"))
             return false;
         boolean match = false;
+        boolean targetColumnSpecified = false;
         String[] pieces = recordInfo.split(" ");
-        String recordCatalog = null;
-        String recordTable = null;
-        String recordColumn = null;
+//        String recordCatalog = null;
+//        String recordTable = null;
+//        String recordColumn = null;
         LinkedList<MatchTriplet> recordTriplets = new LinkedList<MatchTriplet>();
         MatchTriplet newtriplet = null;
         for (int i = 0; i < pieces.length; i++) {
@@ -54,6 +55,7 @@ public class DataBaseSourceInfo extends RecordSetter implements DataSourceInfo {
             }
             else if (pieces[i].equals("TARGETCOLUMN:")) {
                 newtriplet.targetColumn = pieces[++i];
+                targetColumnSpecified = true;
             }
         }
         
@@ -72,9 +74,17 @@ public class DataBaseSourceInfo extends RecordSetter implements DataSourceInfo {
                         match = true;
                         break;
                     }
-                    if (this.column.equals(triplet.targetColumn)) {
-                        match = true;
-                        break;
+                    if (triplet.targetColumn != null) {
+                        if (this.column.equals(triplet.targetColumn.trim())) {
+                            match = true;
+                            break;
+                        }
+                    }
+                    else if (!targetColumnSpecified) {
+                        if (this.column.equals(triplet.column.trim())) {
+                            match = true;
+                            break;
+                        }
                     }
                 }
             }
@@ -85,6 +95,10 @@ public class DataBaseSourceInfo extends RecordSetter implements DataSourceInfo {
 
     public boolean matchesVariability(String variabilityCheck) {
         return variability.equals(variabilityCheck);
+    }
+
+    public String toString() {
+        return this.catalog + ":" + this.table + ":" + this.column + " - " + this.variability;
     }
 
     public class MatchTriplet {

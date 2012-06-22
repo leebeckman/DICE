@@ -13,14 +13,16 @@ public class TaintIDTreeNode {
 
     private String taintID;
     private String value;
+    private String type;
 
-    public TaintIDTreeNode(String taintID, String value) {
+    public TaintIDTreeNode(String taintID, String value, String type) {
         this.taintID = taintID;
         this.value = value;
+        this.type = type;
     }
 
     public String toString() {
-        return this.taintID + " - " + this.value;
+        return this.taintID + " - " + this.value + " - " + this.type;
     }
 
     public String getTaintID() {
@@ -29,6 +31,10 @@ public class TaintIDTreeNode {
 
     public String getValue() {
         return this.value;
+    }
+
+    public String getType() {
+        return this.type;
     }
 
 }

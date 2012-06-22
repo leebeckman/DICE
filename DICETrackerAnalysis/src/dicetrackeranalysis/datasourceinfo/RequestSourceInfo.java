@@ -35,15 +35,28 @@ public class RequestSourceInfo extends RecordSetter implements DataSourceInfo {
     public boolean match(String recordInfo) {
         if (!recordInfo.startsWith("URI:"))
             return false;
-        
+
         int sepIndex = recordInfo.lastIndexOf(":");
         String recordURI = recordInfo.substring(4, sepIndex);
         String recordParameter = recordInfo.substring(sepIndex + 1);
 
-        if (this.uri.equals(recordURI) && this.parameter.equals(recordParameter))
+//        if (recordInfo.startsWith("URI:/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories:password")) {
+//            System.out.println("MATCH: " + this.toString());
+//        }
+//        if (recordInfo.startsWith("URI:/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories:password") &&
+//                this.toString().startsWith("/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories:password")) {
+//            System.out.println("SHOULD RET TRUE: " + recordURI + " param: " + recordParameter);
+//            System.out.println("vs             : " + this.uri + " param: " + this.parameter + " is ");
+//        }
+
+        if (this.uri.trim().equals(recordURI.trim()) && this.parameter.trim().equals(recordParameter.trim()))
             return true;
 
         return false;
+    }
+
+    public String toString() {
+        return this.uri + ":" + this.parameter + " - " + this.variability;
     }
 
 }

@@ -72,11 +72,11 @@ public class StaticStateAnalysis {
                     continue;
                 HashSet<String> edgeTaint = edge.getAllTaintIDs();
                 if (edgeTaint.contains(checkID)) {
-                    edge.getCalledNode().colorValue = 3;
-                    edge.getCallingNode().colorValue = 3;
+                    targetBuilder.colorNode(edge.getCalledNode(), 3);
+                    targetBuilder.colorNode(edge.getCallingNode(), 3);
                     if (lastCounter != null && !edge.getRequestCounter().equals(lastCounter)) {
-                        edge.getCalledNode().colorValue = 2;
-                        edge.getCallingNode().colorValue = 2;
+                        targetBuilder.colorNode(edge.getCalledNode(), 2);
+                        targetBuilder.colorNode(edge.getCallingNode(), 2);
                     }
                     foundPersistent = true;
                     lastCounter = edge.getRequestCounter();

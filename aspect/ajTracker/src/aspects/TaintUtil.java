@@ -52,7 +52,7 @@ public class TaintUtil {
 		}
 	}
 	
-	public static synchronized void pushContext(Object context, Signature sig) {
+	public static synchronized void pushContext(Object context, Signature sig, String src) {
 		Long threadID = Thread.currentThread().getId();
 		Stack<ContextRecord> store = contextStore.get(threadID);
 		if (store == null) {
@@ -62,10 +62,25 @@ public class TaintUtil {
 		if (sig instanceof MethodSignature)  {
 			MethodSignature methodSig = (MethodSignature) sig;
 			store.push(new ContextRecord(context, methodSig.getMethod().getDeclaringClass().getName(), methodSig.getName(), methodSig.getParameterTypes()));
+//			String tabs = "";
+//			for (int i = 0; i < store.size(); i++)
+//				tabs += "\t";
+//			TaintLogger.getTaintLogger().log(tabs + "PUSHING: " + methodSig + " from: " + src);
 		}
 		else if (sig instanceof ConstructorSignature) {
 			ConstructorSignature constSig = (ConstructorSignature) sig;
 			store.push(new ContextRecord(context, constSig.getDeclaringTypeName(), constSig.getName(), constSig.getParameterTypes()));
+//			String tabs = "";
+//			for (int i = 0; i < store.size(); i++)
+//				tabs += "\t";
+//			TaintLogger.getTaintLogger().log(tabs + "CPUSHING: " + constSig + " from: " + src);
+//			if (src.equals("BJCC")) {
+//				StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+//				for (int i = 0; i < 10; i++) {
+//					if (i < stack.length)
+//						TaintLogger.getTaintLogger().log(stack[i].toString());
+//				}
+//			}
 		}
 		
 //		if (context != null)
@@ -115,7 +130,7 @@ public class TaintUtil {
 		}
 	}
 	
-	public static synchronized void popContext() {
+	public static synchronized void popContext(String src) {
 		Long threadID = Thread.currentThread().getId();
 		Stack<ContextRecord> store = contextStore.get(threadID);
 		if (store == null) {
@@ -126,7 +141,11 @@ public class TaintUtil {
 //				TaintLogger.getTaintLogger().log("POPPING CONTEXT: " + store.pop().getClass().getName());
 //			else
 //				TaintLogger.getTaintLogger().log("POPPING CONTEXT: " + store.pop());
-			store.pop();
+			ContextRecord popped = store.pop();
+//			String tabs = "";
+//			for (int i = 0; i < store.size() + 1; i++)
+//				tabs += "\t";
+//			TaintLogger.getTaintLogger().log(tabs + "POPPING: " + popped + " from: " + src);
 		}
 	}
 	
@@ -296,7 +315,7 @@ public class TaintUtil {
 		return result; 
     }
     
-    static class StackLocation {
+    public static class StackLocation {
     	public String destClass;
     	public String destMethod;
     	public String srcClass;

@@ -26,6 +26,8 @@ public class TaintNode {
 
     public int colorValue;
 
+    private int partitionID;
+
     public TaintNode(String className, String methodName, String id) {
         this.callRecords = new LinkedList<CallRecord>();
         this.dataMixingEdges = new LinkedList<TaintEdge>();
@@ -42,6 +44,14 @@ public class TaintNode {
         this.name = name;
         this.counter = TaintNode.nodeCounter++;
         this.colorValue = 0;
+    }
+
+    public void setPartitionID(int partitionID) {
+        this.partitionID = partitionID;
+    }
+
+    public int getPartitionID() {
+        return this.partitionID;
     }
 
     public void addDataMixingEdge(TaintEdge edge) {
@@ -77,6 +87,10 @@ public class TaintNode {
 
     public String getClassID() {
         return this.className + ":" + this.id;
+    }
+
+    public String getMethodName() {
+        return this.methodName;
     }
 
     public String getName() {

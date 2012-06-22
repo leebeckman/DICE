@@ -13,14 +13,14 @@ public aspect RequestParameterTaint {
 	before(): execution(* org.apache.catalina.connector.Request.getParameter(..)) {
 		if (!TaintUtil.getAJLock())
     		return;
-		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
+		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRIN");
     	TaintUtil.releaseAJLock();
 	}
 	
 	before(): execution(* org.apache.catalina.connector.Request.getParameterValues(..)) {
 		if (!TaintUtil.getAJLock())
     		return;
-		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
+		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRINV");
     	TaintUtil.releaseAJLock();
 	}
 	
@@ -35,8 +35,14 @@ public aspect RequestParameterTaint {
     		HttpServletRequest req = (HttpServletRequest)thisJoinPoint.getThis();
     		ReferenceMaster.doPrimaryTaint(ret, "URI:" + req.getRequestURI() + ":" + thisJoinPoint.getArgs()[0]);
     		TaintLogger.getTaintLogger().logReturningInput(location, "REQPARAMETER", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+    		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+    		TaintLogger.getTaintLogger().log("START REQRIN LOG");
+    		for (int i = 0; i < stack.length; i++) {
+    			TaintLogger.getTaintLogger().log(stack[i].toString());
+    		}
+    		TaintLogger.getTaintLogger().log("END REQRIN LOG");
     	}
-    	TaintUtil.popContext();
+    	TaintUtil.popContext("APRIN");
     	TaintUtil.releaseAJLock();
     }
     
@@ -53,7 +59,7 @@ public aspect RequestParameterTaint {
     			ReferenceMaster.doPrimaryTaint(values[i], req.getRequestURI() + ":" + thisJoinPoint.getArgs()[0]);
     		TaintLogger.getTaintLogger().logReturningInput(location, "REQPARAMETER", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
     	}
-    	TaintUtil.popContext();
+    	TaintUtil.popContext("APRINV");
     	TaintUtil.releaseAJLock();
     }
     

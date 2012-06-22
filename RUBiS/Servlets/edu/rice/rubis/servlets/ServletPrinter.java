@@ -189,6 +189,10 @@ public class ServletPrinter
     catch (Exception e)
     {
       out.println("Unable to print Category (exception: " + e + ")<br>");
+      StackTraceElement[] stack = e.getStackTrace();
+      for (int i = 0; i < stack.length; i++) {
+    	  out.println(stack[i] + "<br>");
+      }
     }
   }
 
@@ -211,6 +215,10 @@ public class ServletPrinter
     catch (Exception e)
     {
       out.println("Unable to print Category (exception: " + e + ")<br>");
+      StackTraceElement[] stack = e.getStackTrace();
+      for (int i = 0; i < stack.length; i++) {
+    	  out.println(stack[i] + "<br>");
+      }
     }
   }
 
@@ -231,6 +239,10 @@ public class ServletPrinter
     catch (Exception e)
     {
       out.println("Unable to print Category (exception: " + e + ")<br>");
+      StackTraceElement[] stack = e.getStackTrace();
+      for (int i = 0; i < stack.length; i++) {
+    	  out.println(stack[i] + "<br>");
+      }
     }
   }
 

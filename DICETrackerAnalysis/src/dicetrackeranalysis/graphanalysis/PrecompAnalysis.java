@@ -44,33 +44,35 @@ public class PrecompAnalysis {
          * Go through all edges (including ones which don't return taint, not displayed in graph)
          * This loops mainly builds a call tree.
          */
+        
         for (TaintEdge edge : edges) {
-            if (edge.getType().equals("RETURNING")) {
-                String callerName = edge.getSimpleSource();
-                String calledName = edge.getSimpleDest();
-                Long executionTime = edge.getExecutionTime();
+            if (edge.isPostProcessingEdge())
+                continue;
+            if (!edge.getType().equals("RETURNING"))
+                continue;
 
-                CallRecord callerRecord = removeFromTopLevel(callTree, callerName);
-                CallRecord calledRecord = removeFromTopLevel(callTree, calledName);
+            String callerName = edge.getSimpleSource();
+            String calledName = edge.getSimpleDest();
+            Long executionTime = edge.getExecutionTime();
 
-                if (callerRecord == null) {
-                    callerRecord = new CallRecord(callerName, null, null, null);
-                }
-                if (calledRecord == null) {
-                    calledRecord = new CallRecord(calledName, executionTime, edge, callerRecord);
-                }
-                else {
-                    calledRecord.setCallTime(executionTime);
-                    calledRecord.setCallEdge(edge);
-                    calledRecord.setParentCall(callerRecord);
-                }
-//                if (calledRecord.getName().endsWith("print")) {
-//                    System.out.println("FOUND: " + calledRecord.getName());
-//                }
-                callTree.add(callerRecord);
-                callerRecord.addSubCall(calledRecord);
+            CallRecord callerRecord = removeFromTopLevel(callTree, callerName);
+            CallRecord calledRecord = removeFromTopLevel(callTree, calledName);
+
+            if (callerRecord == null) {
+                callerRecord = new CallRecord(callerName, null, null, null);
             }
+            if (calledRecord == null) {
+                calledRecord = new CallRecord(calledName, executionTime, edge, callerRecord);
+            }
+            else {
+                calledRecord.setCallTime(executionTime);
+                calledRecord.setCallEdge(edge);
+                calledRecord.setParentCall(callerRecord);
+            }
+            callTree.add(callerRecord);
+            callerRecord.addSubCall(calledRecord);
         }
+        
         CallRecord target = null;
         for (CallRecord root : callTree) {
             if (root.getName().startsWith("javax.servlet.http.HttpServlet:service"))
@@ -84,8 +86,11 @@ public class PrecompAnalysis {
 
         // These 3 graphs should be disjoint
         GraphBuilder stableGraphBuilder = GraphBuilder.pruneToOnlyStableGraphBuilder(gb, dsib);
+        analysisMainWindow.addAnalysisGraphBuilder(stableGraphBuilder, "STABLE GB", "STABLE");
         GraphBuilder predictableGraphBuilder = GraphBuilder.pruneToPredictableGraphBuilder(gb, dsib, analysisMainWindow);
+        analysisMainWindow.addAnalysisGraphBuilder(predictableGraphBuilder, "PREDICT GB", "PRED");
         GraphBuilder randomGraphBuilder = GraphBuilder.pruneToRandomGraphBuilder(gb, dsib);
+        analysisMainWindow.addAnalysisGraphBuilder(randomGraphBuilder, "RANDOM GB", "PRED");
 
         LinkedList<GraphBuilder> stableSubGraphBuilders = GraphBuilder.getConnectedSubGraphBuilders(stableGraphBuilder);
         LinkedList<GraphBuilder> predictableSubGraphBuilders = GraphBuilder.getConnectedSubGraphBuilders(predictableGraphBuilder);
@@ -104,13 +109,11 @@ public class PrecompAnalysis {
         HashMap<GraphBuilder, String> stableGraphBuilderToNameMap = new HashMap<GraphBuilder, String>();
         for (GraphBuilder stableSubGraphBuilder : stableSubGraphBuilders) {
             if (checkSideEffectsInGraph(stableSubGraphBuilder.getMultiGraph(), randomGraphBuilder.getMultiGraph(), fullGraph).isEmpty()) {
-//                out.append("PASSES RANDOM SIDE EFFECT CHECK\n");
                 if (checkSideEffectsInGraph(stableSubGraphBuilder.getMultiGraph(), predictableGraphBuilder.getMultiGraph(), fullGraph).isEmpty()) {
-//                    out.append("PASSES CACHE SIDE EFFECT CHECK\n");
                     String data = "Output Data:\n";
                     HashMap<TaintNode, LinkedList<TaintEdge>> outputs = GraphBuilder.getOutputs(stableSubGraphBuilder.getMultiGraph(), fullGraph);
                     for (TaintNode outputNode : outputs.keySet()) {
-                        outputNode.colorValue = 2;
+                        stableSubGraphBuilder.colorNode(outputNode, 2);
                         data += "Node: " + outputNode + "\n";
 
                         LinkedList<TaintEdge> outputEdges = outputs.get(outputNode);
@@ -121,8 +124,8 @@ public class PrecompAnalysis {
                         // to get outputs, find outgoing edges which connect graph to full graph, log that content
 
                     }
-                    for (TaintNode node : GraphBuilder.getInputs(stableSubGraphBuilder.getMultiGraph()))
-                        node.colorValue = 3;
+                    for (TaintNode inputNode : GraphBuilder.getInputs(stableSubGraphBuilder.getMultiGraph()))
+                        stableSubGraphBuilder.colorNode(inputNode, 3);
                     String name = "PRECOMP " + graphCounter++;
                     stableGraphBuilderToNameMap.put(stableSubGraphBuilder, name);
                     analysisMainWindow.addAnalysisGraphBuilder(stableSubGraphBuilder, name, data);
@@ -157,7 +160,7 @@ public class PrecompAnalysis {
             if (checkGraphCostExceeds(predictableSubGraphBuilder.getMultiGraph(), 1000)) {
                 HashMap<GraphBuilder, LinkedList<TaintNode>> randomSideEffectSubGraphBuilders = new HashMap<GraphBuilder, LinkedList<TaintNode>>();
                 HashMap<GraphBuilder, LinkedList<TaintNode>> stableSideEffectSubGraphBuilders = new HashMap<GraphBuilder, LinkedList<TaintNode>>();
-                
+
                 HashSet<TaintNode> randomSideEffects = checkSideEffectsInGraph(predictableSubGraphBuilder.getMultiGraph(), randomGraphBuilder.getMultiGraph(), fullGraph);
                 if (!randomSideEffects.isEmpty()) {
                     long randomCost = 0;
@@ -166,7 +169,7 @@ public class PrecompAnalysis {
                             randomCost += record.getCallTime();
                         }
                     }
-                    
+
                     // Random side effects are cheap enough to log and manually deal with
                     if (randomCost <= 200) {
                         // Add random graphs to append log
@@ -184,7 +187,7 @@ public class PrecompAnalysis {
                 String data = "Output Data:\n";
                 HashMap<TaintNode, LinkedList<TaintEdge>> outputs = GraphBuilder.getOutputs(predictableSubGraphBuilder.getMultiGraph(), fullGraph);
                 for (TaintNode outputNode : outputs.keySet()) {
-                    outputNode.colorValue = 2;
+                    predictableSubGraphBuilder.colorNode(outputNode, 2);
                     data += "Node: " + outputNode + "\n";
 
                     LinkedList<TaintEdge> outputEdges = outputs.get(outputNode);
@@ -195,8 +198,8 @@ public class PrecompAnalysis {
                     // to get outputs, find outgoing edges which connect graph to full graph, log that content
 
                 }
-                for (TaintNode node : GraphBuilder.getInputs(predictableSubGraphBuilder.getMultiGraph()))
-                    node.colorValue = 3;
+                for (TaintNode inputNode : GraphBuilder.getInputs(predictableSubGraphBuilder.getMultiGraph(), fullGraph).keySet())
+                    predictableSubGraphBuilder.colorNode(inputNode, 3);
                 String name = "CACHE " + graphCounter++;
                 predictableGraphBuilderToNameMap.put(predictableSubGraphBuilder, name);
 
@@ -258,7 +261,11 @@ public class PrecompAnalysis {
 //            if (node.toString().contains("13914997"))
 //                System.out.println("PreEncountered 13914997 in node");
             if (node.getCallRecords() != null) {
+//                if (node.toString().startsWith("com.mysql.jdbc.ResultSet:getString String:7979570"))
+//                    System.out.println("SE PRE CHECK: " + node);
                 for (CallRecord callRecord : node.getCallRecords()) {
+//                    if (node.toString().startsWith("com.mysql.jdbc.ResultSet:getString String:7979570"))
+//                        System.out.println("SE PRE CHECK REC: " + callRecord);
                     TaintNode sideEffectNode = callRecord.getCallEdge().getCallingNode();
 //                    if (node.toString().contains("13914997"))
 //                        System.out.println("Encountered 13914997 in node");
@@ -272,7 +279,7 @@ public class PrecompAnalysis {
 //                            if (node.toString().contains("13914997") && sideEffectNode.toString().contains("13914997"))
 //                                System.out.println("Encountered 13914997, NEI PASS");
                             sideEffects.add(sideEffectNode);
-//                            System.out.println("Adding SE, CHECK: " + node + " SIDE: " + sideEffectNode);
+                            System.out.println("Adding SE, CHECK: " + node + " SIDE: " + sideEffectNode);
                             continue;
                         }
                     }
@@ -287,7 +294,8 @@ public class PrecompAnalysis {
         long count = 0;
         for (TaintNode node : checkGraph.getVertices()) {
             for (CallRecord record : node.getCallRecords()) {
-                count += record.getCallTime();
+                if (record != null && record.getCallTime() != null)
+                    count += record.getCallTime();
             }
         }
 

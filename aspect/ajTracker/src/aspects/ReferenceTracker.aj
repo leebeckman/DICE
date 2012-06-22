@@ -42,6 +42,7 @@ public aspect ReferenceTracker {
 	// For associating threads with requests
 	// TODO: Does this really belong here?
 	before(): call(* service(..)) {
+		ReferenceMaster.resetPSTaintTracking(); // Otherwise possible side effects across requests.
 		Object[] args = thisJoinPoint.getArgs();
 		String URI = null;
 		String remoteAddr = null;
@@ -163,9 +164,7 @@ public aspect ReferenceTracker {
 			for (int i = 0; i < fields.length; i++) {
 				//TODO: is it bad that this only scans non-static fields?
 				if (!Modifier.isStatic(fields[i].getModifiers())) {
-					if (fields[i].getType().isPrimitive() ||
-							fields[i].getType().equals(Integer.class) ||
-							fields[i].getType().equals(Double.class) ||
+					if (fields[i].getType().equals(Double.class) ||
 							fields[i].getType().equals(Byte.class) ||
 							fields[i].getType().equals(Short.class) ||
 							fields[i].getType().equals(Long.class) ||

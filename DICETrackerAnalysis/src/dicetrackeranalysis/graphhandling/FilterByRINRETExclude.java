@@ -25,7 +25,7 @@ public class FilterByRINRETExclude implements EdgeFilter {
         if (input.getType().equals("RETURNINGINPUT")) {
             destMap.put(input.getCalledNode(), input);
         }
-        else if (input.getType().equals("RETURNING")) {
+        else if (input.getType().equals("RETURNING") && input.getCallingNode().getName().startsWith("com.mysql.jdbc.ResultSet:get")) {
             TaintEdge destEdge = destMap.get(input.getCalledNode());
             if (destEdge != null && destEdge.getType().equals("RETURNINGINPUT")) {
                 return false;

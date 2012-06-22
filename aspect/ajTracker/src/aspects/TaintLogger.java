@@ -61,7 +61,7 @@ public class TaintLogger {
 	}
 	
 	public void log(String message) {
-		logger.log(Level.INFO, message);
+		dlogger.log(Level.INFO, message);
 	}
 	
 	private void logTaint(String message) {
@@ -750,8 +750,10 @@ public class TaintLogger {
 			if (ReferenceMaster.getDataSources(object) != null) {
 				String sourceString = "";
 				for (IDdTaintSource source : ReferenceMaster.getDataSources(object)) {
-					sourceString += source.getTaintSource().getSourceString() + " ";
+					sourceString += source.getTaintSource().getSourceString() + "#RECSEP#";
 				}
+				if (sourceString.endsWith("#RECSEP#"))
+					sourceString = sourceString.substring(0, sourceString.length() - 8);
 				objectElem.addAttribute("taintRecord", sourceString);
 			}
 		}

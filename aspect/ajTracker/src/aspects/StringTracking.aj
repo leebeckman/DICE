@@ -2,6 +2,8 @@ package aspects;
 
 import java.util.ArrayList;
 
+import com.rsa.certj.xml.dsig.Reference;
+
 import aspects.TaintUtil.StackLocation;
 
 public aspect StringTracking {
@@ -392,13 +394,13 @@ public aspect StringTracking {
 //    	TaintLogger.getTaintLogger().log("String construct: " + ret + " in " + location.toString());
     	if (ret != null) {
 	    	for (int i = 0; i < args.length; i++) {
-	        	if (args[i] instanceof String || 
-	    			args[i] instanceof CharSequence || 
-	    			args[i] instanceof StringBuffer || 
-	    			args[i] instanceof StringBuilder ||
-	    			args[i] instanceof char[] ||
-	    			args[i] instanceof byte[] ||
-	    			args[i] instanceof int[]) {
+//	        	if (args[i] instanceof String || 
+//	    			args[i] instanceof CharSequence || 
+//	    			args[i] instanceof StringBuffer || 
+//	    			args[i] instanceof StringBuilder ||
+//	    			args[i] instanceof char[] ||
+//	    			args[i] instanceof byte[] ||
+//	    			args[i] instanceof int[]) {
 //	        TaintData.getTaintData().propagateSources		TaintLogger.getTaintLogger().log("Checking arg for taint: " + args[i] + " code: " + args[i].hashCode());
 	        		if (ReferenceMaster.isPrimaryTainted(args[i])) {
 //		        		TaintLogger.getTaintLogger().log("taintfound");
@@ -406,7 +408,7 @@ public aspect StringTracking {
 	        			ReferenceMaster.propagateTaintSources(args[i], ret);
 	        			TaintLogger.getTaintLogger().logPropagation(location, "STRINGCONSTRUCT", args[i], ret);
 	        		}
-	        	}
+//	        	}
 	        }
 	    	
 	    	if (composed.size() > 1)
@@ -432,10 +434,10 @@ public aspect StringTracking {
 		StackLocation location = TaintUtil.getStackTraceLocation();
     	
     	for (int i = 0; i < args.length; i++) {
-        	if (args[i] instanceof char[] || args[i] instanceof byte[] || args[i] instanceof int[]) {
+//        	if (args[i] instanceof char[] || args[i] instanceof byte[] || args[i] instanceof int[]) {
         		if (ReferenceMaster.isPrimaryTainted(args[i]))
         			TaintLogger.getTaintLogger().logModification(location, "STRINGCONSTRUCTMOD", args[i]);
-        	}
+//        	}
         }
     }
     
@@ -446,12 +448,12 @@ public aspect StringTracking {
     	Object[] args = thisJoinPoint.getArgs();
 		StackLocation location = TaintUtil.getStackTraceLocation();
     	
-    	if (args[0] instanceof Object || args[0] instanceof char[]) {
+//    	if (args[0] instanceof Object || args[0] instanceof char[]) {
     		if (ReferenceMaster.isPrimaryTainted(args[0])) {
     			ReferenceMaster.propagateTaintSources(args[0], ret);
     			TaintLogger.getTaintLogger().logPropagation(location, "STRINGSTATICPROPNOMOD", args[0], ret);
     		}
-    	}
+//    	}
     }
     
     /*
@@ -461,14 +463,14 @@ public aspect StringTracking {
     	Object[] args = thisJoinPoint.getArgs();
 		StackLocation location = TaintUtil.getStackTraceLocation();
     	
-    	if (args[0] instanceof Object || args[0] instanceof char[]) {
+//    	if (args[0] instanceof Object || args[0] instanceof char[]) {
     		if (ReferenceMaster.isPrimaryTainted(args[0])) {
 	    		ReferenceMaster.propagateTaintSources(args[0], ret);
 	    		TaintLogger.getTaintLogger().logPropagation(location, "STRINGSTATICPROPMOD", args[0], ret);
 	    		//Note that source is modified
 	    		TaintLogger.getTaintLogger().logModification(location, "STRINGSTATICMOD", args[0]);
     		}
-    	}
+//    	}
     }
     
     /*
@@ -494,8 +496,8 @@ public aspect StringTracking {
 		StackLocation location = TaintUtil.getStackTraceLocation();
     	
     	for (int i = 0; i < args.length; i++) {
-        	if (args[i] instanceof char[] ||
-    			args[i] instanceof byte[]) {
+//        	if (args[i] instanceof char[] ||
+//    			args[i] instanceof byte[]) {
         		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
 	        		ReferenceMaster.propagateTaintSources(thisJoinPoint.getTarget(), args[i]);
 	        		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPARGMOD", thisJoinPoint.getTarget(), args[i]);
@@ -504,7 +506,7 @@ public aspect StringTracking {
         		}
         		if (ReferenceMaster.isPrimaryTainted(args[i]))
 	        		TaintLogger.getTaintLogger().logModification(location, "STRINGARGMODDEST", args[i]);
-        	}
+//        	}
         }
     }
     
@@ -627,13 +629,13 @@ public aspect StringTracking {
 			associated.add(thisJoinPoint.getThis());
     	
     	for (int i = 0; i < args.length; i++) {
-        	if (args[i] instanceof String || 
-    			args[i] instanceof Object || 
-    			args[i] instanceof StringBuffer || 
-    			args[i] instanceof CharSequence) {
+//        	if (args[i] instanceof String || 
+//    			args[i] instanceof Object || 
+//    			args[i] instanceof StringBuffer || 
+//    			args[i] instanceof CharSequence) {
         		if (ReferenceMaster.isPrimaryTainted(args[i]))
         			associated.add(args[i]);
-        	}
+//        	}
         }
     	
     	// mixed now contains list of mixed objects
@@ -644,6 +646,27 @@ public aspect StringTracking {
     /*
      * Advice for modification of this but not arguments
      */
+    Object around(Integer arg): 	(stringBuilderAppend() || stringBufferAppend()) 
+    		&& !(myAdvice()) && !allExclude() && args(arg) {
+
+    	if (ReferenceMaster.isPrimaryTainted(arg)) {
+//        	TaintLogger.getTaintLogger().log("SB APPEND MOD " + arg + " to " + ReferenceMaster.getTaintedIntOldValue(arg));
+    		arg = ReferenceMaster.getTaintedIntOldValue(arg);
+    	}
+    	
+    	return proceed(arg);
+    }
+    
+    Object around(Integer index, Integer arg): 	(stringBuilderInsert() || stringBufferInsert()) 
+    		&& !(myAdvice()) && !allExclude() && args(index, arg) {
+    	
+    	if (ReferenceMaster.isPrimaryTainted(arg)) {
+    		arg = ReferenceMaster.getTaintedIntOldValue(arg);
+    	}
+    	
+    	return proceed(index, arg);
+    }
+    
     after() returning (Object ret): 	(stringBuilderAppend() || stringBuilderInsert() || stringBuilderReplace() ||
     					stringBufferAppend() || stringBufferInsert() || stringBufferReplace()) && !(myAdvice()) && !allExclude() {
 //    	System.out.println("this mod");
@@ -655,10 +678,10 @@ public aspect StringTracking {
 			composed.add(thisJoinPoint.getTarget());
     	
     	for (int i = 0; i < args.length; i++) {
-        	if (args[i] instanceof String || 
-    			args[i] instanceof CharSequence || 
-    			args[i] instanceof StringBuffer || 
-    			args[i] instanceof char[]) {
+//        	if (args[i] instanceof String || 
+//    			args[i] instanceof CharSequence || 
+//    			args[i] instanceof StringBuffer || 
+//    			args[i] instanceof char[]) {
         		if (ReferenceMaster.isPrimaryTainted(args[i])) {
 	        		if (!ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
 	        			TaintLogger.getTaintLogger().logModification(location, "STRINGMODARGS", args[i]);
@@ -666,7 +689,7 @@ public aspect StringTracking {
 	        		ReferenceMaster.propagateTaintSources(args[i], thisJoinPoint.getTarget());
 	        		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPTHISA", args[i], thisJoinPoint.getTarget());
         		}
-        	}
+//        	}
         }
 
     	// Note modification of this
@@ -693,17 +716,17 @@ public aspect StringTracking {
     	composed.add(thisJoinPoint.getThis());
     	
     	for (int i = 0; i < args.length; i++) {
-        	if (args[i] instanceof String || 
-    			args[i] instanceof CharSequence || 
-    			args[i] instanceof StringBuffer || 
-    			args[i] instanceof char[]) {
+//        	if (args[i] instanceof String || 
+//    			args[i] instanceof CharSequence || 
+//    			args[i] instanceof StringBuffer || 
+//    			args[i] instanceof char[]) {
         		if (ReferenceMaster.isPrimaryTainted(args[i])) {
 	        		composed.add(args[i]);
 	        		ReferenceMaster.propagateTaintSources(args[i], thisJoinPoint.getThis());
 	        		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPTHISB", args[i], thisJoinPoint.getThis());
 	        		TaintLogger.getTaintLogger().logModification(location, "STRINGMODARGS", args[i]);
         		}
-        	}
+//        	}
         }
 
     	// Note modification of this
@@ -752,11 +775,11 @@ public aspect StringTracking {
 
 		ArrayList<Object> taintedArgs = new ArrayList<Object>();
 		for (int i = 0; i < args.length; i++) {
-			if (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) { // TODO: add StringBuffer/Builder
+//			if (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) { // TODO: add StringBuffer/Builder
 				if (args[i] != null && ReferenceMaster.isPrimaryTainted(args[i])) {
 					taintedArgs.add(args[i]);
 				}
-			} 
+//			} 
 		}
 		
 		if (taintedArgs.size() > 0 && ret != null) {

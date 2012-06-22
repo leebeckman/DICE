@@ -5,6 +5,7 @@
 
 package dicetrackeranalysis.graphhandling;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 
@@ -15,6 +16,7 @@ import java.util.LinkedList;
 public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
 
     private static int edgeCounter = 0;
+    private static int edgeSortingCounter = 0;
 
     private String type;
     private String requestCounter;
@@ -41,16 +43,74 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
     private TaintedObject destObject;
     private Long executionTime;
 
+    // Set this if edge is created in postprocessing, so that it is not used for checking
+    // analysis callgraph side effects
+    private boolean postProcessingEdge = false;
+
     private int counter;
+    private int sortingCounter;
 
     private TaintNode callingNode;
     private TaintNode calledNode;
+
+    public TaintEdge copyEdge() {
+        TaintEdge output = new TaintEdge();
+        output.setType(this.getType());
+        output.setRequestCounter(this.getRequestCounter());
+        output.setRequestURI(this.getRequestURI());
+        output.setRequestRemoteAddr(this.getRequestRemoteAddr());
+        output.setSrcClass(this.getSrcClass());
+        output.setSrcMethod(this.getSrcMethod());
+        output.setDestClass(this.getDestClass());
+        output.setDestMethod(this.getDestMethod());
+        output.setCallerContextCounter(this.getCallerContextCounter());
+        output.setCalledContextCounter(this.getCalledContextCounter());
+        output.setInputContextCounter(this.getInputContextCounter());
+        output.setOutputContextCounter(this.getOutputContextCounter());
+        output.setAdviceType(this.getAdviceType());
+        output.setField(this.getField());
+        for (TaintedObject taintedObj : this.getTaintedObjects())
+            output.addTaintedObject(taintedObj);
+        for (TaintedObject compObj : this.getComposedObjects())
+            output.addComposedObject(compObj);
+        for (TaintedObject assocObj : this.getAssociatedObjects())
+            output.addAssociatedObject(assocObj);
+        output.setOutputObject(this.getOutputObject());
+        output.setCallingObject(this.getCallingObject());
+        output.setCalledObject(this.getCalledObject());
+        output.setSourceObject(this.getSourceObject());
+        output.setDestObject(this.getDestObject());
+        output.setExecutionTime(String.valueOf(this.getExecutionTime()));
+        output.setCounter(this.getCounter());
+        output.setSortingCounter(this.getSortingCounter());
+        output.setCallingNode(this.getCallingNode());
+        output.setCalledNode(this.getCalledNode());
+
+        return output;
+    }
 
     public TaintEdge() {
         taintedObjects = new LinkedList<TaintedObject>();
         composedObjects = new LinkedList<TaintedObject>();
         associatedObjects = new LinkedList<TaintedObject>();
         this.counter = edgeCounter++;
+        this.sortingCounter = edgeSortingCounter++;
+    }
+
+    public void setCounter(int counter) {
+        this.counter = counter;
+    }
+
+    public void setSortingCounter(int sortingCounter) {
+        this.sortingCounter = sortingCounter;
+    }
+
+    public void setIsPostProcessingEdge() {
+        this.postProcessingEdge = true;
+    }
+
+    public boolean isPostProcessingEdge() {
+        return this.postProcessingEdge;
     }
 
     public void setCallingNode(TaintNode callingNode) {
@@ -247,6 +307,10 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         return this.outputContextCounter;
     }
 
+    public TaintedField getField() {
+        return this.field;
+    }
+
     public String getFieldName() {
         if (this.field == null)
             return null;
@@ -295,6 +359,24 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
                 for (TaintedObject subTaintedObj : taintedObj.getSubTaintedObjects()) {
                     if (subTaintedObj.getTaintID() != null && !subTaintedObj.getTaintID().isEmpty()) {
                         taintIDs.add(subTaintedObj.getTaintID());
+                    }
+                }
+            }
+        }
+
+        return taintIDs;
+    }
+
+    public HashMap<String, String> getAllTaintIDsWithTypes() {
+        HashMap<String, String> taintIDs = new HashMap<String, String>();
+        for (TaintedObject taintedObj : taintedObjects) {
+            if (taintedObj.getTaintID() != null && !taintedObj.getTaintID().isEmpty()) {
+                taintIDs.put(taintedObj.getTaintID(), taintedObj.getType());
+            }
+            if (taintedObj.getSubTaintedObjects() != null) {
+                for (TaintedObject subTaintedObj : taintedObj.getSubTaintedObjects()) {
+                    if (subTaintedObj.getTaintID() != null && !subTaintedObj.getTaintID().isEmpty()) {
+                        taintIDs.put(subTaintedObj.getTaintID(), subTaintedObj.getType());
                     }
                 }
             }
@@ -355,8 +437,8 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         return carries;
     }
 
-    public long estimateTaintCommunicationCost() {
-        long cost = 0;
+    public int estimateTaintCommunicationCost() {
+        int cost = 0;
         for (TaintedObject taintedObj : taintedObjects) {
             if (taintedObj.getTaintID() != null && !taintedObj.getTaintID().isEmpty()) {
                 cost += taintedObj.getValue().length();
@@ -413,8 +495,40 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         return this.counter;
     }
 
+    public int getSortingCounter() {
+        return this.sortingCounter;
+    }
+
     public String toString() {
         return String.valueOf(this.counter) + " " + reLabel(this.type);// + "-" + this.adviceType;
+    }
+
+    public String toDebugString() {
+        String output = "";
+
+        output += "Type: " + this.type + "\n";
+        output += "Advice Type: "  + this.adviceType + "\n";
+        output += "Tainted Objects: \n";
+
+        for (TaintedObject taintedObj : taintedObjects) {
+            if (taintedObj.getTaintID() != null && !taintedObj.getTaintID().isEmpty()) {
+                output += "\t" + taintedObj.getType() + " - " + taintedObj.getValue() + "\n";
+            }
+            if (taintedObj.getSubTaintedObjects() != null) {
+                for (TaintedObject subTaintedObj : taintedObj.getSubTaintedObjects()) {
+                    if (subTaintedObj.getTaintID() != null && !subTaintedObj.getTaintID().isEmpty()) {
+                        output += "\t\t" + subTaintedObj.getType() + " - " + subTaintedObj.getValue() + "\n";
+                    }
+                }
+            }
+        }
+
+        output += "\nRequest Counter: " + this.requestCounter + "\n";
+        output += "Request URI: " + this.requestURI + "\n";
+        output += "Caller Context Counter: " + this.callerContextCounter + "\n";
+        output += "Called Context Counter: " + this.calledContextCounter + "\n";
+
+        return output;
     }
 
     public String getNonCounterString() {
@@ -437,7 +551,7 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         if (input.equals("CALLING"))
             return "CAL";
         else if (input.equals("SUPPLEMENTARY"))
-            return "SPL";
+            return "IMP";
         else if (input.equals("OUTPUT"))
             return "OUT";
         else if (input.equals("RETURNING"))
@@ -463,9 +577,9 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
     }
 
     public int compareTo(TaintEdge o) {
-        if (this.getCounter() > o.getCounter())
+        if (this.getSortingCounter() > o.getSortingCounter())
             return 1;
-        if (this.getCounter() < o.getCounter())
+        if (this.getSortingCounter() < o.getSortingCounter())
             return -1;
         return 0;
     }

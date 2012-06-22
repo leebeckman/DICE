@@ -6,6 +6,8 @@ rm *.1
 rm ext*
 
 rm tomcat/logs/*
+rm tomcat/webapps/rubis_servlets.war
+rm -rf tomcat/webapps/rubis_servlets
 cp tomcat/prelib/*.jar tomcat/lib
 rm -rf RUBiS/Servlets/build
 rm RUBiS/Servlets/rubis_servlets.jar

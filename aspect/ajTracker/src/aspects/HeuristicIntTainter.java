@@ -26,7 +26,9 @@ public class HeuristicIntTainter {
 	
 	public boolean sourceSafeForIntTracking(String catalog, String table, String column) {
 		DataSourceInfo info = dataInfoBuilder.getMatchingInfo(catalog, table, column);
-		return info.intTracking();
+		if (info != null)
+			return info.intTracking();
+		return false;
 	}
 	
 	public boolean sourceSafeForIntTracking(String uri, String parameter) {
@@ -38,15 +40,13 @@ public class HeuristicIntTainter {
 		Integer newVal = 1000000 + rg.nextInt(Integer.MAX_VALUE - 1000000);
 		
 		newValOldValMap.put(newVal, toTaint);
+//		TaintLogger.getTaintLogger().log("INT TAINTING: " + toTaint + " to " + newVal);
 		return newVal;
 	}
 	
-	public boolean checkIntTainted(Integer checkInt) {
-		return newValOldValMap.containsKey(checkInt);
-	}
-	
-	public int getRealValue(Integer toReset) {
-		int oldVal = newValOldValMap.get(toReset);
+	public int getRealValue(Integer newVal) {
+		int oldVal = newValOldValMap.get(newVal);
+//		TaintLogger.getTaintLogger().log("INT GETTING OLD: " + newVal + " was: " + oldVal);
 		return oldVal;
 	}
 	

@@ -15,4 +15,6 @@ interface DataSourceInfo {
     public boolean matchesVariability(String variability);
     public boolean match(String recordInfo);
 
+    public String toString();
+
 }

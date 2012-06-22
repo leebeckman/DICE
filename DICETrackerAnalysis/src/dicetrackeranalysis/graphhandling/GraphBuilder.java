@@ -14,16 +14,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.ProgressMonitor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.apache.commons.collections15.map.FastHashMap;
 import org.w3c.dom.NodeList;
 
 /**
@@ -34,9 +33,10 @@ public class GraphBuilder {
 
     private HashSet<TaintEdge> edgeList;
     public HashMap<String, TaintNode> nodeMap;
-    public LinkedHashSet<String> taintIDs;
+    public LinkedHashMap<String, String> taintIDs;
     public LinkedList<TaintIDPropagationPair> taintIDPropagations;
     public HashMap<String, RequestCounterURIPair> requestCounters;
+    public HashMap<TaintNode, Integer> nodeColors;
 
     private HashMap<String, TaintNode> taintIDToInputMap;
 
@@ -46,35 +46,54 @@ public class GraphBuilder {
     private Graph<TaintNode, TaintEdge> unfilteredLightMultiGraph = null;
     private Graph<TaintNode, TaintEdge> unfilteredGraph = null;
 
-    public GraphBuilder(File input) {
-        edgeList = new HashSet<TaintEdge>();
-        nodeMap = new HashMap<String, TaintNode>();
-        taintIDs = new LinkedHashSet<String>();
+    private void init() {
+        taintIDs = new LinkedHashMap<String, String>();
         taintIDPropagations = new LinkedList<TaintIDPropagationPair>();
         taintIDToInputMap = new HashMap<String, TaintNode>();
         requestCounters = new HashMap<String, RequestCounterURIPair>();
+        nodeColors = new HashMap<TaintNode, Integer>();
+    }
+
+    public GraphBuilder(File input) {
+        edgeList = new HashSet<TaintEdge>();
+        nodeMap = new HashMap<String, TaintNode>();
+        init();
         fillEdgeListFromFile(input);
         
-        addSupplementaryEdges();
         connectReadsToResultSets();
+        addSupplementaryEdges();
+        RINRETExcludePass();
     }
 
     public GraphBuilder(GraphBuilder input) {
         edgeList = new HashSet<TaintEdge>(input.edgeList);
         nodeMap = new HashMap<String, TaintNode>(input.nodeMap);
-        taintIDs = new LinkedHashSet<String>();
-        taintIDPropagations = new LinkedList<TaintIDPropagationPair>();
-        taintIDToInputMap = new HashMap<String, TaintNode>();
-        requestCounters = new HashMap<String, RequestCounterURIPair>();
+        init();
     }
 
     public GraphBuilder(GraphBuilder input, boolean noEdgeCopy) {
         edgeList = new HashSet<TaintEdge>();
         nodeMap = new HashMap<String, TaintNode>(input.nodeMap);
-        taintIDs = new LinkedHashSet<String>();
-        taintIDPropagations = new LinkedList<TaintIDPropagationPair>();
-        taintIDToInputMap = new HashMap<String, TaintNode>();
-        requestCounters = new HashMap<String, RequestCounterURIPair>();
+        init();
+    }
+
+    private void RINRETExcludePass() {
+        FilterByRINRETExclude filter = new FilterByRINRETExclude();
+        LinkedList<TaintEdge> sortedEdgeList = this.getOrderedEdgeList();
+        for (TaintEdge edge : sortedEdgeList) {
+            if (edge.getAdviceType().equals("NONTAINTRETURN") || edge.getType().equals("COMPOSITION") ||
+                    edge.getType().equals("ASSOCIATION")) {
+                continue;
+            }
+
+            TaintNode callingNode = edge.getCallingNode();
+            TaintNode calledNode = edge.getCalledNode();
+            if (callingNode != null && calledNode != null) {
+                if (!filter.pass(edge)) {
+                    this.edgeList.remove(edge);
+                }
+            }
+        }
     }
 
     // In the graph data tainted data can come from resultsets. These resultsets themselves are also tainted and flow in the graph.
@@ -83,9 +102,12 @@ public class GraphBuilder {
         Graph<TaintNode, TaintEdge> fullGraph = this.getMultiGraph();
 
         // Simply look for resultset get string nodes, see where they go, in context, look for input resultset
+        HashSet<TaintEdge> deleteEdges = new HashSet<TaintEdge>();
         for (TaintNode node : fullGraph.getVertices()) {
             if (node.getName().startsWith("java.sql.ResultSet:getString") ||
-                    node.getName().startsWith("com.mysql.jdbc.ResultSet:getString")) {
+                    node.getName().startsWith("com.mysql.jdbc.ResultSet:getString") ||
+                    node.getName().startsWith("com.mysql.jdbc.ResultSet:getInt") ||
+                    node.getName().startsWith("java.sql.ResultSet:getInt")) {
                 String resultSetID = node.getID();
                 for (TaintEdge dataEdge : fullGraph.getOutEdges(node)) {
                     TaintNode destNode = fullGraph.getDest(dataEdge);
@@ -100,8 +122,14 @@ public class GraphBuilder {
                                 if (rsContext.equals(dataContext)) {
                                     // need to change rsEdge destination to be the data source for the getString
                                     TaintNode newDest = GraphBuilder.walkToSource(fullGraph, node, new HashSet<TaintNode>());
-                                    System.out.println("RECONNECTING GRAPH: edge: " + rsEdge + " to new destnode: " + newDest + " walked from: " + node);
-                                    rsEdge.setCalledNode(newDest);
+//                                    System.out.println("RECONNECTING GRAPH: edge: " + rsEdge + " to new destnode: " + newDest + " walked from: " + node);
+
+                                    TaintEdge newEdge = rsEdge.copyEdge();
+                                    newEdge.setCalledNode(newDest);
+                                    newEdge.setIsPostProcessingEdge();
+                                    edgeList.add(newEdge);
+                                    deleteEdges.add(rsEdge);
+                                    // ADD Edges, don't reconnect, and then remove later.
                                 }
                             }
                         }
@@ -109,14 +137,17 @@ public class GraphBuilder {
                 }
             }
         }
+
+        for (TaintEdge deleteEdge : deleteEdges) {
+            edgeList.remove(deleteEdge);
+//            System.out.println("DELETING: " + deleteEdge);
+        }
     }
 
     private static TaintNode walkToSource(Graph<TaintNode, TaintEdge> graph, TaintNode start, HashSet<TaintNode> visited) {
         if (visited.contains(start))
             return null;
         visited.add(start);
-
-        System.out.println("Walking " + start);
 
         Collection<TaintEdge> inEdges = graph.getInEdges(start);
         if (inEdges == null || inEdges.isEmpty())
@@ -148,18 +179,23 @@ public class GraphBuilder {
             propagations.add(propagationPair.getDestID());
         }
 
-        HashMap<String, LinkedList<TaintNode>> groupedByClassID = new HashMap<String, LinkedList<TaintNode>>();
+        HashMap<String, LinkedList<TaintNode>> groupedByObjectID = new HashMap<String, LinkedList<TaintNode>>();
         for (TaintNode node : fullGraph.getVertices()) {
-            String key = node.getClassID();
-            LinkedList<TaintNode> groupedNodes = groupedByClassID.get(key);
+            if (!node.getClassID().startsWith("java.") && !node.getName().startsWith("com.mysql.jdbc.PreparedStatement:set"))
+                continue;
+            String key = node.getID();
+            if (key == null || key.isEmpty())
+                continue;
+            
+            LinkedList<TaintNode> groupedNodes = groupedByObjectID.get(key);
             if (groupedNodes == null) {
                 groupedNodes = new LinkedList<TaintNode>();
-                groupedByClassID.put(key, groupedNodes);
+                groupedByObjectID.put(key, groupedNodes);
             }
             groupedNodes.add(node);
         }
 
-        for (LinkedList<TaintNode> groupedNodes : groupedByClassID.values()) {
+        for (LinkedList<TaintNode> groupedNodes : groupedByObjectID.values()) {
             for (int i = 0; i < groupedNodes.size(); i++) {
                 for (int j = 0; j < groupedNodes.size(); j++) {
                     if (i != j) {
@@ -183,9 +219,13 @@ public class GraphBuilder {
                         if (alreadyConnected)
                             continue;
 
+                        
                         for (TaintEdge inEdge : inEdges) {
                             for (TaintEdge outEdge : outEdges) {
                                 if (outEdge.getCounter() > inEdge.getCounter()) {
+                                    if (fullGraph.getSource(inEdge) == fullGraph.getSource(outEdge) &&
+                                            fullGraph.getDest(inEdge) == fullGraph.getDest(outEdge))
+                                        continue;
                                     HashSet<String> inTaintIDs = getPropagatedTaintIDs(inEdge.getAllTaintIDs(), propagationMap);
                                     HashSet<String> outTaintIDs = outEdge.getAllTaintIDs();
                                     
@@ -193,11 +233,20 @@ public class GraphBuilder {
                                     for (String outTaintID : outTaintIDs) {
                                         if (inTaintIDs.contains(outTaintID)) {
                                             match = true;
+//                                            System.out.println("TAINT MATCH SUCCESS");
                                             break;
                                         }
-                                    }   
+                                    }
+
+                                    if (inNode.getMethodName().startsWith("set") &&
+                                            fullGraph.getOutEdges(inNode).isEmpty() &&
+                                            outNode.getMethodName().startsWith("executeQuery")) {
+//                                        System.out.println("POTENTIAL MATCH SUCCESS");
+                                        match = true;
+                                    }
                                     
                                     if (match) {
+                                        // TODO: mostly does an edge copy, could probably be replaced with an edge clone method
                                         TaintEdge newEdge = new TaintEdge();
                                         newEdge.setType("SUPPLEMENTARY");
                                         newEdge.setRequestCounter(inEdge.getRequestCounter());
@@ -221,9 +270,10 @@ public class GraphBuilder {
 
                                         newEdge.setInputContextCounter(inEdge.getInputContextCounter());
                                         newEdge.setOutputContextCounter(inEdge.getOutputContextCounter());
-                                        
+
+                                        newEdge.setIsPostProcessingEdge();
                                         edgeList.add(newEdge);
-//                                        System.out.println("SPL EDGE: " + inNode + " to " + outNode);
+//                                        System.out.println("SPL EDGE: " + newEdge);
                                     }
                                 }
                             }
@@ -266,7 +316,7 @@ public class GraphBuilder {
         taintIDs.clear();
         taintIDPropagations.clear();
         requestCounters.clear();
-        taintIDs.add("");
+        taintIDs.put("", "");
 
         try {
             DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -276,13 +326,11 @@ public class GraphBuilder {
             NodeList childNodes = docRoot.getChildNodes();
 
             // Iterate through taintlog records
-            ProgressMonitor monitor = new ProgressMonitor(AnalysisMainWindow.mainWindow, "Building Graph", "Loading Edges", 0, childNodes.getLength() * 2);
-            monitor.setMillisToDecideToPopup(10);
-            monitor.setMillisToPopup(10);
-            int progCounter = 0;
+//            ProgressDialog monitor = new ProgressDialog(AnalysisMainWindow.mainWindow, "Building Graph", childNodes.getLength() * 2);
+//            int progCounter = 0;
             for (int i = 0; i < childNodes.getLength(); i++ ) {
-                if (progCounter++ % 1000 == 0)
-                    monitor.setProgress(progCounter);
+//                if (progCounter++ % 10000 == 0)
+//                    monitor.setValue(progCounter);
                 if (childNodes.item(i) instanceof Element) {
                     TaintEdge taintEdge = new TaintEdge();
                     Element taintLogElem = (Element) childNodes.item(i);
@@ -310,10 +358,10 @@ public class GraphBuilder {
                             taintedObject.setObjectID(taintLogChildElem.getAttribute("objectID"));
                             String taintID = taintLogChildElem.getAttribute("taintID");
                             taintedObject.setTaintID(taintID);
-                            taintIDs.add(taintID);
                             taintedObject.setType(taintLogChildElem.getAttribute("type"));
                             taintedObject.setValue(taintLogChildElem.getAttribute("value"));
                             taintedObject.setTaintRecord(taintLogChildElem.getAttribute("taintRecord"));
+                            taintIDs.put(taintID, taintedObject.getType());
 
                             NodeList taintLogChildChildNodes = taintLogChildElem.getChildNodes();
                             for (int k = 0; k < taintLogChildChildNodes.getLength(); k++) {
@@ -323,10 +371,10 @@ public class GraphBuilder {
                                     subTaintedObject.setObjectID(taintLogChildChildElem.getAttribute("objectID"));
                                     String subTaintID= taintLogChildChildElem.getAttribute("taintID");
                                     subTaintedObject.setTaintID(subTaintID);
-                                    taintIDs.add(subTaintID);
                                     subTaintedObject.setType(taintLogChildChildElem.getAttribute("type"));
                                     subTaintedObject.setValue(taintLogChildChildElem.getAttribute("value"));
                                     subTaintedObject.setTaintRecord(taintLogChildChildElem.getAttribute("taintRecord"));
+                                    taintIDs.put(subTaintID, subTaintedObject.getType());
                                     taintedObject.addTaintedObject(subTaintedObject);
                                 }
                             }
@@ -342,10 +390,10 @@ public class GraphBuilder {
                                     composedObject.setObjectID(taintLogChildChildElem.getAttribute("objectID"));
                                     String subTaintID= taintLogChildChildElem.getAttribute("taintID");
                                     composedObject.setTaintID(subTaintID);
-                                    taintIDs.add(subTaintID);
                                     composedObject.setType(taintLogChildChildElem.getAttribute("type"));
                                     composedObject.setValue(taintLogChildChildElem.getAttribute("value"));
                                     composedObject.setTaintRecord(taintLogChildChildElem.getAttribute("taintRecord"));
+                                    taintIDs.put(subTaintID, composedObject.getType());
                                     taintEdge.addComposedObject(composedObject);
                                 }
                             }
@@ -360,10 +408,10 @@ public class GraphBuilder {
                                     associatedObject.setObjectID(taintLogChildChildElem.getAttribute("objectID"));
                                     String subTaintID= taintLogChildChildElem.getAttribute("taintID");
                                     associatedObject.setTaintID(subTaintID);
-                                    taintIDs.add(subTaintID);
                                     associatedObject.setType(taintLogChildChildElem.getAttribute("type"));
                                     associatedObject.setValue(taintLogChildChildElem.getAttribute("value"));
                                     associatedObject.setTaintRecord(taintLogChildChildElem.getAttribute("taintRecord"));
+                                    taintIDs.put(subTaintID, associatedObject.getType());
                                     taintEdge.addTaintedObject(associatedObject);
                                 }
                             }
@@ -374,10 +422,10 @@ public class GraphBuilder {
                             taintedObject.setObjectID(taintLogChildElem.getAttribute("objectID"));
                             String taintID = taintLogChildElem.getAttribute("taintID");
                             taintedObject.setTaintID(taintID);
-                            taintIDs.add(taintID);
                             taintedObject.setType(taintLogChildElem.getAttribute("type"));
                             taintedObject.setValue(taintLogChildElem.getAttribute("value"));
                             taintedObject.setTaintRecord(taintLogChildElem.getAttribute("taintRecord"));
+                            taintIDs.put(taintID, taintedObject.getType());
 
                             taintEdge.setSourceObject(taintedObject);
                         }
@@ -386,10 +434,10 @@ public class GraphBuilder {
                             taintedObject.setObjectID(taintLogChildElem.getAttribute("objectID"));
                             String taintID = taintLogChildElem.getAttribute("taintID");
                             taintedObject.setTaintID(taintID);
-                            taintIDs.add(taintID);
                             taintedObject.setType(taintLogChildElem.getAttribute("type"));
                             taintedObject.setValue(taintLogChildElem.getAttribute("value"));
                             taintedObject.setTaintRecord(taintLogChildElem.getAttribute("taintRecord"));
+                            taintIDs.put(taintID, taintedObject.getType());
 
                             taintEdge.setDestObject(taintedObject);
                         }
@@ -431,7 +479,7 @@ public class GraphBuilder {
                     String fieldName = taintEdge.getFieldName();
 
                     if (taintEdge.getType().equals("RETURNINGINPUT")) {
-                        System.out.println("Relabeling " + destName + " to " + taintEdge.getDataSourceDest());
+//                        System.out.println("Relabeling " + destName + " to " + taintEdge.getDataSourceDest());
                         destName = taintEdge.getDataSourceDest();
                     }
 
@@ -456,9 +504,9 @@ public class GraphBuilder {
                         TaintEdge.decrementCounter();
                     if (taintEdge.getType().equals("PROPAGATION")) {
                         TaintIDPropagationPair pair = new TaintIDPropagationPair(taintEdge.getSourceObject().getTaintID(),
-                                taintEdge.getSourceObject().getValue(),
+                                taintEdge.getSourceObject().getValue(), taintEdge.getSourceObject().getType(),
                                 taintEdge.getDestObject().getTaintID(),
-                                taintEdge.getDestObject().getValue());
+                                taintEdge.getDestObject().getValue(), taintEdge.getDestObject().getType());
                         taintIDPropagations.add(pair);
                     }
                 }
@@ -467,8 +515,8 @@ public class GraphBuilder {
             postProcessTaintIDPropagations();
 
             for (TaintEdge edge : edgeList) {
-                if (progCounter++ % 1000 == 0)
-                    monitor.setProgress(progCounter);
+//                if (progCounter++ % 10000 == 0)
+//                    monitor.setValue(progCounter);
                 TaintNode callingNode = null;
                 TaintNode calledNode = null;
 
@@ -558,9 +606,17 @@ public class GraphBuilder {
                     }
                     edge.setCallingNode(callingNode);
                     edge.setCalledNode(calledNode);
+
+//                    if (edge.getType().equals("RETURNING")
+//                        && edge.getDestClass().startsWith("edu.rice.rubis.servlets.Auth")
+//                        && edge.getDestMethod().startsWith("authenticate")
+//                        && edge.getSrcClass().startsWith("edu.rice.rubis.servlets.BrowseCategories")
+//                        && edge.getSrcMethod().startsWith("doGet")) {
+//                        System.out.println("FOUND MISSING EDGE " + edge + " from " + edge.getCallingNode() + " to " + edge.getCalledNode());
+//                    }
                 }
             }
-            monitor.close();
+//            monitor.finish();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -612,11 +668,27 @@ public class GraphBuilder {
     }
 
     public LinkedHashSet<String> getTaintIDs() {
+        return new LinkedHashSet<String>(taintIDs.keySet());
+    }
+
+    public LinkedHashMap<String, String> getTaintIDsWithTypes() {
         return taintIDs;
     }
 
     public LinkedList<TaintIDPropagationPair> getTaintIDPropagations() {
         return taintIDPropagations;
+    }
+
+    public void colorNode(TaintNode node, int color) {
+        nodeColors.put(node, color);
+    }
+
+    public Integer getNodeColor(TaintNode node) {
+        return nodeColors.get(node);
+    }
+
+    public void resetNodeColors() {
+        nodeColors.clear();
     }
 
     public Graph<TaintNode, TaintEdge> getGraph() {
@@ -673,11 +745,11 @@ public class GraphBuilder {
         for (TaintEdge edge : sortedEdgeList) {
             if (edge.getType().equals("PROPAGATION")) {
                 taintIDPropagations.add(new TaintIDPropagationPair(edge.getSourceObject().getTaintID(),
-                        edge.getSourceObject().getValue(),
+                        edge.getSourceObject().getValue(), edge.getSourceObject().getType(),
                         edge.getDestObject().getTaintID(),
-                        edge.getDestObject().getValue()));
+                        edge.getDestObject().getValue(), edge.getDestObject().getType()));
             }
-            taintIDs.addAll(edge.getAllTaintIDs());
+            taintIDs.putAll(edge.getAllTaintIDsWithTypes());
 
             if (edge.getCallingNode() != null && edge.getCalledNode() != null) {
                 if (!edge.getAdviceType().startsWith("NONTAINTRETURN")) {
@@ -705,8 +777,8 @@ public class GraphBuilder {
                 for (TaintIDPropagationPair mappedPair : mappedPairs) {
                     if (mappedPair.getDestID().equals(pair.getDestID()) && mappedPair.getDestValue().equals(pair.getDestValue()))
                         continue;
-                    TaintIDPropagationPair newPair = new TaintIDPropagationPair(mappedPair.getDestID(), mappedPair.getDestValue(),
-                                                                                pair.getDestID(), pair.getDestValue());
+                    TaintIDPropagationPair newPair = new TaintIDPropagationPair(mappedPair.getDestID(), mappedPair.getDestValue(), mappedPair.getDestType(),
+                                                                                pair.getDestID(), pair.getDestValue(), pair.getDestType());
 //                    System.out.println("ADDING NEW PAIR: " + newPair);
                     newPair.setIsPostProcessed();
                     toAdd.add(newPair);
@@ -732,6 +804,18 @@ public class GraphBuilder {
 
             TaintNode callingNode = edge.getCallingNode();
             TaintNode calledNode = edge.getCalledNode();
+
+            Integer callingColor = nodeColors.get(callingNode);
+            Integer calledColor = nodeColors.get(calledNode);
+            if (callingColor != null)
+                callingNode.colorValue = callingColor;
+            else if (callingNode != null)
+                callingNode.colorValue = 0;
+            if (calledColor != null)
+                calledNode.colorValue = calledColor;
+            else if (calledNode != null)
+                calledNode.colorValue = 0;
+
             if (callingNode != null && calledNode != null) {
                 if (filters != null) {
 
@@ -789,8 +873,14 @@ public class GraphBuilder {
 
         LinkedList<TaintEdge> edges = new LinkedList<TaintEdge>(output.edgeList);
         for (TaintEdge edge : edges) {
+            if (edge.getCounter() == 123) {
+                System.out.println("STABLE 123 FOUND!");
+            }
+            if (inputGraph.getSource(edge) != null && inputGraph.getSource(edge).getName().startsWith("java.sql.PreparedStatement:executeQuery"))
+                continue;
             for (String record : edge.getAllTaintRecords()) {
-                if (!dsib.checkTaintRecordMatchesVariability(record, "STABLE")) {
+                if (dsib.checkTaintRecordMatchesVariability(record, "PREDICTABLE") ||
+                        dsib.checkTaintRecordMatchesVariability(record, "RANDOM")) {
                     output.edgeList.remove(edge);
                     Collection<TaintEdge> calledEdges = inputGraph.getIncidentEdges(edge.getCalledNode());
                     if (calledEdges != null) {
@@ -815,8 +905,10 @@ public class GraphBuilder {
     }
 
     public static GraphBuilder pruneToPredictableGraphBuilder(GraphBuilder input, DataSourceInfoBuilder dsib, AnalysisMainWindow window) {
-        Graph<TaintNode, TaintEdge> inputGraph = input.getMultiGraph();
         GraphBuilder output = new GraphBuilder(input);
+
+        Graph<TaintNode, TaintEdge> inputGraph = input.getMultiGraph();
+
         GraphBuilder onlyStable = GraphBuilder.pruneToOnlyStableGraphBuilder(input, dsib);
 
         LinkedList<TaintEdge> edges = new LinkedList<TaintEdge>(output.edgeList);
@@ -839,10 +931,14 @@ public class GraphBuilder {
             }
         }
 
+
+//        window.addAnalysisGraphBuilder(output, "TESTPRE A", "Done");
         // Changed from using inputGraph to remove edges (getIncidentEdges called on input instead of stable), to using stable
         Graph<TaintNode, TaintEdge> stableGraph = onlyStable.getMultiGraph();
         for (TaintNode node : stableGraph.getVertices()) {
             for (TaintEdge removeEdge : stableGraph.getIncidentEdges(node)) {
+                if (removeEdge.getCounter() == 183)
+                    System.out.println("O FAILING 183");
                 output.edgeList.remove(removeEdge);
             }
         }
@@ -957,6 +1053,7 @@ public class GraphBuilder {
 
         HashSet<TaintNode> visited = new HashSet<TaintNode>();
         for (TaintNode node : inputNodes) {
+
             Graph<TaintNode, TaintEdge> subGraph = null;
             if (visited.contains(node))
                 continue;
@@ -986,7 +1083,7 @@ public class GraphBuilder {
                 output.edgeList.addAll(subGraph.getEdges());
 
                 for (TaintEdge edge : output.edgeList) {
-                    output.taintIDs.addAll(edge.getAllTaintIDs());
+                    output.taintIDs.putAll(edge.getAllTaintIDsWithTypes());
 
                     if (edge.getCallingNode() != null && edge.getCalledNode() != null) {
                         if (!edge.getAdviceType().startsWith("NONTAINTRETURN")) {
@@ -1001,12 +1098,12 @@ public class GraphBuilder {
                 for (TaintEdge edge : sortedEdges) {
                     // No propagation edges moved over. No constructor copies full propagation list. It's added from edges. Propagation
                     // edges are never filtered out by taintRecord.
-                    if (output.taintIDs.contains(edge.getSourceObject().getTaintID()) &&
-                            output.taintIDs.contains(edge.getDestObject().getTaintID())) {
+                    if (output.taintIDs.containsKey(edge.getSourceObject().getTaintID()) &&
+                            output.taintIDs.containsKey(edge.getDestObject().getTaintID())) {
                         output.taintIDPropagations.add(new TaintIDPropagationPair(edge.getSourceObject().getTaintID(),
-                                edge.getSourceObject().getValue(),
+                                edge.getSourceObject().getValue(), edge.getSourceObject().getType(),
                                 edge.getDestObject().getTaintID(),
-                                edge.getDestObject().getValue()));
+                                edge.getDestObject().getValue(), edge.getDestObject().getType()));
                     }
                 }
                 output.postProcessTaintIDPropagations();
@@ -1039,15 +1136,18 @@ public class GraphBuilder {
         HashMap<TaintNode, LinkedList<TaintEdge>> outputs = new HashMap<TaintNode, LinkedList<TaintEdge>>();
 
         for (TaintNode node : subset.getVertices()) {
-            for (TaintEdge edge : superset.getOutEdges(node)) {
-                TaintNode outNode = superset.getDest(edge);
-                if (!subset.containsVertex(outNode)) {
-                    LinkedList<TaintEdge> outEdges = outputs.get(node);
-                    if (outEdges == null) {
-                        outEdges = new LinkedList<TaintEdge>();
-                        outputs.put(node, outEdges);
+            if (superset.getOutEdges(node) != null) {
+                for (TaintEdge edge : superset.getOutEdges(node)) {
+                    TaintNode outNode = superset.getDest(edge);
+                    if (!subset.containsVertex(outNode) ||
+                            edge.getType().equals("OUTPUT")) {
+                        LinkedList<TaintEdge> outEdges = outputs.get(node);
+                        if (outEdges == null) {
+                            outEdges = new LinkedList<TaintEdge>();
+                            outputs.put(node, outEdges);
+                        }
+                        outEdges.add(edge);
                     }
-                    outEdges.add(edge);
                 }
             }
         }
@@ -1093,6 +1193,15 @@ public class GraphBuilder {
                     if (inEdges == null) {
                         inEdges = new LinkedList<TaintEdge>();
                         inputs.put(subNode, inEdges);
+                    }
+                    inEdges.add(inEdge);
+                }
+                if (inEdge.getType().equals("RETURNINGINPUT")) {
+                    TaintNode innerInputNode = superset.getSource(inEdge);
+                    LinkedList<TaintEdge> inEdges = inputs.get(innerInputNode);
+                    if (inEdges == null) {
+                        inEdges = new LinkedList<TaintEdge>();
+                        inputs.put(innerInputNode, inEdges);
                     }
                     inEdges.add(inEdge);
                 }

@@ -67,6 +67,8 @@ public class PostcompAnalysis {
          * This loops mainly builds a call tree.
          */
         for (TaintEdge edge : edges) {
+            if (edge.isPostProcessingEdge())
+                continue;
             if (edge.getType().equals("RETURNING")) {
                 String callerName = edge.getSimpleSource();
                 String calledName = edge.getSimpleDest();
@@ -320,7 +322,7 @@ public class PostcompAnalysis {
         output.getEdgeList().addAll(postCompEdges);
 
         for (TaintEdge edge : output.getEdgeList()) {
-            output.taintIDs.addAll(edge.getAllTaintIDs());
+            output.taintIDs.putAll(edge.getAllTaintIDsWithTypes());
 
             if (edge.getCallingNode() != null && edge.getCalledNode() != null) {
                 if (!edge.getAdviceType().startsWith("NONTAINTRETURN")) {
@@ -335,12 +337,12 @@ public class PostcompAnalysis {
         for (TaintEdge edge : sortedEdges) {
             // No propagation edges moved over. No constructor copies full propagation list. It's added from edges. Propagation
             // edges are never filtered out by taintRecord.
-            if (output.taintIDs.contains(edge.getSourceObject().getTaintID()) &&
-                    output.taintIDs.contains(edge.getDestObject().getTaintID())) {
+            if (output.taintIDs.containsKey(edge.getSourceObject().getTaintID()) &&
+                    output.taintIDs.containsKey(edge.getDestObject().getTaintID())) {
                 output.taintIDPropagations.add(new TaintIDPropagationPair(edge.getSourceObject().getTaintID(),
-                        edge.getSourceObject().getValue(),
+                        edge.getSourceObject().getValue(), edge.getSourceObject().getType(),
                         edge.getDestObject().getTaintID(),
-                        edge.getDestObject().getValue()));
+                        edge.getDestObject().getValue(), edge.getDestObject().getType()));
             }
         }
         output.postProcessTaintIDPropagations();

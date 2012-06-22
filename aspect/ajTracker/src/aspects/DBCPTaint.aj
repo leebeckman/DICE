@@ -3,6 +3,10 @@ package aspects;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.Set;
+
+import com.mysql.jdbc.PreparedStatement;
 
 import javassist.compiler.ProceedHandler;
 
@@ -18,10 +22,86 @@ public aspect DBCPTaint {
     	(execution(public * *ResultSet.getObject(..)) ||
     	execution(public * *ResultSet.getString(..)));
     
+    pointcut resultSetIntAccess():
+    	execution(public * *ResultSet.getInt(..));
+    	
+    
     pointcut resultSetCreation():
     	execution(public *ResultSet *.*(..));
 //    	(execution(public * org.apache.commons.dbcp..*PreparedStatement.executeQuery(..)) ||
+    
+    Object around(): resultSetIntAccess() {
+    	Object ret = proceed();
+    	
+    	if (ret instanceof Integer) {
+    		boolean skip = false;
+    		try {
+				ResultSetMetaData metaData = (ResultSetMetaData) ReferenceMaster.getResultSetSource(thisJoinPoint.getThis());
+				if (metaData != null) {
+					int colCount = metaData.getColumnCount();
+					for (int i = 1; i <= colCount; i++) {
+						String metaString = metaData.getCatalogName(i) + "/" + metaData.getTableName(i) + "/" + metaData.getColumnName(i);
+						if (metaString.contains("/COLLATIONS") || metaString.contains("/VARIABLES") || metaString.contains("//round('inf')")) {
+							skip = true;
+							break;
+						}
+					}
+				}
+				else
+					skip = true;
+			} catch (SQLException e) {
+				
+			}
+    		if (!skip) {
+    			String catalogName = null;
+    			String tableName = null;
+    			String columnName = null;
+    			Object[] args = thisJoinPoint.getArgs();
+    			
+    			int columnNumber = 0;
+    			ResultSetMetaData metaData = (ResultSetMetaData) ReferenceMaster.getResultSetSource(thisJoinPoint.getThis());
+    			
+				try {
+	    			if (args[0] instanceof String) {
+	    				columnName = (String) args[0];
+	    				for (int i = 1; i <= metaData.getColumnCount(); i++) {
+	    					if (metaData.getColumnName(i).equals(columnName)) {
+	    						columnNumber = i;
+	    						break;
+	    					}
+	    				}
+	    			}
+	    			else if (args[0] instanceof Integer) {
+	    				columnNumber = (Integer) args[0];
+	    			}
 
+	    			catalogName = metaData.getCatalogName(columnNumber);
+	    			tableName = metaData.getTableName(columnNumber);
+					columnName = metaData.getColumnName(columnNumber);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+    			
+				if (HeuristicIntTainter.getInstance().sourceSafeForIntTracking(catalogName, tableName, columnName)) {
+					ret = ReferenceMaster.doPrimaryIntTaint((Integer)ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()), columnName);
+	    			
+					LinkedList<Object> psTaint = ReferenceMaster.getResultSetPSTaint(thisJoinPoint.getThis());
+	    			if (psTaint != null) {
+	    				for (Object psTainted : psTaint) {
+	    					ReferenceMaster.propagateTaintSources(psTainted, ret);
+	    				}
+	    			}
+					
+	    			StackLocation location = TaintUtil.getStackTraceLocation();
+	    			if (!location.getDest().startsWith("java"))
+	    				TaintLogger.getTaintLogger().logReturningInput(location, "DBCPINT", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+				}
+    		}
+    	}
+    	
+    	return ret;
+    }
+    
     after() returning (Object ret): resultSetAccess() {
     	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
 //    		result = new String((String)result, true);
@@ -65,13 +145,23 @@ public aspect DBCPTaint {
 						e.printStackTrace();
 					}
     			}
-    			
-    			ReferenceMaster.doPrimaryTaint(ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()), columnName);
-    			
+
     			StackLocation location = TaintUtil.getStackTraceLocation();
-    			if (!location.getDest().startsWith("java"))
-    				TaintLogger.getTaintLogger().logReturningInput(location, "DBCP", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
-//    			System.out.println("Tainting: " + TaintData.getTaintData().getTaintHashCode(ret));
+    			
+    			if (!location.getSource().startsWith("com.mysql.jdbc.ResultSet:getInt")) {
+	    			ReferenceMaster.doPrimaryTaint(ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()), columnName);
+	    			
+	    			LinkedList<Object> psTaint = ReferenceMaster.getResultSetPSTaint(thisJoinPoint.getThis());
+	    			if (psTaint != null) {
+	    				for (Object psTainted : psTaint) {
+	    					ReferenceMaster.propagateTaintSources(psTainted, ret);
+	    				}
+	    			}
+	    			
+	    			if (!location.getDest().startsWith("java"))
+	    				TaintLogger.getTaintLogger().logReturningInput(location, "DBCP", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+    			}
+    			
     		}
     	}
     }
@@ -95,6 +185,10 @@ public aspect DBCPTaint {
 				ReferenceMaster.mapResultSetToSource(rs, metaData);
 				
 				StackLocation location = TaintUtil.getStackTraceLocation();
+    			
+				if (thisJoinPoint.getThis() instanceof PreparedStatement) {
+    				ReferenceMaster.mapResultSetToPSTaint(rs, ReferenceMaster.getPSTaint(thisJoinPoint.getThis()));
+    			}
 				
 			}
     	} catch (SQLException e) {
@@ -102,6 +196,34 @@ public aspect DBCPTaint {
     	}
 		return rs;
     }
+
+    before(): execution(public * com.mysql.jdbc.PreparedStatement.set*(..)) {
+    	Object[] args = thisJoinPoint.getArgs();
+    	Object holder = new Object();
+    	
+    	boolean taintFound = false;
+    	
+    	for (int i = 0; i < args.length; i++) {
+	    	if (ReferenceMaster.isPrimaryTainted(args[i])) {
+	    		ReferenceMaster.propagateTaintSources(args[i], holder);
+	    		taintFound = true;
+	    	}
+	    	else if (args[i] != null) {
+	    		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
+	    		if (objTaint != null && objTaint.size() > 0) {
+	    			for (Object tainted : objTaint) {
+	    				ReferenceMaster.propagateTaintSources(tainted, holder);
+	    	    		taintFound = true;
+	    			}
+	    		}
+	    	}
+    	}
+    	
+    	if (taintFound) {
+    		ReferenceMaster.mapPSToTaint(thisJoinPoint.getThis(), holder);
+    	}
+    }
+    
     
 }
 

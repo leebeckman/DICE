@@ -25,6 +25,10 @@ public class ContextRecord {
 		this.contextCount = ContextRecord.contextCounter++;
 	}
 	
+	public String toString() {
+		return this.contextClassName + ":" + this.contextMethodName + " - " + this.typeString;
+	}
+	
 	public Object getContextObject() {
 		return this.contextObject;
 	}

@@ -13,6 +13,10 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 
+import org.stringtemplate.v4.compiler.STParser.list_return;
+
+import Acme.Crypto.Hash;
+
 import com.evelopers.common.util.ID;
 
 public class ReferenceMaster {
@@ -58,9 +62,40 @@ public class ReferenceMaster {
 	private static IdentityHashMap<Object, IdentityHashMap<Object, CountingMap>> objectJavasSourcesMap = new IdentityHashMap<Object, IdentityHashMap<Object,CountingMap>>();
 	
 	private static IdentityHashMap<Object, HashSet<IDdTaintSource>> taintSourcesMap = new IdentityHashMap<Object, HashSet<IDdTaintSource>>();
+	private static HashMap<Integer, HashSet<IDdTaintSource>> intTaintSourcesMap = new HashMap<Integer, HashSet<IDdTaintSource>>();
 	private static IdentityHashMap<Object, Object> resultSetToSourceMap = new IdentityHashMap<Object, Object>();
 	
+	private static IdentityHashMap<Object, LinkedList<Object>> psToTaintMap = new IdentityHashMap<Object, LinkedList<Object>>();
+	private static IdentityHashMap<Object, LinkedList<Object>> resultSetToPSTaintMap = new IdentityHashMap<Object, LinkedList<Object>>();
+	
 	private static IdentityHashMap<Object, Field> staticAccessedMap = new IdentityHashMap<Object, Field>();
+	
+	public static synchronized void resetPSTaintTracking() {
+		psToTaintMap.clear();
+		resultSetToPSTaintMap.clear();
+	}
+	
+	public static synchronized void mapPSToTaint(Object ps, Object taint) {
+		LinkedList<Object> taintList = psToTaintMap.get(ps);
+		if (taintList == null) {
+			taintList = new LinkedList<Object>();
+			psToTaintMap.put(ps, taintList);
+		}
+		
+		taintList.add(taint);
+	}
+	
+	public static LinkedList<Object> getPSTaint(Object ps) {
+		return psToTaintMap.get(ps);
+	}
+	
+	public static synchronized void mapResultSetToPSTaint(Object resultSet, LinkedList<Object> psTaint) {
+		resultSetToPSTaintMap.put(resultSet, psTaint);
+	}
+	
+	public static synchronized LinkedList<Object> getResultSetPSTaint(Object resultSet) {
+		return resultSetToPSTaintMap.get(resultSet);
+	}
 	
 	public static synchronized void mapResultSetToSource(Object resultSet, Object source) {
 		resultSetToSourceMap.put(resultSet, source);
@@ -286,6 +321,24 @@ public class ReferenceMaster {
 		}
 	}
 	
+	public static synchronized int doPrimaryIntTaint(Integer target, Object taintSource, String columnName) {
+		if (intTaintSourcesMap.containsKey(target))
+			return target;
+		
+		Integer remapped = HeuristicIntTainter.getInstance().taintInt(target);
+		if (!intTaintSourcesMap.containsKey(remapped)) {
+			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
+			sources.add(new IDdTaintSource(new TaintSource(taintSource, columnName)));
+			intTaintSourcesMap.put(remapped, sources);
+		}
+		
+		return remapped;
+	}
+	
+	public static synchronized int getTaintedIntOldValue(Integer input) {
+		return HeuristicIntTainter.getInstance().getRealValue(input);
+	}
+	
 	/*
 	 *  code is sizedsource:taintsource. sizedsource is unique to access, 
 	 *  taintsource is unique to ResultSet (or other source)
@@ -293,30 +346,55 @@ public class ReferenceMaster {
 	public static synchronized String getTaintIdentifier(Object obj) {
 		if (isPrimaryTainted(obj)) {
 			String ret = "";
-			HashSet<IDdTaintSource> sources = taintSourcesMap.get(obj);
+			HashSet<IDdTaintSource> sources = null;
+			if (obj instanceof Integer)
+				sources = intTaintSourcesMap.get(obj);
+			else
+				sources = taintSourcesMap.get(obj);
 			for (IDdTaintSource source : sources) {
 				ret += source.getIDdSourceString() + ",";
 			}
 			if (ret.endsWith(","))
 				ret = ret.substring(0, ret.length() - 1);
-			ret += " [" + String.valueOf(System.identityHashCode(obj)) + "]"; 
+			if (obj instanceof Integer)
+				ret += " [" + obj + "]";
+			else
+				ret += " [" + String.valueOf(System.identityHashCode(obj)) + "]";
 			return ret;
 		}
 		return "";
 	}
 	
 	public static synchronized void propagateTaintSources(Object sourceData, Object targetData) {
+		HashSet<IDdTaintSource> source = null;
+		
+		if (sourceData instanceof Integer)
+			source = intTaintSourcesMap.get(sourceData);
+		else
+			source = taintSourcesMap.get(sourceData);
+			
 		// Not getting a new ID here.
-		if (taintSourcesMap.get(targetData) == null)
-			taintSourcesMap.put(targetData, new HashSet<IDdTaintSource>());
-		HashSet<IDdTaintSource> source = taintSourcesMap.get(sourceData);
-		HashSet<IDdTaintSource> target = taintSourcesMap.get(targetData);
-		target.addAll(source);
+		if (targetData instanceof Integer) {
+			if (intTaintSourcesMap.get(targetData) == null)
+				intTaintSourcesMap.put((Integer)targetData, new HashSet<IDdTaintSource>());
+			HashSet<IDdTaintSource> target = intTaintSourcesMap.get(targetData);
+			target.addAll(source);
+		}
+		else {
+			if (taintSourcesMap.get(targetData) == null)
+				taintSourcesMap.put(targetData, new HashSet<IDdTaintSource>());
+			HashSet<IDdTaintSource> target = taintSourcesMap.get(targetData);
+			target.addAll(source);
+		}
+		
 	}
 	
 	public static synchronized boolean isPrimaryTainted(Object obj) {
-		if (obj != null) {
-			if (obj instanceof String || obj instanceof StringBuilder || obj instanceof StringBuffer || obj instanceof ResultSet)
+		if (isPrimaryType(obj)) {
+			if (obj instanceof Integer) {
+				return intTaintSourcesMap.containsKey((Integer)obj);
+			}
+			else
 				return taintSourcesMap.containsKey(obj);
 		}
 		return false;
@@ -324,14 +402,17 @@ public class ReferenceMaster {
 	
 	public static synchronized boolean isPrimaryType(Object obj) {
 		if (obj != null) {
-			if (obj instanceof String || obj instanceof StringBuilder || obj instanceof StringBuffer || obj instanceof ResultSet)
+			if (obj instanceof Integer || obj instanceof String || obj instanceof StringBuilder || obj instanceof StringBuffer || obj instanceof ResultSet)
 				return true;
 		}
 		return false;
 	}
 	
 	public static HashSet<IDdTaintSource> getDataSources(Object data) {
-		return taintSourcesMap.get(data);
+		if (data instanceof Integer)
+			return intTaintSourcesMap.get(data);
+		else
+			return taintSourcesMap.get(data);
 	}
 	
 	public static synchronized Set<Object> fullTaintCheck(Object obj) {
@@ -371,7 +452,7 @@ public class ReferenceMaster {
 		}
 		// if not PrimaryTainted but one of these types, no hope for it. Otherwise we end up with lengthy ResultSet scans
 		// Adding other exclusions to boost performance. Taint is not likely to end up here.
-		else if (!(obj instanceof String || obj instanceof StringBuilder || obj instanceof StringBuffer || obj instanceof ResultSet
+		else if (!(isPrimaryType(obj)
 				|| obj.getClass().getName().contains("RowDataStatic")
 				|| obj.getClass().getName().contains("java.lang.reflect.Method")
 				|| obj.getClass().getName().contains("[Ljava.lang.reflect.Field")
@@ -489,8 +570,7 @@ public class ReferenceMaster {
 	public static synchronized boolean isValidArrayType(Object check) {
 		if (check.getClass().isArray()) {
 			if (!check.getClass().getComponentType().isPrimitive()) {
-				if (check.getClass().getComponentType().equals(Integer.class) ||
-						check.getClass().getComponentType().equals(Double.class) ||
+				if (check.getClass().getComponentType().equals(Double.class) ||
 						check.getClass().getComponentType().equals(Long.class) ||
 						check.getClass().getComponentType().equals(Character.class)) {
 					return false;

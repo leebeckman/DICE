@@ -3,6 +3,11 @@
     <databasesourceinfo catalog="rubis" table="categories" column="name" variability="STABLE" />
     <databasesourceinfo catalog="rubis" table="regions" column="id" variability="STABLE" inttracking="true" />
     <databasesourceinfo catalog="rubis" table="regions" column="name" variability="STABLE" />
+    <databasesourceinfo catalog="rubis" table="users" column="id" variability="STABLE" inttracking="true" />
+
     <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" parameter="chatMessage" variability="RANDOM" />
+
     <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="region" variability="PREDICTABLE" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="nickname" variability="PREDICTABLE" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="password" variability="PREDICTABLE" />
 </root>

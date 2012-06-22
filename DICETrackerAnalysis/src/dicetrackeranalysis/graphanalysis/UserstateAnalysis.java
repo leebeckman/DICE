@@ -74,13 +74,13 @@ public class UserstateAnalysis {
                     continue;
                 HashSet<String> edgeTaint = edge.getAllTaintIDs();
                 if (edgeTaint.contains(checkID)) {
-                    edge.getCalledNode().colorValue = 3;
+                    targetBuilder.colorNode(edge.getCalledNode(), 3);
                     checkedNodes.add(edge.getCalledNode());
-                    edge.getCallingNode().colorValue = 3;
+                    targetBuilder.colorNode(edge.getCallingNode(), 3);
                     checkedNodes.add(edge.getCallingNode());
                     if (lastCounter != null && !edge.getRequestCounter().equals(lastCounter)) {
-                        edge.getCalledNode().colorValue = 1;
-                        edge.getCallingNode().colorValue = 1;
+                        targetBuilder.colorNode(edge.getCalledNode(), 1);
+                        targetBuilder.colorNode(edge.getCallingNode(), 1);
                     }
                     foundPersistent = true;
                     lastCounter = edge.getRequestCounter();
@@ -90,7 +90,7 @@ public class UserstateAnalysis {
 
         if (foundPersistent) {
             for (TaintNode checkedNode : checkedNodes) {
-                if (checkedNode.colorValue == 1) {
+                if (targetBuilder.getNodeColor(checkedNode) == 1) {
                     String remoteHost = null;
                     boolean variedHosts = false;
                     for (TaintEdge stateEdge : graph.getIncidentEdges(checkedNode)) {
@@ -103,7 +103,7 @@ public class UserstateAnalysis {
                     }
 
                     if (variedHosts) {
-                        checkedNode.colorValue = 2;
+                        targetBuilder.colorNode(checkedNode, 2);
                         data += "\tNode: " + checkedNode + " is multi-user state\n";
                     } else {
                         data += "\tNode: " + checkedNode + " is single-user state\n";

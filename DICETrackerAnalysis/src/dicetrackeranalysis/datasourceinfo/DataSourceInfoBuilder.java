@@ -6,6 +6,7 @@
 package dicetrackeranalysis.datasourceinfo;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -76,11 +77,38 @@ public class DataSourceInfoBuilder {
     }
 
     public boolean checkTaintRecordMatchesVariability(String taintRecord, String variability) {
-        for (DataSourceInfo infoItem : dataSourceInfoList) {
-            if (infoItem.matchesVariability(variability) && infoItem.match(taintRecord))
-                return true;
+        ArrayList<String> records = splitTaintRecord(taintRecord);
+        for (String record : records) {
+            for (DataSourceInfo infoItem : dataSourceInfoList) {
+                if (infoItem.matchesVariability(variability) && infoItem.match(record))
+                    return true;
+            }
         }
         return false;
+    }
+
+    private ArrayList<String> splitTaintRecord(String input) {
+        ArrayList<String> output = new ArrayList<String>();
+
+        String parse = input;
+        while (parse.length() != 0) {
+            int nextIndex = getNextRecordIndex(parse);
+
+            if (nextIndex == -1) {
+                output.add(parse);
+                parse = "";
+            }
+            else {
+                output.add(parse.substring(0, nextIndex));
+                parse = parse.substring(nextIndex + 8);
+            }
+        }
+
+        return output;
+    }
+
+    private int getNextRecordIndex(String input) {
+         return input.indexOf("#RECSEP#");
     }
     
 

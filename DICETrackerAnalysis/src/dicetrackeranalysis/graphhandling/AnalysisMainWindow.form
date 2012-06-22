@@ -33,23 +33,25 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="1" attributes="0">
-                              <Component id="fileNameField" pref="635" max="32767" attributes="0"/>
+                              <Component id="fileNameField" pref="650" max="32767" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="quickLoadButton" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="sourceFileName" alignment="0" pref="730" max="32767" attributes="0"/>
+                          <Component id="sourceFileName" alignment="0" pref="745" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" attributes="0">
-                      <Component id="tabView" pref="892" max="32767" attributes="0"/>
+                      <Component id="tabView" pref="907" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
-              <Group type="103" groupAlignment="0" max="-2" attributes="0">
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" max="-2" attributes="0">
                   <Component id="treePanel" max="32767" attributes="1"/>
-                  <Component id="jPanel1" alignment="0" max="32767" attributes="1"/>
-                  <Component id="analysisButtonsPanel" alignment="0" max="32767" attributes="1"/>
+                  <Component id="jPanel2" alignment="1" max="32767" attributes="1"/>
+                  <Component id="jPanel1" alignment="1" max="32767" attributes="1"/>
+                  <Component id="analysisButtonsPanel" alignment="1" max="32767" attributes="1"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -65,6 +67,8 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                       <Component id="treePanel" max="32767" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
@@ -79,7 +83,7 @@
                           <Component id="sourceFileName" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="tabView" pref="555" max="32767" attributes="0"/>
+                      <Component id="tabView" pref="595" max="32767" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -119,7 +123,7 @@
                   <Component id="holdTaintIDButton" min="-2" max="-2" attributes="0"/>
                   <EmptySpace min="-2" pref="113" max="-2" attributes="0"/>
               </Group>
-              <Component id="jScrollPane1" alignment="0" pref="312" max="32767" attributes="0"/>
+              <Component id="jScrollPane1" alignment="0" pref="291" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
@@ -130,7 +134,7 @@
                       <Component id="holdTaintIDButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="jScrollPane1" pref="325" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" pref="291" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -187,16 +191,23 @@
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="staticStateAnalyzeButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="cachingAnalysisButton" min="-2" max="-2" attributes="0"/>
+                          <Component id="userStateAnalysisButton" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="postcomputationAnalyzeButton" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="userStateAnalysisButton" min="-2" max="-2" attributes="0"/>
+                          <Component id="cachingAnalysisButton" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="aprAnalysisButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Group type="102" alignment="0" attributes="0">
+                          <Component id="jButton1" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="aprAnalysisButton" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="jButton2" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace pref="33" max="32767" attributes="0"/>
+                  <EmptySpace pref="28" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -206,16 +217,21 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="staticStateAnalyzeButton" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="resetAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="cachingAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="userStateAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="postcomputationAnalyzeButton" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="userStateAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="cachingAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
+                  <EmptySpace max="32767" attributes="0"/>
+                  <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="aprAnalysisButton" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace pref="13" max="32767" attributes="0"/>
+                  <Group type="103" groupAlignment="3" attributes="0">
+                      <Component id="jButton1" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="aprAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="jButton2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  </Group>
               </Group>
           </Group>
         </DimensionLayout>
@@ -245,17 +261,9 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cachingAnalysisButtonActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JButton" name="userStateAnalysisButton">
-          <Properties>
-            <Property name="text" type="java.lang.String" value="User State"/>
-          </Properties>
-          <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="userStateAnalysisButtonActionPerformed"/>
-          </Events>
-        </Component>
         <Component class="javax.swing.JButton" name="aprAnalysisButton">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Access Path Refactor"/>
+            <Property name="text" type="java.lang.String" value="APR"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="aprAnalysisButtonActionPerformed"/>
@@ -267,6 +275,35 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="postcomputationAnalyzeButtonActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="jButton1">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Partition"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="jButton2">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Reset Partitions"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel3">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Access Path Refactoring:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JButton" name="userStateAnalysisButton">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="User State"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="userStateAnalysisButtonActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>
@@ -310,12 +347,12 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="872" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="887" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <EmptySpace min="0" pref="490" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="530" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
           </Layout>
@@ -343,13 +380,13 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="analysisClearButton" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="analysisScroller" alignment="0" pref="872" max="32767" attributes="0"/>
+                  <Component id="analysisScroller" alignment="0" pref="887" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
-                      <Component id="analysisScroller" pref="454" max="32767" attributes="0"/>
+                      <Component id="analysisScroller" pref="494" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="analysisClearButton" min="-2" max="-2" attributes="0"/>
                   </Group>
@@ -415,7 +452,7 @@
                       <Group type="102" alignment="0" attributes="0">
                           <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="requestCounters" pref="227" max="32767" attributes="0"/>
+                          <Component id="requestCounters" pref="206" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
@@ -491,6 +528,59 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="noSBCheckboxActionPerformed"/>
+          </Events>
+        </Component>
+      </SubComponents>
+    </Container>
+    <Container class="javax.swing.JPanel" name="jPanel2">
+      <Properties>
+        <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+          <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
+            <TitledBorder title="Edge Data"/>
+          </Border>
+        </Property>
+      </Properties>
+
+      <Layout>
+        <DimensionLayout dim="0">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="102" attributes="0">
+                  <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="edgeID" min="-2" pref="106" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
+                  <Component id="getEdgeDataButton" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace pref="37" max="32767" attributes="0"/>
+              </Group>
+          </Group>
+        </DimensionLayout>
+        <DimensionLayout dim="1">
+          <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="edgeID" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="getEdgeDataButton" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+          </Group>
+        </DimensionLayout>
+      </Layout>
+      <SubComponents>
+        <Component class="javax.swing.JTextField" name="edgeID">
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="edgeIDActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JLabel" name="jLabel2">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Edge ID:"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JButton" name="getEdgeDataButton">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Get Data"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="getEdgeDataButtonActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>
