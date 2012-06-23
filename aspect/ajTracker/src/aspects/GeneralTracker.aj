@@ -10,19 +10,49 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.aspectj.lang.reflect.MethodSignature;
 
-import aspects.TaintUtil.StackLocation;
+import datamanagement.ArgBackTaintChecker;
+import datamanagement.ReferenceMaster;
+import datamanagement.StaticFieldBackTaintChecker;
+import datamanagement.TaintLogger;
+import datamanagement.TaintUtil;
+import datamanagement.TaintedArg;
+import datamanagement.TaintUtil.StackLocation;
+
 
 public aspect GeneralTracker {
 	
 	public GeneralTracker() {
 	}
 	
+	/* 
+	 * Some of these cause weaving errors (especially the Bean stuff), or big performance problems 
+	 */
 	pointcut allExclude(): within(javax.management.MBeanConstructorInfo) ||
 							within(javax.management.MBeanNotificationInfo) ||
 							within(javax.management.MBeanFeatureInfo) ||
 							within(javax.management.MBeanOperationInfo) ||
 							within(javax.management.MBeanInfo) ||
 							within(javax.management.MBeanNotificationInfo) ||
+							within(org.hsqldb.types.Binary) ||
+							within(oracle.jpub.runtime.MutableStruct) ||
+							within(oracle.jpub.runtime.MutableArray) ||
+							within(oracle.gss.util.JNLS) ||
+							within(oracle.sql..*) ||
+							within(org.postgresql..*) ||
+							within(org.apache.bcel..*) ||
+							within(org.apache.xalan.xsltc.compiler..*) ||
+							within(org.apache.xerces.util.XMLChar) ||
+							within(org.apache.commons.lang.text.StrTokenizer) ||
+							within(freemarker.core.FMParserTokenManager) ||
+							within(net.sourceforge.jtds.jdbc.UniqueIdentifier) ||
+							within(net.sourceforge.jtds.jdbc.SQLDiagnostic) ||
+							within(org.apache.log4j.spi.ThrowableInformation) ||
+							within(org.apache.lucene.index.SegmentInfo) ||
+							within(com.sun.mail.imap.protocol.IMAPAddress) ||
+							within(com.sun.mail.imap.IMAPFolder) ||
+							within(com.jhlabs.image..*) ||
+							within(com.mchange.v2.codegen.bean..*) ||
+							within(com.mchange.v2.cfg..*) ||
 							within(org.apache.catalina..*) ||
 							within(org.apache.naming..*) ||
 							within(org.apache.AnnotationProcessor) ||

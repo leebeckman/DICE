@@ -2,7 +2,11 @@ package aspects;
 
 import javax.servlet.http.HttpServletRequest;
 
-import aspects.TaintUtil.StackLocation;
+import datamanagement.ReferenceMaster;
+import datamanagement.TaintLogger;
+import datamanagement.TaintUtil;
+import datamanagement.TaintUtil.StackLocation;
+
 
 public aspect RequestParameterTaint {
 	

@@ -142,7 +142,11 @@ package aspects;
 
 import java.util.Set;
 
-import aspects.TaintUtil.StackLocation;
+import datamanagement.ReferenceMaster;
+import datamanagement.TaintLogger;
+import datamanagement.TaintUtil;
+import datamanagement.TaintUtil.StackLocation;
+
 
 
 public aspect OutputTracker {
@@ -151,7 +155,27 @@ public aspect OutputTracker {
 							within(javax.management.MBeanFeatureInfo) ||
 							within(javax.management.MBeanOperationInfo) ||
 							within(javax.management.MBeanInfo) ||
-							within(javax.management.MBeanNotificationInfo);
+							within(javax.management.MBeanNotificationInfo) ||
+							within(org.hsqldb.types.Binary) ||
+							within(oracle.jpub.runtime.MutableStruct) ||
+							within(oracle.jpub.runtime.MutableArray) ||
+							within(oracle.gss.util.JNLS) ||
+							within(freemarker.core.FMParserTokenManager) ||
+							within(org.apache.commons.lang.text.StrTokenizer) ||
+							within(net.sourceforge.jtds.jdbc.UniqueIdentifier) ||
+							within(net.sourceforge.jtds.jdbc.SQLDiagnostic) ||
+							within(org.apache.log4j.spi.ThrowableInformation) ||
+							within(org.apache.lucene.index.SegmentInfo) ||
+							within(oracle.sql..*) ||
+							within(org.postgresql..*) ||
+							within(org.apache.bcel..*) ||
+							within(org.apache.xalan.xsltc.compiler..*) ||
+							within(org.apache.xerces.util.XMLChar) ||
+							within(com.sun.mail.imap.protocol.IMAPAddress) ||
+							within(com.sun.mail.imap.IMAPFolder) ||
+							within(com.jhlabs.image..*) ||
+							within(com.mchange.v2.cfg..*) ||
+							within(com.mchange.v2.codegen.bean..*);
 
 	pointcut myAdvice(): adviceexecution() || within(aspects.*);
 

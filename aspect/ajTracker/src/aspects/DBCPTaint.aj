@@ -8,9 +8,14 @@ import java.util.Set;
 
 import com.mysql.jdbc.PreparedStatement;
 
+import datamanagement.HeuristicIntTainter;
+import datamanagement.ReferenceMaster;
+import datamanagement.TaintLogger;
+import datamanagement.TaintUtil;
+import datamanagement.TaintUtil.StackLocation;
+
 import javassist.compiler.ProceedHandler;
 
-import aspects.TaintUtil.StackLocation;
 
 public aspect DBCPTaint {
 	
