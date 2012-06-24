@@ -123,21 +123,6 @@
 //	}
 //}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 package aspects;
 
 import java.util.Set;
@@ -181,7 +166,7 @@ public aspect OutputTracker {
 
 	// Response Output
 	void around(Object arg): (call(* org.apache.catalina.connector.CoyoteWriter+.println(..)) || call(* org.apache.catalina.connector.CoyoteWriter+.print(..)))&& !within(aspects.*) && !(myAdvice()) && !allExclude() && args(arg) {
-		if (!TaintUtil.getAJLock()) {
+    	if (!TaintUtil.getAJLock()) {
     		return;
 		}
 		TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "AROUNDRO");
@@ -287,7 +272,7 @@ public aspect OutputTracker {
     }
 	
 	after(): call(* com.mysql.jdbc.PreparedStatement.executeUpdate(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
-		if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock())
     		return;
 		StackLocation location = TaintUtil.getStackTraceLocation();
 		TaintLogger.getTaintLogger().logReturning(location, "NONTAINTRETURN", null, null, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
