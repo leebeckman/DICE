@@ -1,0 +1,222 @@
+<project default="weaveddeploy" name="JBoss/AOP">
+    <property name="dice.dir" value="${user.home}/DICE" />
+    <property name="aspect.dir" value="${dice.dir}/aspect" />
+    <property name="tomcat.home" value="${dice.dir}/tomcat" />
+    <import file="${user.home}/DICE/tomcat/bin/catalina-tasks.xml"/>
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+
+    <!-- Requires running the jgossip build file first, to produce the output war -->
+
+    <target name="clean">
+
+    </target>
+
+    <target name="prepare">
+        <delete dir="${aspect.dir}/output"/>
+        <mkdir dir="${aspect.dir}/output"/>
+        <delete dir="${aspect.dir}/build"/>
+        <mkdir dir="${aspect.dir}/build"/>
+
+        <!--
+        <property name="webapp.name" value="TestWebApp" />
+        <unwar src="${dice.dir}/srcwars/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
+        -->
+
+        <!--
+        <property name="webapp.name" value="jgossip" />
+        <unwar src="${dice.dir}/jgossip/dist/default/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
+        -->
+
+        <property name="webapp.name" value="jforum-2.1.8" />
+        <unwar src="${dice.dir}/jforum-src/dist/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
+
+        <property name="webapp.path" value="${aspect.dir}/build/${webapp.name}" />
+
+        <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
+            <classpath>
+                <pathelement location="${aspect.dir}/lib/aspectjtools.jar"/>
+            </classpath>
+        </taskdef>
+    </target>
+
+    <target name="aspectcompile" depends="prepare">
+        <iajc outJar="${aspect.dir}/output/aspects.jar" source="1.5">
+            <sourceroots>
+                <pathelement location="${aspect.dir}/ajTracker/src"/>
+            </sourceroots>
+            <classpath>
+                <pathelement location="${aspect.dir}/lib/aspectjrt.jar"/>
+                <fileset dir="${aspect.dir}/ajTracker/lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <!--<fileset dir="${dice.dir}/jgossip/lib">
+                    <include name="*.jar"/>
+                </fileset>-->
+            </classpath>
+        </iajc>
+    </target>
+
+    <target name="jspcprepare" depends="prepare"> 
+        <jasper 
+            validateXml="false" 
+            uriroot="${webapp.path}" 
+            webXmlFragment="${webapp.path}/WEB-INF/generated_web.xml" 
+            outputDir="${webapp.path}/WEB-INF/src" /> 
+    </target>
+
+    <target name="jspprecompile" depends="jspcprepare">
+        <mkdir dir="${webapp.path}/WEB-INF/classes"/>
+        <mkdir dir="${webapp.path}/WEB-INF/lib"/>
+
+        <javac destdir="${webapp.path}/WEB-INF/classes"
+                optimize="off"
+                debug="on" failonerror="false"
+                srcdir="${webapp.path}/WEB-INF/src" 
+                excludes="**/*.smap">
+            <classpath>
+                <pathelement location="${webapp.path}/WEB-INF/classes"/>
+                <fileset dir="${webapp.path}/WEB-INF/lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <pathelement location="${tomcat.home}/prelib"/>
+                <fileset dir="${tomcat.home}/prelib">
+                    <include name="*.jar"/>
+                </fileset>
+                <fileset dir="${tomcat.home}/bin"> 
+                    <include name="*.jar"/> 
+                </fileset> 
+            </classpath>
+            <include name="**" />
+            <exclude name="tags/**" />
+        </javac>
+    </target>
+
+    <target name="rewar" depends="aspectcompile">
+        <war destfile="${aspect.dir}/output/${webapp.name}.war" basedir="${aspect.dir}/build/${webapp.name}"/>
+        <delete dir="${aspect.dir}/build"/>
+    </target>
+
+    <target name="fullweave" depends="jspprecompile, aspectcompile">
+        <mkdir dir="${webapp.path}/WEB-INF/weavedlib" />
+
+        <!-- WEAVE WEBAPP LIBS -->
+        <for param="file">
+            <path>
+                <fileset dir="${webapp.path}/WEB-INF/lib" includes="*.jar" />
+            </path>
+            <sequential>
+                <var name="filename" unset="true"/>
+                <property name="filename" value="@{file}" basedir="${webapp.path}/WEB-INF/lib" relative="yes" />
+                <echo>Weaving @{file}</echo>
+                <iajc outJar="${webapp.path}/WEB-INF/weavedlib/${filename}" source="1.5">
+                    <inpath>
+                        <pathelement location="@{file}"/>
+                    </inpath>
+                    <aspectpath>
+                        <pathelement location="${aspect.dir}/output/aspects.jar"/>
+                    </aspectpath>
+                    <classpath>
+                        <pathelement location="${aspect.dir}/lib/aspectjrt.jar"/>
+                        <fileset dir="${webapp.path}/WEB-INF/lib">
+                            <include name="*.jar"/>
+                        </fileset>
+                        <fileset dir="${aspect.dir}/ajTracker/lib">
+                            <include name="*.jar"/>
+                        </fileset>
+                        <fileset dir="${dice.dir}/jgossip/database/mysql/lib">
+                            <include name="*.jar"/>
+                        </fileset>
+                        <fileset dir="${dice.dir}/jgossip/database/oracle/lib">
+                            <include name="*.jar"/>
+                        </fileset>
+                    </classpath>
+                </iajc>
+            </sequential>
+        </for>
+
+        <delete dir="${webapp.path}/WEB-INF/lib" />
+        <move file="${webapp.path}/WEB-INF/weavedlib" tofile="${webapp.path}/WEB-INF/lib"/>
+    
+        <!-- WEAVE WEBAPP CLASSES -->
+        <mkdir dir="${webapp.path}/WEB-INF/weavedclasses" />
+        <iajc destDir="${webapp.path}/WEB-INF/weavedclasses" source="1.5">
+            <inpath>
+                <pathelement location="${webapp.path}/WEB-INF/classes"/>
+            </inpath>
+            <aspectpath>
+                <pathelement location="${aspect.dir}/output/aspects.jar"/>
+            </aspectpath>
+            <classpath>
+                <pathelement location="${aspect.dir}/lib/aspectjrt.jar"/>
+                <fileset dir="${webapp.path}/WEB-INF/lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <fileset dir="${aspect.dir}/ajTracker/lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <!--<fileset dir="${dice.dir}/jgossip/database/mysql/lib">
+                    <include name="*.jar"/>
+                </fileset>
+                <fileset dir="${dice.dir}/jgossip/database/oracle/lib">
+                    <include name="*.jar"/>
+                </fileset>-->
+                <fileset dir="${dice.dir}/tomcat/prelib">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </iajc>
+
+        <move file="${webapp.path}/WEB-INF/weavedclasses" tofile="${webapp.path}/WEB-INF/classes"/>
+
+        <war destfile="${aspect.dir}/output/${webapp.name}.war" basedir="${aspect.dir}/build/${webapp.name}"/>
+        <delete dir="${aspect.dir}/build"/>
+
+        <!-- DISABLE TO SAVE ON EXECUTION COSTS, ESP AT STARTUP -->
+        <!-- WEAVE TOMCAT CLASSES -->
+        <for param="file">
+            <path>
+                <!-- MAY WANT TO REENABLE SOME OF THESE EXLUSIONS LATER -->
+                <fileset dir="${tomcat.home}/prelib" includes="*.jar" excludes="aspectjrt.jar,xerces.jar,annotations-api.jar,ant.jar,xalan.jar,xml-apis.jar" />
+            </path>
+            <sequential>
+                <var name="filename" unset="true"/>
+                <property name="filename" value="@{file}" basedir="${dice.dir}/tomcat/prelib" relative="yes" />
+
+                <iajc outJar="${dice.dir}/tomcat/lib/${filename}" source="1.5">
+                    <inpath>
+                        <pathelement location="@{file}"/>
+                    </inpath>
+                    <aspectpath>
+                        <pathelement location="${aspect.dir}/output/aspects.jar"/>
+                    </aspectpath>
+                    <classpath>
+                        <fileset dir="${tomcat.home}/prelib">
+                            <include name="*.jar"/>
+                        </fileset>
+                        <fileset dir="${tomcat.home}/bin">
+                            <include name="*.jar"/>
+                        </fileset>
+                        <fileset dir="${aspect.dir}/lib">
+                            <include name="*.jar"/>
+                        </fileset>
+                        <fileset dir="${aspect.dir}/ajTracker/lib">
+                            <include name="*.jar"/>
+                        </fileset>
+                    </classpath>
+                </iajc>
+            </sequential>
+        </for>
+    </target>
+
+    <!-- Just spit out the instrumented war so we can replace the classes/libs in the uninstrumented deploy. JForum does some setup stuff
+    which means you can't just start using the app from a fresh deploy, and I don't want to bother with running the setup in instrumented mode -->
+    <target name="weaveddeploy" depends="fullweave">
+        <!--<delete file="${dice.dir}/tomcat/webapps/${webapp.name}.war" />
+        <delete dir="${dice.dir}/tomcat/webapps/${webapp.name}" />
+        <copy todir="${dice.dir}/tomcat/webapps" file="${aspect.dir}/output/${webapp.name}.war" />-->
+
+        <delete file="${dice.dir}/tomcat/lib/aspects.jar" />
+        <copy todir="${dice.dir}/tomcat/lib" file="${aspect.dir}/output/aspects.jar" />
+    </target>
+
+</project>

@@ -6,4 +6,6 @@ rm *.1
 rm ext*
 
 rm tomcat/logs/*
-cp tomcat/prelib/*.jar tomcat/lib
+cd tomcat/lib
+ls | grep -v aspect | xargs rm
+cp ../prelib/*.jar ./

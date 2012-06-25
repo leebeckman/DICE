@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.rsa.certj.xml.dsig.Reference;
 
 import datamanagement.ReferenceMaster;
+import datamanagement.SimpleCommControl;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
 import datamanagement.TaintUtil.StackLocation;
@@ -47,7 +48,7 @@ public aspect StringTracking {
 		within(org.apache.tomcat.dbcp..*);
 	//pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
-	pointcut myAdvice(): adviceexecution() || within(aspects.*);
+	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
 	 /*
      * For managing taint at the String level
 	 * Pointcuts for String, StringBuilder, StringBuffer
@@ -412,6 +413,8 @@ public aspect StringTracking {
      * 
      */
     after() returning (Object ret): (stringConstruct() || stringBuilderConstruct() || stringBufferConstruct() || stringCopyValueOf() || stringFormat()) && !(myAdvice())  && !allExclude(){
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackLocation location = TaintUtil.getStackTraceLocation();
@@ -454,6 +457,8 @@ public aspect StringTracking {
 	 * int[], int, int truncates
 	 */
     after() returning (Object ret): stringConstructModification() && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
 		StackLocation location = TaintUtil.getStackTraceLocation();
     	
@@ -469,6 +474,8 @@ public aspect StringTracking {
      * Static propagation without modification
      */
     after() returning (Object ret): (stringValueOf() || stringCopyValueOf()) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
 		StackLocation location = TaintUtil.getStackTraceLocation();
     	
@@ -484,6 +491,8 @@ public aspect StringTracking {
      * Static propagation with modification
      */
     after() returning (Object ret): (stringValueOfCharModification() || stringCopyValueOfModification()) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
 		StackLocation location = TaintUtil.getStackTraceLocation();
     	
@@ -502,6 +511,8 @@ public aspect StringTracking {
      */
     after() returning (Object ret): 	(stringGetBytes() || stringToCharArray() || stringBuilderToString() || stringBuilderShareValue() ||
     					stringBuilderGetValue() || stringBufferToString() || stringBufferShareValue() || stringBufferGetValue()) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	StackLocation location = TaintUtil.getStackTraceLocation();
 
 		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
@@ -516,6 +527,8 @@ public aspect StringTracking {
      */
     
     before(): (stringGetBytesNoReturn() || stringGetCharsNoReturn() || stringBuilderGetChars() || stringBufferGetChars()) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
 		StackLocation location = TaintUtil.getStackTraceLocation();
     	
@@ -539,6 +552,8 @@ public aspect StringTracking {
      */
     after() returning (Object ret): 	(stringGetBytesModification() || stringReplace() || stringSubstring() || stringToLowerCase() || stringToUpperCase()  || 
     					stringTrim() || stringSubSequence() || stringBuilderSubstring() || stringBuilderSubSequence() || stringBufferSubstring() || stringBufferSubSequence()) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	StackLocation location = TaintUtil.getStackTraceLocation();
 
 		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
@@ -552,6 +567,8 @@ public aspect StringTracking {
      * Propagation by splitting
      */
     after() returning (Object ret): stringSplit() && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	StackLocation location = TaintUtil.getStackTraceLocation();
 		
 		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget())) {
@@ -571,6 +588,8 @@ public aspect StringTracking {
      * Concat propagates and composes this and argument
      */
     after() returning (Object ret): stringConcat() && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackLocation location = TaintUtil.getStackTraceLocation();
@@ -604,6 +623,8 @@ public aspect StringTracking {
      * Currently finds composition from relaceAll, replaceFirst
      */
     after() returning (Object ret): stringReplaceString() && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackLocation location = TaintUtil.getStackTraceLocation();
@@ -645,6 +666,8 @@ public aspect StringTracking {
     					stringRegionMatches() || stringContentEquals() || stringMatches() || stringContains() || stringReplaceString() ||
     					stringBuilderIndexOf() || stringBuilderLastIndexOf() || stringBufferIndexOf() || stringBufferLastIndexOf()) && !(myAdvice()) && !allExclude() {
     	
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> associated = new ArrayList<Object>();
 		StackLocation location = TaintUtil.getStackTraceLocation();
@@ -683,6 +706,8 @@ public aspect StringTracking {
     
     Object around(Integer index, Integer arg): 	(stringBuilderInsert() || stringBufferInsert()) 
     		&& !(myAdvice()) && !allExclude() && args(index, arg) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(index, arg);
     	
     	if (ReferenceMaster.isPrimaryTainted(arg)) {
     		arg = ReferenceMaster.getTaintedIntOldValue(arg);
@@ -694,6 +719,8 @@ public aspect StringTracking {
     after() returning (Object ret): 	(stringBuilderAppend() || stringBuilderInsert() || stringBuilderReplace() ||
     					stringBufferAppend() || stringBufferInsert() || stringBufferReplace()) && !(myAdvice()) && !allExclude() {
 //    	System.out.println("this mod");
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackLocation location = TaintUtil.getStackTraceLocation();
@@ -733,6 +760,8 @@ public aspect StringTracking {
      */
     after() returning (Object ret): 	(stringBuilderAppendModification() || stringBuilderInsertModification() ||
     					stringBufferAppendModification() || stringBufferInsertModification()) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
     	ArrayList<Object> composed = new ArrayList<Object>();
 		StackLocation location = TaintUtil.getStackTraceLocation();
@@ -771,6 +800,8 @@ public aspect StringTracking {
     
     after() returning (Object ret):	(stringBuilderDelete() || stringBufferDelete() || stringBuilderReverse() || stringBufferReverse() ||
     					stringBuilderAppendCodePoint() || stringBufferAppendCodePoint()) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	StackLocation location = TaintUtil.getStackTraceLocation();
 		
     	// Note modification of this
@@ -785,7 +816,9 @@ public aspect StringTracking {
     before(): (stringBuilderSetCharAt() || stringBufferSetCharAt() || stringBuilderSetLength() || stringBufferSetLength()) && !(myAdvice()) && !allExclude() {
     	StackLocation location = TaintUtil.getStackTraceLocation();
 		
-		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
+    	if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
 			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHISVOID", thisJoinPoint.getThis());
     	// Note modification of this
     }
@@ -794,6 +827,8 @@ public aspect StringTracking {
      * Monitors all method invocations and returns for fuzzy propagation
      */
     after() returning (Object ret): execution(public * *.*(..)) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
 		StackLocation location = TaintUtil.getStackTraceLocation();
 

@@ -15,6 +15,7 @@ import org.apache.catalina.connector.RequestFacade;
 import org.aspectj.lang.reflect.FieldSignature;
 
 import datamanagement.ReferenceMaster;
+import datamanagement.SimpleCommControl;
 import datamanagement.StaticFieldBackTaintChecker;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
@@ -60,7 +61,7 @@ public aspect ReferenceTracker {
 								within(org.apache.tomcat.dbcp..*);
 //	pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
-	pointcut myAdvice(): adviceexecution() || within(aspects.*);
+	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
 	pointcut tooBigErrorExcludeCollections(): within(com.mysql.jdbc.TimeUtil) ||
 												within(org.apache.jasper.xmlparser.EncodingMap) ||
 												within(org.apache.xerces.util.EncodingMap);
@@ -68,7 +69,9 @@ public aspect ReferenceTracker {
 	// For associating threads with requests
 	// TODO: Does this really belong here?
 	before(): call(* service(..)) {
-		ReferenceMaster.resetPSTaintTracking(); // Otherwise possible side effects across requests.
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
+    	ReferenceMaster.resetPSTaintTracking(); // Otherwise possible side effects across requests.
 		Object[] args = thisJoinPoint.getArgs();
 		String URI = null;
 		String remoteAddr = null;
@@ -87,6 +90,8 @@ public aspect ReferenceTracker {
      * Advice for new reference tracking system
      */
     after() returning(Object accessed): get(!static * *) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	StackLocation location = null;
 		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
 
@@ -116,7 +121,9 @@ public aspect ReferenceTracker {
     }
 	
     before(): set(!static * *) && !(myAdvice()) && !withincode(*.new(..)) && !allExclude() {
-		Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
+    	Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
 		field.setAccessible(true);
 		if (field.getType().isPrimitive() ||
 				field.getType().equals(Integer.class) ||
@@ -173,6 +180,8 @@ public aspect ReferenceTracker {
 //    }
     
     after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;// scan ret for instance fields.
     	Class clazz = ret.getClass();
@@ -220,6 +229,8 @@ public aspect ReferenceTracker {
      * perspective)
      */
     before(): get(static * *) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	StackLocation location = null;
 		Field field = ((FieldSignature)thisJoinPoint.getSignature()).getField();
 		field.setAccessible(true);
@@ -272,6 +283,8 @@ public aspect ReferenceTracker {
     }
     
     before(): set(static * *) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Field field = ((FieldSignature) thisJoinPoint.getSignature()).getField();
 		field.setAccessible(true);
 		Object newValue = thisJoinPoint.getArgs()[0];
@@ -344,6 +357,8 @@ public aspect ReferenceTracker {
      * Collection/Map constructors
      */
     Object around(): call(java.util.Collection+.new(..)) && collectionOp() && !tooBigErrorExcludeCollections() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed();
     	Object ret = proceed();
     	if ((ret instanceof Collection) && 
 				!(ret instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
@@ -379,7 +394,9 @@ public aspect ReferenceTracker {
     }
 	Object around(): call(java.util.Map+.new(..)) && mapOp() && !tooBigErrorExcludeCollections() && !allExclude() {
     	// look for map
-		Object ret = proceed();
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed();
+    	Object ret = proceed();
 		if ((ret instanceof Map) && 
 				!(ret instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
 						ret instanceof javax.management.AttributeList ||
@@ -421,6 +438,8 @@ public aspect ReferenceTracker {
      */
     after() returning (Object ret): call(* java.util.Collection+.*(..)) && collectionOp() && !tooBigErrorExcludeCollections() && !allExclude() {
     	// Object (ret bool)
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object target = thisJoinPoint.getTarget();
     	if ((target instanceof Collection) && 
 				!(target instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
@@ -665,6 +684,8 @@ public aspect ReferenceTracker {
     	}
     }
     before(): call(* java.util.Collection+.*(..)) && !tooBigErrorExcludeCollections() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object target = thisJoinPoint.getTarget();
     	if ((target instanceof Collection) && 
 				!(target instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
@@ -715,6 +736,8 @@ public aspect ReferenceTracker {
     }
 
     after() returning (Object ret): call(* java.util.Map+.*(..)) && mapOp() && !tooBigErrorExcludeCollections() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object target = thisJoinPoint.getTarget();
     	if ((target instanceof Map) && 
 				!(target instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker
@@ -785,6 +808,8 @@ public aspect ReferenceTracker {
     	}
     }
     before(): call(* java.util.Map+.*(..)) && mapOp() && !tooBigErrorExcludeCollections() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object target = thisJoinPoint.getTarget();
     	if ((target instanceof Map) && 
 				!(target instanceof java.beans.beancontext.BeanContext ||  // These must agree with collectionOp pointcut in GeneralTracker

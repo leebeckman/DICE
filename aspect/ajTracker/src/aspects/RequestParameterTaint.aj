@@ -3,6 +3,7 @@ package aspects;
 import javax.servlet.http.HttpServletRequest;
 
 import datamanagement.ReferenceMaster;
+import datamanagement.SimpleCommControl;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
 import datamanagement.TaintUtil.StackLocation;
@@ -15,20 +16,26 @@ public aspect RequestParameterTaint {
 	}
     
 	before(): execution(* org.apache.catalina.connector.Request.getParameter(..)) {
-		if (!TaintUtil.getAJLock())
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
+    	if (!TaintUtil.getAJLock())
     		return;
 		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRIN");
     	TaintUtil.releaseAJLock();
 	}
 	
 	before(): execution(* org.apache.catalina.connector.Request.getParameterValues(..)) {
-		if (!TaintUtil.getAJLock())
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
+    	if (!TaintUtil.getAJLock())
     		return;
 		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRINV");
     	TaintUtil.releaseAJLock();
 	}
 	
     after() returning (Object ret): execution(* org.apache.catalina.connector.Request.getParameter(..)) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	// Need to manage context outside of general tracker, as general tracker excludes target pointcut
@@ -51,6 +58,8 @@ public aspect RequestParameterTaint {
     }
     
     after() returning (Object ret): execution(* org.apache.catalina.connector.Request.getParameterValues(..)) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	

@@ -12,6 +12,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 
 import datamanagement.ArgBackTaintChecker;
 import datamanagement.ReferenceMaster;
+import datamanagement.SimpleCommControl;
 import datamanagement.StaticFieldBackTaintChecker;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
@@ -63,7 +64,7 @@ public aspect GeneralTracker {
 							within(org.apache.tomcat.dbcp..*);
 //	pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
-	pointcut myAdvice(): adviceexecution() || within(aspects.*);
+	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
 	pointcut tooBigErrorExclude(): within(com.mysql.jdbc.TimeUtil) || 
 									within(org.apache.catalina.startup.WebRuleSet) ||
 									within(org.eclipse.jdt.internal.compiler..*) ||
@@ -110,6 +111,8 @@ public aspect GeneralTracker {
      */
     
     before(): (execution(* *.*(..)) || execution(*.new(..))) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BE");
@@ -175,6 +178,8 @@ public aspect GeneralTracker {
      */
     
     after() returning (Object ret): execution(* *.*(..)) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	Long totalTime = TaintUtil.getTotalTime();
@@ -267,6 +272,8 @@ public aspect GeneralTracker {
      */
     
     after(Object ret) returning: this(ret) && execution(*.new(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	Long totalTime = TaintUtil.getTotalTime();
@@ -349,6 +356,8 @@ public aspect GeneralTracker {
     }
     
     after(): (execution(*.new(..)) || execution(* *.*(..))) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	TaintUtil.popStartTime();
@@ -361,6 +370,8 @@ public aspect GeneralTracker {
      * BEFORE JAVA CALL
      */
     before(): call(* java..*.*(..)) && !within(aspects.*) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "BJC");
@@ -425,6 +436,8 @@ public aspect GeneralTracker {
      * BEFORE JAVA CONSTRUCTOR CALL
      */
     before(): call(java..*.new(..)) && !within(aspects.*) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "BJCC");
@@ -481,6 +494,8 @@ public aspect GeneralTracker {
      * AFTER JAVA METHOD CALL
      */
     after() returning (Object ret): call(* java..*.*(..)) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	Long totalTime = TaintUtil.getTotalTime();
@@ -573,6 +588,8 @@ public aspect GeneralTracker {
      * AFTER JAVA CONSTRUCTOR CALL
      */
     after() returning (Object ret): call(java..*.new(..)) && !within(aspects.*) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	Long totalTime = TaintUtil.getTotalTime();
@@ -614,6 +631,8 @@ public aspect GeneralTracker {
     }
     
     after(): (call(java..*.new(..)) || call(* java..*.*(..))) && !within(aspects.*) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
     	TaintUtil.popStartTime();

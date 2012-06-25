@@ -10,6 +10,7 @@ import com.mysql.jdbc.PreparedStatement;
 
 import datamanagement.HeuristicIntTainter;
 import datamanagement.ReferenceMaster;
+import datamanagement.SimpleCommControl;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
 import datamanagement.TaintUtil.StackLocation;
@@ -36,6 +37,8 @@ public aspect DBCPTaint {
 //    	(execution(public * org.apache.commons.dbcp..*PreparedStatement.executeQuery(..)) ||
     
     Object around(): resultSetIntAccess() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed();
     	Object ret = proceed();
     	
     	if (ret instanceof Integer) {
@@ -108,6 +111,8 @@ public aspect DBCPTaint {
     }
     
     after() returning (Object ret): resultSetAccess() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
 //    		result = new String((String)result, true);
     		boolean skip = false;
@@ -172,6 +177,8 @@ public aspect DBCPTaint {
     }
     
     ResultSet around(): resultSetCreation() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed();
     	ResultSet rs = proceed();
 		ResultSetMetaData metaData = null;
 		try {
@@ -203,6 +210,8 @@ public aspect DBCPTaint {
     }
 
     before(): execution(public * com.mysql.jdbc.PreparedStatement.set*(..)) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	Object[] args = thisJoinPoint.getArgs();
     	Object holder = new Object();
     	

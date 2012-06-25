@@ -128,6 +128,7 @@ package aspects;
 import java.util.Set;
 
 import datamanagement.ReferenceMaster;
+import datamanagement.SimpleCommControl;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
 import datamanagement.TaintUtil.StackLocation;
@@ -162,10 +163,14 @@ public aspect OutputTracker {
 							within(com.mchange.v2.cfg..*) ||
 							within(com.mchange.v2.codegen.bean..*);
 
-	pointcut myAdvice(): adviceexecution() || within(aspects.*);
+	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
 
 	// Response Output
 	void around(Object arg): (call(* org.apache.catalina.connector.CoyoteWriter+.println(..)) || call(* org.apache.catalina.connector.CoyoteWriter+.print(..)))&& !within(aspects.*) && !(myAdvice()) && !allExclude() && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled()) {
+    		proceed(arg);
+    		return;
+		}
     	if (!TaintUtil.getAJLock()) {
     		return;
 		}
@@ -224,6 +229,8 @@ public aspect OutputTracker {
 	
 	// DB Update Output
 	before(): call(* com.mysql.jdbc.PreparedStatement.executeUpdate(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
 		TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "BEFOREDBO");
@@ -272,6 +279,8 @@ public aspect OutputTracker {
     }
 	
 	after(): call(* com.mysql.jdbc.PreparedStatement.executeUpdate(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return;
     	if (!TaintUtil.getAJLock())
     		return;
 		StackLocation location = TaintUtil.getStackTraceLocation();
@@ -281,6 +290,10 @@ public aspect OutputTracker {
 	}
 	
     void around(Integer arg): execution(public * *PreparedStatement.setInt(..)) && args(arg) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled()) {
+    		proceed(arg);
+    		return;
+    	}
     	if (ReferenceMaster.isPrimaryTainted(arg)) {
     		arg = ReferenceMaster.getTaintedIntOldValue(arg);
     	}
