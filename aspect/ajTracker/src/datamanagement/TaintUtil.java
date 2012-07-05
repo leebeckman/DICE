@@ -15,101 +15,94 @@ public class TaintUtil {
 	public static SimpleCommControl commControl = SimpleCommControl.getInstance();
 	public static ArrayList<Integer> dcounter = null;
 	
-	private static HashMap<Long, Boolean> ajLock = new HashMap<Long, Boolean>();
+	private static HashMap<Long, LockPair> ajLock = new HashMap<Long, LockPair>();
 	private static HashMap<Long, Object[]> argsStore = new HashMap<Long, Object[]>();
 	private static HashMap<Long, Stack<Long>> startTimeStore = new HashMap<Long, Stack<Long>>();
 	private static HashMap<Long, Stack<ContextRecord>> contextStore = new HashMap<Long, Stack<ContextRecord>>();
+//	private static HashMap<Long, Stack<ContextRecord>> jspContextStore = new HashMap<Long, Stack<ContextRecord>>();
 	
 	public static synchronized void pushStartTime() {
 		Long threadID = Thread.currentThread().getId();
 		Long startTime = System.currentTimeMillis();
-		Stack<Long> store = startTimeStore.get(threadID);
-		if (store == null) {
-			store = new Stack<Long>();
-			startTimeStore.put(threadID, store);
+		Stack<Long> stack = startTimeStore.get(threadID);
+		if (stack == null) {
+			stack = new Stack<Long>();
+			startTimeStore.put(threadID, stack);
 		}
-		store.push(startTime);
+		stack.push(startTime);
 	}
 	
 	public static synchronized Long getTotalTime() {
 		Long threadID = Thread.currentThread().getId();
-		Stack<Long> store = startTimeStore.get(threadID);
+		Stack<Long> stack = startTimeStore.get(threadID);
 		Long totalTime = null;
-		if (store == null) {
+		if (stack == null || stack.size() == 0) {
 			TaintLogger.getTaintLogger().log("POPSTARTTIME FAIL");
 		}
 		else{
-			totalTime = System.currentTimeMillis() - store.peek();
+			totalTime = System.currentTimeMillis() - stack.peek();
 		}
 		return totalTime;
 	}
 	
 	public static synchronized void popStartTime() {
 		Long threadID = Thread.currentThread().getId();
-		Stack<Long> store = startTimeStore.get(threadID);
-		if (store == null) {
+		Stack<Long> stack = startTimeStore.get(threadID);
+		if (stack == null || stack.size() == 0) {
 			TaintLogger.getTaintLogger().log("POPSTARTTIME FAIL");
 		}
 		else {
-			store.pop();
+			stack.pop();
 		}
 	}
 	
 	public static synchronized void pushContext(Object context, Signature sig, String src) {
 		Long threadID = Thread.currentThread().getId();
-		Stack<ContextRecord> store = contextStore.get(threadID);
-		if (store == null) {
-			store = new Stack<ContextRecord>();
-			contextStore.put(threadID, store);
+		Stack<ContextRecord> stack = contextStore.get(threadID);
+		if (stack == null) {
+			stack = new Stack<ContextRecord>();
+			contextStore.put(threadID, stack);
 		}
+		ContextRecord pushed = null;
 		if (sig instanceof MethodSignature)  {
 			MethodSignature methodSig = (MethodSignature) sig;
-			store.push(new ContextRecord(context, methodSig.getMethod().getDeclaringClass().getName(), methodSig.getName(), methodSig.getParameterTypes()));
-//			String tabs = "";
-//			for (int i = 0; i < store.size(); i++)
-//				tabs += "\t";
-//			TaintLogger.getTaintLogger().log(tabs + "PUSHING: " + methodSig + " from: " + src);
+			pushed = new ContextRecord(context, methodSig.getMethod().getDeclaringClass().getName(), methodSig.getName(), methodSig.getParameterTypes());
+			stack.push(pushed);
 		}
 		else if (sig instanceof ConstructorSignature) {
 			ConstructorSignature constSig = (ConstructorSignature) sig;
-			store.push(new ContextRecord(context, constSig.getDeclaringTypeName(), constSig.getName(), constSig.getParameterTypes()));
-//			String tabs = "";
-//			for (int i = 0; i < store.size(); i++)
-//				tabs += "\t";
-//			TaintLogger.getTaintLogger().log(tabs + "CPUSHING: " + constSig + " from: " + src);
-//			if (src.equals("BJCC")) {
-//				StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-//				for (int i = 0; i < 10; i++) {
-//					if (i < stack.length)
-//						TaintLogger.getTaintLogger().log(stack[i].toString());
-//				}
-//			}
+			pushed = new ContextRecord(context, constSig.getDeclaringTypeName(), constSig.getName(), constSig.getParameterTypes());
+			stack.push(pushed);
 		}
 		
-//		if (context != null)
-//			TaintLogger.getTaintLogger().log("PUSHING CONTEXT: " + methodSig.getMethod().getDeclaringClass().getName() + ":" + methodSig.getName());
-//		else
-//			TaintLogger.getTaintLogger().log("PUSHING CONTEXT: " + methodSig.getMethod().getDeclaringClass().getName() + ":" + methodSig.getName());
+//		if (pushed != null && pushed.getContextClassName().contains("_jsp") && pushed.getContextMethodName().startsWith("_jspService")) {
+//			Stack<ContextRecord> jspStack = jspContextStore.get(threadID);
+//			if (jspStack == null) {
+//				jspStack = new Stack<ContextRecord>();
+//				jspContextStore.put(threadID, jspStack);
+//			}
+//			jspStack.push(pushed);
+//		}
 	}
 	
 	public static synchronized ContextRecord getLastContext() {
 		Long threadID = Thread.currentThread().getId();
-		Stack<ContextRecord> store = contextStore.get(threadID);
-		if (store == null) {
+		Stack<ContextRecord> stack = contextStore.get(threadID);
+		if (stack == null || stack.size() == 0) {
 			TaintLogger.getTaintLogger().log("GETCONTEXT FAIL");
 			return null;
 		}
 		else{
 			ContextRecord result = null;
-			if (store.size() > 0) {
-				ContextRecord popped = store.pop();
+			if (stack.size() > 0) {
+				ContextRecord popped = stack.pop();
 			
-				if (store.size() > 0) {
-					result = store.peek();
-					store.push(popped);
+				if (stack.size() > 0) {
+					result = stack.peek();
+					stack.push(popped);
 				}
 				else {
-					store.push(popped);
+					stack.push(popped);
 				}
 			}
 			return result;
@@ -118,51 +111,63 @@ public class TaintUtil {
 	
 	public static synchronized ContextRecord getContext() {
 		Long threadID = Thread.currentThread().getId();
-		Stack<ContextRecord> store = contextStore.get(threadID);
-		if (store == null) {
+		Stack<ContextRecord> stack = contextStore.get(threadID);
+		if (stack == null || stack.size() == 0) {
 			TaintLogger.getTaintLogger().log("GETCONTEXT FAIL");
 			return null;
 		}
-		else{
+		else {
 			ContextRecord result = null;
 			
-			if (store.size() > 0) {
-				result = store.peek();
+			if (stack.size() > 0) {
+				result = stack.peek();
 			}
 			return result;
 		}
+		
+		
 	}
 	
 	public static synchronized void popContext(String src) {
 		Long threadID = Thread.currentThread().getId();
-		Stack<ContextRecord> store = contextStore.get(threadID);
-		if (store == null) {
+		Stack<ContextRecord> stack = contextStore.get(threadID);
+		if (stack == null || stack.size() == 0) {
 			TaintLogger.getTaintLogger().log("POPCONTEXT FAIL");
 		}
 		else {
-//			if (store.peek() != null)
-//				TaintLogger.getTaintLogger().log("POPPING CONTEXT: " + store.pop().getClass().getName());
-//			else
-//				TaintLogger.getTaintLogger().log("POPPING CONTEXT: " + store.pop());
-			ContextRecord popped = store.pop();
-//			String tabs = "";
-//			for (int i = 0; i < store.size() + 1; i++)
-//				tabs += "\t";
-//			TaintLogger.getTaintLogger().log(tabs + "POPPING: " + popped + " from: " + src);
+			ContextRecord popped = stack.pop();
+			
+//			if (popped != null && popped.getContextClassName().contains("_jsp") && popped.getContextMethodName().startsWith("_jspService")) {
+//				Stack<ContextRecord> jspStack = jspContextStore.get(threadID);
+//				jspStack.pop();
+//			}
 		}
 	}
 	
+//	public static boolean inJSPContext() {
+//		Long threadID = Thread.currentThread().getId();
+//		Stack<ContextRecord> jspStack = jspContextStore.get(threadID);
+//		if (jspStack == null)
+//			return false;
+//		
+//		if (jspStack.size() > 0)
+//			return true;
+//		
+//		return false;
+//	}
+	
 	//TODO: this locking scheme will cause tracking to be missed on lock acquisition failure.
-	public static synchronized boolean getAJLock() {
+	public static synchronized boolean getAJLock(String id) {
 		Long threadID = Thread.currentThread().getId();
-		Boolean locked = ajLock.get(threadID);
+		LockPair lock = ajLock.get(threadID);
 		
-		if (locked == null) {
-			ajLock.put(threadID, new Boolean(true));
+		if (lock== null) {
+			ajLock.put(threadID, new LockPair(true, id));
 			return true;
 		}
-		else if (!locked) {
-			ajLock.put(threadID, new Boolean(true));
+		else if (!lock.locked) {
+			lock.locked = true;
+			lock.id = id;
 			return true;
 		}
 		else {
@@ -170,10 +175,24 @@ public class TaintUtil {
 		}
 	}
 	
-	
-	public static synchronized void releaseAJLock() {
+	public static synchronized void releaseAJLock(String id) {
 		Long threadID = Thread.currentThread().getId();
-		ajLock.put(threadID, new Boolean(false));
+		LockPair lock = ajLock.get(threadID);
+		if (id.equals(lock.id))
+			lock.locked = false;
+		else {
+			TaintLogger.getTaintLogger().log("UNLOCK MISMATCH: oldid: " + lock.id + " newid: " + id);
+		}
+	}
+	
+	public static class LockPair {
+		public boolean locked;
+		public String id;
+		
+		public LockPair(boolean locked, String id) {
+			this.locked = locked;
+			this.id = id;
+		}
 	}
 	
 	public static synchronized void storeArgs(Object[] args) {

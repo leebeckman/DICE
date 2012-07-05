@@ -31,6 +31,8 @@ public aspect ReferenceTracker {
 								within(javax.management.MBeanOperationInfo) ||
 								within(javax.management.MBeanInfo) ||
 								within(javax.management.MBeanNotificationInfo) ||
+//								within(com.mysql.jdbc..*) ||
+								within(org.apache.jasper.runtime.JspWriterImpl) ||
 								within(org.hsqldb.types.Binary) ||
 								within(oracle.jpub.runtime.MutableStruct) ||
 								within(oracle.jpub.runtime.MutableArray) ||
@@ -51,14 +53,51 @@ public aspect ReferenceTracker {
 								within(com.jhlabs.image..*) ||
 								within(com.mchange.v2.cfg..*) ||
 								within(com.mchange.v2.codegen.bean..*) ||
-								within(org.apache.catalina..*) ||
+
+								within(org.apache.catalina.ant.*) ||
+								within(org.apache.catalina.util.*) ||
+								within(org.apache.catalina.ha.*) ||
+								within(org.apache.catalina.tribes.*) ||
+								within(org.apache.catalina.authenticator.*) ||
+								within(org.apache.catalina.connector.*) ||
+								within(org.apache.catalina.core.*) ||
+								within(org.apache.catalina.deploy.*) ||
+								within(org.apache.catalina.filters.*) ||
+								within(org.apache.catalina.loaders.*) ||
+								within(org.apache.catalina.manager.*) ||
+								within(org.apache.catalina.mbeans.*) ||
+								within(org.apache.catalina.realm.*) ||
+								within(org.apache.catalina.security.*) ||
+								within(org.apache.catalina.servlets.*) ||
+								within(org.apache.catalina.ssi.*) ||
+								within(org.apache.catalina.startup.*) ||
+								within(org.apache.catalina.users.*) ||
+								within(org.apache.catalina.valves.*) ||
+								within(org.apache.catalina.A*) ||
+								within(org.apache.catalina.C*) ||
+								within(org.apache.catalina.E*) ||
+								within(org.apache.catalina.G*) ||
+								within(org.apache.catalina.H*) ||
+								within(org.apache.catalina.I*) ||
+								within(org.apache.catalina.L*) ||
+								within(org.apache.catalina.M*) ||
+								within(org.apache.catalina.P*) ||
+								within(org.apache.catalina.R*) ||
+								within(org.apache.catalina.Serv*) ||
+								within(org.apache.catalina.Store*) ||
+								within(org.apache.catalina.U*) ||
+								within(org.apache.catalina.V*) ||
+								within(org.apache.catalina.W*) ||
+								
 								within(org.apache.naming..*) ||
 								within(org.apache.AnnotationProcessor) ||
 								within(org.apache.PeriodicEventListener) ||
 								within(org.apache.coyote..*) ||
 								within(org.apache.jk..*) ||
 								within(org.apache.tomcat..*) ||
-								within(org.apache.tomcat.dbcp..*);
+								within(org.apache.tomcat.dbcp..*) ||
+								withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
+								withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
 //	pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
@@ -68,7 +107,7 @@ public aspect ReferenceTracker {
 	
 	// For associating threads with requests
 	// TODO: Does this really belong here?
-	before(): call(* service(..)) {
+	before(): execution(* service(..)) {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
     	ReferenceMaster.resetPSTaintTracking(); // Otherwise possible side effects across requests.
@@ -83,7 +122,11 @@ public aspect ReferenceTracker {
 				break;
 			}
 		}
-		ThreadRequestMaster.mapThreadToRequest(URI, remoteAddr);
+		if (URI != null)
+			ThreadRequestMaster.mapThreadToRequest(URI, remoteAddr);
+//			TaintLogger.getTaintLogger().dumpStack("HAS URI " + URI + " - " + Thread.currentThread().getId());
+//		else
+//			TaintLogger.getTaintLogger().dumpStack("NO URI - " + Thread.currentThread().getId());
 	}
 	
 	/*
@@ -104,7 +147,7 @@ public aspect ReferenceTracker {
 				location = TaintUtil.getStackTraceLocation();
 //			if (ThreadRequestMaster.checkStateful(location, accessed))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
-    		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field);
+    		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field, TaintUtil.getLastContext(), TaintUtil.getContext());
     	}
     	else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, accessed);
@@ -115,7 +158,7 @@ public aspect ReferenceTracker {
 //        			if (ThreadRequestMaster.checkStateful(location, item))
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
-    			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, objTaint, field);
+    			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, objTaint, field, TaintUtil.getLastContext(), TaintUtil.getContext());
     		}
     	}
     }
@@ -158,7 +201,7 @@ public aspect ReferenceTracker {
 				location = TaintUtil.getStackTraceLocation();
 //			if (ThreadRequestMaster.checkStateful(location, newValue))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
-			TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, field);
+			TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, field, TaintUtil.getLastContext(), TaintUtil.getContext());
 		} else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, newValue);
 			if (objTaint != null && objTaint.size() > 0) {
@@ -168,7 +211,7 @@ public aspect ReferenceTracker {
 //        			if (ThreadRequestMaster.checkStateful(location, item))
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
-				TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, objTaint, field);
+				TaintLogger.getTaintLogger().logFieldSet(location, "NORMAL", newValue, objTaint, field, TaintUtil.getLastContext(), TaintUtil.getContext());
 			}
 		}
     }
@@ -182,7 +225,7 @@ public aspect ReferenceTracker {
     after(Object ret) returning: this(ret) && (execution(*.new(..)) && !within(aspects.*)) && !(myAdvice()) && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("AFTERREFNEW" + thisJoinPoint.getSignature().toShortString()))
     		return;// scan ret for instance fields.
     	Class clazz = ret.getClass();
 //    	if (ret instanceof Connection) {
@@ -191,7 +234,7 @@ public aspect ReferenceTracker {
     	// Skipping ResultSet sets, because we just taint the result set anyways. Probably don't
 			// care what happens inside.
 		if (ret instanceof ResultSet || ret.getClass().getName().endsWith("RowDataStatic")) {
-			TaintUtil.releaseAJLock();
+			TaintUtil.releaseAJLock("AFTERREFNEW" + thisJoinPoint.getSignature().toShortString());
 			return;
 		}
 		while (clazz != null) {
@@ -218,7 +261,7 @@ public aspect ReferenceTracker {
 			}
 			clazz = clazz.getSuperclass();
 		}
-		TaintUtil.releaseAJLock();
+		TaintUtil.releaseAJLock("AFTERREFNEW" + thisJoinPoint.getSignature().toShortString());
     }
     
     /*
@@ -254,7 +297,7 @@ public aspect ReferenceTracker {
 			taintFound = true;
 //			if (ThreadRequestMaster.checkStateful(location, accessed))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
-    		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field);
+    		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field, TaintUtil.getLastContext(), TaintUtil.getContext());
     	}
     	else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, accessed);
@@ -267,7 +310,7 @@ public aspect ReferenceTracker {
 //        			if (ThreadRequestMaster.checkStateful(location, item))
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
-    			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, objTaint, field);
+    			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, objTaint, field, TaintUtil.getLastContext(), TaintUtil.getContext());
     		}
     	}
 
@@ -301,7 +344,7 @@ public aspect ReferenceTracker {
 			taintFound = true;
 //			if (ThreadRequestMaster.checkStateful(location, newValue))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + newValue);
-			TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, field);
+			TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, field, TaintUtil.getLastContext(), TaintUtil.getContext());
 		} else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, newValue);
 			if (objTaint != null && objTaint.size() > 0) {
@@ -313,7 +356,7 @@ public aspect ReferenceTracker {
 //        			if (ThreadRequestMaster.checkStateful(location, item))
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
-				TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, objTaint, field);
+				TaintLogger.getTaintLogger().logFieldSet(location, "STATIC", newValue, objTaint, field, TaintUtil.getLastContext(), TaintUtil.getContext());
 			}
 		}
 		

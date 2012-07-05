@@ -101,7 +101,7 @@ public class PrecompAnalysis {
         for (GraphBuilder randomSubGraphBuilder : randomSubGraphBuilders) {
             String name = "RANDOM " + graphCounter++;
             randomGraphBuilderToNameMap.put(randomSubGraphBuilder, name);
-            analysisMainWindow.addAnalysisGraphBuilder(randomSubGraphBuilder, name, name);
+//            analysisMainWindow.addAnalysisGraphBuilder(randomSubGraphBuilder, name, name);
         }
 
 
@@ -136,6 +136,9 @@ public class PrecompAnalysis {
         graphCounter = 0;
         HashMap<GraphBuilder, String> predictableGraphBuilderToNameMap = new HashMap<GraphBuilder, String>();
         for (GraphBuilder predictableSubGraphBuilder : predictableSubGraphBuilders) {
+//            System.out.println("PSUB " + graphCounter + " HAS " + predictableSubGraphBuilder.getMultiGraph().getVertexCount());
+//            analysisMainWindow.addAnalysisGraphBuilder(predictableSubGraphBuilder, "PSUB " + (graphCounter++), "data");
+
             // Have initial graphs to work with.
 
             // Need to know what parts are side-effect free
@@ -157,7 +160,8 @@ public class PrecompAnalysis {
             // TODO: could add later code to do something better in this case, rather than just throwing away
 
             // Graph is expensive enough to be worth caching
-            if (checkGraphCostExceeds(predictableSubGraphBuilder.getMultiGraph(), 1000)) {
+            // Disable this check for now
+            if (true || checkGraphCostExceeds(predictableSubGraphBuilder.getMultiGraph(), 1000)) {
                 HashMap<GraphBuilder, LinkedList<TaintNode>> randomSideEffectSubGraphBuilders = new HashMap<GraphBuilder, LinkedList<TaintNode>>();
                 HashMap<GraphBuilder, LinkedList<TaintNode>> stableSideEffectSubGraphBuilders = new HashMap<GraphBuilder, LinkedList<TaintNode>>();
 

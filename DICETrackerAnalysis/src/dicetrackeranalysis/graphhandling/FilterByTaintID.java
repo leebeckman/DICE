@@ -36,4 +36,12 @@ public class FilterByTaintID implements EdgeFilter {
         return found;
     }
 
+    public String toString() {
+        String ret = "";
+        for (String taintID : taintIDs) {
+            ret += "[" + taintID + "]";
+        }
+        return ret;
+    }
+
 }

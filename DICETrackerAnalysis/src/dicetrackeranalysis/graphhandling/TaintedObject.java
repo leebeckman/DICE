@@ -18,10 +18,12 @@ public class TaintedObject extends RecordSetter {
     private String type;
     private String objectID;
     private String value;
+    private boolean unused;
     private LinkedList<TaintedObject> subTaintedObjects;
 
     public TaintedObject() {
         subTaintedObjects = new LinkedList<TaintedObject>();
+        unused = false;
     }
 
     public void setTaintID(String taintID) {
@@ -42,6 +44,10 @@ public class TaintedObject extends RecordSetter {
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    public void setUnused() {
+        this.unused = true;
     }
 
     public void addTaintedObject(TaintedObject object) {
@@ -66,6 +72,10 @@ public class TaintedObject extends RecordSetter {
 
     public String getObjectID() {
         return this.objectID;
+    }
+
+    public boolean isUnused() {
+        return this.unused;
     }
 
     public LinkedList<TaintedObject> getSubTaintedObjects() {

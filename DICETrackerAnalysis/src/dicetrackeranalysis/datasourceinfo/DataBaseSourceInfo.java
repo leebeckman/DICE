@@ -31,8 +31,9 @@ public class DataBaseSourceInfo extends RecordSetter implements DataSourceInfo {
     }
 
     public boolean match(String recordInfo) {
-        if (!recordInfo.startsWith("CATALOG:"))
+        if (!recordInfo.startsWith("CATALOG:") && !recordInfo.startsWith("TARGETCOLUMN"))
             return false;
+
         boolean match = false;
         boolean targetColumnSpecified = false;
         String[] pieces = recordInfo.split(" ");
@@ -43,17 +44,21 @@ public class DataBaseSourceInfo extends RecordSetter implements DataSourceInfo {
         MatchTriplet newtriplet = null;
         for (int i = 0; i < pieces.length; i++) {
             if (pieces[i].equals("CATALOG:")) {
-                newtriplet = new MatchTriplet();
+                if (newtriplet == null)
+                    newtriplet = new MatchTriplet();
                 newtriplet.catalog = pieces[++i];
             }
             else if (pieces[i].equals("TABLE:")) {
                 newtriplet.table = pieces[++i];
             }
             else if (pieces[i].equals("COLUMN:")) {
-                recordTriplets.add(newtriplet);
                 newtriplet.column = pieces[++i];
+                recordTriplets.add(newtriplet);
+                newtriplet = null;
             }
             else if (pieces[i].equals("TARGETCOLUMN:")) {
+                if (newtriplet == null)
+                    newtriplet = new MatchTriplet();
                 newtriplet.targetColumn = pieces[++i];
                 targetColumnSpecified = true;
             }

@@ -1,0 +1,23 @@
+<root>
+    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="forumtitle" variability="PREDICTABLE" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="forumdesc" variability="PREDICTABLE" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="forumid" variability="PREDICTABLE" inttracking="true" />
+    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="locked" variability="PREDICTABLE" inttracking="false" />
+
+    <databasesourceinfo catalog="forum_db" table="jrf_group" column="group_name" variability="PREDICTABLE" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_group" column="groupid" variability="PREDICTABLE" inttracking="true" />
+    <databasesourceinfo catalog="forum_db" table="jrf_group" column="group_sort" variability="PREDICTABLE" inttracking="false" />
+
+    <databasesourceinfo catalog="forum_db" table="jrf_message" column="cont" variability="RANDOM" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_message" column="m_from" variability="RANDOM" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_message" column="id" variability="RANDOM" inttracking="true" />
+
+    <databasesourceinfo catalog="forum_db" table="jrf_thread" column="t_stamp" variability="PREDICTABLE" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_thread" column="tid" variability="PREDICTABLE" inttracking="true" />
+    <databasesourceinfo catalog="forum_db" table="jrf_thread" column="sortby" variability="PREDICTABLE" inttracking="false" />
+
+    <!--<requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" parameter="chatMessage" variability="RANDOM" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="region" variability="PREDICTABLE" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="nickname" variability="PREDICTABLE" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="password" variability="PREDICTABLE" />-->
+</root>

@@ -93,8 +93,8 @@ public class TaintLogger {
 		
 		addLocationElement(logRoot, location, adviceType);
 		
-		addObjectElement(logRoot, "sourceObject", source);
-		addObjectElement(logRoot, "destObject", target);
+		addObjectElement(logRoot, "sourceObject", source, true);
+		addObjectElement(logRoot, "destObject", target, true);
 		
 		addObjectElement(logRoot, "taintedObject", target, true);
 		
@@ -489,23 +489,23 @@ public class TaintLogger {
 		logTaint(logRoot.toString());
 	}
 
-	public void logReturning(StackLocation location, String adviceType, Object taintSource, Long executionTime, Object calling, Object called, boolean debugStack) {
-		MyElement logRoot = getLogRoot("RETURNING");
-		if (executionTime != null)
-			logRoot.addAttribute("executionTime", String.valueOf(executionTime));
-		
-		addLocationElement(logRoot, location, adviceType);
-		
-		if (taintSource != null)
-			addObjectElement(logRoot, "taintedObject", taintSource);
-		addObjectElement(logRoot, "callingObject", calling, false);
-		addObjectElement(logRoot, "calledObject", called, false);
-		if (debugStack) {
-			addDebugStackElement(logRoot);
-		}
-		
-		logTaint(logRoot.toString());
-	}
+//	public void logReturning(StackLocation location, String adviceType, Object taintSource, Long executionTime, Object calling, Object called, boolean debugStack) {
+//		MyElement logRoot = getLogRoot("RETURNING");
+//		if (executionTime != null)
+//			logRoot.addAttribute("executionTime", String.valueOf(executionTime));
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//		
+//		if (taintSource != null)
+//			addObjectElement(logRoot, "taintedObject", taintSource);
+//		addObjectElement(logRoot, "callingObject", calling, false);
+//		addObjectElement(logRoot, "calledObject", called, false);
+//		if (debugStack) {
+//			addDebugStackElement(logRoot);
+//		}
+//		
+//		logTaint(logRoot.toString());
+//	}
 	
 	// TEMP DEBUG VERSION
 //	public void logReturning(StackPath location, String adviceType, Object taintSource, Long executionTime, Object[] args) {
@@ -634,17 +634,19 @@ public class TaintLogger {
 		logTaint(logRoot.toString());
 	}
 
-	public void logFieldSet(StackLocation location, String adviceType, Object value, Field targetField) {
+	public void logFieldSet(StackLocation location, String adviceType, Object value, Field targetField, Object calling, Object called) {
 		MyElement logRoot = getLogRoot("FIELDSET");
 		
 		addLocationElement(logRoot, location, adviceType);
 		addObjectElement(logRoot, "taintedObject", value, true);
 		addFieldElement(logRoot, targetField);
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
 		
 		logTaint(logRoot.toString());
 	}
 	
-	public void logFieldSet(StackLocation location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
+	public void logFieldSet(StackLocation location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField, Object calling, Object called) {
 		MyElement logRoot = getLogRoot("FIELDSET");
 		
 		addLocationElement(logRoot, location, adviceType);
@@ -654,21 +656,25 @@ public class TaintLogger {
 			addObjectElement(baseObject, "subTaintedObject", taintedObject);
 		}
 		addFieldElement(logRoot, targetField);
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
 		
 		logTaint(logRoot.toString());
 	}
 	
-	public void logFieldGet(StackLocation location, String adviceType, Object value, Field targetField) {
+	public void logFieldGet(StackLocation location, String adviceType, Object value, Field targetField, Object calling, Object called) {
 		MyElement logRoot = getLogRoot("FIELDGET");
 		
 		addLocationElement(logRoot, location, adviceType);
 		addObjectElement(logRoot, "taintedObject", value, true);
 		addFieldElement(logRoot, targetField);
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
 		
 		logTaint(logRoot.toString());
 	}
 	
-	public void logFieldGet(StackLocation location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
+	public void logFieldGet(StackLocation location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField, Object calling, Object called) {
 		MyElement logRoot = getLogRoot("FIELDGET");
 		
 		addLocationElement(logRoot, location, adviceType);
@@ -678,6 +684,8 @@ public class TaintLogger {
 			addObjectElement(baseObject, "subTaintedObject", taintedObject);
 		}
 		addFieldElement(logRoot, targetField);
+		addObjectElement(logRoot, "callingObject", calling, false);
+		addObjectElement(logRoot, "calledObject", called, false);
 		
 		logTaint(logRoot.toString());
 	}
@@ -708,7 +716,7 @@ public class TaintLogger {
 		locationElem.addAttribute("callerContextCounter", String.valueOf(location.callerContextCounter));
 		locationElem.addAttribute("calledContextCounter", String.valueOf(location.calledContextCounter));
 		
-		locationElem.addContent(location.getDeeperString(10));
+//		locationElem.addAttribute("stack", getStack());
 		
 		root.addContent(locationElem);
 	}
@@ -742,8 +750,10 @@ public class TaintLogger {
 			objectElem.addAttribute("taintID", ReferenceMaster.getTaintIdentifier(object));
 			objectElem.addAttribute("type", object.getClass().getName());
 			objectElem.addAttribute("objectID", String.valueOf(System.identityHashCode(object)));
-			if (showValue)
-				objectElem.addAttribute("value", object.toString());
+			if (showValue) {
+				if (object.toString() != null)
+					objectElem.addAttribute("value", object.toString().replace("\n", ""));
+			}
 			
 			// TODO: objectUIDs currently not working, looking like advice may be missing some/all object creations
 			//objectElem.setAttribute("uid", String.valueOf(TaintData.getTaintData().getObjectUID(object))));
@@ -775,6 +785,27 @@ public class TaintLogger {
 		MyElement debugStackElem = new MyElement("debugStack");
 		debugStackElem.addContent(stackString);
 		root.addContent(debugStackElem);
+	}
+	
+	public String getStack() {
+		String ret = "";
+		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+		ret += ("STACKTRACE: " + "->");
+		for (int i = 0, length = stack.length; i < length; i++) {
+			ret += ("\t" + stack[i] + " -> ");
+		}
+		ret += (" ENDSTACKTRACE");
+		return ret;
+	}
+	
+	public void dumpStack(String tag) {
+		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+		log("STACKTRACE: " + tag);
+		for (int i = 0, length = stack.length; i < length; i++) {
+			log("\t" + stack[i]);
+		}
+		log("ENDSTACKTRACE");
+		
 	}
 }
 

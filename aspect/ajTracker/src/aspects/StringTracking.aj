@@ -19,6 +19,8 @@ public aspect StringTracking {
 		within(org.apache.bcel..*) ||
 		within(javax.management.MBeanInfo) ||
 		within(javax.management.MBeanNotificationInfo) ||
+//		within(com.mysql.jdbc..*) ||
+		within(org.apache.jasper.runtime.JspWriterImpl) ||
 		within(org.hsqldb.types.Binary) ||
 		within(oracle.jpub.runtime.MutableStruct) ||
 		within(oracle.jpub.runtime.MutableArray) ||
@@ -38,14 +40,51 @@ public aspect StringTracking {
 		within(com.jhlabs.image..*) ||
 		within(com.mchange.v2.cfg..*) ||
 		within(com.mchange.v2.codegen.bean..*) ||
-		within(org.apache.catalina..*) ||
+
+		within(org.apache.catalina.ant.*) ||
+		within(org.apache.catalina.util.*) ||
+		within(org.apache.catalina.ha.*) ||
+		within(org.apache.catalina.tribes.*) ||
+		within(org.apache.catalina.authenticator.*) ||
+		within(org.apache.catalina.connector.*) ||
+		within(org.apache.catalina.core.*) ||
+		within(org.apache.catalina.deploy.*) ||
+		within(org.apache.catalina.filters.*) ||
+		within(org.apache.catalina.loaders.*) ||
+		within(org.apache.catalina.manager.*) ||
+		within(org.apache.catalina.mbeans.*) ||
+		within(org.apache.catalina.realm.*) ||
+		within(org.apache.catalina.security.*) ||
+		within(org.apache.catalina.servlets.*) ||
+		within(org.apache.catalina.ssi.*) ||
+		within(org.apache.catalina.startup.*) ||
+		within(org.apache.catalina.users.*) ||
+		within(org.apache.catalina.valves.*) ||
+		within(org.apache.catalina.A*) ||
+		within(org.apache.catalina.C*) ||
+		within(org.apache.catalina.E*) ||
+		within(org.apache.catalina.G*) ||
+		within(org.apache.catalina.H*) ||
+		within(org.apache.catalina.I*) ||
+		within(org.apache.catalina.L*) ||
+		within(org.apache.catalina.M*) ||
+		within(org.apache.catalina.P*) ||
+		within(org.apache.catalina.R*) ||
+		within(org.apache.catalina.Serv*) ||
+		within(org.apache.catalina.Store*) ||
+		within(org.apache.catalina.U*) ||
+		within(org.apache.catalina.V*) ||
+		within(org.apache.catalina.W*) ||
+		
 		within(org.apache.naming..*) ||
 		within(org.apache.AnnotationProcessor) ||
 		within(org.apache.PeriodicEventListener) ||
 		within(org.apache.coyote..*) ||
 		within(org.apache.jk..*) ||
 		within(org.apache.tomcat..*) ||
-		within(org.apache.tomcat.dbcp..*);
+		within(org.apache.tomcat.dbcp..*) ||
+		withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
+		withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
 	//pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
@@ -652,7 +691,7 @@ public aspect StringTracking {
     		TaintLogger.getTaintLogger().logModification(location, "STRINGMODREPLACE", thisJoinPoint.getTarget());
     	}
     	else if (composed.size() == 1) {
-    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
+    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
     			TaintLogger.getTaintLogger().logModification(location, "STRINGMODREPLACETHIS", thisJoinPoint.getTarget());
     		else
     			TaintLogger.getTaintLogger().logModification(location, "STRINGMODREPLACEARG", args[0]);
@@ -672,8 +711,8 @@ public aspect StringTracking {
     	ArrayList<Object> associated = new ArrayList<Object>();
 		StackLocation location = TaintUtil.getStackTraceLocation();
 		
-		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
-			associated.add(thisJoinPoint.getThis());
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
+			associated.add(thisJoinPoint.getTarget());
     	
     	for (int i = 0; i < args.length; i++) {
 //        	if (args[i] instanceof String || 
@@ -695,7 +734,8 @@ public aspect StringTracking {
      */
     Object around(Integer arg): 	(stringBuilderAppend() || stringBufferAppend()) 
     		&& !(myAdvice()) && !allExclude() && args(arg) {
-
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
     	if (ReferenceMaster.isPrimaryTainted(arg)) {
 //        	TaintLogger.getTaintLogger().log("SB APPEND MOD " + arg + " to " + ReferenceMaster.getTaintedIntOldValue(arg));
     		arg = ReferenceMaster.getTaintedIntOldValue(arg);
@@ -746,12 +786,12 @@ public aspect StringTracking {
     	// Note modification of this
     	// composed now contains list of composed objects
     	if (composed.size() > 1) {
-    		TaintLogger.getTaintLogger().logComposition(location, "STRINGCOMPTHIS", composed, thisJoinPoint.getThis());
-    		TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
+    		TaintLogger.getTaintLogger().logComposition(location, "STRINGCOMPTHIS", composed, thisJoinPoint.getTarget());
+    		TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getTarget());
     	}
     	else if (composed.size() == 1) {
-    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
-    			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
+    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
+    			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getTarget());
     	}
     }
     
@@ -775,8 +815,8 @@ public aspect StringTracking {
 //    			args[i] instanceof char[]) {
         		if (ReferenceMaster.isPrimaryTainted(args[i])) {
 	        		composed.add(args[i]);
-	        		ReferenceMaster.propagateTaintSources(args[i], thisJoinPoint.getThis());
-	        		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPTHISB", args[i], thisJoinPoint.getThis());
+	        		ReferenceMaster.propagateTaintSources(args[i], thisJoinPoint.getTarget());
+	        		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPTHISB", args[i], thisJoinPoint.getTarget());
 	        		TaintLogger.getTaintLogger().logModification(location, "STRINGMODARGS", args[i]);
         		}
 //        	}
@@ -785,12 +825,12 @@ public aspect StringTracking {
     	// Note modification of this
     	// composed now contains list of composed objects
     	if (composed.size() > 1) {
-    		TaintLogger.getTaintLogger().logComposition(location, "STRINGCOMPTHIS", composed, thisJoinPoint.getThis());
-    		TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
+    		TaintLogger.getTaintLogger().logComposition(location, "STRINGCOMPTHIS", composed, thisJoinPoint.getTarget());
+    		TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getTarget());
     	}
     	else if (composed.size() == 1) {
-    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
-    			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
+    		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
+    			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getTarget());
     	}
     }
     
@@ -805,8 +845,8 @@ public aspect StringTracking {
     	StackLocation location = TaintUtil.getStackTraceLocation();
 		
     	// Note modification of this
-		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
-			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getThis());
+		if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
+			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHIS", thisJoinPoint.getTarget());
     }
     
     /*
@@ -818,8 +858,8 @@ public aspect StringTracking {
 		
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getThis()))
-			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHISVOID", thisJoinPoint.getThis());
+    	if (ReferenceMaster.isPrimaryTainted(thisJoinPoint.getTarget()))
+			TaintLogger.getTaintLogger().logModification(location, "STRINGMODTHISVOID", thisJoinPoint.getTarget());
     	// Note modification of this
     }
     
@@ -835,21 +875,23 @@ public aspect StringTracking {
 		ArrayList<Object> taintedArgs = new ArrayList<Object>();
 		for (int i = 0; i < args.length; i++) {
 //			if (args[i] instanceof String || args[i] instanceof StringBuffer || args[i] instanceof StringBuilder) { // TODO: add StringBuffer/Builder
-				if (args[i] != null && ReferenceMaster.isPrimaryTainted(args[i])) {
+				if (args[i] != null && ReferenceMaster.isPrimaryTainted(args[i]) && args[i].toString() != null) {
 					taintedArgs.add(args[i]);
 				}
 //			} 
 		}
 		
-		if (taintedArgs.size() > 0 && ret != null) {
+		if (taintedArgs.size() > 0 && ret != null && ret.toString() != null) {
 			if (!ReferenceMaster.isPrimaryTainted(ret)) {
 				for (Object arg : taintedArgs) {
+//					TaintLogger.getTaintLogger().log("Getting levenshtein: " + arg.getClass() + " str: " + arg.toString() + " |->| " + ret.getClass() + " str: " + ret.toString());
 					if (TaintUtil.getLevenshteinDistance(arg.toString(), ret.toString()) < 
 							Math.abs(arg.toString().length() - ret.toString().length()) + 
 							Math.min(arg.toString().length(), ret.toString().length()) * 0.20 &&
 							Math.min(arg.toString().length(), ret.toString().length()) > 0) {
 						TaintLogger.getTaintLogger().logFuzzyPropagation(location, "FUZZYPROP", arg, ret);
 						ReferenceMaster.propagateTaintSources(arg, ret);
+						TaintLogger.getTaintLogger().logPropagation(location, "FUZZY", arg, ret);
 						break;
 					}
 				}

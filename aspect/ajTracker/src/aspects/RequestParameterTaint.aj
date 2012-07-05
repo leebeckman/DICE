@@ -18,25 +18,25 @@ public aspect RequestParameterTaint {
 	before(): execution(* org.apache.catalina.connector.Request.getParameter(..)) {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("BEFORERP1" + thisJoinPoint.getSignature().toShortString()))
     		return;
-		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRIN");
-    	TaintUtil.releaseAJLock();
+    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRIN");
+    	TaintUtil.releaseAJLock("BEFORERP1" + thisJoinPoint.getSignature().toShortString());
 	}
 	
 	before(): execution(* org.apache.catalina.connector.Request.getParameterValues(..)) {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("BEFORERP2" + thisJoinPoint.getSignature().toShortString()))
     		return;
-		TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRINV");
-    	TaintUtil.releaseAJLock();
+    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRINV");
+    	TaintUtil.releaseAJLock("BEFORERP2" + thisJoinPoint.getSignature().toShortString());
 	}
 	
     after() returning (Object ret): execution(* org.apache.catalina.connector.Request.getParameter(..)) {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("AFTERRP1" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	// Need to manage context outside of general tracker, as general tracker excludes target pointcut
     	
@@ -54,13 +54,13 @@ public aspect RequestParameterTaint {
     		TaintLogger.getTaintLogger().log("END REQRIN LOG");
     	}
     	TaintUtil.popContext("APRIN");
-    	TaintUtil.releaseAJLock();
+    	TaintUtil.releaseAJLock("AFTERRP1" + thisJoinPoint.getSignature().toShortString());
     }
     
     after() returning (Object ret): execution(* org.apache.catalina.connector.Request.getParameterValues(..)) {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("AFTERRP2" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	
     	if (ret != null) {
@@ -73,7 +73,7 @@ public aspect RequestParameterTaint {
     		TaintLogger.getTaintLogger().logReturningInput(location, "REQPARAMETER", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
     	}
     	TaintUtil.popContext("APRINV");
-    	TaintUtil.releaseAJLock();
+    	TaintUtil.releaseAJLock("AFTERRP2" + thisJoinPoint.getSignature().toShortString());
     }
     
 }

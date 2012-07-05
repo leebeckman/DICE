@@ -314,7 +314,9 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
     public String getFieldName() {
         if (this.field == null)
             return null;
-        return this.field.getTargetClass() + ":" + this.field.getTargetField();
+        if (this.calledObject == null)
+            return this.field.getTargetClass() + ":" + this.field.getTargetField();
+        return this.field.getTargetClass() + ":" + this.field.getTargetField() + ":" + this.calledObject.getObjectID();
     }
 
     public String getRequestCounter() {
@@ -503,6 +505,10 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         return String.valueOf(this.counter) + " " + reLabel(this.type);// + "-" + this.adviceType;
     }
 
+//    public String toString() {
+//        return reLabel(this.type) + " OUT: " + this.outputContextCounter + " IN: " + this.inputContextCounter;
+//    }
+
     public String toDebugString() {
         String output = "";
 
@@ -511,9 +517,7 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         output += "Tainted Objects: \n";
 
         for (TaintedObject taintedObj : taintedObjects) {
-            if (taintedObj.getTaintID() != null && !taintedObj.getTaintID().isEmpty()) {
-                output += "\t" + taintedObj.getType() + " - " + taintedObj.getValue() + "\n";
-            }
+            output += "\t" + taintedObj.getType() + " - " + taintedObj.getValue() + "\n";
             if (taintedObj.getSubTaintedObjects() != null) {
                 for (TaintedObject subTaintedObj : taintedObj.getSubTaintedObjects()) {
                     if (subTaintedObj.getTaintID() != null && !subTaintedObj.getTaintID().isEmpty()) {

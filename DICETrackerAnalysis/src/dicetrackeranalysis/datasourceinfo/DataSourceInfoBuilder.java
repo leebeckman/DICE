@@ -79,9 +79,22 @@ public class DataSourceInfoBuilder {
     public boolean checkTaintRecordMatchesVariability(String taintRecord, String variability) {
         ArrayList<String> records = splitTaintRecord(taintRecord);
         for (String record : records) {
+            boolean unmatched = true;
             for (DataSourceInfo infoItem : dataSourceInfoList) {
-                if (infoItem.matchesVariability(variability) && infoItem.match(record))
-                    return true;
+                if (infoItem.match(record)) {
+                    unmatched = false;
+                    
+                    if (infoItem.matchesVariability(variability)) {
+//                        if (taintRecord.contains("TARGETCOLUMN: forumtitle CATALOG: forum_db TABLE: jrf_forum COLUMN: forumtitle CATALOG: forum_db TABLE: jrf_forum COLUMN: forumdesc CATALOG: forum_db TABLE: jrf_forum COLUMN: forumid CATALOG: forum_db TABLE: jrf_forum COLUMN: locked")) {
+//                            System.out.println("MATCH FIND!! " + variability);
+//                        }
+                        return true;
+                    }
+                }
+            }
+            // If no mapping specified in datasource info xml file, just assume it's random for now
+            if (unmatched && variability.equals("RANDOM")) {
+                return true;
             }
         }
         return false;

@@ -34,6 +34,8 @@ public aspect GeneralTracker {
 							within(javax.management.MBeanOperationInfo) ||
 							within(javax.management.MBeanInfo) ||
 							within(javax.management.MBeanNotificationInfo) ||
+//							within(com.mysql.jdbc..*) ||
+							within(org.apache.jasper.runtime.JspWriterImpl) ||
 							within(org.hsqldb.types.Binary) ||
 							within(oracle.jpub.runtime.MutableStruct) ||
 							within(oracle.jpub.runtime.MutableArray) ||
@@ -54,14 +56,51 @@ public aspect GeneralTracker {
 							within(com.jhlabs.image..*) ||
 							within(com.mchange.v2.codegen.bean..*) ||
 							within(com.mchange.v2.cfg..*) ||
-							within(org.apache.catalina..*) ||
+							
+							within(org.apache.catalina.ant.*) ||
+							within(org.apache.catalina.util.*) ||
+							within(org.apache.catalina.ha.*) ||
+							within(org.apache.catalina.tribes.*) ||
+							within(org.apache.catalina.authenticator.*) ||
+							within(org.apache.catalina.connector.*) ||
+							within(org.apache.catalina.core.*) ||
+							within(org.apache.catalina.deploy.*) ||
+							within(org.apache.catalina.filters.*) ||
+							within(org.apache.catalina.loaders.*) ||
+							within(org.apache.catalina.manager.*) ||
+							within(org.apache.catalina.mbeans.*) ||
+							within(org.apache.catalina.realm.*) ||
+							within(org.apache.catalina.security.*) ||
+							within(org.apache.catalina.servlets.*) ||
+							within(org.apache.catalina.ssi.*) ||
+							within(org.apache.catalina.startup.*) ||
+							within(org.apache.catalina.users.*) ||
+							within(org.apache.catalina.valves.*) ||
+							within(org.apache.catalina.A*) ||
+							within(org.apache.catalina.C*) ||
+							within(org.apache.catalina.E*) ||
+							within(org.apache.catalina.G*) ||
+							within(org.apache.catalina.H*) ||
+							within(org.apache.catalina.I*) ||
+							within(org.apache.catalina.L*) ||
+							within(org.apache.catalina.M*) ||
+							within(org.apache.catalina.P*) ||
+							within(org.apache.catalina.R*) ||
+							within(org.apache.catalina.Serv*) ||
+							within(org.apache.catalina.Store*) ||
+							within(org.apache.catalina.U*) ||
+							within(org.apache.catalina.V*) ||
+							within(org.apache.catalina.W*) ||
+							
 							within(org.apache.naming..*) ||
 							within(org.apache.AnnotationProcessor) ||
 							within(org.apache.PeriodicEventListener) ||
 							within(org.apache.coyote..*) ||
 							within(org.apache.jk..*) ||
 							within(org.apache.tomcat..*) ||
-							within(org.apache.tomcat.dbcp..*);
+							within(org.apache.tomcat.dbcp..*) ||
+							withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
+							withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
 //	pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
@@ -91,9 +130,7 @@ public aspect GeneralTracker {
 									within(com.sun.mail.imap.IMAPMessage) ||
 									within(javax.mail.search.OrTerm) ||
 									within(javax.mail.search.AndTerm) ||
-									within(org.quartz.core.QuartzScheduler_Skel) ||
-									withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..)) ||
-									withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..));
+									within(org.quartz.core.QuartzScheduler_Skel);
 	
 //									||
 //									withincode(* org.apache.jsp.jgossip.content.PreviewMessage_jsp._jspService(..)) ||
@@ -110,12 +147,28 @@ public aspect GeneralTracker {
      * BEFORE EXECUTION
      */
     
+//	after() returning(Object ret): call(* *..PageContext.getOut(..)) {
+//		TaintLogger.getTaintLogger().log("GETOUT: " + ret.getClass().toString());
+//		TaintLogger.getTaintLogger().dumpStack("GETOUT");
+//	}
+	
+//	after(Object ret) returning: this(ret) && initialization(*..Forum.new(..)) {
+//		TaintLogger.getTaintLogger().log("NEW FORUM: " + ret + " coid: " + System.identityHashCode(ret));
+//		TaintLogger.getTaintLogger().dumpStack("NEW FORUM");
+//	}
+	
     before(): (execution(* *.*(..)) || execution(*.new(..))) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("BEFORE " + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BE");
+    	
+//    	if (TaintUtil.getContext().getContextClassName().startsWith("org.jresearch.gossip.dao.ForumDAO") &&
+//    			TaintUtil.getContext().getContextMethodName().startsWith("getForums")) {
+//    		TaintLogger.getTaintLogger().dumpStack("GET FORUMS - " + Thread.currentThread().getId());
+//    	}
+    	
 		TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
         
@@ -159,8 +212,17 @@ public aspect GeneralTracker {
         		}
         	}
         }
+
+//        if (thisJoinPoint.toLongString().contains("setTitle") 
+//        		&& thisJoinPoint.toLongString().contains("Forum")) {
+//        	TaintLogger.getTaintLogger().log("SET TITLE: " + args[0] + " jp: " + thisJoinPoint.toLongString() + " lc: " + TaintUtil.getLastContext() + " cc: " + TaintUtil.getContext() + " co: " + TaintUtil.getContext().getContextObject() + " coid: " + System.identityHashCode(TaintUtil.getContext().getContextObject()));
+//        }
+        
         if (taintedArgList.size() > 0) {
-        	Throwable throwable = new Throwable();
+//			if (thisJoinPoint.toLongString().contains("setTitle") 
+//	        		&& thisJoinPoint.toLongString().contains("Forum")) {
+//	        	TaintLogger.getTaintLogger().log("SET TITLE TAINTED: " + args[0] + " jp: " + thisJoinPoint.toLongString() + " lc: " + TaintUtil.getLastContext() + " cc: " + TaintUtil.getContext() + " co: " + TaintUtil.getContext().getContextObject() + " coid: " + System.identityHashCode(TaintUtil.getContext().getContextObject()));
+//	        }
         	TaintLogger.getTaintLogger().logCalling(location, "REGULAREXECUTE", taintedArgList, TaintUtil.getLastContext(), thisJoinPoint.getThis());
         }
         
@@ -169,7 +231,7 @@ public aspect GeneralTracker {
 //				location = TaintUtil.getStackTracePath();
 //        	TaintLogger.getTaintLogger().logCalling(location, "NONTAINTCALL", null, thisJoinPoint.getThis());
 //        }
-        TaintUtil.releaseAJLock();
+        TaintUtil.releaseAJLock("BEFORE " + thisJoinPoint.getSignature().toShortString());
         TaintUtil.pushStartTime();
     }
     
@@ -180,7 +242,7 @@ public aspect GeneralTracker {
     after() returning (Object ret): execution(* *.*(..)) && !(myAdvice()) && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("AFTER " + thisJoinPoint.getSignature().toShortString()))
     		return;
     	Long totalTime = TaintUtil.getTotalTime();
 		TaintUtil.StackLocation location = null;
@@ -228,12 +290,20 @@ public aspect GeneralTracker {
 
     	//TODO: Deal with the fact that I added ResultSet here
         boolean taintReturned = false;
+        if (thisJoinPoint.toLongString().contains("getTitle") 
+        		&& thisJoinPoint.toLongString().contains("Forum")) {
+        	TaintLogger.getTaintLogger().log("GET TITLE: " + ret + " jp: " + thisJoinPoint.toLongString() + " lc: " + TaintUtil.getLastContext() + " cc: " + TaintUtil.getContext() + " co: " + TaintUtil.getContext().getContextObject() + " coid: " + System.identityHashCode(TaintUtil.getContext().getContextObject()));
+        }
         if (ReferenceMaster.isPrimaryTainted(ret)) {
 			if (location == null)
 				location = TaintUtil.getStackTraceLocation();
 			/* TODO: Read fuzzy prop */
 //			if (ThreadRequestMaster.checkStateful(location, ret))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
+			if (thisJoinPoint.toLongString().contains("getTitle") 
+            		&& thisJoinPoint.toLongString().contains("Forum")) {
+            	TaintLogger.getTaintLogger().log("GET TITLE TAINTED: " + ret + " jp: " + thisJoinPoint.toLongString() + " lc: " + TaintUtil.getLastContext() + " cc: " + TaintUtil.getContext() + " co: " + TaintUtil.getContext().getContextObject() + " coid: " + System.identityHashCode(TaintUtil.getContext().getContextObject()));
+            }
 			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret, totalTime, TaintUtil.getLastContext(), thisJoinPoint.getThis());
 			taintReturned = true;
     	}
@@ -253,7 +323,7 @@ public aspect GeneralTracker {
 				taintReturned = true;
 			}
 		}
-    	if (!taintReturned) {
+    	if (!taintReturned && SimpleCommControl.getInstance().ntrEnabled()) {
 			if (location == null)
 				location = TaintUtil.getStackTraceLocation();
     		TaintLogger.getTaintLogger().logReturning(location, "NONTAINTRETURN", null, totalTime, TaintUtil.getLastContext(), thisJoinPoint.getThis());
@@ -264,7 +334,7 @@ public aspect GeneralTracker {
         StaticFieldBackTaintChecker.checkAndLogTaint();
         StaticFieldBackTaintChecker.reset();
         ArgBackTaintChecker.reset();
-        TaintUtil.releaseAJLock();
+        TaintUtil.releaseAJLock("AFTER " + thisJoinPoint.getSignature().toShortString());
     }
     
     /*
@@ -274,7 +344,7 @@ public aspect GeneralTracker {
     after(Object ret) returning: this(ret) && execution(*.new(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("AFTER " + thisJoinPoint.getSignature().toShortString()))
     		return;
     	Long totalTime = TaintUtil.getTotalTime();
 		TaintUtil.StackLocation location = null;
@@ -346,23 +416,23 @@ public aspect GeneralTracker {
 				taintReturned = true;
 			}
 		}
-    	if (!taintReturned) {
+    	if (!taintReturned && SimpleCommControl.getInstance().ntrEnabled()) {
 			if (location == null)
 				location = TaintUtil.getStackTraceLocation();
     		TaintLogger.getTaintLogger().logReturning(location, "NONTAINTRETURN", null, totalTime, TaintUtil.getLastContext(), ret);
     	}
         ArgBackTaintChecker.reset();
-        TaintUtil.releaseAJLock();
+        TaintUtil.releaseAJLock("AFTER " + thisJoinPoint.getSignature().toShortString());
     }
     
     after(): (execution(*.new(..)) || execution(* *.*(..))) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("AFTERALL " + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.popStartTime();
     	TaintUtil.popContext("AE");
-        TaintUtil.releaseAJLock();
+    	TaintUtil.releaseAJLock("AFTERALL " + thisJoinPoint.getSignature().toShortString());
     }
 	
 	
@@ -372,10 +442,10 @@ public aspect GeneralTracker {
     before(): call(* java..*.*(..)) && !within(aspects.*) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("BEFOREJ" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "BJC");
-		TaintUtil.StackLocation location = null;
+    	TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
         
         // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
@@ -421,14 +491,23 @@ public aspect GeneralTracker {
         		}
         	}
         }
-        if (taintedArgList.size() > 0)
+        if (taintedArgList.size() > 0) {
         	TaintLogger.getTaintLogger().logCalling(location, "JAVACALL", taintedArgList, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
+
+//            if (location.getSource().contains("tag.common.core.OutSupport") &&
+//            		location.getSource().contains("writeEscapedXml") &&
+//            		location.getDest().contains("java.io.Writer") &&
+//            		location.getDest().contains("write char")) {
+//            	TaintLogger.getTaintLogger().log("OUTTYPE: " + thisJoinPoint.getTarget().getClass().toString() + " jp: " + thisJoinPoint.toLongString() + " arg: " + System.identityHashCode(args[0]));
+//            	
+//            }
+        }
 //        else {
 //			if (location == null)
 //				location = TaintUtil.getStackTracePath();
 //        	TaintLogger.getTaintLogger().logCalling(location, "NONTAINTCALL", null, thisJoinPoint.getTarget());
 //        }
-        TaintUtil.releaseAJLock();
+        TaintUtil.releaseAJLock("BEFOREJ" + thisJoinPoint.getSignature().toShortString());
         TaintUtil.pushStartTime();
     }
     
@@ -438,10 +517,10 @@ public aspect GeneralTracker {
     before(): call(java..*.new(..)) && !within(aspects.*) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("BEFOREJC" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "BJCC");
-		TaintUtil.StackLocation location = null;
+    	TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
         
         // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
@@ -486,7 +565,7 @@ public aspect GeneralTracker {
 //				location = TaintUtil.getStackTracePath();
 //        	TaintLogger.getTaintLogger().logCalling(location, "NONTAINTCALL", null);
 //        }
-        TaintUtil.releaseAJLock();
+        TaintUtil.releaseAJLock("BEFOREJC" + thisJoinPoint.getSignature().toShortString());
         TaintUtil.pushStartTime();
     }
     
@@ -496,7 +575,7 @@ public aspect GeneralTracker {
     after() returning (Object ret): call(* java..*.*(..)) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("AFTERJ" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	Long totalTime = TaintUtil.getTotalTime();
 		TaintUtil.StackLocation location = null;
@@ -575,13 +654,13 @@ public aspect GeneralTracker {
 //    				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLOBJECTRETURN", ret, objTaint, javaObjField);
 			}
 		}
-    	if (!taintReturned) {
+    	if (!taintReturned && SimpleCommControl.getInstance().ntrEnabled()) {
 			if (location == null)
 				location = TaintUtil.getStackTraceLocation();
     		TaintLogger.getTaintLogger().logReturning(location, "NONTAINTRETURN", null, totalTime, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
     	}
         ArgBackTaintChecker.reset();
-        TaintUtil.releaseAJLock();
+        TaintUtil.releaseAJLock("AFTERJ" + thisJoinPoint.getSignature().toShortString());
     }
     
     /*
@@ -590,7 +669,7 @@ public aspect GeneralTracker {
     after() returning (Object ret): call(java..*.new(..)) && !within(aspects.*) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("AFTERJC" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	Long totalTime = TaintUtil.getTotalTime();
 		TaintUtil.StackLocation location = null;
@@ -622,22 +701,22 @@ public aspect GeneralTracker {
 				taintReturned = true;
 			}
 		}
-    	if (!taintReturned) {
+    	if (!taintReturned && SimpleCommControl.getInstance().ntrEnabled()) {
 			if (location == null)
 				location = TaintUtil.getStackTraceLocation();
     		TaintLogger.getTaintLogger().logReturning(location, "NONTAINTRETURN", null, totalTime, TaintUtil.getLastContext(), ret);
     	}
-        TaintUtil.releaseAJLock();
+        TaintUtil.releaseAJLock("AFTERJC" + thisJoinPoint.getSignature().toShortString());
     }
     
     after(): (call(java..*.new(..)) || call(* java..*.*(..))) && !within(aspects.*) && !myAdvice() && !tooBigErrorExclude() && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
-    	if (!TaintUtil.getAJLock())
+    	if (!TaintUtil.getAJLock("AFTERJALL" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.popStartTime();
     	TaintUtil.popContext("AJC");
-        TaintUtil.releaseAJLock();
+        TaintUtil.releaseAJLock("AFTERJALL" + thisJoinPoint.getSignature().toShortString());
     }
 
 

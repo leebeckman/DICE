@@ -376,10 +376,16 @@ public class ReferenceMaster {
 			
 		// Not getting a new ID here.
 		if (targetData instanceof Integer) {
-			if (intTaintSourcesMap.get(targetData) == null)
-				intTaintSourcesMap.put((Integer)targetData, new HashSet<IDdTaintSource>());
-			HashSet<IDdTaintSource> target = intTaintSourcesMap.get(targetData);
-			target.addAll(source);
+			/*
+			 * Removing this for now, as tainting ints like this is too collision-prone
+			 */
+//			if (intTaintSourcesMap.get(targetData) == null) {
+//				intTaintSourcesMap.put((Integer)targetData, new HashSet<IDdTaintSource>());
+//				TaintLogger.getTaintLogger().log("INT TAINTED CAST: " + (Integer)targetData);
+//				TaintLogger.getTaintLogger().dumpStack("INT TAINT CAST");
+//			}
+//			HashSet<IDdTaintSource> target = intTaintSourcesMap.get(targetData);
+//			target.addAll(source);
 		}
 		else {
 			if (taintSourcesMap.get(targetData) == null)
@@ -403,7 +409,12 @@ public class ReferenceMaster {
 	
 	public static synchronized boolean isPrimaryType(Object obj) {
 		if (obj != null) {
-			if (obj instanceof Integer || obj instanceof String || obj instanceof StringBuilder || obj instanceof StringBuffer || obj instanceof ResultSet)
+			if (obj instanceof Integer || 
+					obj instanceof String || 
+					obj instanceof StringBuilder || 
+					obj instanceof StringBuffer || 
+					obj instanceof ResultSet ||
+					obj instanceof char[])
 				return true;
 		}
 		return false;
@@ -884,11 +895,11 @@ public class ReferenceMaster {
 					String sourceStr = "";
 					ResultSetMetaData metaData = (ResultSetMetaData) source;
 					int colCount = metaData.getColumnCount();
+					if (targetColumn != null)
+						sourceStr += "TARGETCOLUMN: " + targetColumn + " ";
 					for (int i = 1; i <= colCount; i++) {
 						sourceStr += "CATALOG: " + metaData.getCatalogName(i) + " TABLE: " + metaData.getTableName(i) + " COLUMN: " + metaData.getColumnName(i) + " ";
 					}
-					if (targetColumn != null)
-						sourceStr += "TARGETCOLUMN: " + targetColumn;
 					
 					sourceString = sourceStr;
 				} catch (SQLException e) {

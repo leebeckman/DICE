@@ -22,7 +22,7 @@ public class TaintIDTreeNode {
     }
 
     public String toString() {
-        return this.taintID + " - " + this.value + " - " + this.type;
+        return this.value + " - " + this.type + " - " + this.taintID;
     }
 
     public String getTaintID() {

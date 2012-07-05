@@ -18,6 +18,8 @@ public class FilterByRequestCounter implements EdgeFilter {
     }
 
     public boolean pass(TaintEdge edge) {
+        if (edge.getRequestCounter() == null)
+            return false;
         return edge.getRequestCounter().equals(requestCounter);
     }
 
