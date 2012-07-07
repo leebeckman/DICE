@@ -6,6 +6,7 @@
 package dicetrackeranalysis.graphhandling;
 
 import java.util.HashSet;
+import java.util.LinkedList;
 
 /**
  *
@@ -25,14 +26,22 @@ public class FilterByTaintID implements EdgeFilter {
     }
 
     public boolean pass(TaintEdge input) {
-        HashSet<String> edgeTaintIDs = input.getAllTaintIDs();
+        LinkedList<TaintedObject> taintedObjects = input.getTaintedObjects();
         boolean found = false;
-        for (String taintID : edgeTaintIDs) {
-            if (taintIDs.contains(taintID)) {
+        outer:
+        for (TaintedObject taintedObject :  taintedObjects) {
+            if (taintIDs.contains(taintedObject.getTaintID())) {
                 found = true;
                 break;
             }
+            for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
+                if (taintIDs.contains(subTaintedObject.getTaintID())) {
+                    found = true;
+                    break outer;
+                }
+            }
         }
+
         return found;
     }
 

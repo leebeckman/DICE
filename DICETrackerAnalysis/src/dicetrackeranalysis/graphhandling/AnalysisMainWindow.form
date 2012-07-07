@@ -24,7 +24,7 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="1" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jTabbedPane1" max="32767" attributes="0"/>
+              <Component id="jTabbedPane1" pref="1024" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -296,6 +296,8 @@
                                   <Component id="postcomputationAnalyzeButton" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="cachingAnalysisButton" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="fullOutputButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
@@ -306,7 +308,7 @@
                                   <Component id="resetPartitionsButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
-                          <EmptySpace pref="473" max="32767" attributes="0"/>
+                          <EmptySpace pref="376" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -319,6 +321,7 @@
                               <Component id="userStateAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="postcomputationAnalyzeButton" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="cachingAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="fullOutputButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
@@ -403,6 +406,14 @@
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="userStateAnalysisButtonActionPerformed"/>
                   </Events>
                 </Component>
+                <Component class="javax.swing.JButton" name="fullOutputButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Full Output"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fullOutputButtonActionPerformed"/>
+                  </Events>
+                </Component>
               </SubComponents>
             </Container>
             <Container class="javax.swing.JPanel" name="jPanel1">
@@ -429,6 +440,8 @@
                                   <Component id="noSBCheckbox" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="hideCheckBox" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="hideUnusedBox" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="showPathButton" min="-2" max="-2" attributes="0"/>
                               </Group>
@@ -484,6 +497,7 @@
                               <Component id="noGCCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="noSBCheckbox" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="hideCheckBox" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="hideUnusedBox" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="showPathButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
@@ -650,6 +664,14 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="showPathButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JCheckBox" name="hideUnusedBox">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Hide Unused"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="hideUnusedBoxActionPerformed"/>
                   </Events>
                 </Component>
               </SubComponents>

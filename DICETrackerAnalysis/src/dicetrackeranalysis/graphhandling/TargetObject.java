@@ -35,6 +35,10 @@ public class TargetObject extends RecordSetter {
         return this.objectID;
     }
 
+    public String getValue() {
+        return this.value;
+    }
+
     public String toString() {
         return this.type + ":" + this.objectID;
     }

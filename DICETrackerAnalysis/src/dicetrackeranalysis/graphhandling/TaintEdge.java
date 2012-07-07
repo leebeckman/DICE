@@ -485,6 +485,14 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         return this.taintedObjects;
     }
 
+    public HashSet<TaintedObject> getTaintedObjectsFlattened() {
+        HashSet<TaintedObject> ret = new HashSet<TaintedObject>(this.taintedObjects);
+        for (TaintedObject taintedObject : this.taintedObjects) {
+            ret.addAll(taintedObject.getSubTaintedObjects());
+        }
+        return ret;
+    }
+
     public LinkedList<TaintedObject> getComposedObjects() {
         return this.composedObjects;
     }
@@ -512,16 +520,17 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
     public String toDebugString() {
         String output = "";
 
+        output += "Counter: " + this.counter + "\n";
         output += "Type: " + this.type + "\n";
         output += "Advice Type: "  + this.adviceType + "\n";
         output += "Tainted Objects: \n";
 
         for (TaintedObject taintedObj : taintedObjects) {
-            output += "\t" + taintedObj.getType() + " - " + taintedObj.getValue() + "\n";
+            output += "\t" + taintedObj.getType() + " - " + taintedObj.getValue() + " - " + taintedObj.getObjectID() + "\n";
             if (taintedObj.getSubTaintedObjects() != null) {
                 for (TaintedObject subTaintedObj : taintedObj.getSubTaintedObjects()) {
                     if (subTaintedObj.getTaintID() != null && !subTaintedObj.getTaintID().isEmpty()) {
-                        output += "\t\t" + subTaintedObj.getType() + " - " + subTaintedObj.getValue() + "\n";
+                        output += "\t\t" + subTaintedObj.getType() + " - " + subTaintedObj.getValue() + " - " + subTaintedObj.getTaintID() + " unused: " + subTaintedObj.isUnused() + "\n";
                     }
                 }
             }
@@ -529,8 +538,8 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
 
         output += "\nRequest Counter: " + this.requestCounter + "\n";
         output += "Request URI: " + this.requestURI + "\n";
-        output += "Caller Context Counter: " + this.callerContextCounter + "\n";
-        output += "Called Context Counter: " + this.calledContextCounter + "\n";
+        output += "Input Context Counter: " + this.inputContextCounter + "\n";
+        output += "Output Context Counter: " + this.outputContextCounter + "\n";
 
         return output;
     }

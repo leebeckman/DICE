@@ -751,8 +751,17 @@ public class TaintLogger {
 			objectElem.addAttribute("type", object.getClass().getName());
 			objectElem.addAttribute("objectID", String.valueOf(System.identityHashCode(object)));
 			if (showValue) {
-				if (object.toString() != null)
-					objectElem.addAttribute("value", object.toString().replace("\n", ""));
+				if (object.getClass().getName().equals("[C")) {
+					StringBuilder builder = new StringBuilder();
+					char[] charArray = (char[])object;
+					for (int i = 0; i < charArray.length; i++) {
+						if (XMLChar.isValid(charArray[i]))
+							builder.append(charArray[i]);
+					}
+					objectElem.addAttribute("value", builder.toString().replaceAll("\n", "").replaceAll("\r", ""));
+				}
+				else if (object.toString() != null)
+					objectElem.addAttribute("value", object.toString().replaceAll("\n", "").replaceAll("\r", ""));
 			}
 			
 			// TODO: objectUIDs currently not working, looking like advice may be missing some/all object creations

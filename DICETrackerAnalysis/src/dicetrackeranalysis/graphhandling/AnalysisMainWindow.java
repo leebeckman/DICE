@@ -149,6 +149,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         resetPartitionsButton = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
         userStateAnalysisButton = new javax.swing.JButton();
+        fullOutputButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         multiGraphButton = new javax.swing.JButton();
         multiLightGraphButton = new javax.swing.JButton();
@@ -168,6 +169,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         highlightButton = new javax.swing.JButton();
         showOutputButton = new javax.swing.JButton();
         showPathButton = new javax.swing.JButton();
+        hideUnusedBox = new javax.swing.JCheckBox();
         jPanel2 = new javax.swing.JPanel();
         edgeID = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
@@ -358,6 +360,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
+        fullOutputButton.setText("Full Output");
+        fullOutputButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                fullOutputButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout analysisButtonsPanelLayout = new javax.swing.GroupLayout(analysisButtonsPanel);
         analysisButtonsPanel.setLayout(analysisButtonsPanelLayout);
         analysisButtonsPanelLayout.setHorizontalGroup(
@@ -373,7 +382,9 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(postcomputationAnalyzeButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cachingAnalysisButton))
+                        .addComponent(cachingAnalysisButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(fullOutputButton))
                     .addComponent(jLabel3)
                     .addGroup(analysisButtonsPanelLayout.createSequentialGroup()
                         .addComponent(partitionButton)
@@ -381,7 +392,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                         .addComponent(aprAnalysisButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(resetPartitionsButton)))
-                .addContainerGap(473, Short.MAX_VALUE))
+                .addContainerGap(376, Short.MAX_VALUE))
         );
         analysisButtonsPanelLayout.setVerticalGroup(
             analysisButtonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -391,7 +402,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     .addComponent(resetAnalysisButton)
                     .addComponent(userStateAnalysisButton)
                     .addComponent(postcomputationAnalyzeButton)
-                    .addComponent(cachingAnalysisButton))
+                    .addComponent(cachingAnalysisButton)
+                    .addComponent(fullOutputButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -508,6 +520,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
+        hideUnusedBox.setText("Hide Unused");
+        hideUnusedBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hideUnusedBoxActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -524,6 +543,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                         .addComponent(noSBCheckbox)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(hideCheckBox)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(hideUnusedBox)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(showPathButton))
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -566,6 +587,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     .addComponent(noGCCheckBox)
                     .addComponent(noSBCheckbox)
                     .addComponent(hideCheckBox)
+                    .addComponent(hideUnusedBox)
                     .addComponent(showPathButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -727,7 +749,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1024, Short.MAX_VALUE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -1008,6 +1030,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 }
             }
             filters.add(new FilterByTaintID(taintIDs));
+            if (hideUnusedBox.isSelected())
+                filters.add(new FilterUnused(taintIDs));
         }
 
         JButton detailsButton = tabToDetailsButtonMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
@@ -1056,8 +1080,6 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         }
 
         tabToGraphMap.put(tabView.getTitleAt(tabView.getSelectedIndex()), graph);
-
-        System.out.println("REDRAWING GRAPH: " + graph.getVertexCount());
 
         VisualizationViewer<TaintNode, TaintEdge> vv = getVisualizationViewer(graph, offset);
         tabToViewerMap.put(tabView.getTitleAt(tabView.getSelectedIndex()), vv);
@@ -1433,6 +1455,17 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         redrawGraph();
     }//GEN-LAST:event_showPathButtonActionPerformed
 
+    private void hideUnusedBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hideUnusedBoxActionPerformed
+        redrawGraph();
+    }//GEN-LAST:event_hideUnusedBoxActionPerformed
+
+    private void fullOutputButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fullOutputButtonActionPerformed
+        GraphBuilder gb = tabToBuilderMap.get("Graph");
+        String output = gb.getFullOutput();
+
+        analysisText.append(output);
+    }//GEN-LAST:event_fullOutputButtonActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -1458,8 +1491,10 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JTextField edgeID;
     private javax.swing.JButton fConnectedButton;
     private javax.swing.JTextField fileNameField;
+    private javax.swing.JButton fullOutputButton;
     private javax.swing.JButton getEdgeDataButton;
     private javax.swing.JCheckBox hideCheckBox;
+    private javax.swing.JCheckBox hideUnusedBox;
     private javax.swing.JButton highlightButton;
     private javax.swing.JTextField highlightField;
     private javax.swing.JCheckBox holdTaintIDButton;

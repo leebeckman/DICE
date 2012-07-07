@@ -19,11 +19,27 @@ public class TaintedObject extends RecordSetter {
     private String objectID;
     private String value;
     private boolean unused;
+    private boolean marked;
     private LinkedList<TaintedObject> subTaintedObjects;
 
     public TaintedObject() {
         subTaintedObjects = new LinkedList<TaintedObject>();
         unused = false;
+        marked = false;
+    }
+
+    public TaintedObject copy() {
+        TaintedObject copy = new TaintedObject();
+        copy.setTaintID(this.getTaintID());
+        copy.setTaintRecord(this.getTaintRecord());
+        copy.setType(this.getType());
+        copy.setObjectID(this.getObjectID());
+        copy.setValue(this.getValue());
+        for (TaintedObject subTaintedObject : this.getSubTaintedObjects()) {
+            copy.addTaintedObject(subTaintedObject.copy());
+        }
+
+        return copy;
     }
 
     public void setTaintID(String taintID) {
@@ -48,6 +64,10 @@ public class TaintedObject extends RecordSetter {
 
     public void setUnused() {
         this.unused = true;
+    }
+
+    public void setMarked() {
+        this.marked = true;
     }
 
     public void addTaintedObject(TaintedObject object) {
@@ -76,6 +96,10 @@ public class TaintedObject extends RecordSetter {
 
     public boolean isUnused() {
         return this.unused;
+    }
+
+    public boolean isMarked() {
+        return this.marked;
     }
 
     public LinkedList<TaintedObject> getSubTaintedObjects() {

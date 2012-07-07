@@ -64,6 +64,9 @@ public class GraphBuilder {
         connectReadsToResultSets();
         addSupplementaryEdges();
         RINRETExcludePass();
+        // Does this follow supplementary edges correctly? Should be able to track use even through session attribute
+        // Supplementary edge can probably be though of almost as a return
+        markUnusedSubTaint();
     }
 
     public GraphBuilder(GraphBuilder input) {
@@ -259,7 +262,7 @@ public class GraphBuilder {
                                         newEdge.setAdviceType("SUPPLEMENTARY");
 
                                         for (TaintedObject taintedObject : inEdge.getTaintedObjects())
-                                            newEdge.addTaintedObject(taintedObject);
+                                            newEdge.addTaintedObject(taintedObject.copy());
                                         
                                         newEdge.setOutputObject(inEdge.getOutputObject());
                                         newEdge.setCallingObject(inEdge.getCallingObject());
@@ -269,8 +272,8 @@ public class GraphBuilder {
                                         newEdge.setCallingNode(inNode);
                                         newEdge.setCalledNode(outNode);
 
-                                        newEdge.setInputContextCounter(inEdge.getInputContextCounter());
-                                        newEdge.setOutputContextCounter(inEdge.getOutputContextCounter());
+                                        newEdge.setOutputContextCounter(inEdge.getInputContextCounter());
+                                        newEdge.setInputContextCounter(outEdge.getOutputContextCounter());
 
                                         newEdge.setIsPostProcessingEdge();
                                         edgeList.add(newEdge);
@@ -284,7 +287,6 @@ public class GraphBuilder {
             }
         }
     }
-
 
     private HashSet<String> getPropagatedTaintIDs(HashSet<String> taintIDs, HashMap<String, LinkedList<String>> propagationMap) {
         HashSet<String> output = new HashSet<String>(taintIDs);
@@ -505,7 +507,6 @@ public class GraphBuilder {
                     }
                         
                     if (fieldName != null && !nodeMap.containsKey(fieldName)) {
-                        System.out.println("FIELDNAME: " + fieldName);
                         nodeMap.put(fieldName, new TaintNode(fieldName));
                     }
                     edgeList.add(taintEdge);
@@ -621,22 +622,164 @@ public class GraphBuilder {
                     edge.setCallingNode(callingNode);
                     edge.setCalledNode(calledNode);
 
-//                    if (edge.getType().equals("RETURNING")
-//                        && edge.getDestClass().startsWith("edu.rice.rubis.servlets.Auth")
-//                        && edge.getDestMethod().startsWith("authenticate")
-//                        && edge.getSrcClass().startsWith("edu.rice.rubis.servlets.BrowseCategories")
-//                        && edge.getSrcMethod().startsWith("doGet")) {
-//                        System.out.println("FOUND MISSING EDGE " + edge + " from " + edge.getCallingNode() + " to " + edge.getCalledNode());
-//                    }
                 }
             }
-//            monitor.finish();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
         System.out.println("Used: " + (runtime.totalMemory() - runtime.freeMemory()) + " Remain: " + runtime.freeMemory());
 
+    }
+
+    private void markUnusedSubTaint() {
+        LinkedList<TaintEdge> orderedEdges = getOrderedEdgeList();
+
+        // Loop over
+        // For each edge...
+        Graph<TaintNode, TaintEdge> fullGraph = getMultiGraph();
+        HashSet<TaintEdge> visited = new HashSet<TaintEdge>();
+//        HashSet<TaintedObject> markedObjects = new HashSet<TaintedObject>();
+
+
+        // If we know a subtaint is not used... when if it occurs in same context later, already marked
+        TaintEdge edge = null;
+        for (int i = 0; i < orderedEdges.size(); i++) {
+            if (i % 1000 == 0)
+                System.out.println("Marking Unused " + i + " of: " + orderedEdges.size());
+            edge = orderedEdges.get(i);
+            for (TaintedObject taintedObject : edge.getTaintedObjects()) {
+                if (taintedObject.getSubTaintedObjects() == null)
+                    continue;
+                for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
+                    // Want to check if the sub tainted object is useless.
+                    // Want to scan forward in context
+                    // Have a subTaintedObject, with an id, and an edge to start from
+                    visited.clear();
+                    if (subTaintedObject.isMarked())
+                        continue;
+                    boolean subFound = forwardContextSearch(visited, edge, fullGraph, true, subTaintedObject.getTaintID());
+
+                    // subFound also if enclosing object is saved somewhere, like in a static or in a setAttribute
+                    if (!subFound) {
+//                        System.out.println("SET UNUSED ON " + subTaintedObject.getType());
+//                        if (edge.getCalledNode().toString().contains("get Object:18147857") &&
+//                                edge.getCallingNode().toString().contains("put Object Object:18147857") &&
+//                                edge.getType().contains("SUPP"))
+//                            System.out.println("PRIMARY UNUSED SUPP: " + subTaintedObject.getValue());
+                        subTaintedObject.setUnused();
+                        subTaintedObject.setMarked();
+                        // This subTaintedObject is not used (basically, its taint was not found.)
+                        // Scan ahead in graph, whereever subtaint of same id is found, mark it in list
+//                        forwardContextQuickMark(visited, edge, fullGraph, true, subTaintedObject.getTaintID());
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean forwardContextSearch(HashSet<TaintEdge> visited, TaintEdge current, Graph<TaintNode, TaintEdge> graph, boolean isForward, String targetTaintID) {
+        // Looking for taint in high level object
+        if (visited.contains(current))
+            return false;
+        visited.add(current);
+
+//        if (targetTaintID.contains("28412859:forumtitle:73")) {
+//            System.out.println("TSCAN: " + current);
+//
+//        }
+
+        for (TaintedObject taintedObject : current.getTaintedObjects()) {
+            if (taintedObject.getTaintID() != null && taintedObject.getTaintID().equals(targetTaintID))
+                return true;
+            for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
+                if (subTaintedObject.getTaintID() != null && subTaintedObject.getTaintID().equals(targetTaintID)) {
+                    if (subTaintedObject.isMarked()) {
+                        if (subTaintedObject.isUnused())
+                            return false;
+                        else
+                            return true;
+                    }
+                }
+            }
+        }
+
+        // Check last edge. If it didn't return true, we want to see if this one has any potential. Like maybe
+
+        TaintNode nextNode = null;
+        String context = null;
+        if (isForward) {
+            nextNode = graph.getDest(current);
+            context = current.getInputContextCounter();
+        }
+        else {
+            nextNode = graph.getSource(current);
+            context = current.getOutputContextCounter();
+        }
+
+        boolean found = false;
+        for (TaintEdge nextEdge : graph.getOutEdges(nextNode)) {
+            if (nextEdge.getOutputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
+                if (forwardContextSearch(visited, nextEdge, graph, true, targetTaintID)) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            for (TaintEdge nextEdge : graph.getInEdges(nextNode)) {
+                if (nextEdge.getInputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY"))) {
+                    if (forwardContextSearch(visited, nextEdge, graph, false, targetTaintID)) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!found) {
+            // Did not find target, should mark all subobjects with target as false;
+            for (TaintedObject taintedObject : current.getTaintedObjects()) {
+                for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
+                    if (!subTaintedObject.isMarked() && subTaintedObject.getTaintID().equals(targetTaintID)) {
+                        if (current.getCalledNode().toString().contains("get Object:18147857") &&
+                                current.getCallingNode().toString().contains("put Object Object:18147857") &&
+                                current.getType().contains("SUPP") && subTaintedObject.getValue().contains("First Forum"))
+                            System.out.println("SECONDARY UNUSED SUPP: " + subTaintedObject.getValue() + " - " + current);
+                        subTaintedObject.setUnused();
+                        subTaintedObject.setMarked();
+                    }
+                }
+            }
+        }
+        else {
+            for (TaintedObject taintedObject : current.getTaintedObjects()) {
+                for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
+                    if (!subTaintedObject.isMarked() && subTaintedObject.getTaintID().equals(targetTaintID)) {
+                        subTaintedObject.setMarked();
+                    }
+                }
+            }
+        }
+
+        return found;
+    }
+
+    public String getFullOutput() {
+        LinkedList<TaintEdge> orderedEdges = getOrderedEdgeList();
+        String ret = "";
+
+        for (TaintEdge edge : orderedEdges) {
+            if (edge.getType().equals("OUTPUT")) {
+                for (TaintedObject taintedObject : edge.getTaintedObjects()) {
+                    ret += taintedObject.getValue() + "\n";
+                }
+            } else if (edge.getType().equals("NONTAINTOUTPUT")) {
+                ret += edge.getOutputObject().getValue() + "\n";
+            }
+            
+        }
+
+        return ret;
     }
 
     public HashSet<TaintEdge> getEdgeList() {
@@ -982,43 +1125,73 @@ public class GraphBuilder {
 
         LinkedList<TaintEdge> edges = new LinkedList<TaintEdge>(output.edgeList);
         for (TaintEdge edge : edges) {
-            for (String record : edge.getAllTaintRecords()) {
-                if (!dsib.checkTaintRecordMatchesVariability(record, "PREDICTABLE") && !dsib.checkTaintRecordMatchesVariability(record, "STABLE")) {
-                    Collection<TaintEdge> calledInEdges = inputGraph.getInEdges(edge.getCalledNode());
-                    Collection<TaintEdge> calledOutEdges = inputGraph.getOutEdges(edge.getCalledNode());
-//                    if (edge.getCalledNode() != null && edge.getCalledNode().toString().contains("ForumDAO:getForums")) {
-//                        System.out.println("PRUNING OUT " + edge + " " + record);
-//                    }
-//                    if (edge.getCallingNode() != null && edge.getCallingNode().toString().contains("ForumDAO:getForums")) {
-//                        System.out.println("PRUNING OUT " + edge + " " + record);
-//                    }
-                    if (calledInEdges != null) {
-                        for (TaintEdge removeEdge : calledInEdges) {
-                            // Remove edge must be in same context as edge
-                            if (removeEdge.getInputContextCounter().equals(edge.getInputContextCounter()))
-                                output.edgeList.remove(removeEdge);
-                        }
-                    }
-                    if (calledOutEdges != null) {
-                        for (TaintEdge removeEdge : calledOutEdges) {
-                            // Remove edge must be in same context as edge
-                            if (removeEdge.getOutputContextCounter().equals(edge.getInputContextCounter()))
-                                output.edgeList.remove(removeEdge);
-                        }
-                    }
+            // Check top-level taint
+            // Check the rest for mixed
 
-                    Collection<TaintEdge> callingInEdges = inputGraph.getInEdges(edge.getCallingNode());
-                    Collection<TaintEdge> callingOutEdges = inputGraph.getOutEdges(edge.getCallingNode());
-                    if (callingInEdges != null) {
-                        for (TaintEdge removeEdge : callingInEdges) {
-                            if (removeEdge.getInputContextCounter().equals(edge.getOutputContextCounter()))
-                                output.edgeList.remove(removeEdge);
+            boolean remove = false;
+            for (TaintedObject taintedObject : edge.getTaintedObjects()) {
+                String record = taintedObject.getTaintRecord();
+                if (record != null && !dsib.checkTaintRecordMatchesVariability(record, "PREDICTABLE") &&
+                        !dsib.checkTaintRecordMatchesVariability(record, "STABLE")) {
+                    remove = true;
+                    break;
+                }
+            }
+
+            for (TaintedObject taintedObject : edge.getTaintedObjectsFlattened()) {
+                String record = taintedObject.getTaintRecord();
+
+                if (record != null && !taintedObject.isUnused()) {
+                    if ((dsib.checkTaintRecordMatchesVariability(record, "PREDICTABLE") || 
+                            dsib.checkTaintRecordMatchesVariability(record, "STABLE")) &&
+                            dsib.checkTaintRecordMatchesVariability(record, "RANDOM")) {
+                        remove = true;
+                        break;
+                    }
+                }
+            }
+
+            if (remove) {
+                Collection<TaintEdge> calledInEdges = inputGraph.getInEdges(edge.getCalledNode());
+                Collection<TaintEdge> calledOutEdges = inputGraph.getOutEdges(edge.getCalledNode());
+                if (calledInEdges != null) {
+                    for (TaintEdge removeEdge : calledInEdges) {
+                        // Remove edge must be in same context as edge
+                        if (removeEdge.getInputContextCounter().equals(edge.getInputContextCounter())) {
+                            if (removeEdge.getCounter() == 499)
+                                System.out.println("REMOVING 499 due to " + edge);
+                            output.edgeList.remove(removeEdge);
                         }
                     }
-                    if (callingOutEdges != null) {
-                        for (TaintEdge removeEdge : callingOutEdges) {
-                            if (removeEdge.getOutputContextCounter().equals(edge.getOutputContextCounter()))
-                                output.edgeList.remove(removeEdge);
+                }
+                if (calledOutEdges != null) {
+                    for (TaintEdge removeEdge : calledOutEdges) {
+                        // Remove edge must be in same context as edge
+                        if (removeEdge.getOutputContextCounter().equals(edge.getInputContextCounter())) {
+                            if (removeEdge.getCounter() == 499)
+                                System.out.println("REMOVING 499 due to " + edge);
+                            output.edgeList.remove(removeEdge);
+                        }
+                    }
+                }
+
+                Collection<TaintEdge> callingInEdges = inputGraph.getInEdges(edge.getCallingNode());
+                Collection<TaintEdge> callingOutEdges = inputGraph.getOutEdges(edge.getCallingNode());
+                if (callingInEdges != null) {
+                    for (TaintEdge removeEdge : callingInEdges) {
+                        if (removeEdge.getInputContextCounter().equals(edge.getOutputContextCounter())) {
+                            if (removeEdge.getCounter() == 499)
+                                System.out.println("REMOVING 499 due to " + edge);
+                            output.edgeList.remove(removeEdge);
+                        }
+                    }
+                }
+                if (callingOutEdges != null) {
+                    for (TaintEdge removeEdge : callingOutEdges) {
+                        if (removeEdge.getOutputContextCounter().equals(edge.getOutputContextCounter())) {
+                            if (removeEdge.getCounter() == 499)
+                                System.out.println("REMOVING 499 due to " + edge);
+                            output.edgeList.remove(removeEdge);
                         }
                     }
                 }
@@ -1031,8 +1204,6 @@ public class GraphBuilder {
         Graph<TaintNode, TaintEdge> stableGraph = onlyStable.getMultiGraph();
         for (TaintNode node : stableGraph.getVertices()) {
             for (TaintEdge removeEdge : stableGraph.getIncidentEdges(node)) {
-                if (removeEdge.getCounter() == 183)
-                    System.out.println("O FAILING 183");
                 output.edgeList.remove(removeEdge);
             }
         }
