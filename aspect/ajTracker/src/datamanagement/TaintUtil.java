@@ -2,6 +2,8 @@ package datamanagement;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
+import java.util.Set;
 import java.util.Stack;
 
 import org.aspectj.lang.Signature;
@@ -126,6 +128,61 @@ public class TaintUtil {
 		}
 		
 		
+	}
+	
+	public static synchronized void addContextAccessedTaint(Object taintedObject) {
+		Long threadID = Thread.currentThread().getId();
+		Stack<ContextRecord> stack = contextStore.get(threadID);
+		if (stack == null || stack.size() == 0) {
+			TaintLogger.getTaintLogger().log("GETCONTEXT FAIL");
+			return;
+		}
+		else {
+			ContextRecord result = null;
+			
+			if (stack.size() > 0) {
+				result = stack.peek();
+				result.addAccessedTaint(taintedObject);
+//				TaintLogger.getTaintLogger().log("ADDING CAT: " + taintedObject + " in " + result.getContextClassName() + ":" + result.getContextMethodName());
+			}
+			return;
+		}
+	}
+	
+	public static synchronized void addContextAccessedTaint(Object taintedObject, Set<Object> subTaint) {
+		Long threadID = Thread.currentThread().getId();
+		Stack<ContextRecord> stack = contextStore.get(threadID);
+		if (stack == null || stack.size() == 0) {
+			TaintLogger.getTaintLogger().log("GETCONTEXT FAIL");
+			return;
+		}
+		else {
+			ContextRecord result = null;
+			
+			if (stack.size() > 0) {
+				result = stack.peek();
+				result.addAccessedTaint(taintedObject, subTaint);
+//				TaintLogger.getTaintLogger().log("ADDING CAT: " + taintedObject + " in " + result.getContextClassName() + ":" + result.getContextMethodName());
+			}
+			return;
+		}
+	}
+	
+	public static IdentityHashMap<Object, Object> getContextAccessedTaint() {
+		Long threadID = Thread.currentThread().getId();
+		Stack<ContextRecord> stack = contextStore.get(threadID);
+		if (stack == null || stack.size() == 0) {
+			TaintLogger.getTaintLogger().log("GETCONTEXT FAIL");
+			return null;
+		}
+		else {
+			IdentityHashMap<Object, Object> result = new IdentityHashMap<Object, Object>();
+			
+			for (int i = 0; i < stack.size(); i++) {
+				result.putAll(stack.get(i).getAccessedTaint());
+			}
+			return result;
+		}
 	}
 	
 	public static synchronized void popContext(String src) {

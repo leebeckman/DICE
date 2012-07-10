@@ -1033,6 +1033,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             if (hideUnusedBox.isSelected())
                 filters.add(new FilterUnused(taintIDs));
         }
+        filters.add(new FilterAllUnused());
 
         JButton detailsButton = tabToDetailsButtonMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
         int offset = 0;
@@ -1151,8 +1152,11 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     }
                 }
                 filters.add(new FilterByTaintID(taintIDs));
+                if (hideUnusedBox.isSelected())
+                    filters.add(new FilterUnused(taintIDs));
             }
         }
+        filters.add(new FilterAllUnused());
 
         JButton detailsButton = tabToDetailsButtonMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
         int offset = 0;

@@ -224,6 +224,9 @@ public aspect GeneralTracker {
 //	        	TaintLogger.getTaintLogger().log("SET TITLE TAINTED: " + args[0] + " jp: " + thisJoinPoint.toLongString() + " lc: " + TaintUtil.getLastContext() + " cc: " + TaintUtil.getContext() + " co: " + TaintUtil.getContext().getContextObject() + " coid: " + System.identityHashCode(TaintUtil.getContext().getContextObject()));
 //	        }
         	TaintLogger.getTaintLogger().logCalling(location, "REGULAREXECUTE", taintedArgList, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+        	for (TaintedArg taintedArg : taintedArgList) {
+        		TaintUtil.addContextAccessedTaint(taintedArg.getArg(), taintedArg.getSubTaint());
+        	}
         }
         
 //        else {
@@ -290,21 +293,14 @@ public aspect GeneralTracker {
 
     	//TODO: Deal with the fact that I added ResultSet here
         boolean taintReturned = false;
-        if (thisJoinPoint.toLongString().contains("getTitle") 
-        		&& thisJoinPoint.toLongString().contains("Forum")) {
-        	TaintLogger.getTaintLogger().log("GET TITLE: " + ret + " jp: " + thisJoinPoint.toLongString() + " lc: " + TaintUtil.getLastContext() + " cc: " + TaintUtil.getContext() + " co: " + TaintUtil.getContext().getContextObject() + " coid: " + System.identityHashCode(TaintUtil.getContext().getContextObject()));
-        }
         if (ReferenceMaster.isPrimaryTainted(ret)) {
 			if (location == null)
 				location = TaintUtil.getStackTraceLocation();
 			/* TODO: Read fuzzy prop */
 //			if (ThreadRequestMaster.checkStateful(location, ret))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
-			if (thisJoinPoint.toLongString().contains("getTitle") 
-            		&& thisJoinPoint.toLongString().contains("Forum")) {
-            	TaintLogger.getTaintLogger().log("GET TITLE TAINTED: " + ret + " jp: " + thisJoinPoint.toLongString() + " lc: " + TaintUtil.getLastContext() + " cc: " + TaintUtil.getContext() + " co: " + TaintUtil.getContext().getContextObject() + " coid: " + System.identityHashCode(TaintUtil.getContext().getContextObject()));
-            }
 			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURN", ret, totalTime, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+			TaintUtil.addContextAccessedTaint(ret);
 			taintReturned = true;
     	}
         else if (ret != null) {
@@ -320,6 +316,7 @@ public aspect GeneralTracker {
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
 				TaintLogger.getTaintLogger().logReturning(location, "EXECUTEOBJECTRETURN", ret, objTaint, totalTime, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+				TaintUtil.addContextAccessedTaint(ret, objTaint);
 				taintReturned = true;
 			}
 		}
@@ -398,6 +395,7 @@ public aspect GeneralTracker {
 //			if (ThreadRequestMaster.checkStateful(location, ret))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
 			TaintLogger.getTaintLogger().logReturning(location, "EXECUTESTRINGRETURNCONSTRUCT", ret, totalTime, TaintUtil.getLastContext(), ret);
+			TaintUtil.addContextAccessedTaint(ret);
 			taintReturned = true;
     	}
         else if (ret != null) {
@@ -413,6 +411,7 @@ public aspect GeneralTracker {
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
 				TaintLogger.getTaintLogger().logReturning(location, "EXECUTEOBJECTRETURNCONSTRUCT", ret, objTaint, totalTime, TaintUtil.getLastContext(), ret);
+				TaintUtil.addContextAccessedTaint(ret, objTaint);
 				taintReturned = true;
 			}
 		}
@@ -493,7 +492,9 @@ public aspect GeneralTracker {
         }
         if (taintedArgList.size() > 0) {
         	TaintLogger.getTaintLogger().logCalling(location, "JAVACALL", taintedArgList, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
-
+        	for (TaintedArg taintedArg : taintedArgList) {
+        		TaintUtil.addContextAccessedTaint(taintedArg.getArg(), taintedArg.getSubTaint());
+        	}
 //            if (location.getSource().contains("tag.common.core.OutSupport") &&
 //            		location.getSource().contains("writeEscapedXml") &&
 //            		location.getDest().contains("java.io.Writer") &&
@@ -558,8 +559,12 @@ public aspect GeneralTracker {
         		}
         	}
         }
-        if (taintedArgList.size() > 0)
+        if (taintedArgList.size() > 0) {
         	TaintLogger.getTaintLogger().logCalling(location, "JAVACONSCALL", taintedArgList);
+        	for (TaintedArg taintedArg : taintedArgList) {
+        		TaintUtil.addContextAccessedTaint(taintedArg.getArg(), taintedArg.getSubTaint());
+        	}
+        }
 //        else {
 //			if (location == null)
 //				location = TaintUtil.getStackTracePath();
@@ -631,6 +636,7 @@ public aspect GeneralTracker {
 //			if (ThreadRequestMaster.checkStateful(location, ret))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
 			TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURN", ret, totalTime, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
+			TaintUtil.addContextAccessedTaint(ret);
 			taintReturned = true;
 //			else 
 //				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLSTRINGRETURN", ret, javaObjField);
@@ -649,6 +655,7 @@ public aspect GeneralTracker {
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
 				TaintLogger.getTaintLogger().logReturning(location, "JAVACALLOBJECTRETURN", ret, objTaint, totalTime, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
+				TaintUtil.addContextAccessedTaint(ret, objTaint);
 				taintReturned = true;
 //    			else
 //    				TaintLogger.getTaintLogger().logJavaFieldGet(location, "JAVACALLOBJECTRETURN", ret, objTaint, javaObjField);
@@ -683,6 +690,7 @@ public aspect GeneralTracker {
 //			if (ThreadRequestMaster.checkStateful(location, ret))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
 			TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURNCONSTRUCT", ret, totalTime, TaintUtil.getLastContext(), ret);
+			TaintUtil.addContextAccessedTaint(ret);
 			taintReturned = true;
     	}
         else if (ret != null) {
@@ -698,6 +706,7 @@ public aspect GeneralTracker {
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
 				TaintLogger.getTaintLogger().logReturning(location, "JAVACALLOBJECTRETURNCONSTRUCT", ret, objTaint, totalTime, TaintUtil.getLastContext(), ret);
+				TaintUtil.addContextAccessedTaint(ret, objTaint);
 				taintReturned = true;
 			}
 		}

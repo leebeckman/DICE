@@ -1,12 +1,12 @@
 <root>
-    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="forumtitle" variability="PREDICTABLE" inttracking="false" />
-    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="forumdesc" variability="PREDICTABLE" inttracking="false" />
-    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="forumid" variability="PREDICTABLE" inttracking="true" />
-    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="locked" variability="PREDICTABLE" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="forumtitle" variability="STABLE" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="forumdesc" variability="STABLE" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="forumid" variability="STABLE" inttracking="true" />
+    <databasesourceinfo catalog="forum_db" table="jrf_forum" column="locked" variability="STABLE" inttracking="false" />
 
-    <databasesourceinfo catalog="forum_db" table="jrf_group" column="group_name" variability="PREDICTABLE" inttracking="false" />
-    <databasesourceinfo catalog="forum_db" table="jrf_group" column="groupid" variability="PREDICTABLE" inttracking="true" />
-    <databasesourceinfo catalog="forum_db" table="jrf_group" column="group_sort" variability="PREDICTABLE" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_group" column="group_name" variability="STABLE" inttracking="false" />
+    <databasesourceinfo catalog="forum_db" table="jrf_group" column="groupid" variability="STABLE" inttracking="true" />
+    <databasesourceinfo catalog="forum_db" table="jrf_group" column="group_sort" variability="STABLE" inttracking="false" />
 
     <databasesourceinfo catalog="forum_db" table="jrf_message" column="cont" variability="RANDOM" inttracking="false" />
     <databasesourceinfo catalog="forum_db" table="jrf_message" column="m_from" variability="RANDOM" inttracking="false" />
@@ -20,6 +20,9 @@
     <databasesourceinfo catalog="forum_db" table="jrf_whois" column="ip" variability="RANDOM" inttracking="false" />
     <databasesourceinfo catalog="forum_db" table="jrf_whois" column="sessionid" variability="RANDOM" inttracking="false" />
     <databasesourceinfo catalog="forum_db" table="jrf_whois" column="user_name" variability="PREDICTABLE" inttracking="false" />
+
+    <databasesourceinfo catalog="forum_db" table="jrf_skin_params" column="param_name" variability="STABLE" />
+    <databasesourceinfo catalog="forum_db" table="jrf_skin_params" column="param_value" variability="STABLE" />
 
     <!--<requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" parameter="chatMessage" variability="RANDOM" />
     <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="region" variability="PREDICTABLE" />

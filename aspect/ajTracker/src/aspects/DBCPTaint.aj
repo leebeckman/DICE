@@ -64,6 +64,7 @@ public aspect DBCPTaint {
     			String catalogName = null;
     			String tableName = null;
     			String columnName = null;
+    			String typeName = null;
     			Object[] args = thisJoinPoint.getArgs();
     			
     			int columnNumber = 0;
@@ -86,10 +87,17 @@ public aspect DBCPTaint {
 	    			catalogName = metaData.getCatalogName(columnNumber);
 	    			tableName = metaData.getTableName(columnNumber);
 					columnName = metaData.getColumnName(columnNumber);
+					typeName = metaData.getColumnLabel(columnNumber);
+					
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
     			
+				if (TaintUtil.getContext().getContextMethodName().contains("countForumMessages") ||
+						TaintUtil.getLastContext().getContextMethodName().contains("countForumMessages")) {
+					TaintLogger.getTaintLogger().log("COUNTFM: catalog: " + catalogName + " table: " + tableName + " column: " + columnName + " count: " + ret + " type: " + typeName);
+				}
+				
 				if (HeuristicIntTainter.getInstance().sourceSafeForIntTracking(catalogName, tableName, columnName)) {
 					ret = ReferenceMaster.doPrimaryIntTaint((Integer)ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()), columnName);
 	    			

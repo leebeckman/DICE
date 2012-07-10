@@ -1,5 +1,8 @@
 package datamanagement;
 
+import java.util.IdentityHashMap;
+import java.util.Set;
+
 public class ContextRecord {
 
 	public static long contextCounter = 0;
@@ -9,11 +12,13 @@ public class ContextRecord {
 	private String contextMethodName;
 	private String typeString;
 	private long contextCount;
+	private IdentityHashMap<Object, Object> accessedTaint;
 	
 	public ContextRecord(Object contextObject, String contextClassName, String contextMethodName, Class[] typeList) {
 		this.contextObject = contextObject;
 		this.contextClassName = contextClassName;
 		this.contextMethodName = contextMethodName;
+		this.accessedTaint = new IdentityHashMap<Object, Object>();
 		
 		this.typeString = "";
 		if (this.typeString != null) {
@@ -43,6 +48,18 @@ public class ContextRecord {
 	
 	public long getContextCounter() {
 		return this.contextCount;
+	}
+	
+	public void addAccessedTaint(Object taintedObject) {
+		this.accessedTaint.put(taintedObject, taintedObject);
+	}
+	
+	public void addAccessedTaint(Object taintedObject, Set<Object> subTaint) {
+		this.accessedTaint.put(taintedObject, subTaint);
+	}
+	
+	public IdentityHashMap<Object, Object> getAccessedTaint() {
+		return this.accessedTaint;
 	}
 	
 }

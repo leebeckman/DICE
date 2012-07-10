@@ -1,0 +1,48 @@
+Working Title: Taint Tracking for Application Migration
+
+Masters Thesis, Computer Science, UBC
+
+Lee Beckman
+
+Outline:
+    Abstract
+
+    Introduction
+        Problems
+        Thesis
+        Evaluation Strategy
+
+    Background
+        Some problems in application migration
+        Taint Tracking
+        Dataflow Tomography
+        Fluxo
+        Application Partitioning
+
+    Implementation
+        The Tracker
+        The Analysis Tool
+            The analyses:
+            Pre-Computation/Caching
+            Post-Computation
+            State Tracking
+            Access Path Refactoring
+            Wasteful Communication
+
+    Evaluation
+        Simple Example: RUBiS
+        Real-World, Complex Example: JGossip
+
+    Results
+        Positive Results
+        Challenges
+
+    Discussion
+        What works well
+        Promising extensions to tool
+        Need for a better taint tracker
+        Control-tainting
+        What didn't work so well
+        Future work
+
+    Conclusions

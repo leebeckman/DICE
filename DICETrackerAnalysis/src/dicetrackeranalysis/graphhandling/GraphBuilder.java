@@ -388,6 +388,17 @@ public class GraphBuilder {
 
                             taintEdge.addTaintedObject(taintedObject);
                         }
+                        else if (taintLogChildElem.getNodeName().equals("accessedTaint") && taintEdge.getType().equals("OUTPUTNONTAINT")) {
+                            TaintedObject taintedObject = new TaintedObject();
+                            taintedObject.setObjectID(taintLogChildElem.getAttribute("objectID"));
+                            String taintID = taintLogChildElem.getAttribute("taintID");
+                            taintedObject.setTaintID(taintID);
+                            taintedObject.setType(taintLogChildElem.getAttribute("type"));
+                            taintedObject.setValue(taintLogChildElem.getAttribute("value"));
+                            taintedObject.setTaintRecord(taintLogChildElem.getAttribute("taintRecord"));
+
+                            taintEdge.addTaintedObject(taintedObject);
+                        }
                         else if (taintLogChildElem.getNodeName().equals("composedObjects")) {
                             NodeList taintLogChildChildNodes = taintLogChildElem.getChildNodes();
                             for (int k = 0; k < taintLogChildChildNodes.getLength(); k++) {
@@ -644,8 +655,8 @@ public class GraphBuilder {
         // If we know a subtaint is not used... when if it occurs in same context later, already marked
         TaintEdge edge = null;
         for (int i = 0; i < orderedEdges.size(); i++) {
-            if (i % 1000 == 0)
-                System.out.println("Marking Unused " + i + " of: " + orderedEdges.size());
+//            if (i % 1000 == 0)
+//                System.out.println("Marking Unused " + i + " of: " + orderedEdges.size());
             edge = orderedEdges.get(i);
             for (TaintedObject taintedObject : edge.getTaintedObjects()) {
                 if (taintedObject.getSubTaintedObjects() == null)
@@ -771,10 +782,13 @@ public class GraphBuilder {
         for (TaintEdge edge : orderedEdges) {
             if (edge.getType().equals("OUTPUT")) {
                 for (TaintedObject taintedObject : edge.getTaintedObjects()) {
-                    ret += taintedObject.getValue() + "\n";
+                    ret += "TAINTED: " + taintedObject.getTaintID() + " - " + taintedObject.getTaintRecord() + " - " + taintedObject.getValue() + "\n";
                 }
-            } else if (edge.getType().equals("NONTAINTOUTPUT")) {
-                ret += edge.getOutputObject().getValue() + "\n";
+            } else if (edge.getType().equals("OUTPUTNONTAINT")) {
+                ret += "NONTNTD: " + edge.getOutputObject().getValue() + "\n";
+                for (TaintedObject taintedObject : edge.getAccessedTaint()) {
+                    ret += "\t" + taintedObject.getTaintRecord() + "\n";
+                }
             }
             
         }
@@ -1201,12 +1215,12 @@ public class GraphBuilder {
 
 //        window.addAnalysisGraphBuilder(output, "TESTPRE A", "Done");
         // Changed from using inputGraph to remove edges (getIncidentEdges called on input instead of stable), to using stable
-        Graph<TaintNode, TaintEdge> stableGraph = onlyStable.getMultiGraph();
-        for (TaintNode node : stableGraph.getVertices()) {
-            for (TaintEdge removeEdge : stableGraph.getIncidentEdges(node)) {
-                output.edgeList.remove(removeEdge);
-            }
-        }
+//        Graph<TaintNode, TaintEdge> stableGraph = onlyStable.getMultiGraph();
+//        for (TaintNode node : stableGraph.getVertices()) {
+//            for (TaintEdge removeEdge : stableGraph.getIncidentEdges(node)) {
+//                output.edgeList.remove(removeEdge);
+//            }
+//        }
 
         output.generateTaintIDPropagationsAndRequestCounters();
         output.postProcessTaintIDPropagations();
@@ -1390,6 +1404,38 @@ public class GraphBuilder {
                 TaintNode outputNode = fullGraph.getDest(edge);
                 if (!outputNode.getName().contains("CoyoteWriter"))
                     output.add(outputNode);
+            }
+        }
+
+        return output;
+    }
+    
+    public HashSet<TaintEdge> getUserOutputEdges() {
+        HashSet<TaintEdge> output = new HashSet<TaintEdge>();
+
+        Graph<TaintNode, TaintEdge> fullGraph = getMultiGraph();
+
+        for (TaintEdge edge : fullGraph.getEdges()) {
+            if (edge.getType().equals("OUTPUT")) {
+                TaintNode outputNode = fullGraph.getDest(edge);
+                if (!outputNode.getName().contains(":write"))
+                    output.add(edge);
+            }
+        }
+
+        return output;
+    }
+
+    public HashSet<TaintEdge> getDBOutputEdges() {
+        HashSet<TaintEdge> output = new HashSet<TaintEdge>();
+
+        Graph<TaintNode, TaintEdge> fullGraph = getMultiGraph();
+
+        for (TaintEdge edge : fullGraph.getEdges()) {
+            if (edge.getType().equals("OUTPUT")) {
+                TaintNode outputNode = fullGraph.getDest(edge);
+                if (!outputNode.getName().contains(":execute"))
+                    output.add(edge);
             }
         }
 

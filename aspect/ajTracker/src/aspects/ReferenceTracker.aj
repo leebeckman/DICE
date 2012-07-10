@@ -148,6 +148,7 @@ public aspect ReferenceTracker {
 //			if (ThreadRequestMaster.checkStateful(location, accessed))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
     		TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, field, TaintUtil.getLastContext(), TaintUtil.getContext());
+    		TaintUtil.addContextAccessedTaint(accessed);
     	}
     	else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, accessed);
@@ -159,6 +160,7 @@ public aspect ReferenceTracker {
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
     			TaintLogger.getTaintLogger().logFieldGet(location, "NORMAL", accessed, objTaint, field, TaintUtil.getLastContext(), TaintUtil.getContext());
+    			TaintUtil.addContextAccessedTaint(accessed, objTaint);
     		}
     	}
     }
@@ -298,6 +300,7 @@ public aspect ReferenceTracker {
 //			if (ThreadRequestMaster.checkStateful(location, accessed))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + accessed);
     		TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, field, TaintUtil.getLastContext(), TaintUtil.getContext());
+    		TaintUtil.addContextAccessedTaint(accessed);
     	}
     	else {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(field, accessed);
@@ -311,6 +314,7 @@ public aspect ReferenceTracker {
 //        				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
 //    			}
     			TaintLogger.getTaintLogger().logFieldGet(location, "STATIC", accessed, objTaint, field, TaintUtil.getLastContext(), TaintUtil.getContext());
+    			TaintUtil.addContextAccessedTaint(accessed, objTaint);
     		}
     	}
 

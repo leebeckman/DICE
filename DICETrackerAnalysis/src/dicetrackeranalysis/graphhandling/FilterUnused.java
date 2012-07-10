@@ -45,6 +45,13 @@ public class FilterUnused implements EdgeFilter {
             }
         }
 
+        /*
+         * goes thru tainted objects, if top level matches, include.
+         * if subobject matches, make sure it is used
+         *
+         * for a blanket approach, want to filter anything where nothing is used
+         */
+
         return found;
     }
 

@@ -3,6 +3,7 @@ package datamanagement;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.logging.FileHandler;
@@ -402,7 +403,7 @@ public class TaintLogger {
 		logTaint(logRoot.toString());
 	}
 	
-	public void logNonTaintOutputStringArg(StackLocation location, String adviceType, Object output, Object calling, Object called) {
+	public void logNonTaintOutputStringArg(StackLocation location, String adviceType, Object output, IdentityHashMap<Object, Object> accessedTaint, Object calling, Object called) {
 		MyElement logRoot = getLogRoot("OUTPUTNONTAINT");
 		
 		addLocationElement(logRoot, location, adviceType);
@@ -410,6 +411,16 @@ public class TaintLogger {
 		addObjectElement(logRoot, "outputObject", output, true);
 		addObjectElement(logRoot, "callingObject", calling, false);
 		addObjectElement(logRoot, "calledObject", called, false);
+		
+		for (Object taintedObject : accessedTaint.keySet()) {
+			Object value = accessedTaint.get(taintedObject);
+			MyElement accessedElem = addObjectElement(logRoot, "accessedTaint", taintedObject, true);
+			if (value instanceof Set<?>) {
+				Set<Object> subTaintedObjects = (Set<Object>) value;
+				for (Object subTaint : subTaintedObjects)
+					addObjectElement(accessedElem, "subAccessedTaint", subTaint, true);
+			}
+		}
 		
 		logTaint(logRoot.toString());
 	}
@@ -758,10 +769,10 @@ public class TaintLogger {
 						if (valueArr[i] != '\n' && valueArr[i] != '\r' && XMLChar.isValid(valueArr[i]))
 							valueBuilder.append(valueArr[i]);
 					}
-					objectElem.addAttribute("value", valueBuilder.toString().replaceAll("\\r|\\n", ""));
+					objectElem.addAttribute("value", valueBuilder.toString());
 				}
 				else if (object.toString() != null)
-					objectElem.addAttribute("value", object.toString().replaceAll("\\r|\\n", ""));
+					objectElem.addAttribute("value", object.toString().replaceAll("\r|\n", ""));
 			}
 			
 			// TODO: objectUIDs currently not working, looking like advice may be missing some/all object creations

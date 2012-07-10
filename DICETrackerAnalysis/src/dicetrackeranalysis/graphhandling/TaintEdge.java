@@ -33,6 +33,7 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
     private String adviceType;
     private TaintedField field;
     private LinkedList<TaintedObject> taintedObjects;
+    private LinkedList<TaintedObject> accessedTaint; // For NONTAINTOUTPUT
     private LinkedList<TaintedObject> composedObjects;
     private LinkedList<TaintedObject> associatedObjects;
     private TargetObject outputObject;
@@ -91,6 +92,7 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
 
     public TaintEdge() {
         taintedObjects = new LinkedList<TaintedObject>();
+        accessedTaint = new LinkedList<TaintedObject>();
         composedObjects = new LinkedList<TaintedObject>();
         associatedObjects = new LinkedList<TaintedObject>();
         this.counter = edgeCounter++;
@@ -185,6 +187,10 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
 
     public void addTaintedObject(TaintedObject object) {
         this.taintedObjects.add(object);
+    }
+
+    public void addAccessedTaint(TaintedObject object) {
+        this.accessedTaint.add(object);
     }
 
     public void addComposedObject(TaintedObject object) {
@@ -349,6 +355,10 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
 
     public TargetObject getCalledObject() {
         return this.calledObject;
+    }
+
+    public LinkedList<TaintedObject> getAccessedTaint() {
+        return this.accessedTaint;
     }
 
     public HashSet<String> getAllTaintIDs() {
