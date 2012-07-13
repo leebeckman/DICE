@@ -337,7 +337,7 @@ public aspect OutputTracker {
 //	}
 	
 	// DB Update Output
-	before(): call(* com.mysql.jdbc.PreparedStatement.execute*(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+	before(): call(* java.sql.PreparedStatement+.execute*(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
     	if (!TaintUtil.getAJLock("BEFOREEU" + thisJoinPoint.getSignature().toShortString()))
@@ -348,9 +348,14 @@ public aspect OutputTracker {
         boolean taintOutput = false;
         
         Set<Object> objTaint = ReferenceMaster.fullTaintCheck(thisJoinPoint.getTarget());
+    	if (location == null)
+			location = TaintUtil.getStackTraceLocation();
+    	TaintLogger.getTaintLogger().log("CHECKING EXECUTE TAINT IN: " + location);
+        
         if (objTaint != null && objTaint.size() > 0) {
         	if (location == null)
 				location = TaintUtil.getStackTraceLocation();
+        	TaintLogger.getTaintLogger().log("EXECUTE TAINT IN: " + location);
         	taintOutput = true;
         	TaintLogger.getTaintLogger().logOutputObjectArg(location, "DBOUT", thisJoinPoint.getTarget(), objTaint, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
         	
@@ -376,19 +381,19 @@ public aspect OutputTracker {
 //        		}
 //        	}
 //        }
-    	if (!taintOutput) {
-    		if (location == null)
-				location = TaintUtil.getStackTraceLocation();
-//    		if (args.length > 0 && args[0] != null)
-//    			TaintLogger.getTaintLogger().logNonTaintOutputStringArg(location, "NONTAINTOUTPUT", args[0], TaintUtil.getLastContext(), thisJoinPoint.getTarget());
-//    		else if (args.length == 0)
-//    			TaintLogger.getTaintLogger().logNonTaintOutputStringArg(location, "NONTAINTOUTPUT", null, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
-    	}
+//    	if (!taintOutput) {
+//    		if (location == null)
+//				location = TaintUtil.getStackTraceLocation();
+////    		if (args.length > 0 && args[0] != null)
+////    			TaintLogger.getTaintLogger().logNonTaintOutputStringArg(location, "NONTAINTOUTPUT", args[0], TaintUtil.getLastContext(), thisJoinPoint.getTarget());
+////    		else if (args.length == 0)
+////    			TaintLogger.getTaintLogger().logNonTaintOutputStringArg(location, "NONTAINTOUTPUT", null, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
+//    	}
     	
         TaintUtil.releaseAJLock("BEFOREEU" + thisJoinPoint.getSignature().toShortString());
     }
 	
-	after(): call(* com.mysql.jdbc.PreparedStatement.executeUpdate(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+	after(): call(* java.sql.PreparedStatement+.execute*(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
     	if (!TaintUtil.getAJLock("AFTEREU" + thisJoinPoint.getSignature().toShortString()))
@@ -400,16 +405,20 @@ public aspect OutputTracker {
 		TaintUtil.releaseAJLock("AFTEREU" + thisJoinPoint.getSignature().toShortString());
 	}
 	
-    void around(Integer arg): execution(public * *PreparedStatement.setInt(..)) && args(arg) {
+    void around(int column, int arg): call(* java.sql.PreparedStatement+.setInt(..)) && args(column, arg) {
     	if (!SimpleCommControl.getInstance().trackingEnabled()) {
-    		proceed(arg);
+    		proceed(column, arg);
     		return;
     	}
-    	if (ReferenceMaster.isPrimaryTainted(arg)) {
+    	if (ReferenceMaster.isPrimaryTainted(arg)) { 
+    		/* A bit of a hack. ReferenceMaster taint scanning seems to be missing taint on PreparedStatement
+    		 * objects
+    		 */
+        	ReferenceMaster.setNewValue(arg, thisJoinPoint.getTarget());
     		arg = ReferenceMaster.getTaintedIntOldValue(arg);
     	}
     	
-    	proceed(arg);
+    	
+    	proceed(column, arg);
     }
 }
-

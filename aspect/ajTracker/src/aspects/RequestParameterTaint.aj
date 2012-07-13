@@ -46,34 +46,39 @@ public aspect RequestParameterTaint {
     		HttpServletRequest req = (HttpServletRequest)thisJoinPoint.getThis();
     		ReferenceMaster.doPrimaryTaint(ret, "URI:" + req.getRequestURI() + ":" + thisJoinPoint.getArgs()[0]);
     		TaintLogger.getTaintLogger().logReturningInput(location, "REQPARAMETER", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
-    		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-    		TaintLogger.getTaintLogger().log("START REQRIN LOG");
-    		for (int i = 0; i < stack.length; i++) {
-    			TaintLogger.getTaintLogger().log(stack[i].toString());
-    		}
-    		TaintLogger.getTaintLogger().log("END REQRIN LOG");
+//    		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+//    		TaintLogger.getTaintLogger().log("START REQRIN LOG");
+//    		for (int i = 0; i < stack.length; i++) {
+//    			TaintLogger.getTaintLogger().log(stack[i].toString());
+//    		}
+//    		TaintLogger.getTaintLogger().log("END REQRIN LOG");
     	}
     	TaintUtil.popContext("APRIN");
     	TaintUtil.releaseAJLock("AFTERRP1" + thisJoinPoint.getSignature().toShortString());
     }
     
-    after() returning (Object ret): execution(* org.apache.catalina.connector.Request.getParameterValues(..)) {
+    String[] around(): execution(* org.apache.catalina.connector.Request.getParameterValues(..)) {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
-    		return;
+    		return proceed();
     	if (!TaintUtil.getAJLock("AFTERRP2" + thisJoinPoint.getSignature().toShortString()))
-    		return;
+    		return proceed();
+    	
+    	Object ret = proceed();
+    	String[] values = (String[])ret;
     	
     	if (ret != null) {
 //    		TaintLogger.getTaintLogger().log("REQ PARAM " + thisJoinPoint.getSignature());
     		StackLocation location = TaintUtil.getStackTraceLocation();
     		HttpServletRequest req = (HttpServletRequest)thisJoinPoint.getThis();
-    		String[] values = (String[])ret;
-    		for (int i = 0 ; i < values.length; i++)
-    			ReferenceMaster.doPrimaryTaint(values[i], req.getRequestURI() + ":" + thisJoinPoint.getArgs()[0]);
-    		TaintLogger.getTaintLogger().logReturningInput(location, "REQPARAMETER", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+    		
+    		for (int i = 0 ; i < values.length; i++) {
+    			ReferenceMaster.doPrimaryTaint(values[i], "URI:" + req.getRequestURI() + ":" + thisJoinPoint.getArgs()[0]);
+    			TaintLogger.getTaintLogger().logReturningInput(location, "REQPARAMETER", values[i], TaintUtil.getLastContext(), thisJoinPoint.getThis());
+    		}
     	}
     	TaintUtil.popContext("APRINV");
     	TaintUtil.releaseAJLock("AFTERRP2" + thisJoinPoint.getSignature().toShortString());
+    	return values;
     }
     
 }

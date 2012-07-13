@@ -336,6 +336,19 @@ public class ReferenceMaster {
 		return remapped;
 	}
 	
+	public static synchronized int doPrimaryIntTaint(Integer target) {
+		if (intTaintSourcesMap.containsKey(target))
+			return target;
+		
+		Integer remapped = HeuristicIntTainter.getInstance().taintInt(target);
+		if (!intTaintSourcesMap.containsKey(remapped)) {
+			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
+			intTaintSourcesMap.put(remapped, sources);
+		}
+		
+		return remapped;
+	}
+	
 	public static synchronized int getTaintedIntOldValue(Integer input) {
 		return HeuristicIntTainter.getInstance().getRealValue(input);
 	}
@@ -394,6 +407,19 @@ public class ReferenceMaster {
 			target.addAll(source);
 		}
 		
+	}
+	
+	public static synchronized void propagateTaintSourcesToInt(String sourceData, Integer targetData) {
+		HashSet<IDdTaintSource> source = taintSourcesMap.get(sourceData);
+			
+		// Not getting a new ID here.
+		if (intTaintSourcesMap.get(targetData) == null) {
+			intTaintSourcesMap.put(targetData, new HashSet<IDdTaintSource>());
+//			TaintLogger.getTaintLogger().log("INT TAINTED CAST: " + (Integer)targetData);
+//			TaintLogger.getTaintLogger().dumpStack("INT TAINT CAST");
+		}
+		HashSet<IDdTaintSource> target = intTaintSourcesMap.get(targetData);
+		target.addAll(source);
 	}
 	
 	public static synchronized boolean isPrimaryTainted(Object obj) {
@@ -499,7 +525,7 @@ public class ReferenceMaster {
 					for (int i = 0; i < fields.length; i++) {
 						//TODO: is it bad that this only scans non-static fields?
 						if (!Modifier.isStatic(fields[i].getModifiers())) {
-							if (!fields[i].getType().isPrimitive()) {
+							if (!fields[i].getType().isPrimitive() || fields[i].getType().equals(Integer.class)) {
 								fields[i].setAccessible(true);
 								try {
 									Object visit = fields[i].get(obj);
@@ -581,14 +607,12 @@ public class ReferenceMaster {
 	
 	public static synchronized boolean isValidArrayType(Object check) {
 		if (check.getClass().isArray()) {
-			if (!check.getClass().getComponentType().isPrimitive()) {
-				if (check.getClass().getComponentType().equals(Double.class) ||
-						check.getClass().getComponentType().equals(Long.class) ||
-						check.getClass().getComponentType().equals(Character.class)) {
-					return false;
-				}
+//			if (!check.getClass().getComponentType().isPrimitive() || check.getClass().equals(Integer.class)) {
+			if (!check.getClass().getComponentType().isPrimitive() || check.getClass().getComponentType().equals(Integer.class)) {
 				return true;
 			}
+			return false;
+//			}
 		}
 		return false;
 	}
@@ -859,7 +883,7 @@ public class ReferenceMaster {
 		}
 	}
 	
-	static class TaintSource {
+	public static class TaintSource {
 		
 		private Object source;
 		private String targetColumn;
@@ -921,6 +945,14 @@ public class ReferenceMaster {
 		public String getSourceString() {
 			String ret = sourceString;
 			return ret;
+		}
+		
+		public Object getSource() {
+			return this.source;
+		}
+		
+		public String getTargetColumn() {
+			return this.targetColumn;
 		}
 		
 	}

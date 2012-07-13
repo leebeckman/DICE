@@ -42,6 +42,9 @@ public class TaintNode {
     public TaintNode(String name) {
         this.callRecords = new LinkedList<CallRecord>();
         this.name = name;
+        if (this.name == null) {
+            System.out.println("NULL NAMED!!!!!!!!!!!!!!!!!!1");
+        }
         this.counter = TaintNode.nodeCounter++;
         this.colorValue = 0;
     }

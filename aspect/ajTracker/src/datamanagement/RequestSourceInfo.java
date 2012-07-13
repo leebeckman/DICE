@@ -23,6 +23,7 @@ public class RequestSourceInfo implements DataSourceInfo {
     }
 
     public boolean match(String uri, String parameter) {
+    	TaintLogger.getTaintLogger().log("RSI MATCH: uri: " + uri + " param: " + parameter + " to uri: " + this.uri + " param: " + this.parameter + " match: " + (this.uri.equals(uri) && this.parameter.equals(parameter)));
         return (this.uri.equals(uri) && this.parameter.equals(parameter));
     }
     

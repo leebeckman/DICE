@@ -5,6 +5,7 @@ import java.lang.reflect.Modifier;
 import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,12 +15,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.catalina.connector.RequestFacade;
 import org.aspectj.lang.reflect.FieldSignature;
 
+import datamanagement.HeuristicIntTainter;
 import datamanagement.ReferenceMaster;
 import datamanagement.SimpleCommControl;
 import datamanagement.StaticFieldBackTaintChecker;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
 import datamanagement.ThreadRequestMaster;
+import datamanagement.ReferenceMaster.IDdTaintSource;
 import datamanagement.TaintUtil.StackLocation;
 
 
@@ -127,6 +130,37 @@ public aspect ReferenceTracker {
 //			TaintLogger.getTaintLogger().dumpStack("HAS URI " + URI + " - " + Thread.currentThread().getId());
 //		else
 //			TaintLogger.getTaintLogger().dumpStack("NO URI - " + Thread.currentThread().getId());
+	}
+	
+	/*
+	 * Advice to propagate taint from tainted Strings to the inttracking system
+	 */
+	Integer around(String arg): call(* Integer.parseInt(..)) && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
+
+		TaintLogger.getTaintLogger().log("PARSEINT CALLED: " + arg);
+		Integer ret = proceed(arg);
+		
+		if (ReferenceMaster.isPrimaryTainted(arg)) {
+			TaintLogger.getTaintLogger().log("PARSEINT on TAINTED: " + arg);
+			boolean safeForTracking = false;
+			for (IDdTaintSource source : ReferenceMaster.getDataSources(arg)) {
+				if (HeuristicIntTainter.getInstance().sourceSafeForIntTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
+					safeForTracking = true;
+					break;
+				}
+			}
+			if (safeForTracking) {
+				ret = ReferenceMaster.doPrimaryIntTaint(ret);
+				ReferenceMaster.propagateTaintSourcesToInt(arg, ret);
+				TaintLogger.getTaintLogger().log("PARSE INT PROPAGATION: " + ret);
+				StackLocation location = TaintUtil.getStackTraceLocation();
+				TaintLogger.getTaintLogger().logPropagation(location, "PARSEINT", arg, ret);
+			}
+		}
+		
+		return ret;
 	}
 	
 	/*

@@ -108,6 +108,7 @@ public class GraphBuilder {
         // Simply look for resultset get string nodes, see where they go, in context, look for input resultset
         HashSet<TaintEdge> deleteEdges = new HashSet<TaintEdge>();
         for (TaintNode node : fullGraph.getVertices()) {
+//            System.out.println("NODE NAME: " + node.getName());
             if (node.getName().startsWith("java.sql.ResultSet:getString") ||
                     node.getName().startsWith("com.mysql.jdbc.ResultSet:getString") ||
                     node.getName().startsWith("com.mysql.jdbc.ResultSet:getInt") ||
@@ -688,7 +689,7 @@ public class GraphBuilder {
         }
     }
 
-    public boolean forwardContextSearch(HashSet<TaintEdge> visited, TaintEdge current, Graph<TaintNode, TaintEdge> graph, boolean isForward, String targetTaintID) {
+    private boolean forwardContextSearch(HashSet<TaintEdge> visited, TaintEdge current, Graph<TaintNode, TaintEdge> graph, boolean isForward, String targetTaintID) {
         // Looking for taint in high level object
         if (visited.contains(current))
             return false;
@@ -1090,6 +1091,40 @@ public class GraphBuilder {
         GraphBuilder output = new GraphBuilder(input);
 
         output.generateTaintIDPropagationsAndRequestCounters();
+        output.postProcessTaintIDPropagations();
+
+        return output;
+    }
+
+    public static GraphBuilder getBuilderFromEdges(GraphBuilder input, HashSet<TaintEdge> sourceEdges) {
+        GraphBuilder output = new GraphBuilder(input, true);
+
+        output.getEdgeList().addAll(sourceEdges);
+
+        for (TaintEdge edge : output.getEdgeList()) {
+            output.taintIDs.putAll(edge.getAllTaintIDsWithTypes());
+
+            if (edge.getCallingNode() != null && edge.getCalledNode() != null) {
+                if (!edge.getAdviceType().startsWith("NONTAINTRETURN")) {
+                    RequestCounterURIPair counterURI = new RequestCounterURIPair(edge.getRequestCounter(), edge.getRequestURI());
+                    output.requestCounters.put(counterURI.toString(), counterURI);
+                }
+            }
+        }
+
+        LinkedList<TaintEdge> sortedEdges = new LinkedList<TaintEdge>(input.getPropagationEdges());
+        Collections.sort(sortedEdges);
+        for (TaintEdge edge : sortedEdges) {
+            // No propagation edges moved over. No constructor copies full propagation list. It's added from edges. Propagation
+            // edges are never filtered out by taintRecord.
+            if (output.taintIDs.containsKey(edge.getSourceObject().getTaintID()) &&
+                    output.taintIDs.containsKey(edge.getDestObject().getTaintID())) {
+                output.taintIDPropagations.add(new TaintIDPropagationPair(edge.getSourceObject().getTaintID(),
+                        edge.getSourceObject().getValue(), edge.getSourceObject().getType(),
+                        edge.getDestObject().getTaintID(),
+                        edge.getDestObject().getValue(), edge.getDestObject().getType()));
+            }
+        }
         output.postProcessTaintIDPropagations();
 
         return output;

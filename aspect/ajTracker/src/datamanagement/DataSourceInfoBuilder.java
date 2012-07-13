@@ -95,5 +95,20 @@ public class DataSourceInfoBuilder {
         return null;
     }
     
+    public DataSourceInfo getMatchingInfo(String uriParameterString) {
+    	String parameter = uriParameterString.substring(uriParameterString.lastIndexOf(":") + 1);
+    	String uri = uriParameterString.substring(4, uriParameterString.lastIndexOf(":"));
+    	TaintLogger.getTaintLogger().log("GMI ON: " + parameter + " from uri: " + uri);
+        for (DataSourceInfo infoItem : dataSourceInfoList) {
+            if (infoItem instanceof RequestSourceInfo) {
+            	if (((RequestSourceInfo)infoItem).match(uri, parameter)) {
+            		return infoItem;
+            	}
+            }
+        }
+        
+        return null;
+    }
+    
 
 }
