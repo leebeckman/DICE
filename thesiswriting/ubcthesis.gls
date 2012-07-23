@@ -1,0 +1,548 @@
+
+ \begin{theglossary} 
+
+    \makeatletter\scan@allowedfalse
+
+  \item v1.00d\efill 
+ \subitem General:\ Added use of \cs  {NeedsTeXFormat}\pfill 53
+      \subsubitem Made eqaution and eqnarray environments in the fleqn option up to date with latex.dtx\pfill 
+		53
+      \subsubitem remove \cs  {@in}, made option makeindex a synonym for option makeidx\pfill 
+		53
+      \subsubitem removed \cs  {@minus}, \cs  {@plus}, \cs  {@settopoint}, \cs  {@setfontsize}; they are now in the kernel\pfill 
+		53
+      \subsubitem Replaced \cs  {bf} with \cs  {bfseries}; \cs  {rm} with \cs  {rmfamily}\pfill 
+		53
+  \item v1.00f\efill 
+ \subitem General:\ Made all lines shorter than 72 characters\pfill 53
+      \subsubitem Use class ltxdoc document class\pfill 19
+    \subitem \verb*+\bf+:\ Macro added\pfill 114
+    \subitem \verb*+\it+:\ Macro added\pfill 115
+    \subitem \verb*+\rm+:\ Macro added\pfill 114
+    \subitem \verb*+\sc+:\ Macro added\pfill 115
+    \subitem \verb*+\sf+:\ Macro added\pfill 114
+    \subitem \verb*+\sl+:\ Macro added\pfill 115
+    \subitem \verb*+\tt+:\ Macro added\pfill 114
+  \item v1.00g\efill 
+ \subitem General:\ Distinguished between compatibility and `normal' mode for the font changing commands.\pfill 
+		114
+      \subsubitem Made change in eqnarray for the fleqn option, as suggested by Rainer.\pfill 
+		53
+    \subitem \verb*+\cal+:\ Macro added\pfill 115
+    \subitem \verb*+\listoffigures+:\ Moved the setting of \cs  {@restonecolfalse}\pfill 119
+    \subitem \verb*+\listoftables+:\ Moved the setting of \cs  {@restonecolfalse}\pfill 119
+    \subitem \verb*+\mit+:\ Macro added\pfill 115
+    \subitem \verb*+\tableofcontents+:\ Moved the setting of \cs  {@restonecolfalse}\pfill 116
+    \subitem \verb*+executivepaper+:\ Removed typo, A4 is not 279 mm high\pfill 63
+  \item v1.00h\efill 
+ \subitem General:\ Corrected some typos. ASAJ.\pfill 66
+      \subsubitem Made the definitions of the font- and size-changing commands use \cs  {renew} rather than \cs  {new}. Defined the float parameters with \cs  {renewcommand} rather than \cs  {newcommand}. Corrected some typos in the fleqn option. Replaced two occurrences of -\cs  {@secpenalty} by \cs  {@secpenalty}. ASAJ.\pfill 
+		53
+      \subsubitem These are now defined in the kernel, so use \cs  {@renewfontswitch}. Compatibility mode defines \cs  {@renewfontswitch} to do nothing, so we don't need to check for compatibility mode any more.\pfill 
+		114
+    \subitem \verb*+\bottomfraction+:\ Replaced \cs  {newcommand} with \cs  {renewcommand}. ASAJ.\pfill 77
+    \subitem \verb*+\dblfloatpagefraction+:\ Replaced \cs  {newcommand} with \cs  {renewcommand}. ASAJ.\pfill 77
+    \subitem \verb*+\dbltopfraction+:\ Replaced \cs  {newcommand} with \cs  {renewcommand}. ASAJ.\pfill 77
+    \subitem \verb*+\floatpagefraction+:\ Replaced \cs  {newcommand} with \cs  {renewcommand}. ASAJ.\pfill 77
+    \subitem \verb*+\l@part+:\ Replaced -\cs  {@secpenalty} by \cs  {@secpenalty}. ASAJ.\pfill 116
+    \subitem \verb*+\textfraction+:\ Replaced \cs  {newcommand} with \cs  {renewcommand}. ASAJ.\pfill 77
+    \subitem \verb*+\topfraction+:\ Replaced \cs  {newcommand} with \cs  {renewcommand}. ASAJ.\pfill 77
+  \item v1.00i\efill 
+ \subitem \verb*+thebibliography+:\ Corrected definition of thebibliography for article\pfill 120
+  \item v1.00j\efill 
+ \subitem General:\ Added \cs  {normalfont} back in the definitions of \cs  {rm} etc. as this should be the default behaviour\pfill 
+		114
+      \subsubitem Added \cs  {ProvidesFile} to size files\pfill 53
+      \subsubitem Use \cs  {cmd} in change entries\pfill 53
+  \item v1.00k\efill 
+ \subitem General:\ Removed some typos/bugs\pfill 53
+    \subitem \verb*+\l@chapter+:\ Added \cs  {hbox} around dots.\pfill 118
+  \item v1.00l\efill 
+ \subitem General:\ add the extension to the names of the files\pfill 53
+      \subsubitem Changed version numbering; moved leqno and fleqn options to an external file.\pfill 
+		53
+    \subitem \verb*+\l@chapter+:\ Don't reset to \cs  {rmfamily}\pfill 118
+  \item v1.00m\efill 
+ \subitem \verb*+\labelwidth+:\ Use em instead of pt to remain compatible with old styles\pfill 107
+    \subitem \verb*+\leftmarginvi+:\ Use em instead of pt to remain compatible with old styles\pfill 106
+    \subitem \verb*+\parindent+:\ \cs  {parindent} should be different, depending on the pointsize\pfill 
+		76
+  \item v1.00n\efill 
+ \subitem General:\ Removed code for makeidx option and made it a separate package; removed use of \cs  {setlength} from list parameters.\pfill 
+		53
+  \item v1.00o\efill 
+ \subitem General:\ Small documentation changes\pfill 53
+  \item v1.00q\efill 
+ \subitem General:\ Small documentation changes\pfill 53
+  \item v1.00r\efill 
+ \subitem General:\ Moved driver code in order not to need a separate driver\pfill 19
+  \item v1.01a\efill 
+ \subitem \verb*+\@endonecolumn+:\ New algorithm for \cs  {marginparwidth}\pfill 56
+      \subsubitem New algorithm for \cs  {oddsidemargin}\pfill 56
+    \subitem \verb*+\@makefntext+:\ Use \cs  {@makefnmark} to generate footnote marker\pfill 123
+    \subitem General:\ Removed \cs  {typeout} messages\pfill 53
+    \subitem \verb*+\brokenpenalty+:\ Show correct default which is 100\pfill 76
+  \item v1.01f\efill 
+ \subitem General:\ Inserted forgotten line break\pfill 53
+  \item v1.02a\efill 
+ \subitem General:\ Added openright option. (LL)\pfill 53
+  \item v1.02b\efill 
+ \subitem General:\ Added the \dots  {}matter commands. (LL)\pfill 53
+  \item v1.02d\efill 
+ \subitem General:\ Checked the file for long lines and wrapped them when necessary; made a slight implementation modification to the openright and openany options.\pfill 
+		53
+  \item v1.02e\efill 
+ \subitem General:\ \cs  {@renewfontswitch} has become \cs  {DeclareOldFontCommand}\pfill 
+		114
+  \item v1.02g\efill 
+ \subitem \verb*+\sc+:\ Added warning if used in math mode\pfill 115
+    \subitem \verb*+\sl+:\ Added warning if used in math mode\pfill 115
+  \item v1.02i\efill 
+ \subitem General:\ Use LaTeX instead of LaTeX2e in messages\pfill 53
+    \subitem \verb*+\l@chapter+:\ Don't print a toc line when the tocdepth counter is less than 0\pfill 
+		117
+    \subitem \verb*+\l@part+:\ Don't print a toc line when the tocdepth counter is less then -1\pfill 
+		116
+  \item v1.02j\efill 
+ \subitem General:\ Removed the use of \cs  {fileversion} c.s.\pfill 53
+  \item v1.02k\efill 
+ \subitem \verb*+\descriptionlabel+:\ Inserted \cs  {normalfont}\pfill 108
+    \subitem \verb*+\labelitemii+:\ Inserted \cs  {normalfont}\pfill 108
+  \item v1.02l\efill 
+ \subitem General:\ changed some \cs  {changes} entries\pfill 53
+  \item v1.02m\efill 
+ \subitem General:\ Forgot a few entries\pfill 53
+  \item v1.02o\efill 
+ \subitem General:\ Changed file information\pfill 53
+  \item v1.02p\efill 
+ \subitem General:\ Moved identification and driver to the front of the file\pfill 53
+  \item v1.02q\efill 
+ \subitem \verb*+\@makecaption+:\ Use \cs  {sbox}\cs  {@tempboxa} instead of \cs  {setbox}\cs  {@tempboxa}\cs  {hbox} to make this colour safe\pfill 
+		114
+  \item v1.02t\efill 
+ \subitem General:\ Refrased a few sentences to prevent overfull hboxes\pfill 53
+  \item v1.02v\efill 
+ \subitem \verb*+\@dotsep+:\ Changed documentation from $>$ or $=$ to $\ge $\pfill 116
+    \subitem \verb*+\@makechapterhead+:\ Added \cs  {interlinepenalty}\cs  {@M} to prevent a page break in the middle of a title\pfill 
+		103
+      \subsubitem Added a \cs  {nobreak} to prevent a page break between the chapter number and the chapter title\pfill 
+		102
+    \subitem \verb*+\@makeschapterhead+:\ Added \cs  {interlinepenalty}\cs  {@M} to prevent a page break in the middle of a title\pfill 
+		103
+    \subitem General:\ Made the oneside option work for the book class\pfill 53
+      \subsubitem removed typo\pfill 125
+    \subitem \verb*+\if@mainmatter+:\ Moved the allocation of \cs  {if@mainmatter} here\pfill 58
+  \item v1.02w\efill 
+ \subitem General:\ Use \cs  {newcommand*}\pfill 20
+      \subsubitem Use \cs  {newcommand*} for commands with arguments\pfill 
+		53
+    \subitem \verb*+\mit+:\ Now define \cs  {cal} and \cs  {mit} using \cs  {DeclareRobustCommand*}\pfill 
+		115
+  \item v1.02x\efill 
+ \subitem \verb*+\@makecaption+:\ Due to a change in the way floats are handled we need to set the \cs  {if@minipage} switch to false\pfill 
+		114
+  \item v1.02y\efill 
+ \subitem \verb*+\descriptionlabel+:\ made command short\pfill 108
+  \item v1.02z\efill 
+ \subitem \verb*+\@endonecolumn+:\ Also take \cs  {marginparsep} into account here\pfill 56
+    \subitem General:\ Always use \cs  {cs} in \cs  {changes} entries\pfill 53
+    \subitem \verb*+thebibliography+:\ added a missing percent character\pfill 120
+  \item v1.03a\efill 
+ \subitem General:\ Replaced all \cs  {hbox to} by \cs  {hb@xt@}\pfill 53
+    \subitem \verb*+\footnoterule+:\ use \cs  {@width}\pfill 123
+  \item v1.03b\efill 
+ \subitem \verb*+thebibliography+:\ Added missing braces in definition of thebibliography environment.\pfill 
+		120
+    \subitem \verb*+\l@chapter+:\ Added missing braces around argument to \cs  {addpenalty}.\pfill 117
+    \subitem \verb*+\l@part+:\ Added missing braces around argument to \cs  {addpenalty}.\pfill 116
+  \item v1.03c\efill 
+ \subitem \verb*+\@makechapterhead+:\ replace \cs  {reset@font} with \cs  {normalfont}\pfill 102
+    \subitem \verb*+\@makeschapterhead+:\ replace \cs  {reset@font} with \cs  {normalfont}\pfill 103
+    \subitem \verb*+\@part+:\ replace \cs  {reset@font} with \cs  {normalfont}\pfill 99
+    \subitem \verb*+\@spart+:\ replace \cs  {reset@font} with \cs  {normalfont}\pfill 99
+    \subitem \verb*+\section+:\ replace \cs  {reset@font} with \cs  {normalfont}\pfill 104
+  \item v1.03d\efill 
+ \subitem General:\ Replaced all \cs  {uppercase} by \cs  {MakeUppercase}\pfill 53
+  \item v1.03f\efill 
+ \subitem \verb*+\subsubitem+:\ Corrected error in definition of \cs  {@idxitem}.\pfill 122
+  \item v1.03h\efill 
+ \subitem General:\ Split up to save save stack /1742\pfill 124
+  \item v1.03i\efill 
+ \subitem General:\ Moved code for generic class options leqno and fleqn to kernel file\pfill 
+		126
+  \item v1.03j\efill 
+ \subitem \verb*+\@endpart+:\ move docstrip guard to avoid defining \cs  {@endpart} in article\pfill 
+		100
+    \subitem \verb*+\@makechapterhead+:\ replace braces by \cs  {space}\pfill 102
+    \subitem \verb*+\@part+:\ add missing percent\pfill 99
+    \subitem \verb*+verse+:\ stop \cs  {item} scanning for [ with \cs  {relax}\pfill 109
+    \subitem \verb*+thebibliography+:\ remove surplus spaces\pfill 120
+    \subitem \verb*+\l@part+:\ Add missing percent\pfill 117
+    \subitem \verb*+\maketitle+:\ use \cs  {let} to save space\pfill 91
+    \subitem \verb*+\mit+:\ Remove surplus braces\pfill 115
+    \subitem \verb*+\part+:\ Replace \cs  {hbox} by \cs  {null}\pfill 99
+    \subitem \verb*+\subsubitem+:\ use \cs  {@idxitem} to save space\pfill 122
+    \subitem \verb*+\today+:\ use \cs  {edef} to save a lot of space\pfill 125
+    \subitem \verb*+quotation+:\ stop \cs  {item} scanning for [ with \cs  {relax}\pfill 109
+    \subitem \verb*+quote+:\ stop \cs  {item} scanning for [ with \cs  {relax}\pfill 109
+  \item v1.03k\efill 
+ \subitem \verb*+\@openbib@code+:\ Macro added\pfill 121
+    \subitem \verb*+\@startonecolumn+:\ Macro \cs  {if@openbib} removed\pfill 58
+    \subitem \verb*+thebibliography+:\ Code for openbib changed\pfill 120
+    \subitem \verb*+\maketitle+:\ Disable \cs  {title} and similar decls\pfill 91
+    \subitem \verb*+\newblock+:\ Default changed.\pfill 121
+    \subitem \verb*+openbib+:\ openbib option reimplemented\pfill 70
+  \item v1.03l\efill 
+ \subitem General:\ Disabled in compatibility mode all options that are new in \LaTeXe  .\pfill 
+		53
+  \item v1.03n\efill 
+ \subitem \verb*+\maketitle+:\ Empty \cs  {@date} as well\pfill 91
+  \item v1.03q\efill 
+ \subitem \verb*+\leftmarginvi+:\ Temporary(?) fix: revert to setting \cs  {leftmargin} at outer level\pfill 
+		106
+  \item v1.03r\efill 
+ \subitem \verb*+\frontmatter+:\ Make this command react to the option \texttt  {openany}\pfill 98
+    \subitem \verb*+\mainmatter+:\ Make this command react to the option \texttt  {openany}\pfill 98
+    \subitem \verb*+\part+:\ Make this command react to the option \texttt  {openany}\pfill 98
+  \item v1.03s\efill 
+ \subitem \verb*+\labelitemii+:\ Replaced -{}- with \cs  {textendash}\pfill 108
+  \item v1.03t\efill 
+ \subitem \verb*+thebibliography+:\ Added setting value of \cs  {@clubpenalty}\pfill 120
+  \item v1.03u\efill 
+ \subitem \verb*+\c@figure+:\ Added test for non-zero chapter number\pfill 112
+    \subitem \verb*+\c@table+:\ Added test for non-zero chapter number\pfill 113
+    \subitem \verb*+\labelitemii+:\ Changed to \cs  {textbullet}, \cs  {textasteriskcentered} and \cs  {textperiodcentered}\pfill 
+		108
+    \subitem \verb*+\theequation+:\ Added test for non-zero chapter number\pfill 111
+  \item v1.03v\efill 
+ \subitem General:\ Documentation fixes.\pfill 53
+  \item v1.03w\efill 
+ \subitem \verb*+\today+:\ use \cs  {def} again, latex/2620\pfill 125
+  \item v1.03x\efill 
+ \subitem \verb*+\l@part+:\ Removed setting of \cs  {@tempdima} as this macro does not use \cs  {numberline} to set the toc line.\pfill 
+		116
+  \item v1.03y\efill 
+ \subitem \verb*+\frontmatter+:\ Two years on: Make this command not react to the option \texttt  {openany} as this makes the verso/recto numbering wrong: see pr/2754 for discussion\pfill 
+		98
+    \subitem \verb*+\mainmatter+:\ Two years on: Make this command not react to the option \texttt  {openany} as this makes the verso/recto numbering wrong: see pr/2754 for discussion\pfill 
+		98
+  \item v1.03z\efill 
+ \subitem \verb*+\appendix+:\ Redefine \cs  {thechapter} and \cs  {@chapapp} globally (pr/2862)\pfill 
+		110
+  \item v1.04a\efill 
+ \subitem \verb*+\l@chapter+:\ we should use \cs  {@tocrmarg}; see PR/2881.\pfill 117
+    \subitem \verb*+\l@part+:\ we should use \cs  {@tocrmarg}; see PR/2881.\pfill 116
+  \item v1.04b\efill 
+ \subitem \verb*+\@endpart+:\ Only add empty page after part if twoside and openright (pr/3155)\pfill 
+		100
+  \item v1.04c\efill 
+ \subitem \verb*+\listoffigures+:\ Moved \cs  {@mkboth} out of heading arg (pr/3285)\pfill 119
+    \subitem \verb*+\listoftables+:\ Moved \cs  {@mkboth} out of heading arg (pr/3285)\pfill 119
+  \item v1.04d\efill 
+ \subitem \verb*+\l@part+:\ Initialize \cs  {@tempdima} to some sensible value (pr/3327)\pfill 117
+  \item v1.04e\efill 
+ \subitem \verb*+\@part+:\ Replaced tilde with \cs  {nobreakspace} (pr/3310)\pfill 99
+    \subitem \verb*+\num@figure+:\ Replaced tilde with \cs  {nobreakspace} (pr/3310)\pfill 112
+    \subitem \verb*+\num@table+:\ Replaced tilde with \cs  {nobreakspace} (pr/3310)\pfill 113
+  \item v1.09\efill 
+ \subitem \verb*+\@startonecolumn+:\ Added \cs  {number} before \cs  {year} macro.\pfill 60
+    \subitem General:\ Changed \cs  {textwidth} to 0.99\cs  {textwidth} to prevent overflows. Not a good fix.\pfill 
+		78
+      \subsubitem Fixed spacing problem with committee option.\pfill 
+		128
+    \subitem \verb*+\authorizationform+:\ Fixed spacing problem with committee option.\pfill 93, 94
+    \subitem \verb*+\maketitle+:\ Fixed spacing problem with committee option.\pfill 91
+    \subitem \verb*+\paragraph+:\ Added \cs  {@headingalignment}.\pfill 105
+    \subitem \verb*+\subparagraph+:\ Added \cs  {@headingalignment}.\pfill 106
+    \subitem \verb*+\subsection+:\ Fixed numbering bug by increasing level\pfill 104
+    \subitem \verb*+\titlepage+:\ Fixed spacing problem with committee option.\pfill 91
+  \item v1.0g\efill 
+ \subitem \verb*+theindex+:\ Moved the setting of \cs  {@restonecoltrue}\pfill 121
+  \item v1.11\efill 
+ \subitem \verb*+\@chapter+:\ Renamed \cs  {beforechaptervspace} etc. to \cs  {chapterbeforeskip} etc.\pfill 
+		102
+      \subsubitem Used \cs  {@toctoupper} rather than \cs  {@toupper}\pfill 
+		100
+    \subitem \verb*+\@part+:\ Renamed \cs  {beforechaptervspace} etc. to \cs  {chapterbeforeskip} etc.\pfill 
+		99
+      \subsubitem Used \cs  {@toctoupper} rather than \cs  {@toupper}\pfill 
+		99
+    \subitem General:\ Added \cs  {@toctoupper}\pfill 54
+      \subsubitem Added tocupper option\pfill 8, 68
+      \subsubitem Included lengths as well as fonts. These should probably be lengths and use \cs  {setlength}, but this seems to add an extra space between the heading and the text which I do not know how to avoid.\pfill 
+		70
+      \subsubitem Provided a starred form of the commands\pfill 104
+      \subsubitem Provided heading spacing lengths.\pfill 62
+      \subsubitem Renamed \cs  {beforechaptervspace} etc. to \cs  {chapterbeforeskip} etc. and moved these\pfill 
+		62
+      \subsubitem Replaced magic numbers\pfill 104
+      \subsubitem Used \cs  {@toctoupper} rather than \cs  {@toupper}\pfill 
+		104
+    \subitem \verb*+\section+:\ Used \cs  {@toctoupper} rather than \cs  {@toupper}\pfill 104
+  \item v1.12\efill 
+ \subitem General:\ Added \cs  {lofindent} and \cs  {loflabelwidth} to replace magic numbers.\pfill 
+		119
+      \subsubitem Added \cs  {lofindent} and \cs  {lotindent}\pfill 62
+      \subsubitem Added \cs  {loflabelwidth} and \cs  {lotlabelwidth}\pfill 
+		63
+      \subsubitem Added \cs  {lotindent} and \cs  {lotlabelwidth} to replace magic numbers.\pfill 
+		119
+  \item v1.13\efill 
+ \subitem \verb*+\@makechapterhead+:\ Moved brace so that \cs  {par}\cs  {nobreak} are included in the same font grouping: this removes a bug where the chapter heading was not spaced properly between lines.\pfill 
+		103
+    \subitem \verb*+\@makeschapterhead+:\ Moved brace so that \cs  {par}\cs  {nobreak} are included in the same font grouping: this removes a bug where the chapter heading was not spaced properly between lines.\pfill 
+		103
+  \item v1.14\efill 
+ \subitem \verb*+\@startonecolumn+:\ Added \cs  {faculty} command.\pfill 59
+    \subitem General:\ Added \cs  {@faculty} and similar options.\pfill 128
+      \subsubitem Darren added \cs  {degreetitlefont}. Added \cs  {titlepagefont}, \cs  {facultyfont}, \cs  {institutionfont}\pfill 
+		61
+      \subsubitem Darren added ma, masc, meng options and change number of signatures.\pfill 
+		67
+      \subsubitem Darren added the graphics package if the logo option is used.\pfill 
+		75
+      \subsubitem Darren added upperdegreetitle and upperinstitution options. Added a bunch of others.\pfill 
+		66
+      \subsubitem Fixed \cs  {MakeUppercase} problem: make sure that you give the arguments. The construction \cs  {if}$\cdots  $\cs  {MakeUppercase}\cs  {fi}\{text\} does not work.\pfill 
+		128
+    \subitem \verb*+\titlepage+:\ Added \cs  {@faculty} and similar options.\pfill 91
+      \subsubitem Fixed \cs  {MakeUppercase} problem: make sure that you give the arguments. The construction \cs  {if}$\cdots  $\cs  {MakeUppercase}\cs  {fi}\{text\} does not work.\pfill 
+		91
+  \item v1.15\efill 
+ \subitem General:\ Darren changed \cs  {normalfont} to \cs  {titlepagefont}\pfill 128
+    \subitem \verb*+\titlepage+:\ Darren changed \cs  {normalfont} to \cs  {titlepagefont}\pfill 91
+  \item v1.17\efill 
+ \subitem \verb*+\chapter+:\ We now set the pagestyle for this page to \textsl  {plain} as was the default for the original classes. This was the default behaviour and is referenced for example in the \textsl  {fancyhdr} package. Ultimately there should be an option for setting this style.\pfill 
+		100
+  \item v1.19\efill 
+ \subitem General:\ Added \% to \cs  {def}\cs  {@evenhead}\{ and \cs  {def}\cs  {@oddhead}\{ commands on their own line so that an extra space is not inserted causing the previous overflow. Now the 0.99 factor can be removed. Thanks to James P. Zibin for this fix.\pfill 
+		78
+  \item v1.21\efill 
+ \subitem \verb*+\@startonecolumn+:\ Department is now your program. --Darren Peets\pfill 59
+    \subitem General:\ Added university flavour packages: mforbes\pfill 126
+      \subsubitem Darren added upperprogram, which will appear on title page.\pfill 
+		66
+      \subsubitem Darren moved much of title page into comments, to meet new UBC FoGS guidelines.\pfill 
+		128
+    \subitem \verb*+\titlepage+:\ Darren moved much of title page into comments, to meet new UBC FoGS guidelines.\pfill 
+		91
+  \item v1.24\efill 
+ \subitem \verb*+\@endonecolumn+:\ This generically stores page parameters now so that one can redefine textwidths etc. by starting a single column and then restore the settings at the end.\pfill 
+		54
+    \subitem \verb*+\maketitle+:\ No indenting for titlepage\pfill 89
+  \item v1.28\efill 
+ \subitem General:\ Removed \cs  {preface}, \cs  {acknowledgements} and related commands.\pfill 
+		12, 94, 124
+    \subitem \verb*+abstract+:\ Changed \cs  {chaptertoc} to \cs  {chapter[]}.\pfill 108
+    \subitem \verb*+thebibliography+:\ Changed \cs  {chaptertoc} to \cs  {chapter[]}.\pfill 120
+    \subitem \verb*+\listoffigures+:\ Changed \cs  {chaptertoc} to \cs  {chapter[]}.\pfill 119
+    \subitem \verb*+\listoftables+:\ Changed \cs  {chaptertoc} to \cs  {chapter[]}.\pfill 119
+    \subitem \verb*+\tableofcontents+:\ Changed \cs  {chaptertoc} to \cs  {chapter[]}.\pfill 116
+  \item v1.32\efill 
+ \subitem \verb*+\@chapter+:\ Added float package compatibility (CD)\pfill 101
+      \subsubitem I have my doubts whether this heading appear at the right place in a 2 column thesis (Christopher Dutchyn). Two-column thesis support is sketchy: one needs a provision for wide-equations etc. with column wrapping like REVTeX4 to do this (but footnote placement is messed up there) (MMF).\pfill 
+		101
+      \subsubitem Renewed float@listhead after preamble (CD)\pfill 101
+    \subitem \verb*+\@makechapterhead+:\ Ensure chapter and chapter* titles line up when \cs  {committeespacing} and \cs  {@committee} set (CD)\pfill 
+		102
+    \subitem General:\ \cs  {chapterfont} should be \cs  {chapterheadfont} (CD)\pfill 12
+      \subsubitem Added tocitalic option (CD)\pfill 8, 68
+      \subsubitem Added toctoitalic (CD)\pfill 54
+    \subitem \verb*+abstract+:\ Added TOC parameter for later munging. (CD)\pfill 108
+    \subitem \verb*+thebibliography+:\ Added TOC parameter for later munging. (CD)\pfill 120
+    \subitem \verb*+theindex+:\ Add extra space to line up Index name -- close enough (CD)\pfill 122
+      \subsubitem Ensure that index appears in TOC (CD)\pfill 122
+    \subitem \verb*+\listoffigures+:\ Added TOC parameter for later munging. (CD)\pfill 119
+    \subitem \verb*+\listoftables+:\ Added TOC parameter for later munging. (CD)\pfill 119
+    \subitem \verb*+\tableofcontents+:\ Added TOC parameter for later munging. (CD)\pfill 116
+  \item v1.33\efill 
+ \subitem General:\ Implemented several requests made by Max Read of the UBC FoGS. Many of these were actually implemented by Joseph Tam\pfill 
+		20
+  \item v1.34\efill 
+ \subitem General:\ Added (no)bibnum option (MMF)\pfill 69
+      \subsubitem Added default argument definitions here (MMF)\pfill 
+		127
+      \subsubitem Added pagenum... and (no)bibnum options (MMF)\pfill 8
+      \subsubitem Added pagenum... options (MMF)\pfill 64
+      \subsubitem Added support for pagenum... options (MMF) and cleaned up code.\pfill 
+		78
+      \subsubitem Changed to \cs  {ProcessOptions*} (MMF)\pfill 75
+    \subitem \verb*+thebibliography+:\ Added optional bibnum flag support (MMF)\pfill 120
+  \item v1.40\efill 
+ \subitem General:\ Added (no)chapternotereset option (MMF)\pfill 68
+      \subsubitem Added default nochapternotereset\pfill 127
+      \subsubitem Added optional chapternotereset flag support (MMF)\pfill 
+		123
+  \item v1.42\efill 
+ \subitem General:\ Added \cs  {appendicesname}.\pfill 124
+    \subitem \verb*+thebibliography+:\ Removed \cs  {addcontentsline} from within argument of \cs  {chapter*} because this was causing an error. Added \cs  {chaptermark} to change headings (thanks to Abhishek Gupta for pointing this out (MMF)\pfill 
+		120
+    \subitem \verb*+\ps@headings+:\ Added starred versions \cs  {chaptermark*} and \cs  {sectionmark*} and cleaned up a bit.\pfill 
+		81
+  \item v1.43\efill 
+ \subitem \verb*+\@chapter+:\ Added \cs  {@fmttocentry} (MMF)\pfill 100
+    \subitem \verb*+\@part+:\ Added \cs  {@fmttocentry} (MMF)\pfill 99
+    \subitem General:\ Added appendicestoc option.\pfill 69
+      \subsubitem Added paranthesis for \cs  {textit} argument (MMF)\pfill 
+		54
+    \subitem \verb*+\appendix+:\ Added \cs  {appendicesname} to toc and completed code for appendixpart option. Added \cs  {@fmttocentry} (MMF)\pfill 
+		110
+    \subitem \verb*+abstract+:\ Added \cs  {@fmttocentry} (MMF)\pfill 133
+      \subsubitem Changed \cs  {chapter[]} to \cs  {chapter}. Changing the symantics of \cs  {chapter} may break compatibility with packages like \texttt  {hyperref} so we revert to the default behaviour which includes the argument in the toc (MMF).\pfill 
+		108
+    \subitem \verb*+thebibliography+:\ Added \cs  {@fmttocentry} (MMF)\pfill 120
+    \subitem \verb*+theindex+:\ Added \cs  {@fmttocentry} (MMF)\pfill 122
+    \subitem \verb*+\l@chapter+:\ Added \cs  {@fmttocchapterpage} and (MMF)\pfill 118
+      \subsubitem Added \cs  {@fmttocchapter} and (MMF)\pfill 118
+    \subitem \verb*+\l@part+:\ Added \cs  {@fmttocpart} and \cs  {@fmttocpartpage} (MMF)\pfill 117
+    \subitem \verb*+\l@section+:\ Added \cs  {@fmttoc...} and \cs  {@fmttoc...page} (MMF)\pfill 118
+    \subitem \verb*+\l@subparagraph+:\ Added \cs  {@fmttoc...} and \cs  {@fmttoc...page} (MMF)\pfill 118
+    \subitem \verb*+\listoffigures+:\ Changed \cs  {chapter[]} to \cs  {chapter}. Changing the symantics of \cs  {chapter} may break compatibility with packages like \texttt  {hyperref} so we revert to the default behaviour which includes the argument in the toc (MMF).\pfill 
+		119
+    \subitem \verb*+\listoftables+:\ Changed \cs  {chapter[]} to \cs  {chapter}. Changing the symantics of \cs  {chapter} may break compatibility with packages like \texttt  {hyperref} so we revert to the default behaviour which includes the argument in the toc (MMF).\pfill 
+		119
+    \subitem \verb*+\paragraph+:\ Added \cs  {@fmttocentry} (MMF)\pfill 105
+    \subitem \verb*+\section+:\ Added optional argument support to allow inclusion of a toc entry even with no number (MMF).\pfill 
+		104
+    \subitem \verb*+\subparagraph+:\ Added \cs  {@fmttocentry} (MMF)\pfill 106
+    \subitem \verb*+\subsection+:\ Added \cs  {@fmttocentry} (MMF)\pfill 104
+    \subitem \verb*+\subsubsection+:\ Added \cs  {@fmttocentry} (MMF)\pfill 105
+    \subitem \verb*+\tableofcontents+:\ Changed \cs  {chapter[]} to \cs  {chapter}. Changing the symantics of \cs  {chapter} may break compatibility with packages like \texttt  {hyperref} so we revert to the default behaviour which includes the argument in the toc (MMF).\pfill 
+		116
+  \item v1.46\efill 
+ \subitem General:\ Added \textsf  {sectionbib} option\pfill 69
+    \subitem \verb*+thebibliography+:\ Added \textsf  {sectionbib} option and code to make bibliography a section.\pfill 
+		120
+  \item v1.47\efill 
+ \subitem General:\ Fixed spacing problem. Now only renew the \cs  {baselinestretch} command if the committee option is selected. This way preamble changes to the spacing will not be reset at the start of the document. Thanks to Murray McCutcheon for pointing this out.\pfill 
+		126
+  \item v1.48\efill 
+ \subitem \verb*+\@endonecolumn+:\ Fixed typo with topmargin.\pfill 57
+  \item v1.49\efill 
+ \subitem \verb*+abstract+:\ Don't put \cs  {@startonecolumn} in a conditionally because it always has to match \cs  {@endonecolumn}. (MMF)\pfill 
+		108
+  \item v1.50\efill 
+ \subitem \verb*+\ps@headings+:\ Fixed mismatched \cs  {hfil} and \cs  {hfill} causing centering problems with onepage and pagenumTR options. (MMF)\pfill 
+		82
+  \item v1.51\efill 
+ \subitem General:\ Added instructions for Okanagan campus.\pfill 20
+      \subsubitem Cleaned up code a bit to group all text. The duplication should be removed in the future.\pfill 
+		128, 129
+    \subitem \verb*+\titlepage+:\ \cs  {@institutionaddress} to allow for Okanagan campus.\pfill 91
+  \item v1.53\efill 
+ \subitem \verb*+\ps@draft+:\ Moved definition of \cs  {chaptermark} earlier. The code should only modify \cs  {@chaptermarkStar} and \cs  {@chaptermakNoStar} commands to prevent errors. There was a runningheader bug here because \cs  {chaptermark} was modified directly.\pfill 
+		83
+    \subitem \verb*+\ps@headings+:\ Moved definition of \cs  {chaptermark} earlier. The code should only modify \cs  {@chaptermarkStar} and \cs  {@chaptermakNoStar} commands to prevent errors.\pfill 
+		81, 82
+    \subitem \verb*+\ps@myheadings+:\ Moved definition of \cs  {chaptermark} earlier. The code should only modify \cs  {@chaptermarkStar} and \cs  {@chaptermakNoStar} commands to prevent errors. There was a runningheader bug here because \cs  {chaptermark} was modified directly.\pfill 
+		86
+    \subitem \verb*+\subparagraphstarmark+:\ Moved definition of \cs  {chaptermark} here. The code should only modify \cs  {@chaptermarkStar} and \cs  {@chaptermakNoStar} commands to prevent errors, but should ensure that \cs  {chaptermark} etc. are called to execute user code.\pfill 
+		95
+  \item v1.54\efill 
+ \subitem General:\ Added \cs  {csname} to splice the if and the argument to \cs  {condupper}. Just trying to form a simple splice fails because a space gets inserted.\pfill 
+		54
+  \item v1.55\efill 
+ \subitem \verb*+thebibliography+:\ Added \cs  {bibsection} command like \texttt  {natbib} so that when \texttt  {natbib} overwrites \cs  {thebibliography} it uses our formatting and marking.\pfill 
+		120
+      \subsubitem Put the \cs  {...mark} commands inside the \cs  {section} command as suggested by the \texttt  {fancyhdr.dtx} documentation to prevent it from wrapping. The \texttt  {classes.dtx} documentation, however, warns from doing this for \cs  {chapter} because it might be gobbled.\pfill 
+		120
+    \subitem \verb*+\ps@headings+:\ Simplified \cs  {chaptermark} and \cs  {sectionmark} commands, removing starred version. This was non-standard can caused some problems.\pfill 
+		81
+    \subitem \verb*+\ps@myheadings+:\ Reverted \cs  {sectionmark} and \cs  {chaptermark} to original style with nothing fancy. No \cs  {@...mark...Star} stuff.\pfill 
+		86
+    \subitem \verb*+\subparagraphstarmark+:\ Reverted \cs  {sectionmark} and \cs  {chaptermark} to original style with nothing fancy.\pfill 
+		95
+    \subitem \verb*+\titlepage+:\ Corrected spelling of fulfillment\pfill 91
+  \item v1.56\efill 
+ \subitem \verb*+\@startonecolumn+:\ Provide \cs  {monthname} macro.\pfill 58
+    \subitem General:\ Centered titlepage vertically by default.\pfill 88
+      \subsubitem Use \cs  {monthname} for \cs  {submitdate} as required by the FoGS.\pfill 
+		20
+    \subitem \verb*+\maketitle+:\ Added even-odd page staggering if \cs  {twoside} is chosen.\pfill 89
+    \subitem \verb*+\ps@headings+:\ Included missing end brace that was causing problems.\pfill 81
+  \item v1.57\efill 
+ \subitem General:\ Added \cs  {clearp@ge} to facilitate the new requirements of a blank page before sections.\pfill 
+		86
+      \subsubitem Added \cs  {doublepagenumbering}.\pfill 75
+    \subitem \verb*+\authorizationform+:\ Use blank page when clearing the page.\pfill 93
+    \subitem \verb*+\backmatter+:\ Removed the forcing of \cs  {cleardoublepage}. This allows the various matters to be used with chapters than insert blank pages without inserting extra blank pages.\pfill 
+		98
+    \subitem \verb*+abstract+:\ Use custom \cs  {clearp@ge} command to optionally insert a blank facing page when clearing the page.\pfill 
+		133
+    \subitem \verb*+\chapter+:\ Use custom \cs  {clearp@ge} command to optionally insert a blank facing page when clearing the page.\pfill 
+		100
+    \subitem \verb*+\frontmatter+:\ Use custom \cs  {doublepagenumbering} rather than forcing \cs  {cleardoublepage}. This allows the various matters to be used with chapters than insert blank pages without inserting extra blank pages.\pfill 
+		98
+    \subitem \verb*+\if@openrightblank+:\ Macro \cs  {if@openrightblank} added\pfill 58
+    \subitem \verb*+\mainmatter+:\ Use custom \cs  {doublepagenumbering} rather than forcing \cs  {cleardoublepage}. This allows the various matters to be used with chapters than insert blank pages without inserting extra blank pages.\pfill 
+		98
+    \subitem \verb*+\maketitle+:\ Enabled this.\pfill 90
+      \subsubitem Use blank page when clearing the page.\pfill 89
+    \subitem \verb*+\part+:\ Use custom \cs  {clearp@ge} command to optionally insert a blank facing page when clearing the page.\pfill 
+		98
+  \item v1.58\efill 
+ \subitem General:\ Added \cs  {if@suppressblankpage}.\pfill 86
+      \subsubitem Removed \cs  {doublepagenumbering}. This is now dealt with using careful calls to \cs  {cleardoublepage}.\pfill 
+		75
+    \subitem \verb*+\blankpage+:\ Call \cs  {@suppressblankpagetrue}.\pfill 87
+    \subitem \verb*+\clearp@ge+:\ Call \cs  {@suppressblankpagefalse}.\pfill 87
+    \subitem \verb*+\frontmatter+:\ Removed \cs  {doublepagenumbering} and added \cs  {blankdoublepage}. With the new \cs  {if@suppressblankpage} command, this will not create spurious blank pages anymore.\pfill 
+		98
+    \subitem \verb*+\mainmatter+:\ Removed \cs  {doublepagenumbering} and added \cs  {blankdoublepage}. With the new \cs  {if@suppressblankpage} command, this will not create spurious blank pages anymore.\pfill 
+		98
+    \subitem \verb*+\paragraph+:\ Reset \cs  {@suppressblankpagefalse} flag.\pfill 105
+    \subitem \verb*+\section+:\ Reset \cs  {@suppressblankpagefalse} flag.\pfill 104
+    \subitem \verb*+\subparagraph+:\ Reset \cs  {@suppressblankpagefalse} flag.\pfill 106
+    \subitem \verb*+\subsection+:\ Reset \cs  {@suppressblankpagefalse} flag.\pfill 104
+    \subitem \verb*+\subsubsection+:\ Reset \cs  {@suppressblankpagefalse} flag.\pfill 105
+  \item v1.59\efill 
+ \subitem \verb*+\frontmatter+:\ Removed \cs  {blankdoublepage}. No need for a blank page at the beginning. (Thanks to Valentin Koch for pointing this out.)\pfill 
+		98
+  \item v1.60\efill 
+ \subitem \verb*+\mainmatter+:\ Only call \cs  {blankdoublepage} if \textsf  {twoside}. (Thanks to Valentin Koch for pointing this out.)\pfill 
+		98
+  \item v1.61\efill 
+ \subitem \verb*+\mainmatter+:\ Added \cs  {cleardoublepage} before setting page numbering if \textsf  {oneside} so arabic number starts on the *next* page. (Thanks to Valentin Koch for pointing this out.)\pfill 
+		98
+  \item v1.62\efill 
+ \subitem \verb*+\@schapter+:\ Added back the \cs  {@chaptermarkStar} call to update the header properly. Especially in the Bibliography.\pfill 
+		103
+    \subitem General:\ Added back the \cs  {@chaptermarkStar} command for internal use.\pfill 
+		78
+    \subitem \verb*+thebibliography+:\ Removed the \cs  {chaptermark} command when the bibliography is an unnumbered chapter. This is now taken care of in the \cs  {chapter*} command.\pfill 
+		120
+    \subitem \verb*+\ps@headings+:\ Added back the \cs  {@chaptermarkStar} command for internal use.\pfill 
+		81
+  \item v1.63\efill 
+ \subitem \verb*+\@schapter+:\ Added \cs  {chapterstarmark} call. Replaces previous change.\pfill 103
+    \subitem General:\ Added a whole bunch of \cs  {*starmark} commands that are called from the starred sections if the starmark option is used.\pfill 
+		95
+      \subsubitem Added a whole bunch of \cs  {*starmark} commands that are called from the starred sections if the starmark option is used. Removed \cs  {@chaptermarkStar} from here.\pfill 
+		78
+      \subsubitem Added the starmark/nostarmark options to allow for unnumbered chapters to affect the header marks. This is a more complete fix that v1.62 should have been.\pfill 
+		8, 65
+    \subitem \verb*+thebibliography+:\ Added \cs  {*starmark} call. We do this unconditionally here because the starmark option may not be selected. There should be no harm in calling this twice.\pfill 
+		120
+    \subitem \verb*+\paragraph+:\ Added \cs  {*starmark} call.\pfill 105
+    \subitem \verb*+\ps@draft+:\ Gobble \cs  {*starmark} commands\pfill 83
+    \subitem \verb*+\ps@myheadings+:\ Gobble \cs  {*starmark} commands\pfill 86
+    \subitem \verb*+\section+:\ Added \cs  {*starmark} call.\pfill 104
+    \subitem \verb*+\subparagraph+:\ Added \cs  {*starmark} call.\pfill 106
+    \subitem \verb*+\subsection+:\ Added \cs  {*starmark} call.\pfill 104
+    \subitem \verb*+\subsubsection+:\ Added \cs  {*starmark} call.\pfill 105
+  \item v1.65\efill 
+ \subitem General:\ Add the hyperref option linktocpage as a default and added more comments about this package.\pfill 
+		20, 38
+  \item v1.67\efill 
+ \subitem General:\ As of September 2010 UBC no longer wants a Statement of Co-authorship, but includes this information in the Preface (which has moved). The sample has been updated to demonstrate this.\pfill 
+		20
+  \item v1.68\efill 
+ \subitem \verb*+thebibliography+:\ Moved \cs  {*starmark} from within the sectionioning command as this was causing a problem with babel. (This probably breaks hyperref a bit.)\pfill 
+		120
+  \item v1.69\efill 
+ \subitem General:\ Add hook to change names if babel is used (fixes issue 11)\pfill 124
+  \item v1.70\efill 
+ \subitem General:\ Move \cs  {backmatter} after appendices so that appendices and references therein (equations, sections, etc.) are numbered. Thanks to Shahab Kaynama for pointing this out. Fixes issue 12.\pfill 
+		20
+
+ \end{theglossary}

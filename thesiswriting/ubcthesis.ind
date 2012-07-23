@@ -1,0 +1,1091 @@
+
+ \begin{theindex} 
+ \makeatletter\scan@allowedfalse
+{\bfseries\hfil Symbols\hfil}\nopagebreak
+
+  \item \verb*+\$+\pfill 431, 433, 1142, 1144
+  \item \verb*+\%+\pfill 1388, 1390, 1398, 1403
+  \item \verb*+\@AfterTitlepage+\pfill 89, \main{1043}
+  \item \verb*+\@AtStartOfAbstract+\pfill 84, \main{1045}
+  \item \verb*+\@AtStartOfTitlepage+\pfill \main{1041}, 1138
+  \item \verb*+\@Roman+\pfill 1247
+  \item \verb*+\@abstractsupervisor+\pfill 102, 209
+  \item \verb*+\@addto+\pfill \main{9}, 105, 252, 256
+  \item \verb*+\@advisor+\pfill 129, 201, 202
+  \item \verb*+\@advisortitle+\pfill 129, 204, 205
+  \item \verb*+\@afterheading+\pfill 1368, 1431
+  \item \verb*+\@afterindentfalse+\pfill 1341
+  \item \verb*+\@aftertitlepagehook+\pfill \main{1042}, 1043, 1128
+  \item \verb*+\@appendicestocfalse+\pfill 459
+  \item \verb*+\@appendicestoctrue+\pfill 457, 458
+  \item \verb*+\@appendixpagefalse+\pfill 456
+  \item \verb*+\@appendixpagetrue+\pfill 454, 455
+  \item \verb*+\@appendixpartfalse+\pfill 451, 453
+  \item \verb*+\@appendixparttrue+\pfill 452
+  \item \verb*+\@author+\pfill 53, 122, 144, 153, 188, 218, 1151
+  \item \verb*+\@beginparpenalty+\pfill \main{1543}
+  \item \verb*+\@biblabel+\pfill 1774, 1775, \main{1813}
+  \item \verb*+\@bibnumfalse+\pfill 448
+  \item \verb*+\@bibnumtrue+\pfill 446, 447
+  \item \verb*+\@centerheadlinefalse+\pfill 358
+  \item \verb*+\@centerheadlinetrue+\pfill 356, 357
+  \item \verb*+\@chapapp+\pfill 793, 844, \main{1269}, 1347, 1381, 1386, 
+		1403, 1607
+  \item \verb*+\@chapter+\pfill 1342, \main{1343}
+  \item \verb*+\@chapterheadsfalse+\pfill 419
+  \item \verb*+\@chapterheadstrue+\pfill 417, 418
+  \item \verb*+\@chapternoteresetfalse+\pfill 445
+  \item \verb*+\@chapternoteresettrue+\pfill 443, 444
+  \item \verb*+\@chaptertocdots+\pfill \main{8}
+  \item \verb*+\@chaptertocdotstrue+\pfill 8
+  \item \verb*+\@cite+\pfill \main{1814}
+  \item \verb*+\@clubpenalty+\pfill 1784
+  \item \verb*+\@colht+\pfill 52, 134, 1093
+  \item \verb*+\@colroom+\pfill 53, 135, 1094
+  \item \verb*+\@committeefalse+\pfill 346
+  \item \verb*+\@committeetrue+\pfill 347
+  \item \verb*+\@condupper+\pfill \main{24}, 27, 33, 44, 47, 53, 61, 65, 
+		135, 138, 144, 150, 151, 154, 156, 158, 175, 180, 188, 
+		1142, 1145, 1151, 1159, 1163, 1167
+  \item \verb*+\@copyrightnotice+\pfill 80, 164, 210, 211, 1175
+  \item \verb*+\@copyrighttext+\pfill 30, 40, 162, 207, 208, 1173
+  \item \verb*+\@copyrightyear+\pfill 122, 218, \main{224}
+  \item \verb*+\@crosshairfalse+\pfill 470, 471
+  \item \verb*+\@crosshairrule+\pfill 969, 970, 973--975
+  \item \verb*+\@crosshairs+\pfill 971, 978
+  \item \verb*+\@crosshairtrue+\pfill 472
+  \item \verb*+\@date+\pfill 154, 192
+  \item \verb*+\@dblfloat+\pfill 1633, 1646
+  \item \verb*+\@degreedate+\pfill 160, 189, 190
+  \item \verb*+\@degreetitle+\pfill 61, 154, 186, 187, 194, 1159
+  \item \verb*+\@degreeword+\pfill 115, 116, 152, 193
+  \item \verb*+\@department+\pfill 127, 150, 191--193, 1203
+  \item \verb*+\@departmentchair+\pfill 109, 110, 130
+  \item \verb*+\@departmentchairtitle+\pfill 112, 113, 131
+  \item \verb*+\@dotsep+\pfill \main{1675}
+  \item \verb*+\@dottedtocline+\pfill 1730, 1735, 1738, 1741, 1744, 
+		1756, 1768
+  \item \verb*+\@endonecolumn+\pfill \main{30}, 212, 1127, 1219, 1572
+  \item \verb*+\@endparpenalty+\pfill \main{1543}
+  \item \verb*+\@endpart+\pfill 1316, 1324, \main{1325}
+  \item \verb*+\@eqnnum+\pfill \main{1621}
+  \item \verb*+\@evenfoot+\pfill \main{701}, 708, 713, 718, 760, 763, 
+		766, 890, 893, 896, 977, 982
+  \item \verb*+\@evenhead+\pfill \main{701}, 710, 715, 720, 739, 767, 
+		865, 897, 979, 983
+  \item \verb*+\@faculty+\pfill 65, 198, 199, 1163
+  \item \verb*+\@finalfalse+\pfill 344
+  \item \verb*+\@finaltrue+\pfill 343, 345
+  \item \verb*+\@fmttocchapter+\pfill \main{1254}, 1716
+  \item \verb*+\@fmttocchapterpage+\pfill \main{1254}, 1725
+  \item \verb*+\@fmttocentry+\pfill 201, \main{1254}, 1300, 1302, 1350, 
+		1352, 1355, 1451, 1467, 1483, 1499, 1515, 1601, 1798, 
+		1806, 1844
+  \item \verb*+\@fmttocparagraph+\pfill \main{1254}, 1741
+  \item \verb*+\@fmttocparagraphpage+\pfill 1266, 1742
+  \item \verb*+\@fmttocparagraphppage+\pfill \main{1254}
+  \item \verb*+\@fmttocpart+\pfill \main{1254}, 1698
+  \item \verb*+\@fmttocpartpage+\pfill \main{1254}, 1699
+  \item \verb*+\@fmttocsection+\pfill \main{1254}, 1731
+  \item \verb*+\@fmttocsectionpage+\pfill \main{1254}, 1732
+  \item \verb*+\@fmttocsubparagraph+\pfill \main{1254}, 1744
+  \item \verb*+\@fmttocsubparagraphpage+\pfill \main{1254}, 1745
+  \item \verb*+\@fmttocsubsection+\pfill \main{1254}, 1735
+  \item \verb*+\@fmttocsubsectionpage+\pfill \main{1254}, 1736
+  \item \verb*+\@fmttocsubsubsection+\pfill \main{1254}, 1738
+  \item \verb*+\@fmttocsubsubsectionpage+\pfill \main{1254}, 1739
+  \item \verb*+\@fontswitch+\pfill 1673, 1674
+  \item \verb*+\@hangfrom+\pfill 1657
+  \item \verb*+\@hangingcaptionsfalse+\pfill 440, 442
+  \item \verb*+\@hangingcaptionstrue+\pfill 441
+  \item \verb*+\@headcountfalse+\pfill 426
+  \item \verb*+\@headcounttrue+\pfill 420, 424, 425
+  \item \verb*+\@headingalignment+\pfill \main{436}, 1397, 1436, 1450, 
+		1457, 1466, 1473, 1482, 1489, 1498, 1505, 1514, 1521
+  \item \verb*+\@headlinefalse+\pfill 361
+  \item \verb*+\@headlinetrue+\pfill 359, 360
+  \item \verb*+\@highpenalty+\pfill \main{681}, 1691, 1707, 1726
+  \item \verb*+\@idxitem+\pfill 1851, \main{1853}
+  \item \verb*+\@ifpackageloaded+\pfill 1874
+  \item \verb*+\@ifundefined+\pfill 1360, 1371
+  \item \verb*+\@institution+\pfill 27, 33, 158, 180, 181, 1167, 1207
+  \item \verb*+\@institutionaddress+\pfill 28, 35, 183, 184, 1169, 1208
+  \item \verb*+\@itempenalty+\pfill \main{1543}
+  \item \verb*+\@latex@warning+\pfill 1788
+  \item \verb*+\@latex@warning@no@line+\pfill 1065
+  \item \verb*+\@logo+\pfill 22, 77, 79
+  \item \verb*+\@logocopy+\pfill 31, 76, 79
+  \item \verb*+\@logocopybare+\pfill 26, 74
+  \item \verb*+\@logocopyheight+\pfill 20, 24, 76
+  \item \verb*+\@logocopywidth+\pfill 19, 32, 35, 37, 39, 75
+  \item \verb*+\@logofile+\pfill 24, 1065, 1066
+  \item \verb*+\@logowidth+\pfill 21, 77, 79
+  \item \verb*+\@lowpenalty+\pfill \main{681}, 1543--1545
+  \item \verb*+\@mainmatterfalse+\pfill 1271, 1284
+  \item \verb*+\@mainmattertrue+\pfill 149, 1276
+  \item \verb*+\@makecaption+\pfill \main{1648}
+  \item \verb*+\@makechapterhead+\pfill 1365, 1367, \main{1376}
+  \item \verb*+\@makefnmark+\pfill 1867, \main{1868}
+  \item \verb*+\@makefntext+\pfill \main{1864}
+  \item \verb*+\@makeschapterhead+\pfill 1428, 1430, \main{1433}, 1842
+  \item \verb*+\@medpenalty+\pfill \main{681}
+  \item \verb*+\@minipagefalse+\pfill 1662
+  \item \verb*+\@minipagerestore+\pfill \main{1614}
+  \item \verb*+\@mparswitchfalse+\pfill 337
+  \item \verb*+\@mparswitchtrue+\pfill 338
+  \item \verb*+\@mpfootins+\pfill \main{1614}
+  \item \verb*+\@nobreakfalse+\pfill 1702
+  \item \verb*+\@nobreaktrue+\pfill 1701
+  \item \verb*+\@noitemerr+\pfill 1787
+  \item \verb*+\@numberofsignatures+\pfill 72, 222
+  \item \verb*+\@oddfoot+\pfill \main{701}, 707, 708, 712, 717, 726, 
+		729, 732, 759, 760, 762, 765, 823, 825, 827, 889, 890, 
+		892, 895, 942, 944, 946, 977, 982
+  \item \verb*+\@oddhead+\pfill \main{701}, 709, 714, 719, 727, 730, 
+		733, 749, 777, 813, 828, 877, 909, 930, 947, 978, 979, 
+		995
+  \item \verb*+\@openbib@code+\pfill 462, 1778, \main{1812}
+  \item \verb*+\@openrightblankfalse+\pfill 348, 350
+  \item \verb*+\@openrightblanktrue+\pfill 349
+  \item \verb*+\@openrightfalse+\pfill 350
+  \item \verb*+\@openrighttrue+\pfill 348, 349
+  \item \verb*+\@orgargctr+\pfill 157--160, 174
+  \item \verb*+\@pagesnumberstyle+\pfill 339--342, 706, 725, 758, 822, 
+		888, 941
+  \item \verb*+\@paragraph+\pfill 1493, 1494
+  \item \verb*+\@part+\pfill 1295, \main{1296}
+  \item \verb*+\@partheadsfalse+\pfill 423
+  \item \verb*+\@partheadstrue+\pfill 421, 422
+  \item \verb*+\@pnumwidth+\pfill \main{1675}, 1695, 1696, 1698, 
+		1711, 1712, 1724, 1725
+  \item \verb*+\@previousdegree+\pfill \main{254}
+  \item \verb*+\@previousdegrees+\pfill 55, 56, 147--149, 254, 
+		1153, 1154
+  \item \verb*+\@program+\pfill 67, 195, 196, 1165
+  \item \verb*+\@ptsize+\pfill \main{6}, 68, 84, 334--336, 675
+  \item \verb*+\@restonecolfalse+\pfill 124, 1683, 1750, 1761, 1817
+  \item \verb*+\@restonecoltrue+\pfill 64, 1681, 1748, 1759, 1819
+  \item \verb*+\@roman+\pfill 1548
+  \item \verb*+\@runningheadersfalse+\pfill 355
+  \item \verb*+\@runningheaderstrue+\pfill 353, 354
+  \item \verb*+\@schapter+\pfill 1342, \main{1425}
+  \item \verb*+\@section+\pfill 1445, 1446
+  \item \verb*+\@sectionbibfalse+\pfill 449
+  \item \verb*+\@sectionbibtrue+\pfill 450
+  \item \verb*+\@settopoint+\pfill 80, 113, 114, 121
+  \item \verb*+\@signature+\pfill 230, 239, 252
+  \item \verb*+\@sparagraph+\pfill 1493, 1501
+  \item \verb*+\@spart+\pfill 1295, \main{1318}
+  \item \verb*+\@ssection+\pfill 1445, 1453
+  \item \verb*+\@ssubparagraph+\pfill 1509, 1517
+  \item \verb*+\@ssubsection+\pfill 1461, 1469
+  \item \verb*+\@ssubsubsection+\pfill 1477, 1485
+  \item \verb*+\@starmarkfalse+\pfill 364
+  \item \verb*+\@starmarktrue+\pfill 362, 363
+  \item \verb*+\@startabstracthook+\pfill \main{1044}, 1045, 1569
+  \item \verb*+\@startonecolumn+\pfill \main{30}, 171, 1070, 1183, 1568
+  \item \verb*+\@startsection+\pfill 1447, 1454, 1463, 1470, 1479, 1486, 
+		1495, 1502, 1511, 1518
+  \item \verb*+\@starttitlepagehook+\pfill \main{1040}, 1041, 1101
+  \item \verb*+\@starttoc+\pfill 1686, 1753, 1764
+  \item \verb*+\@submitdate+\pfill 29, 37, 128, \main{224}, 1171
+  \item \verb*+\@subparagraph+\pfill 1509, 1510
+  \item \verb*+\@subsection+\pfill 1461, 1462
+  \item \verb*+\@subsubsection+\pfill 1477, 1478
+  \item \verb*+\@subtitle+\pfill 47, 138, 179, 180, 1145
+  \item \verb*+\@subtitlefalse+\pfill 178
+  \item \verb*+\@subtitletrue+\pfill 179
+  \item \verb*+\@suppressblankpagefalse+\pfill 1012, 1038, 1444, 1460, 
+		1476, 1492, 1508
+  \item \verb*+\@suppressblankpagetrue+\pfill 1015
+  \item \verb*+\@tempbaselinestretch+\pfill 1184, 1220
+  \item \verb*+\@tempname+\pfill 198--200
+  \item \verb*+\@textsuperscript+\pfill 1868
+  \item \verb*+\@thanks+\pfill 1134
+  \item \verb*+\@thefnmark+\pfill 1869
+  \item \verb*+\@title+\pfill 44, 135, 152, 175, 1142
+  \item \verb*+\@tocitalicfalse+\pfill 430, 432
+  \item \verb*+\@tocitalictrue+\pfill 431
+  \item \verb*+\@tocrmarg+\pfill \main{1675}
+  \item \verb*+\@toctoitalic+\pfill \main{29}, 1255, 1257, 1259, 1261, 
+		1263, 1265, 1267
+  \item \verb*+\@toctoupper+\pfill \main{24}, 1254
+  \item \verb*+\@tocupperfalse+\pfill 433, 435
+  \item \verb*+\@tocuppertrue+\pfill 434
+  \item \verb*+\@topnewpage+\pfill 1364, 1428
+  \item \verb*+\@topnum+\pfill 1340
+  \item \verb*+\@toupper+\pfill \main{24}, 198, 793, 799, 807--809, 844, 
+		850, 858--860, 1310, 1381, 1386, 1403, 1420, 1439, 
+		1830, 1842, 1843
+  \item \verb*+\@twocolumnfalse+\pfill 351
+  \item \verb*+\@twocolumntrue+\pfill 352
+  \item \verb*+\@twosidefalse+\pfill 337
+  \item \verb*+\@twosidetrue+\pfill 338
+  \item \verb*+\@undefined+\pfill 5
+  \item \verb*+\@upperauthorfalse+\pfill 373, 375
+  \item \verb*+\@upperauthortrue+\pfill 374
+  \item \verb*+\@upperdegreetitlefalse+\pfill 378
+  \item \verb*+\@upperdegreetitletrue+\pfill 376, 377
+  \item \verb*+\@upperdepartmentfalse+\pfill 385, 387
+  \item \verb*+\@upperdepartmenttrue+\pfill 386
+  \item \verb*+\@upperfacultyfalse+\pfill 382, 384
+  \item \verb*+\@upperfacultytrue+\pfill 383
+  \item \verb*+\@upperfalse+\pfill 427, 429
+  \item \verb*+\@upperinstitutionfalse+\pfill 393
+  \item \verb*+\@upperinstitutiontrue+\pfill 391, 392
+  \item \verb*+\@upperprogramfalse+\pfill 388, 390
+  \item \verb*+\@upperprogramtrue+\pfill 389
+  \item \verb*+\@uppersubtitlefalse+\pfill 369, 370, 372
+  \item \verb*+\@uppersubtitletrue+\pfill 368, 371
+  \item \verb*+\@uppertitlefalse+\pfill 367, 369
+  \item \verb*+\@uppertitletextfalse+\pfill 381
+  \item \verb*+\@uppertitletexttrue+\pfill 379, 380
+  \item \verb*+\@uppertitletrue+\pfill 368
+  \item \verb*+\@uppertrue+\pfill 428
+  \item \verb*+\@width+\pfill 1859
+  \item \verb*+\10pt+\pfill \main{334}
+  \item \verb*+\11pt+\pfill \main{334}
+  \item \verb*+\12pt+\pfill \main{334}
+
+  \indexspace
+{\bfseries\hfil  \hfil}\nopagebreak
+
+  \item \verb*+\ +\pfill 122, 152, 193, 217, 218, 557, 568, 628, 793, 
+		795, 804, 844, 846, 855, 870, 881, 902, 913, 934, 951, 
+		1065, 1190, 1351
+
+  \indexspace
+{\bfseries\hfil A\hfil}\nopagebreak
+
+  \item \verb*+\a4paper+\pfill \main{312}
+  \item \verb*+\a5paper+\pfill \main{312}
+  \item \verb*+\abovecaptionskip+\pfill \main{1648}, 1653
+  \item {\ttfamily abstract} (environment)\pfill \main{169}, 
+		\main{1567}
+  \item \verb*+\abstractfont+\pfill 265, 478, 522, 570, 616
+  \item \verb*+\abstractname+\pfill 198, 201, 1570, \main{1886}
+  \item \verb*+\addcontentsline+\pfill 201, 1299, 1302, 1348, 1352, 
+		1355, 1798, 1806, 1844
+  \item \verb*+\addsignature+\pfill 104, 127, 130, 241, 244, 251
+  \item \verb*+\addto+\pfill 1875
+  \item \verb*+\addtocontents+\pfill 1358, 1359, 1600
+  \item \verb*+\addtocounter+\pfill 1217
+  \item \verb*+\advisor+\pfill \main{180}, 224, 943
+  \item \verb*+\advisortitle+\pfill \main{180}, 225, 944
+  \item \verb*+\afterpage+\pfill 44, 565, 572, 577, 579, 860, 1187, 
+		1194, 1199, 1201
+  \item \verb*+\alpha+\pfill 1371
+  \item \verb*+\and+\pfill 5, \main{97}
+  \item \verb*+\appendicesname+\pfill 740, 745, 1236, 1241, 1597, 1601, 
+		\main{1886}
+  \item \verb*+\appendicestoc+\pfill \main{457}
+  \item \verb*+\appendix+\pfill 741, 746, 1237, 1242, \main{1593}
+  \item \verb*+\appendixname+\pfill 1607, \main{1886}
+  \item \verb*+\appendixpage+\pfill \main{454}
+  \item \verb*+\appendixpart+\pfill \main{451}
+  \item \verb*+\arabic+\pfill 234--239, 950--955
+  \item \verb*+\arraycolsep+\pfill \main{1609}
+  \item \verb*+\arrayrulewidth+\pfill \main{1611}
+  \item \verb*+\AtBeginDocument+\pfill 14, 15, 118, 1370, 1375, 1790, 
+		1873, 1921
+  \item \verb*+\AtEndOfPackage+\pfill 461
+  \item \verb*+\author+\pfill \main{152}, 215, 938, 1135
+  \item \verb*+\authorfont+\pfill 52, 143, 187, \main{258}, 524, 571, 
+		618, 1150
+  \item \verb*+\authorizationform+\pfill 970, \main{1181}
+
+  \indexspace
+{\bfseries\hfil B\hfil}\nopagebreak
+
+  \item \verb*+\b5paper+\pfill \main{312}
+  \item \verb*+\backmatter+\pfill 754, 1250, \main{1284}
+  \item \verb*+\baselineskip+\pfill 972
+  \item \verb*+\baselinestretch+\pfill 61, 143, \main{679}, 1099, 
+		1184, 1185, 1220, 1923
+  \item \verb*+\belowcaptionskip+\pfill \main{1648}, 1665
+  \item \verb*+\bf+\pfill \main{1669}
+  \item \verb*+\bibindent+\pfill 463, 464, \main{1769}
+  \item \verb*+\bibliography+\pfill 730, 1233
+  \item \verb*+\bibliographystyle+\pfill 729, 1232
+  \item \verb*+\bibname+\pfill 1794, 1796--1798, 1802, 1804--1806, 
+		\main{1882}
+  \item \verb*+\bibnum+\pfill \main{446}
+  \item \verb*+\bibsection+\pfill 1771, 1773, 1791
+  \item \verb*+\bibsize+\pfill 288
+  \item \verb*+\blankdoublepage+\pfill \main{1017}, 1027, 1279
+  \item \verb*+\blankpage+\pfill \main{1013}, 1018
+  \item \verb*+\bold+\pfill \main{567}
+  \item \verb*+\bottomfraction+\pfill \main{694}
+  \item \verb*+\brokenpenalty+\pfill \main{690}
+
+  \indexspace
+{\bfseries\hfil C\hfil}\nopagebreak
+
+  \item \verb*+\c@@oldsecnumdepth+\pfill \main{1237}
+  \item \verb*+\c@bottomnumber+\pfill \main{693}
+  \item \verb*+\c@chapter+\pfill \main{1240}, 1248, 1608, 1619, 1624, 
+		1637
+  \item \verb*+\c@dbltopnumber+\pfill \main{698}
+  \item \verb*+\c@enumi+\pfill 1546
+  \item \verb*+\c@enumii+\pfill 1547
+  \item \verb*+\c@enumiii+\pfill 1548
+  \item \verb*+\c@enumiv+\pfill 1549, 1774, 1781
+  \item \verb*+\c@equation+\pfill 1619
+  \item \verb*+\c@figure+\pfill \main{1622}
+  \item \verb*+\c@footnote+\pfill \main{1861}
+  \item \verb*+\c@paragraph+\pfill \main{1240}, 1252
+  \item \verb*+\c@part+\pfill \main{1240}, 1247
+  \item \verb*+\c@secnumdepth+\pfill 791, 802, 842, 853, \main{1237}, 
+		1297, 1309, 1344, 1399
+  \item \verb*+\c@section+\pfill \main{1240}, 1249
+  \item \verb*+\c@subparagraph+\pfill \main{1240}, 1253
+  \item \verb*+\c@subsection+\pfill \main{1240}, 1250
+  \item \verb*+\c@subsubsection+\pfill \main{1240}, 1251
+  \item \verb*+\c@table+\pfill \main{1635}
+  \item \verb*+\c@tocdepth+\pfill 1690, 1706
+  \item \verb*+\c@topnumber+\pfill \main{691}
+  \item \verb*+\c@totalnumber+\pfill \main{695}
+  \item \verb*+\cal+\pfill \main{1673}
+  \item \verb*+\caption+\pfill 436, 484, 553, 599, 619, 1026, 1147, 
+		1178
+  \item \verb*+\captionbodyfont+\pfill 284, 497, 544, 591, 638, 1654, 
+		1657, 1659
+  \item \verb*+\captionheaderfont+\pfill 283, 496, 543, 590, 637, 1654, 
+		1657, 1659
+  \item \verb*+\captionsenglish+\pfill 1875
+  \item \verb*+\centerheadline+\pfill \main{356}
+  \item \verb*+\centerheads+\pfill \main{436}
+  \item \verb*+\centering+\pfill 235, 438, 1305, 1319
+  \item \verb*+\centerline+\pfill 78
+  \item \verb*+\chairman+\pfill \main{97}, 945
+  \item \verb*+\changes+\pfill 1824, 1826, 1846
+  \item \verb*+\chapter+\pfill 286, 334, 338, 343, 360, 508, 512, 519, 
+		523, 709, 742, 749, 759, 994, 997, 1008, 1036, 1040, 
+		1059, 1063, 1072, 1152, 1157, 1215, 1238, 1245, 
+		\main{1336}, 1570, 1685, 1752, 1763, 1802, 1804
+  \item \verb*+\chapterafterskip+\pfill \main{289}, 503, 550, 597, 644, 
+		1422, 1441
+  \item \verb*+\chapterauthorfont+\pfill 270, 483, 529, 576, 623
+  \item \verb*+\chapterbeforeskip+\pfill \main{289}, 501, 548, 595, 642, 
+		1364, 1377, 1434
+  \item \verb*+\chapterbetweenskip+\pfill \main{289}, 502, 549, 596, 
+		643, 1380, 1407
+  \item \verb*+\chapterfont+\pfill 268, 481, 527, 574, 621, 1381, 1386, 
+		1402, 1830
+  \item \verb*+\chapterheads+\pfill \main{417}
+  \item \verb*+\chaptermark+\pfill 789, 840, 923, 961, 1007, 
+		\main{1225}, 1357
+  \item \verb*+\chaptername+\pfill 1269, \main{1886}
+  \item \verb*+\chapternotereset+\pfill \main{443}
+  \item \verb*+\chapterstarmark+\pfill 808, 859, 925, 963, 1009, 
+		\main{1225}, 1426, 1805
+  \item \verb*+\chaptertitlefont+\pfill 269, 482, 528, 575, 622, 1412, 
+		1439
+  \item \verb*+\clap+\pfill 968, 972--974
+  \item \verb*+\ClassError+\pfill 1117
+  \item \verb*+\ClassWarning+\pfill 111, 114, 117, 182, 185, 188, 191, 
+		194, 197, 200, 203, 206, 209, 212, 1113
+  \item \verb*+\cleardoublepage+\pfill 1018, 1025, 1030, 1068, 1182, 
+		1281, 1604
+  \item \verb*+\clearp@ge+\pfill 170, \main{1020}, 1286, 1337, 1829
+  \item \verb*+\clearpage+\pfill 44, 211, 565, 572, 576, 578, 860, 1014, 
+		1033, 1036, 1126, 1187, 1194, 1198, 1200, 1218, 1572, 
+		1852
+  \item \verb*+\cline+\pfill 590
+  \item \verb*+\clubpenalty+\pfill \main{684}, 1783, 1784
+  \item \verb*+\columnsep+\pfill 1822, \main{1896}
+  \item \verb*+\columnseprule+\pfill 1821, \main{1897}
+  \item \verb*+\columnwidth+\pfill 55, 137, 1096, 1097, 1859
+  \item \verb*+\committee+\pfill \main{346}
+  \item \verb*+\committeespacing+\pfill 1384, 1388, 1833, 1835, 
+		\main{1920}
+  \item \verb*+\contentsline+\pfill 1600
+  \item \verb*+\contentsname+\pfill 1685, \main{1870}
+  \item \verb*+\copy+\pfill 1106
+  \item \verb*+\copyright+\pfill 122, 218
+  \item \verb*+\copyrightnotice+\pfill 16, 123, \main{180}
+  \item \verb*+\copyrighttext+\pfill 122, \main{180}
+  \item \verb*+\copyrightyear+\pfill 216, 224, 226, 939
+  \item \verb*+\count+\pfill 1056, 1057
+  \item \verb*+\crosshair+\pfill \main{470}, \main{967}
+  \item \verb*+\cs+\pfill 1824
+  \item \verb*+\csname+\pfill 10, 13, 27
+  \item \verb*+\CurrentOption+\pfill 12
+
+  \indexspace
+{\bfseries\hfil D\hfil}\nopagebreak
+
+  \item \verb*+\date+\pfill 100, \main{152}, 1136
+  \item \verb*+\dblfloatpagefraction+\pfill \main{700}
+  \item \verb*+\dbltopfraction+\pfill \main{699}
+  \item \verb*+\DeclareOldFontCommand+\pfill 1666--1672
+  \item \verb*+\DeclareRobustCommand+\pfill 1673, 1674
+  \item \verb*+\defaultfonts+\pfill \main{473}
+  \item \verb*+\degreedate+\pfill \main{180}
+  \item \verb*+\degreetitle+\pfill \main{180}, 210, 395, 399, 403, 407, 
+		411, 933
+  \item \verb*+\degreetitlefont+\pfill 61, \main{258}, 525, 572, 619, 
+		1159
+  \item \verb*+\degreeword+\pfill 108, \main{109}, 119
+  \item \verb*+\department+\pfill \main{180}
+  \item \verb*+\departmentchair+\pfill 101, \main{109}
+  \item \verb*+\departmentchairtitle+\pfill 101, \main{109}
+  \item {\ttfamily description} (environment)\pfill \main{1561}
+  \item \verb*+\descriptionlabel+\pfill 1563, \main{1565}
+  \item \verb*+\dimen+\pfill 1106--1112, 1114, 1116, 1118
+  \item \verb*+\displaywidowpenalty+\pfill \main{686}
+  \item \verb*+\dotfill+\pfill 232, 1061
+  \item \verb*+\dots+\pfill 397, 1108
+  \item \verb*+\doublerulesep+\pfill \main{1612}
+  \item \verb*+\doublespacing+\pfill 191
+  \item \verb*+\draft+\pfill \main{343}
+  \item \verb*+\draftname+\pfill 869, 882, 901, 914, 935, 952, 
+		\main{1891}
+
+  \indexspace
+{\bfseries\hfil E\hfil}\nopagebreak
+
+  \item \verb*+\edef+\pfill 1184, 1220
+  \item \verb*+\emph+\pfill 340, 347, 777, 779, 1010, 1014
+  \item \verb*+\endcsname+\pfill 10, 13, 27
+  \item \verb*+\endfirsthead+\pfill 625
+  \item \verb*+\endfoot+\pfill 635
+  \item \verb*+\endgraf+\pfill 1063
+  \item \verb*+\endhead+\pfill 632
+  \item \verb*+\endlastfoot+\pfill 638
+  \item environments:\efill 
+ \subitem {\ttfamily abstract}\pfill \main{169}, \main{1567}
+    \subitem {\ttfamily description}\pfill \main{1561}
+    \subitem {\ttfamily figure}\pfill \main{1629}
+    \subitem {\ttfamily figure*}\pfill \main{1629}
+    \subitem {\ttfamily quotation}\pfill \main{1582}
+    \subitem {\ttfamily quote}\pfill \main{1589}
+    \subitem {\ttfamily table}\pfill \main{1642}
+    \subitem {\ttfamily table*}\pfill \main{1642}
+    \subitem {\ttfamily thebibliography}\pfill \main{1771}
+    \subitem {\ttfamily theindex}\pfill \main{1815}
+    \subitem {\ttfamily verse}\pfill \main{1573}
+  \item \verb*+\evensidemargin+\pfill 49, 116--119, 121, 131, 1077, 
+		1082
+  \item \verb*+\examplefont+\pfill 280, 493, 540, 587, 634
+  \item \verb*+\executivepaper+\pfill \main{312}
+  \item \verb*+\ext@figure+\pfill \main{1625}
+  \item \verb*+\ext@table+\pfill \main{1638}
+
+  \indexspace
+{\bfseries\hfil F\hfil}\nopagebreak
+
+  \item \verb*+\faculty+\pfill \main{180}, 199, 201
+  \item \verb*+\facultyfont+\pfill 65, \main{258}, 1163
+  \item \verb*+\fboxrule+\pfill \main{1615}
+  \item \verb*+\fboxsep+\pfill \main{1615}
+  \item {\ttfamily figure} (environment)\pfill \main{1629}
+  \item {\ttfamily figure*} (environment)\pfill \main{1629}
+  \item \verb*+\figurefont+\pfill 285, 498, 545, 592, 639, 1628
+  \item \verb*+\figurename+\pfill 1628, \main{1884}
+  \item \verb*+\file+\pfill 19
+  \item \verb*+\final+\pfill \main{343}
+  \item \verb*+\fleqn+\pfill \main{366}
+  \item \verb*+\float@addtolists+\pfill 1362
+  \item \verb*+\float@listhead+\pfill \main{1371}
+  \item \verb*+\floatpagefraction+\pfill \main{697}
+  \item \verb*+\floatstyle+\pfill 250, 474
+  \item \verb*+\flushbottom+\pfill 1916
+  \item \verb*+\fnum@figure+\pfill 1628
+  \item \verb*+\fnum@table+\pfill 1641
+  \item \verb*+\footins+\pfill 1614
+  \item \verb*+\footnote+\pfill 365, 377, 532, 538
+  \item \verb*+\footnoterule+\pfill \main{1857}
+  \item \verb*+\fps@figure+\pfill \main{1625}
+  \item \verb*+\fps@table+\pfill \main{1638}
+  \item \verb*+\frac+\pfill 401, 1112
+  \item \verb*+\frontmatter+\pfill 258, 966, \main{1270}
+  \item \verb*+\ftype@figure+\pfill \main{1625}
+  \item \verb*+\ftype@table+\pfill \main{1638}
+
+  \indexspace
+{\bfseries\hfil G\hfil}\nopagebreak
+
+  \item \verb*+\g@addto@macro+\pfill 1041, 1043, 1045
+  \item \verb*+\GetFileInfo+\pfill 17
+
+  \indexspace
+{\bfseries\hfil H\hfil}\nopagebreak
+
+  \item \verb*+\hangingcaptions+\pfill \main{440}
+  \item \verb*+\hb@xt@+\pfill 1663, 1698, 1724, 1725, 1867
+  \item \verb*+\headcount+\pfill \main{425}
+  \item \verb*+\headheight+\pfill 978, 1091
+  \item \verb*+\headingstextfont+\pfill 281, 494, 541, 588, 635, 703, 
+		742, 753, 770, 781, 817, 832, 869, 882, 901, 914, 935, 
+		952, 986, 999
+  \item \verb*+\headline+\pfill \main{359}
+  \item \verb*+\headlinespace+\pfill \main{701}, 746, 755, 774, 784, 
+		819, 835, 874, 885, 906, 918, 938, 956, 991, 1002
+  \item \verb*+\headsep+\pfill 1092
+  \item \verb*+\hline+\pfill 430, 432, 434, 588, 592, 597, 622, 624, 
+		629, 631, 634, 637, 788, 790, 1020, 1023, 1141, 1143, 
+		1145
+  \item \verb*+\hours+\pfill \main{15}
+  \item \verb*+\Huge+\pfill 480, 482
+  \item \verb*+\huge+\pfill 17, 479, 481
+
+  \indexspace
+{\bfseries\hfil I\hfil}\nopagebreak
+
+  \item \verb*+\if+\pfill 28, 232--235
+  \item \verb*+\if@appendicestoc+\pfill 457, 1599
+  \item \verb*+\if@appendixpage+\pfill 454, 1603
+  \item \verb*+\if@appendixpart+\pfill 451, 1596
+  \item \verb*+\if@bibnum+\pfill 446, 1793, 1801
+  \item \verb*+\if@centerheadline+\pfill 356, 743, 752, 771, 780, 816, 
+		831, 871, 880, 903, 912, 933, 950, 988, 998
+  \item \verb*+\if@chapterheads+\pfill 417, 1378, 1400, 1414
+  \item \verb*+\if@chapternotereset+\pfill 443, 1861
+  \item \verb*+\if@chaptertocdots+\pfill 8, 1717
+  \item \verb*+\if@committee+\pfill 346, 1383, 1831, 1922
+  \item \verb*+\if@crosshair+\pfill 470, 967
+  \item \verb*+\if@empty+\pfill 55, 56, 80, 147--149, \main{150}, 
+		1153, 1154, 1175
+  \item \verb*+\if@final+\pfill 343, 1898
+  \item \verb*+\if@hangingcaptions+\pfill 440, 1656
+  \item \verb*+\if@headcount+\pfill 420, 424, 794, 803, 845, 854, 1382, 
+		1387, 1404, 1415
+  \item \verb*+\if@headline+\pfill 359, 746, 755, 774, 784, 819, 835, 
+		874, 885, 906, 918, 938, 956, 990, 1001
+  \item \verb*+\if@mainmatter+\pfill \main{149}, 792, 843, 1345, 1379, 
+		1401, 1413
+  \item \verb*+\if@openright+\pfill \main{147}, 1022, 1327
+  \item \verb*+\if@openrightblank+\pfill \main{148}, 1023
+  \item \verb*+\if@partheads+\pfill 421, 1308
+  \item \verb*+\if@restonecol+\pfill \main{7}, 144, 1687, 1754, 1765, 
+		1852
+  \item \verb*+\if@runningheaders+\pfill 353, 1899
+  \item \verb*+\if@sectionbib+\pfill 449, 1792
+  \item \verb*+\if@starmark+\pfill 362, 1426, 1459, 1475, 1491, 1507, 
+		1523
+  \item \verb*+\if@subtitle+\pfill 46, 137, 178, 1144
+  \item \verb*+\if@suppressblankpage+\pfill \main{1012}, 1024
+  \item \verb*+\if@tocitalic+\pfill 29, 430
+  \item \verb*+\if@tocupper+\pfill 25, 433
+  \item \verb*+\if@twocolumn+\pfill 63, 1288, 1363, 1427, 1524, 1533, 
+		1680, 1747, 1758, 1816, 1913
+  \item \verb*+\if@twoside+\pfill 85, 92, 704, 737, 863, 1021, 1078, 
+		1278, 1326, 1909
+  \item \verb*+\if@upper+\pfill 24, 427
+  \item \verb*+\if@upperauthor+\pfill 373
+  \item \verb*+\if@upperdegreetitle+\pfill 376
+  \item \verb*+\if@upperdepartment+\pfill 385
+  \item \verb*+\if@upperfaculty+\pfill 382
+  \item \verb*+\if@upperinstitution+\pfill 391
+  \item \verb*+\if@upperprogram+\pfill 388
+  \item \verb*+\if@uppersubtitle+\pfill 370
+  \item \verb*+\if@uppertitle+\pfill 367
+  \item \verb*+\if@uppertitletext+\pfill 379
+  \item \verb*+\IfFileExists+\pfill 6
+  \item \verb*+\iflogo+\pfill 23, 414, 676
+  \item \verb*+\includegraphics+\pfill 24, 87, 552, 836, 1177
+  \item \verb*+\indexname+\pfill 1830, 1842--1844, \main{1882}
+  \item \verb*+\indexsize+\pfill 287
+  \item \verb*+\indexspace+\pfill \main{1856}
+  \item \verb*+\infty+\pfill 400, 1111
+  \item \verb*+\institution+\pfill 120, \main{180}, 195, 924
+  \item \verb*+\institutionaddress+\pfill 121, \main{180}, 200, 202, 
+		925
+  \item \verb*+\institutionfont+\pfill \main{258}, 477, 535, 583, 630
+  \item \verb*+\int+\pfill 400, 1111
+  \item \verb*+\interlinepenalty+\pfill \main{689}, 1306, 1320, 1398, 
+		1411, 1438
+  \item \verb*+\it+\pfill \main{1670}
+  \item \verb*+\item+\pfill 295, 299, 301, 462, 463, 465, 541, 542, 
+		1054, 1055, 1059, 1163, 1164, 1580, 1587, 1591, 1851
+  \item \verb*+\itemfont+\pfill 279, 492, 539, 586, 633
+  \item \verb*+\itemindent+\pfill 464, 465, 1562, 1576, 1577, 1584
+  \item \verb*+\itemsep+\pfill 1575
+  \item \verb*+\itshape+\pfill 585, 1670
+
+  \indexspace
+{\bfseries\hfil J\hfil}\nopagebreak
+
+  \item \verb*+\jot+\pfill \main{1620}
+
+  \indexspace
+{\bfseries\hfil L\hfil}\nopagebreak
+
+  \item \verb*+\l@chapter+\pfill \main{1705}
+  \item \verb*+\l@figure+\pfill \main{1756}, 1767
+  \item \verb*+\l@paragraph+\pfill \main{1734}
+  \item \verb*+\l@part+\pfill \main{1689}
+  \item \verb*+\l@section+\pfill \main{1729}
+  \item \verb*+\l@subparagraph+\pfill \main{1734}
+  \item \verb*+\l@subsection+\pfill \main{1734}
+  \item \verb*+\l@subsubsection+\pfill \main{1734}
+  \item \verb*+\l@table+\pfill \main{1767}
+  \item \verb*+\label+\pfill 437, 484, 514, 553, 600, 619, 1026, 1148, 
+		1178
+  \item \verb*+\labelenumi+\pfill \main{1550}
+  \item \verb*+\labelenumii+\pfill \main{1550}
+  \item \verb*+\labelenumiii+\pfill \main{1550}
+  \item \verb*+\labelenumiv+\pfill \main{1550}
+  \item \verb*+\labelitemi+\pfill \main{1557}
+  \item \verb*+\labelitemii+\pfill \main{1557}
+  \item \verb*+\labelitemiii+\pfill \main{1557}
+  \item \verb*+\labelitemiv+\pfill \main{1557}
+  \item \verb*+\labelsep+\pfill \main{1540}, 1565, 1613, 1777
+  \item \verb*+\labelwidth+\pfill \main{1540}, 1562, 1775, 1776
+  \item \verb*+\landscape+\pfill \main{330}
+  \item \verb*+\LARGE+\pfill 521, 568, 573--575, 615, 620--622
+  \item \verb*+\Large+\pfill 18, 475, 484, 526, 570, 577, 618, 623
+  \item \verb*+\large+\pfill 476, 478, 483, 485, 522, 523, 525, 
+		527--530, 569, 572, 576, 578, 616, 617, 619, 624, 625, 
+		1255
+  \item \verb*+\LaTeX+\pfill 2, 271, 501, 557, 559, 568, 579, 606, 770, 
+		798, 972, 1009, 1190, 1201, 1206
+  \item \verb*+\Lclass+\pfill 20
+  \item \verb*+\Lcount+\pfill 21
+  \item \verb*+\ldots+\pfill 406, 436, 512, 523, 995, 1117, 1152
+  \item \verb*+\leaders+\pfill 1718
+  \item \verb*+\leftheads+\pfill \main{436}
+  \item \verb*+\leftmargin+\pfill 463, \main{1524}, 1562, 1578, 1579, 
+		1585, 1590, 1776, 1777
+  \item \verb*+\leftmargini+\pfill \main{1524}, 1541
+  \item \verb*+\leftmarginii+\pfill \main{1524}
+  \item \verb*+\leftmarginiii+\pfill \main{1524}
+  \item \verb*+\leftmarginiv+\pfill \main{1524}
+  \item \verb*+\leftmarginv+\pfill \main{1524}
+  \item \verb*+\leftmarginvi+\pfill \main{1524}
+  \item \verb*+\leftskip+\pfill 1714, 1715
+  \item \verb*+\legalpaper+\pfill \main{312}
+  \item \verb*+\leqno+\pfill \main{365}
+  \item \verb*+\letterpaper+\pfill \main{312}
+  \item \verb*+\lineskip+\pfill \main{677}, 972
+  \item \verb*+\linewidth+\pfill 57, 81, 139, 1098
+  \item \verb*+\listfigurename+\pfill 1752, \main{1870}
+  \item \verb*+\listof+\pfill 329
+  \item \verb*+\listoffigures+\pfill 55, 328, 989, \main{1746}
+  \item \verb*+\listoftables+\pfill 54, 327, 988, \main{1757}
+  \item \verb*+\listparindent+\pfill 465, 1577, 1583, 1584
+  \item \verb*+\listtablename+\pfill 1763, \main{1870}
+  \item \verb*+\LoadClass+\pfill 15
+  \item \verb*+\LoadClassWithOptions+\pfill 95
+  \item \verb*+\lofindent+\pfill \main{308}, 1756
+  \item \verb*+\loflabelwidth+\pfill \main{310}, 1756
+  \item \verb*+\logo+\pfill \main{414}
+  \item \verb*+\logofalse+\pfill 414, 416
+  \item \verb*+\logofile+\pfill \main{1065}
+  \item \verb*+\logotrue+\pfill 415
+  \item \verb*+\loop+\pfill 1057
+  \item \verb*+\Lopt+\pfill 18
+  \item \verb*+\lotindent+\pfill \main{308}, 1768
+  \item \verb*+\lotlabelwidth+\pfill \main{310}, 1768
+
+  \indexspace
+{\bfseries\hfil M\hfil}\nopagebreak
+
+  \item \verb*+\ma+\pfill \main{394}
+  \item \verb*+\mainmatter+\pfill 347, 354, \main{1275}
+  \item \verb*+\makebox+\pfill 741, 751, 769, 779, 815, 830, 867, 879, 
+		899, 911, 932, 949, 985, 997
+  \item \verb*+\makelabel+\pfill 1563
+  \item \verb*+\maketitle+\pfill 269, 969, \main{1067}
+  \item \verb*+\MakeUppercase+\pfill 24, 25, 27
+  \item \verb*+\marginparsep+\pfill 59, 82, 98, 106, 141
+  \item \verb*+\marginparwidth+\pfill 60, 97--99, 105--108, 110, 111, 
+		114, 142
+  \item \verb*+\masc+\pfill \main{394}
+  \item \verb*+\mathbf+\pfill 1669
+  \item \verb*+\mathcal+\pfill 1673
+  \item \verb*+\mathit+\pfill 1670
+  \item \verb*+\mathnormal+\pfill 1674
+  \item \verb*+\mathrm+\pfill 400, 401, 1111, 1112, 1666
+  \item \verb*+\mathsf+\pfill 1667
+  \item \verb*+\mathtt+\pfill 1668
+  \item \verb*+\meng+\pfill \main{394}
+  \item \verb*+\minutes+\pfill \main{15}
+  \item \verb*+\MIT+\pfill \main{97}
+  \item \verb*+\Mit+\pfill \main{97}
+  \item \verb*+\mit+\pfill \main{1673}
+  \item \verb*+\mkern+\pfill 1719
+  \item \verb*+\monthname+\pfill \main{156}, 217, 218
+  \item \verb*+\msc+\pfill \main{394}
+  \item \verb*+\multicolumn+\pfill 589, 622--624, 627, 629--631, 634
+  \item \verb*+\multiply+\pfill 20, 22
+
+  \indexspace
+{\bfseries\hfil N\hfil}\nopagebreak
+
+  \item \verb*+\newblock+\pfill 468, \main{1811}
+  \item \verb*+\newcount+\pfill 15, 16, 157
+  \item \verb*+\newfloat+\pfill 251, 475
+  \item \verb*+\newif+\pfill 7, 8, 147--149, 178, 343, 346, 353, 356, 
+		359, 362, 367, 370, 373, 376, 379, 382, 385, 388, 391, 
+		414, 417, 420, 421, 424, 427, 430, 433, 440, 443, 446, 
+		449, 451, 454, 457, 470, 1012
+  \item \verb*+\noappendicestoc+\pfill \main{457}
+  \item \verb*+\noappendixpage+\pfill \main{454}
+  \item \verb*+\noappendixpart+\pfill \main{451}
+  \item \verb*+\nobibnum+\pfill \main{446}
+  \item \verb*+\nobreakspace+\pfill 1310, 1628, 1641
+  \item \verb*+\nocenterheadline+\pfill \main{356}
+  \item \verb*+\nochapterheads+\pfill \main{417}
+  \item \verb*+\nochapternotereset+\pfill \main{443}
+  \item \verb*+\nocrosshair+\pfill \main{470}
+  \item \verb*+\noexpand+\pfill 111, 114, 117, 182, 185, 188, 191, 194, 
+		197, 200, 203, 206, 209, 212, 1065
+  \item \verb*+\nohangingcaptions+\pfill \main{440}
+  \item \verb*+\noheadcount+\pfill \main{425}
+  \item \verb*+\noheadline+\pfill \main{359}
+  \item \verb*+\nologo+\pfill \main{414}
+  \item \verb*+\nopartheads+\pfill \main{421}
+  \item \verb*+\normalcolor+\pfill 1256, 1258, 1260, 1262, 1264, 1266, 
+		1268
+  \item \verb*+\normalfont+\pfill 1129, 1256, 1258, 1260, 1262, 1264, 
+		1266, 1268, 1307, 1321, 1397, 1437, 1450, 1457, 1466, 
+		1473, 1482, 1489, 1498, 1505, 1514, 1521, 1558, 1566, 
+		1666--1672, 1869
+  \item \verb*+\normallineskip+\pfill \main{677}
+  \item \verb*+\normalsize+\pfill 258, 474, 486--488, 1130
+  \item \verb*+\norunningheaders+\pfill \main{353}
+  \item \verb*+\nostarmark+\pfill \main{362}
+  \item \verb*+\notocitalic+\pfill \main{430}
+  \item \verb*+\notocupper+\pfill \main{433}
+  \item \verb*+\noupper+\pfill \main{427}
+  \item \verb*+\now+\pfill \main{15}, 870, 881, 902, 913, 934, 951
+  \item \verb*+\num@figure+\pfill \main{1625}
+  \item \verb*+\num@table+\pfill \main{1638}
+  \item \verb*+\numberofsignatures+\pfill \main{222}, 396, 400, 404, 
+		408, 412
+
+  \indexspace
+{\bfseries\hfil O\hfil}\nopagebreak
+
+  \item \verb*+\oddsidemargin+\pfill 48, 95, 96, 103, 104, 113, 119, 
+		130, 1075--1077, 1081
+  \item \verb*+\old+\pfill 10, 11
+  \item \verb*+\Omega+\pfill 1371
+  \item \verb*+\onecolumn+\pfill 122, \main{351}, 1289, 1681, 1748, 
+		1759, 1852, 1918
+  \item \verb*+\onehalfspacing+\pfill 190
+  \item \verb*+\oneside+\pfill \main{337}
+  \item \verb*+\openany+\pfill \main{348}
+  \item \verb*+\openbib+\pfill \main{460}
+  \item \verb*+\openright+\pfill \main{348}
+  \item \verb*+\openrightblank+\pfill \main{348}
+  \item \verb*+\overfullrule+\pfill 344, 345
+
+  \indexspace
+{\bfseries\hfil P\hfil}\nopagebreak
+
+  \item \verb*+\p@enumii+\pfill \main{1554}
+  \item \verb*+\p@enumiii+\pfill \main{1554}
+  \item \verb*+\p@enumiv+\pfill \main{1554}, 1780
+  \item \verb*+\PackageError+\pfill 160, 174
+  \item \verb*+\pagenumBC+\pfill \main{339}
+  \item \verb*+\pagenumberfont+\pfill 282, 495, 542, 589, 636, 707, 
+		712, 713, 719, 720, 726, 729, 733, 759, 762, 763, 770, 
+		782, 823, 825, 833, 870, 881, 889, 892, 893, 900, 902, 
+		913, 916, 934, 942, 944, 951, 954, 986, 999
+  \item \verb*+\pagenumbering+\pfill 1274, 1283, 1908
+  \item \verb*+\pagenumBR+\pfill \main{339}
+  \item \verb*+\pagenumTR+\pfill \main{339}
+  \item \verb*+\paperheight+\pfill 313, 316, 319, 322, 325, 328, 
+		331, 332, 1085, 1111
+  \item \verb*+\paperwidth+\pfill 66, 93, 101, 116, 314, 317, 320, 323, 
+		326, 329, 332, 333, 1072, 1079
+  \item \verb*+\paragraph+\pfill \main{1492}
+  \item \verb*+\paragraphafterskip+\pfill \main{289}, 515, 562, 609, 
+		656, 1497, 1504
+  \item \verb*+\paragraphbeforeskip+\pfill \main{289}, 514, 561, 608, 
+		655, 1496, 1503
+  \item \verb*+\paragraphfont+\pfill 274, 487, 533, 580, 627, 1498, 
+		1505
+  \item \verb*+\paragraphindent+\pfill \main{289}, 513, 560, 607, 654, 
+		1495, 1502
+  \item \verb*+\paragraphmark+\pfill \main{1225}
+  \item \verb*+\paragraphstarmark+\pfill \main{1225}, 1507
+  \item \verb*+\parbox+\pfill 246, 740, 750, 768, 778, 814, 829, 866, 
+		878, 898, 910, 931, 948, 984, 996
+  \item \verb*+\parindent+\pfill 58, 85, 87, 89, 140, 208, 516, 563, 
+		610, 657, \main{680}, 1071, 1396, 1435, 1695, 1711, 
+		1849, 1865
+  \item \verb*+\parsep+\pfill 466, 1586
+  \item \verb*+\parskip+\pfill \main{680}, 1850
+  \item \verb*+\part+\pfill 357, 1069, \main{1285}, 1597
+  \item \verb*+\partbetweenskip+\pfill \main{289}, 500, 547, 594, 641, 
+		1311
+  \item \verb*+\partfont+\pfill 266, 479, 526, 573, 620
+  \item \verb*+\partheads+\pfill \main{421}
+  \item \verb*+\partname+\pfill 1310, \main{1886}
+  \item \verb*+\partnamefont+\pfill 267, 480, 1310, 1314, 1322
+  \item \verb*+\PassOptionsToClass+\pfill 5--10, 12
+  \item \verb*+\phantomsection+\pfill 1840
+  \item \verb*+\phd+\pfill \main{394}
+  \item \verb*+\pi+\pfill 550, 556, 1175, 1182
+  \item \verb*+\pm+\pfill 1388, 1390, 1398
+  \item \verb*+\postdisplaypenalty+\pfill \main{686}
+  \item \verb*+\predisplaypenalty+\pfill \main{686}
+  \item \verb*+\prevdegrees+\pfill \main{97}
+  \item \verb*+\previousdegree+\pfill 205--207, \main{254}, 929, 930
+  \item \verb*+\previousdegrees+\pfill 99
+  \item \verb*+\prog+\pfill 23
+  \item \verb*+\program+\pfill \main{180}, 220, 926
+  \item \verb*+\providecommand+\pfill 45, 97--101, 103, 110, 113, 116, 
+		127, 156, 181, 184, 187, 190, 193, 196, 199, 202, 205, 
+		208, 211, 1139, 1771
+  \item \verb*+\ProvidesFile+\pfill 3, 4, 800, 1257
+  \item \verb*+\ps@clear+\pfill 976
+  \item \verb*+\ps@draft+\pfill \main{863}, 1906
+  \item \verb*+\ps@empty+\pfill 89, \main{704}
+  \item \verb*+\ps@headings+\pfill \main{737}
+  \item \verb*+\ps@myheadings+\pfill \main{981}
+  \item \verb*+\ps@plain+\pfill 89, \main{704}, 1906
+  \item \verb*+\psfrag+\pfill 550, 1175
+  \item \verb*+\pstyle+\pfill 22
+
+  \indexspace
+{\bfseries\hfil Q\hfil}\nopagebreak
+
+  \item {\ttfamily quotation} (environment)\pfill \main{1582}
+  \item {\ttfamily quote} (environment)\pfill \main{1589}
+
+  \indexspace
+{\bfseries\hfil R\hfil}\nopagebreak
+
+  \item \verb*+\raggedleft+\pfill 233, 437
+  \item \verb*+\raise+\pfill 978
+  \item \verb*+\RecordChanges+\pfill 15
+  \item \verb*+\ref+\pfill 310, 316, 479, 568, 583, 608, 615, 1190
+  \item \verb*+\renewenvironment+\pfill 169
+  \item \verb*+\repeat+\pfill 1063
+  \item \verb*+\RequirePackage+\pfill 676
+  \item \verb*+\rho+\pfill 1400
+  \item \verb*+\rightheads+\pfill \main{436}
+  \item \verb*+\rm+\pfill 215, 456, 484, 938, \main{1666}
+  \item \verb*+\Roman+\pfill 233, 949
+  \item \verb*+\rule+\pfill 1198, 1212
+  \item \verb*+\runningheaders+\pfill \main{353}
+
+  \indexspace
+{\bfseries\hfil S\hfil}\nopagebreak
+
+  \item \verb*+\savebox+\pfill 245
+  \item \verb*+\sbox+\pfill 1654
+  \item \verb*+\sc+\pfill \main{1670}
+  \item \verb*+\scshape+\pfill 1672
+  \item \verb*+\section+\pfill 199, 308, 309, 324, 363, 448, 470, 536, 
+		545, 582, 1075, 1159, 1167, \main{1444}, 1794, 1796
+  \item \verb*+\sectionafterskip+\pfill \main{289}, 506, 553, 600, 647, 
+		1449, 1456
+  \item \verb*+\sectionbeforeskip+\pfill \main{289}, 505, 552, 599, 646, 
+		1448, 1455
+  \item \verb*+\sectionbib+\pfill \main{449}
+  \item \verb*+\sectionfont+\pfill 271, 484, 530, 577, 624, 1450, 1457
+  \item \verb*+\sectionindent+\pfill \main{289}, 504, 551, 598, 645, 
+		1447, 1454
+  \item \verb*+\sectionmark+\pfill 800, 851, 924, 962, 1008, 
+		\main{1225}
+  \item \verb*+\sectionstarmark+\pfill 809, 860, 926, 964, 1010, 
+		\main{1225}, 1459, 1797
+  \item \verb*+\SetTime+\pfill \main{15}, 344
+  \item \verb*+\settodepth+\pfill 1107, 1386
+  \item \verb*+\settoheight+\pfill 76, 1106, 1381, 1830
+  \item \verb*+\sf+\pfill \main{1666}
+  \item \verb*+\sfbold+\pfill \main{614}
+  \item \verb*+\sffamily+\pfill 615--628, 630, 631, 633, 635, 637, 1667
+  \item \verb*+\signature+\pfill \main{228}
+  \item \verb*+\signatures+\pfill 72, \main{1055}
+  \item \verb*+\sim+\pfill 1358, 1366, 1368
+  \item \verb*+\singlespacing+\pfill 189
+  \item \verb*+\sl+\pfill \main{1670}
+  \item \verb*+\slanted+\pfill \main{520}
+  \item \verb*+\small+\pfill 21, 541--544, 588, 589, 635, 636
+  \item \verb*+\starmark+\pfill \main{362}
+  \item \verb*+\subitem+\pfill \main{1853}
+  \item \verb*+\submitdate+\pfill 217, 225, 227, 940
+  \item \verb*+\subparagraph+\pfill 395, 1106, \main{1508}
+  \item \verb*+\subparagraphafterskip+\pfill \main{289}, 518, 565, 612, 
+		659, 1513, 1520
+  \item \verb*+\subparagraphbeforeskip+\pfill \main{289}, 517, 564, 611, 
+		658, 1512, 1519
+  \item \verb*+\subparagraphfont+\pfill 275, 488, 534, 581, 628, 1514, 
+		1521
+  \item \verb*+\subparagraphindent+\pfill \main{289}, 516, 563, 610, 
+		657, 1511, 1518
+  \item \verb*+\subparagraphmark+\pfill \main{1225}
+  \item \verb*+\subparagraphstarmark+\pfill \main{1225}, 1523
+  \item \verb*+\subsection+\pfill 371, 704, 1082, 1210, \main{1460}
+  \item \verb*+\subsectionafterskip+\pfill \main{289}, 509, 556, 603, 
+		650, 1465, 1472
+  \item \verb*+\subsectionbeforeskip+\pfill \main{289}, 508, 555, 602, 
+		649, 1464, 1471
+  \item \verb*+\subsectionfont+\pfill 272, 485, 531, 578, 625, 1466, 
+		1473
+  \item \verb*+\subsectionindent+\pfill \main{289}, 507, 554, 601, 648, 
+		1463, 1470
+  \item \verb*+\subsectionmark+\pfill \main{1225}
+  \item \verb*+\subsectionstarmark+\pfill \main{1225}, 1475, 1491
+  \item \verb*+\subsubitem+\pfill \main{1853}
+  \item \verb*+\subsubsection+\pfill 382, 1093, \main{1476}
+  \item \verb*+\subsubsectionafterskip+\pfill \main{289}, 512, 559, 606, 
+		653, 1481, 1488
+  \item \verb*+\subsubsectionbeforeskip+\pfill \main{289}, 511, 558, 
+		605, 652, 1480, 1487
+  \item \verb*+\subsubsectionfont+\pfill 273, 486, 532, 579, 626, 1482, 
+		1489
+  \item \verb*+\subsubsectionindent+\pfill \main{289}, 510, 557, 604, 
+		651, 1479, 1486
+  \item \verb*+\subsubsectionmark+\pfill \main{1225}
+  \item \verb*+\subsubsectionstarmark+\pfill \main{1225}
+  \item \verb*+\subtitle+\pfill \main{178}, 214, 937
+  \item \verb*+\subtitlefont+\pfill 18, 47, 138, 179, \main{258}, 476, 
+		523, 569, 617, 1145
+  \item \verb*+\supervisor+\pfill \main{97}, 129
+
+  \indexspace
+{\bfseries\hfil T\hfil}\nopagebreak
+
+  \item \verb*+\tabbingsep+\pfill \main{1613}
+  \item \verb*+\tabcolsep+\pfill \main{1610}
+  \item {\ttfamily table} (environment)\pfill \main{1642}
+  \item {\ttfamily table*} (environment)\pfill \main{1642}
+  \item \verb*+\tablefont+\pfill 286, 499, 546, 593, 640, 1641
+  \item \verb*+\tablename+\pfill 628, 1641, \main{1884}
+  \item \verb*+\tableofcontents+\pfill 326, 987, \main{1679}
+  \item \verb*+\textasteriskcentered+\pfill 1559
+  \item \verb*+\textbf+\pfill 591, 593--596, 622--624, 629--631
+  \item \verb*+\textbullet+\pfill 1557
+  \item \verb*+\textendash+\pfill 1558
+  \item \verb*+\textfraction+\pfill \main{696}
+  \item \verb*+\textheight+\pfill 47, 129, 1085--1087, 1093--1095, 1103, 
+		1110, 1121
+  \item \verb*+\textit+\pfill 29
+  \item \verb*+\textperiodcentered+\pfill 1560
+  \item \verb*+\textsc+\pfill 23
+  \item \verb*+\textsf+\pfill 18
+  \item \verb*+\textsl+\pfill 21, 22
+  \item \verb*+\texttt+\pfill 19, 20, 181, 271, 374, 376, 384, 472, 478, 
+		498--500, 554, 556, 558, 614, 717, 718, 736, 770, 921, 
+		972, 1009, 1085, 1087, 1095, 1179, 1181, 1223, 1224
+  \item \verb*+\textwidth+\pfill 46, 76, 78, 80, 81, 94, 102, 118, 128, 
+		246, 552, 740, 741, 750, 751, 768, 769, 778, 779, 
+		814, 815, 829, 830, 866, 867, 878, 879, 898, 899, 
+		910, 911, 931, 932, 948, 949, 984, 985, 996, 997, 
+		1072--1074, 1080, 1096, 1177
+  \item \verb*+\thanks+\pfill 1132, 1221
+  \item {\ttfamily thebibliography} (environment)\pfill \main{1771}
+  \item \verb*+\thechapter+\pfill 234, 235, 795, 846, 950, 951, 
+		\main{1247}, 1347, 1349, 1382, 1387, 1404, 1416, 1608, 
+		1619, 1624, 1637
+  \item \verb*+\theenumi+\pfill \main{1546}, 1550, 1554, 1555
+  \item \verb*+\theenumii+\pfill \main{1546}, 1551, 1555
+  \item \verb*+\theenumiii+\pfill \main{1546}, 1552, 1556
+  \item \verb*+\theenumiv+\pfill \main{1546}, 1553, 1781
+  \item \verb*+\theequation+\pfill \main{1617}, 1621
+  \item \verb*+\thefigure+\pfill 1623, 1628
+  \item {\ttfamily theindex} (environment)\pfill \main{1815}
+  \item \verb*+\theorembodyfont+\pfill 278, 491, 538, 585, 632
+  \item \verb*+\theoremheaderfont+\pfill 277, 490, 537, 584, 631
+  \item \verb*+\thepage+\pfill 707, 712, 713, 719, 720, 726, 729, 733, 
+		759, 762, 763, 770, 782, 823, 825, 833, 889, 892, 893, 
+		900, 916, 942, 944, 954, 986, 999
+  \item \verb*+\theparagraph+\pfill 238, 239, 954, 955, \main{1247}
+  \item \verb*+\thepart+\pfill 233, 949, \main{1247}, 1300, 1310
+  \item \verb*+\thesection+\pfill 235, 236, 804, 855, 951, 952, 
+		\main{1247}
+  \item \verb*+\thesisdate+\pfill \main{97}
+  \item \verb*+\thesubparagraph+\pfill 239, 955, \main{1247}
+  \item \verb*+\thesubsection+\pfill 236, 237, 952, 953, \main{1247}
+  \item \verb*+\thesubsubsection+\pfill 237, 238, 953, 954, \main{1247}
+  \item \verb*+\thetable+\pfill 628, 1636, 1641
+  \item \verb*+\thispagestyle+\pfill 173, 466, 1007, 1014, 1018, 1034, 
+		1056, 1069, 1287, 1329, 1338, 1849
+  \item \verb*+\time+\pfill 17, 21
+  \item \verb*+\title+\pfill \main{152}, 213, 936, 1135
+  \item \verb*+\titlefont+\pfill 17, 44, 135, 174, \main{258}, 475, 521, 
+		568, 615, 1142
+  \item \verb*+\titlemarginbottom+\pfill \main{1046}, 1087, 1124
+  \item \verb*+\titlemarginleft+\pfill \main{1046}, 1073, 1075
+  \item \verb*+\titlemarginright+\pfill \main{1046}, 1074
+  \item \verb*+\titlemargintop+\pfill \main{1046}, 1086, 1089, 1122
+  \item \verb*+\titlepage+\pfill 41, 133, 1104, 1123, \main{1139}
+  \item \verb*+\titlepagefont+\pfill \main{258}, 474, 1100
+  \item \verb*+\tocitalic+\pfill \main{430}
+  \item \verb*+\tocupper+\pfill \main{433}
+  \item \verb*+\today+\pfill 155, 227, 870, 881, 902, 913, 934, 951, 
+		\main{1892}
+  \item \verb*+\toks+\pfill 11--13
+  \item \verb*+\topfraction+\pfill \main{692}
+  \item \verb*+\topmargin+\pfill 50, 132, 1089--1092
+  \item \verb*+\topskip+\pfill 51, 133
+  \item \verb*+\translatorfont+\pfill 276, 489, 536, 582, 629
+  \item \verb*+\tst+\pfill 28
+  \item \verb*+\tt+\pfill \main{1666}
+  \item \verb*+\ttfamily+\pfill 1668
+  \item \verb*+\twocolumn+\pfill 145, \main{351}, 1334, 1687, 1754, 
+		1765, 1841, 1914
+  \item \verb*+\twoside+\pfill \main{337}
+
+  \indexspace
+{\bfseries\hfil U\hfil}\nopagebreak
+
+  \item \verb*+\ubcauthorizationform+\pfill \main{1181}
+  \item \verb*+\UBCT@old@colht+\pfill 36, 52, 134
+  \item \verb*+\UBCT@old@colroom+\pfill 37, 53, 135
+  \item \verb*+\UBCT@oldbaselinestretch+\pfill 61, 143
+  \item \verb*+\UBCT@oldcolumnwidth+\pfill 39, 55, 137
+  \item \verb*+\UBCT@oldevensidemargin+\pfill 33, 49, 131
+  \item \verb*+\UBCT@oldhsize+\pfill 40, 56, 138
+  \item \verb*+\UBCT@oldlinewidth+\pfill 41, 57, 139
+  \item \verb*+\UBCT@oldmarginparsep+\pfill 43, 59, 141
+  \item \verb*+\UBCT@oldmarginparwidth+\pfill 44, 60, 142
+  \item \verb*+\UBCT@oldoddsidemargin+\pfill 32, 48, 130
+  \item \verb*+\UBCT@oldparindent+\pfill 42, 58, 140
+  \item \verb*+\UBCT@oldtextheight+\pfill 31, 47, 129
+  \item \verb*+\UBCT@oldtextwidth+\pfill 30, 46, 128
+  \item \verb*+\UBCT@oldtopmargin+\pfill 34, 50, 132
+  \item \verb*+\UBCT@oldtopskip+\pfill 35, 51, 133
+  \item \verb*+\UBCT@oldvsize+\pfill 38, 54, 136
+  \item \verb*+\UBCT@signatures+\pfill 166, 228, 245, 247, 1177
+  \item \verb*+\UBCT@tempa+\pfill 151
+  \item \verb*+\upper+\pfill \main{427}
+  \item \verb*+\upperauthor/noupperauthor+\pfill \main{367}
+  \item \verb*+\upperdegreetitle/noupperdegreetitle+\pfill \main{367}
+  \item \verb*+\upperdepartment/noupperdepartment+\pfill \main{367}
+  \item \verb*+\upperfaculty/noupperfaculty+\pfill \main{367}
+  \item \verb*+\upperinstitution/noupperinstitution+\pfill \main{367}
+  \item \verb*+\upperprogram/noupperprogram+\pfill \main{367}
+  \item \verb*+\uppersubtitle/nouppersubtitle+\pfill \main{367}
+  \item \verb*+\uppertitle/nouppertitle+\pfill \main{367}
+  \item \verb*+\uppertitletext/nouppertitletext+\pfill \main{367}
+  \item \verb*+\upshape+\pfill 490, 537
+  \item \verb*+\url+\pfill 181, 560, 789, 921, 1021, 1022
+  \item \verb*+\usebox+\pfill 247
+
+  \indexspace
+{\bfseries\hfil V\hfil}\nopagebreak
+
+  \item \verb*+\v@strut+\pfill \main{703}, 744, 753, 772, 782, 817, 833, 
+		872, 883, 904, 916, 936, 954, 987, 999
+  \item \verb*+\value+\pfill 1239, 1272, 1277
+  \item \verb*+\vbox+\pfill 26, 31, 971, 1103, 1121
+  \item \verb*+\verb+\pfill 324, 343, 347, 384, 462, 463, 466, 467, 500, 
+		502, 519, 523, 524, 572, 576--579, 613, 719, 745, 746, 
+		1054, 1056, 1057, 1059, 1063, 1095, 1157, 1194, 
+		1198--1201, 1205, 1225, 1241, 1242
+  \item {\ttfamily verse} (environment)\pfill \main{1573}
+  \item \verb*+\vphantom+\pfill 703
+  \item \verb*+\vrule+\pfill 972--974
+  \item \verb*+\vsize+\pfill 54, 136, 1095
+  \item \verb*+\vss+\pfill 972, 975
+
+  \indexspace
+{\bfseries\hfil W\hfil}\nopagebreak
+
+  \item \verb*+\widowpenalty+\pfill \main{684}, 1785
+
+  \indexspace
+{\bfseries\hfil X\hfil}\nopagebreak
+
+  \item \verb*+\xdef+\pfill 13
+
+ \end{theindex}

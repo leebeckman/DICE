@@ -1,0 +1,89 @@
+Working Title: Taint Tracking for Application Migration
+
+Masters Thesis, Computer Science, UBC
+
+Lee Beckman
+
+Outline:
+    Abstract
+        -High level overview of the general problems available in application migration (partitioning, getting new servers, trying to improve performance, wanting to be aware of possible pitfalls in application design)
+        -Light statement of thesis, how I explored the use of taint tracking to identify by a series of automated analyses properties in real systems, and my attempt to make the case that taint tracking is a good tool for this, makes sense in a way that is better than other possible means.
+        -Mention dataflow tomography
+        -Conclude with note that I did find some of what I was looking for, and taint tracking does produce data which is amenable to automated analysis for finding potentially useful facts.
+
+ORGANIZATION
+
+    CHAPTER: INTRODUCTION
+        Section: Problem Statement
+        Section: Thesis Statement
+        Section: Relevant Literature
+        Section: Contributions
+        Section: Thesis Outline
+
+    CHAPTER: BACKGROUND
+        Section: Taint Tracking
+        Section: Anything Else I Should Explain
+    
+    CHAPTER: IMPLEMENTATION
+        Section: Taint Tracking Tool
+        Section: Analysis Tool
+
+    CHAPTER: EVALUATION
+        Section: Choosing applications
+        Section: Evaluation Strategy, Goals
+        Section: RUBiS
+        Section: jGossip
+
+    CHAPTER: CONCLUSIONS
+        Section: Statement of Results
+        Section: Discussion
+        Section: Future Work
+
+    Introduction
+        Problems
+            -Describe migration problem
+            -Partitioning
+            -Identifying State
+            -What else can we learn from taint flow?
+        Thesis
+            -This is pretty clearly stated in several documents that I will need to track down. Would be worth workshopping this a bit to better fit what I've found
+        Evaluation Strategy
+        Contributions
+            
+
+    Background
+        Some problems in application migration
+            -New environments leave many opportunities for improvement and pitfalls
+        
+        Taint Tracking
+        Dataflow Tomography
+        Fluxo
+        Application Partitioning
+
+    Implementation
+        The Tracker
+        The Analysis Tool
+            The analyses:
+            Pre-Computation/Caching
+            Post-Computation
+            User State Tracking
+            Access Path Refactoring
+            Wasteful Communication
+
+    Evaluation
+        Simple Example: RUBiS
+        Real-World, Complex Example: JGossip
+
+    Results
+        Positive Results
+        Challenges
+
+    Discussion
+        What works well
+        Promising extensions to tool
+        Need for a better taint tracker
+        Control-tainting
+        What didn't work so well
+        Future work
+
+    Conclusions

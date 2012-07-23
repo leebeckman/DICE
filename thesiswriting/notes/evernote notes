@@ -1,0 +1,888 @@
+evernote notes
+
+Important:
+
+-Data which is transmitted along paths multiple times redundantly, more efficient paths for data to take, involve caching
+
+-I do many analyses, may only have to validate by modification for a few of them, rather than all of them
+-Not doing the modification makes it hard to say that my suggestions are correct and won't break the application
+
+-Want to have some numbers, what will the changes potentially mean, 
+   -Create metrics of the improvements that I expect from making the modifications
+   -What is the value of doing these things, and how is it measurable
+
+   -Want to avoid things like caching things which offer no improvement
+   -The usefulness won't be based on a number, but rather on something like security reasons
+
+
+-where arrays are used, will need to use some heuristics
+
+eg) if an array is passed in/returned from a function, scan it every time
+if data goes into a class (method, can't do it with direct field sets), taint the class so it gets special attention
+when the data comes out of the class we can link that tainted data with earlier taint, rather than relying on the field that it actually was stored in.
+
+-----------
+
+-Finish thesis by beginning of August,  + give a couple of weeks for comments, defense last week of August.
+-4-6 weeks to do the write up. (Eric estimates a week and a half if everything is perfect)
+
+JBOSS AOP is made of fail. 
+   -THE ONLY GOOD THING IT DOES IS ARRAY ACCESS
+   -Fails to instrument libraries without discernible reason
+   -Arbitrary 'disallowed' packages
+   -Fails to instrument JSP without dubious hack
+   -Fails to guard against recursive instrumentation
+
+Moving back to AspectJ?
+   -Scary, but that shouldn't mean I don't do it.
+   -I would be throwing away my jboss stuff, BUT
+   -Everything might work again
+   -Can just ignore array accesses for now, ASM it in later.
+      -Or I can note raw arrays, and then replace them with a class editor with arraylists
+
+-------------
+
+Have: 
+     -Data flow tomography notes
+     -Fluxo notes
+     -Existing slides
+     -Notion of Nima's partitioning work
+     -Need to present things more top down, starting with a motivating problem
+
+Slides:
+
+     Title: 
+          DICE
+          Dynamic Instrumentation for...
+               Taint Tracking
+               Aspects
+               Optimization
+               Distribution
+               Cloud
+               Annotation
+               Reorganizing
+               State Analysis
+               Taint Tracking for Application Migration: TaTAMi
+               
+     Outline
+          Thesis [start sign]
+          Motivation [why I care]
+          My System [how?]
+          Applying My System [how?]
+          To Do [future work]
+     
+     Thesis
+          "Taint Tracking is well suited for gathering data about applications which is useful when migrating 
+          "Taint Tracking can be used to gather data about applications which is very useful when migrating them to new environtments"
+          ***"Application + Taint Tracking -> Guidelines for Migrating Application"
+          -High level statement of what taint tracking is
+               "Taint Tracking is a technique where data that the application uses is 'tagged' and tracked as it propagates through the system. This allows us to see what happens to the data, how it is used, and where it ends up."
+               "By migration I mean deploying the application in different environments in order to meet growing demands. This probably mostly means moving it to the cloud."
+          -High level statement of what I'm going to do with it
+               "So basically, I'm saying that taint tracking is a good technique for gathering the kind of data about an application that lets us make good decisions about how to potentially rearchitect it for a new environment, to get more out of the available resources there."
+-Show that it is useful for understanding applications, and analyzing their use of data for optimizing their deployment in such environments as the cloud.
+
+     Motivation
+          -The state of current large apps (problems they face)
+               -Difficult to understand, even with access to source. 
+               -Faced with rearchitecting in the face of scalability demands, developers fail to apply architectural patterns useful in distributed scenarios
+               -Need to make use of the cloud, distribution
+               -Can't just throw out the old and start over
+          -Desired things to do with these apps, why this is hard
+               -Partitioning "Make use of various DCs by dividing up functionality, may only be able to move part of the application, may not make sense to move certain data"
+               -Replicate them and execute all over the place "Replication is obviously great for performance and fault tolerance. More replication is better, but it can't be done too naively"
+               -Serve them close to users "This gets at the need to put applications in DCs, which makes their data an issue"
+          -Note Nima's work, partitioning, replicating, scaling in general
+               -Going to Fluxo or dataflow paper may yield some useful examples here
+-Describe some apps which have faced these challenges, research efforts people have undertaken to begin attacking this problem.
+ -Many systems re-use a set of useful architectural patterns
+ -Flickr, as service expanded to support more users, architecture had to be redesigned several times.
+ -LinkedIn also went through several architectural revisions over 3 years
+ -MySpace has done the same
+     -All of these time consuming and resource intensive
+          -Influential work:
+               -DICE, instrumentation to track communication, inner-workings of applications
+-Useful because it got me thinking about dynamic analysis, what we could learn from a running application. However, it showed the difficulties of operating at that low of a level when you want to get data a developer can understand.
+               -Nima's own work, what might be useful input to an application partitioning scenario. Desire to identify application state for Nima's work. Desire to provide additional information for taking partitioning further, making the process more practical.
+               -Data-flow tomography, an advanced form of taint tracking and its potential uses
+-Shows the need for a detailed dataflow analysis like I'm going. The only paper I've found that really gets into this kind of tracking. However, not as detailed as my own (they trade off for full-system, general analysis without modifying application). They note that this helps in understanding applications, and presents much more focused data than other methods, but they don't really concretely apply the findings to anything. They just introduce the technique itself.
+               -Fluxo, presenting patterns I identified as being useful to find given tomography
+-It is interesting to consider if we can extract the notion of fluxo's dataflow graphs from regular software using dataflow tomography, and thus apply some optimizations similar to what is done in fluxo
+-I had even arrived at some of these optimizations independently of reading the Fluxo paper
+     -Situate my work between Fluxo and Tomography to tell an interesting story about how it gives a purpose to the style of data gathered with tomography by exploring the application of Fluxo patterns to an unrestricted programming environment.
+          -The Motivating Example: Introduce an example web application to show where my work would be useful vs other approaches
+               -Develop an example of a multi-tiered, multi-user web application
+               -Work on what I have in my slides, add systems to it as necessary, ZOOM in on components to freely grab whatever examples I need.
+
+     Break the Example
+          -DON'T NEED TO MOTIVATE EVERYTHING
+          -PICK TOP 3
+               -Deep understanding of state in the application, how this affects basic replication of the application
+               -Fluxo style modifications (caching, pre/post computation)
+               -Changing state location (eliminating derivative state, pushing state to user)
+               -Advanced access path refactoring
+
+          -Show shortcomings, motivate change, motivate the need for more data about the application
+               -From the perspective of a developer having difficulty fully understanding the system
+               -Impose a load on the system, demanding it support more users across the world
+               -Make large amounts of data a problem, so that we can find better ways to manage the data
+                    -Increased load is the real problem. Extra resources are in a sense a problem as they must be used.
+-Attempt things like partitioning and naive replication, show problems, hint at need for a deeper understanding of how the system uses its data
+
+     Introduce my System
+          -The Tracker
+               -The tracker uses Aspect Oriented Programming, basically a technique where you specify two things: Where to add code to an existing program, and what code to add there (eg. before and after every method call, modify the arguments and return values somehow)
+               -Reason to use AOP (vs low-level, VM modification, or some other language)
+                    -Conceptually simple to implement the tracker
+                    -Well supported
+                    -Can use it without special support from applications of runtime environment
+                    -Lots of Java web apps to play around with
+               -The tracker tags application input data, such as from the database or user, and follows it's progress through the execution of the application. It looks at every method call and field access to determine if tagged data has been passed through the arguments, returned, or stored somewhere. It also monitors various functions to determine if tagged data items have been composed, or modified. Data is tagged with its source, so we know where all tagged data comes from.
+               -Brief note of engineering challenges, performance, switching from AspectJ to JBoss AOP
+          -Output of Tracker on some sample apps
+               -This data is logged, and is used to build a graph internal representation of the flow of data in the application. This can be visualized, SHOW EXAMPLE
+               -Will need to work on the visualization code a bit more for this, and for the presentation can do some manual work
+          -Plans for analysis for tracker data, from simple tagging to suggested modifications
+               -This really will be the meat of my work
+                    -The next big stage of the tracker is the analysis of this data, doing something useful with it.
+                    -Take the graph as input, make indications 
+-Beginning to think about this. Taking the collected flow graphs from the tracker, and making statements about the application based on them.
+
+     Fix the Example
+          -Given the problem example and the abilities of my Tracker, how can I fix the example?
+          -Show how data collected by my tool can help this situation.
+               -Fake data, because the application doesn't exist, can take some freedoms
+               -Show relationships visible in flows, things we can state about them
+               -In particular show how it locates application state
+          -The desire to have this data is already demonstrated, and the desire to make these modifications is also demonstrated
+-My tool collects this data at a high semantic level, and now the investigation is to explore the use of it in useful modifications
+-Try to bring up the examples from my own slides, as well as those given in the Fluxo paper. Show how finding state is very valuable.
+
+     -Will now be at the point where I have given my thesis, motivated it at a high level with related work, given a graspable example and broken it, and repaired the example with my work.
+
+     The Future
+          -Analysis, finding more uses for data
+          -Improving tracker
+          -Real evaluations. This is essentially the bit where I 'break' an application and then repair it with my tool, only for real.
+          -Feeding data to next-stage applications
+
+
+---
+
+Meeting with Eric, Mar 26
+
+-Talk about:
+     -Tracker status
+          -Migrated to jboss-aop, feeling reasonably confident that this will suffice for my analyses
+               -Now that both are working, pretty easy to switch between AspectJ and JBoss version of system, in case I need to go back to AspectJ + ASM
+          -Can finish collecting data for visualizations, will be doing that as a part of preparing my slides
+
+     -Looked at the Dataflow Tomography paper
+          -Very useful, they motivate the collection of this kind of data, but don't apply it to any useful problems
+
+     -Looked at Fluxo paper
+          -Again they motivate having this kind of data, being able to automatically manipulate systems in this way. The same way I wish to really, just with a restricted programming model.
+          -The optimizations they show are all ones I could imagine pursuing with the data I collect. Imagine I will face difficulties they do not.
+
+     -Started on an outline for my presentation slides
+
+-Go through list, hashing things into sumbuckets
+-when you hash something, also hash the a flag for the complement
+-when you come hash into a complemented bucket, return true, else return false
+
+---------------------
+
+What about looking for data paths which are never used?
+
+-Also, since I'm not weaving the java runtime, may need specific aspects for things like ArrayList sets and suuuch
+
+--------------------
+
+Need to make some slides to plan/justify my work.
+
+PROBLEMS:
+
+-Using stateful data may not make you stateful, just a consumer of data. The data is state, not your use of it. You are only stateful if you actually store state inside of you. This lowers utility of taint tracking for replicaiton analysis.
+
+-Need to find a reason why knowing COMPOSITION and modification of state is useful. And why isn't it enough to just monitor at the boundary where the state is read and written back?
+   -THIS IS A BIG ONE
+   -Existing techniques make this difficult to find, but WHAT GOOD IS THIS INFO?
+   -Composition needn't be reported, but it is a part of tracking, need to know that multiple states sources are in something.
+   -Access at the same time may be just as significant as actual composition
+   -Modification: Easy enough to track.
+
+-Nima's tool will already show independent method call paths, and by monitoring session state could tease out the fact that they don't share data.
+
+-I could modify the garbage collector to tell me what in-mem state was being kept. 
+
+ANSWERS:
+
+-These things could be done other ways, but maybe tracing is an easier way to go about the problem. Rather than monitoring the full memory of the program you just deal with pieces of it.
+
+-Want to make a point of other ways to solve problems, and argue why this is still work looking in to.
+
+-Can say some cool things about what tracing is good for without tracing everything (primitives), as long as my toy examples justify things.
+-Like taint tracking can show you where all probable persistent state comes from without monitoring the whole memory of the application.
+
+-We want to tell the user where state is kept.
+
+NOTES:
+
+-When a DC is going down and state needs to migrate, moving state to the user can make things much easier, give flexibility in moving around. Can monitor movement of state to show that it could be sent to user.
+
+-Data from DBs represents variability in communication cost. If no db data is communicated over a link, the db won't influence the size of communication over that link.
+
+-SERVLETS CAN EASILY KEEP DATA IN MEMORY, ANYTHING STATIC. Tracing makes it easier to FIND THIS STATE.
+   -Why then just not monitor memory accesses and db accesses?
+     -Because that might be excessive. There might also be channels of communication that weren't expected. Need to know the endpoints to follow them.
+     
+-Always start with: I KNOW WHERE ALL THE DATA COMES FROM AND WHERE IT GOES. THIS IS UNIQUE TO ME
+-If data is straight from db to user and back, life is probably simple.
+-Taint tracking lets us easily hunt down state without having to mess with gcollector, and lets us get semantic meaning quickly.
+   -PLUS, some state may not be relevant to web application. Threads may be kept around and reused, though they don't need to be. Taint tracking gives us some (semantics?).
+   -SLIDE: why taint tracking is good for finding state vs some other possible methods. Once we nail down state gates in application, we can think about replication.
+   -How I can go about analyzing data to find the state.
+   -Could allow us to move persistent state into the browser, so that application can be freer.
+-When there is persistent data kicking around, that's useful knowledge. Why would we ever localize execution? Access to other data sources. Access to multiple data sources can be easily found with IO monitoring. 
+
+-Earlier I thought that using state didn't make you stateful. What if something uses internal state, and you try to use the application on a diff data center?
+
+-Replicating execution is a matter of finding execution which does not act as a gateway for state. Anything which actually holds the state, you must be careful about. In the end though, it's just data isn't it?
+-What about replicating data? We want to tell the application how replicable some data is. Data is replicable if it is read-mostly, or write-mostly (requiring only intermittent merging). This easily checked by monitoring IO at boundary. What if data is read/write, can we say anything further?
+
+-If something is stateless, you can easily move from DC to DC, replicating placement trivially. If there is state, moving between DCs requires shipping data. If data is shared between users which makes it even harder.
+-For parallelization, think of state as binding users to machines. Thus state inhibits parallelization by potentially over/under utilizing machines, or you can trade this against the cost of communicating state to move users (a lot like DC moving).
+
+-So say I know that some flows are independent, they don't share any in mem-state. This means that execution can easily be partitioned. Flows need not happen on same machines/data centers.
+
+-Independent flows is mostly done without taint tracking. Another thing is tracking what memory is accessed when executing various execution paths. This is really just another problem of managing state. However, this again requires potentially heavy monitoring.
+
+-sharing of state between paths just means that each path is a thing which uses state and is tied to it. It's like those 3 paths are part of the same execution, happening together.
+
+-We trace to find what computation actually uses data, to know what execution needs to be replicated to use it. Without tracing this is harder. If sensitive data is accessed on what side along with data we wish to move, if we know that their access doesn't mix we can split the functionality of the accessor so that access to sensitive data is still secured, but access to bulk data is replicated to the other side.
+
+IDEAS FROM ESTHER
+
+-General thinking about how tracking data flow can find more efficient paths of data through applications. As people are developing application, they can find out where expensive or redundant accesses are happening, and see ways to do accesses more efficiently. Reduce calls, access siblings data.
+   -Long paths of data = potentially difficult partitionings. This is only the case when execution must be localized, but such may be the case so find it and suggest ways to shorten paths (by monitoring composition and modification)
+   -Redundant state is something I can easily look for (from same source), though it may not be a common issue in practice.
+   -The caching of execution relates to this.
+
+
+-Modification and how it relates to caching. If something is not modified it may be easier to cache. Furthermore, what about FINDING opportunities for caching?
+   -What about caching modification? Precomputing/caching computation to save on execution cost. As long as execution does not use user/other unpredictable input, the results can be pre-computed potentially.
+
+NOVEL THINGS:
+-Easy state finding
+-Precomputation caching (know what inputs are responsible for outputs)
+-Redundant state finding
+-Independent data paths mean potential for splitting up these paths rather than executing them together. EXECUTING TOGETHER IS NOT THE SAME AS COMPOSITION. COMPOSITION IS HARDER TO SEPARATE.
+
+SLIDE JUNK:
+
+Want to find parts of programs which can be replicated without load balancing.
+
+ DIFFERENT KINDS OF STATE. PERSONAL STATE, and SHARED STATE.
+
+ Generally you can’t arbitrarily parallelize a web application because of personal login state. However, you can have a lightweight central session checker, which redirects to the parts in different locations.
+
+ If SHARED STATE is separated by data centers, you need to manage consistency, can’t parallelize SHARED STATE across centers, but can parallelize like crazy within one location as long as the same DB is used.
+
+ PERSONAL STATE is more fragile. If it’s kept at some component, the source of that state must be common between accesses.
+
+ ---
+
+ Really just a matter of finding state
+
+  -Read-Mostly, replicate freely, within and across data centers.
+
+  -Write-Mostly, same thing
+
+ 
+
+Execution of code can happen wherever, as long as it is connected to its input and output. The IO is the only thing which is potentially hard to replicate. Ex: Session manager. Only the session manager can’t be freely replicated. Anything which uses it will go to the manager. HOWEVER. If you use state, it limits how freely your execution can be replicated, right? The state will bottleneck you. Can highlight this to show what parts of an application are dependent on the state.
+
+   -Executions which need state are tied to it. Say you have millions of users in one location doing something. The parts which use state (from various sources), can’t be shipped without shipping that state. 
+
+-------------
+
+-Consider looking into a Java web app test suite to evaluate my tool on. TPCW?
+-Need to have a means to test application in a standard, reproducible way
+-Performance issues can be put off for now
+-In all prior work, modules are considered standalone and assuming single instances, do not consider replicability of modules (according to Nima). Care about logic and data replicability, very related to the cloud, plays an important role in the context of the cloud. Nima currently does not deal with replicability, and thinks that none of the research does, especially around these partitioning schemes.
+
+-Eric suggested finishing taint tracker, aim for Mid feb, evaluate remaining timelines.
+
+Me:
+-Interview done for now
+-Working on taint tracker
+   -Performance (doesn't matter for now)
+   -Completeness, sources, modification, composition. String, StringBuilder, StringBuffer (drawing on example of tainting code).
+
+-Think more about what I'm trying to prove, what I need to do to prove it, when have I done enough. Don't want to get into an endless case-by-case implementation process. Really concerned with have I solved the problem. Don't lose sight of fact that I'm trying to prove an argument.
+
+---
+
+Meeting Nima Feb 10
+
+-One issue to think about, provisioning replicated modules
+
+---
+Feb 13
+-still working on tracker
+-running something very close to a working version of the tracker, which is actually trying to keep track of everything I need to at to at the moment.
+-At this point I'm debugging it, getting it to report the data that it's supposed to. This is close but not quite there yet. I'd estimate another solid day on this would have it, at which point I can start using the data to generate some diagrams and start on analysis.
+-Still keeping in mind not to lose focus, the things I actually need to do to prove my thesis.
+
+-Java String internalization issue (string interning)
+
+Feb 20
+- As of this afternoon, the tracker is ready. Fully tracking taint from strings read from the database.
+- One interesting problem I came across in this: primitive propagation
+   - Solved this with fuzzy string matching, heuristic but works
+- Ready to go through the data it is generating (a big log file), verify that it makes sense, and create some quick visualizations of it. I'd aim to just spend about a week on this part, week and half on this part.
+   - Essay to do for privacy course, will interfere with progress on this.
+
+Put together some slides about where I'm going and how I'll get there.
+
+---
+
+
+
+This week was reading week, so I spent my time working on things for the privacy course. Wrote an essay, and worked on a group project, and  took a bit of a break. Spent some time in Langley with my wife's family.
+
+Now starting to look for some papers that will help in using my data to determine component replicability.
+One thing I'm coming across is that replicability is simply equated with statelessness, but the knowledge that something is stateless or not is just assumed.
+
+---
+
+They're now wanting to publish my work, and also thinking about evaluating my work by taking the output and applying it to a partitioning and replication problem.
+ROSGi
+Trader for ROSGi application could be good example
+J-Orchestra?
+Terracota? Layer for distributed programming. Distributed session manager.
+
+Probably not going to find much about statefulness in the literature, hard place between software engineering and systems research. Should just try to go on with what I have.
+
+Soot from university of McGill, for getting a static call graph.
+
+---------------
+
+Current Statement:
+
+The value of partitioning applications within and between clouds has been demonstrated, and
+now there is a need for tools which can automate the discovery and placement of application
+components to optimize performance and cost. Due to expectations to scale to heavy user demand and
+the high cost of communication, persistent data is a frequent bottleneck and something which must be
+considered carefully to achieve the best partitionings. There is a need to understand how modules
+interact with persistent data, modify it, and share it with other modules. Following that, there is a need
+to use this knowledge to attempt to give more freedom to the placement of data and modules in a cloud
+deployment.
+
+Current Approach:
+
+Better hybrid cloud deployments can be realized by giving more freedom to the placement and
+use of persistent data in partitioning schemes. This can be addressed by using dynamic taint tracking to
+analyze how an application's modules interact with persistent data and suggesting modifications to
+these interactions.
+
+-Problems with this: It's still a bit vague in terms of how I will actually monitor use of persistent data, as in what aspects of its use I actually care about. It does not talk about replication, or monitoring communication sizes, etc.
+
+-The point about better deployments and freedom of placement is still valid, I just need to think more about how I actually enable this (specialization by replication). I have been considering too much communication costs, which Nima deals with, when I should be thinking more about modification of data and replicability.
+
+-Eventually this work will need to be seriously related to Nima's partitioning, which should influence this.
+
+New Statement/Approach:
+
+I aim to extend application partitioning, in particular with considerations of demands that cloud computer places on solutions. This means that very high communication costs can be at play, such as when communicating between public and private installations in hybrid deployments. The goal at a high level is to give more freedom to partitioning schemes by analyzing how an application interacts with its persistent data. Such analysis will occur via taint tracking mechanism - by tagging persistent data with its sources as it is accessed, following it as it is shared between a system's modules, and noting if and how this data modified and written back. The intent is to, given such information, automatically make suggestions to system overseers as to how the data use mechanisms of an application can potential be altered to achieve better (more performant, less communication overhead) partitioned deployments. Such suggestions could include changing which components access a data source to allow different partitionings, allowing components which use persistent data to be replicated safely, and moving data processing code to other modules to save on communication.
+
+-Put another way:
+
+Partitioning is already demonstrated as valuable enough. However, current partitioning strategies do not consider the dynamic use of persistent data and state in applications. As such, it is difficult for current partitioning to factor in such things as component replication, or the decoupling of components and data sources.
+
+Looking for [revised]
+Not just about independent arrangements of so called source,anchor,relay. Also about hub classes which relay data from various sources in a manner where replication (running multiple copies of the class in various locations) can be exploited.
+
+Imagine a hub class for various data sources. Would be hard to simply move the data source, especially if it is used by multiple components, or if the component passes the data to multiple dependents (because then refactoring might need to be done at many sites). However, if we replicate the component (and necessary data), we can use it for just that case. This is enabled by knowing that data is relayed and not heavily mixed with other data.
+
+One thing I can look for is a hub class which accesses many different data sources independently. Taint tracing can show that the data that goes through these calls really does only come from one source, and thus the module can be replicated and data moved.
+
+RUBiS does this:
+Many servlets (extending the base RUBiSHttpServlet) communicate with the ServletPrinter. At first it seems as though it's a common point of dependency, but breaking it down request by request and especially by taint tracing, we see that it is used independently by each servlet, and doesn't mix any data, it can easily be replicated. Essentially, ServletPrinter is a relay for data to the user. It takes data from a Servlet which accesses a database, formats it lightly, and relays it to the user. It relays data from various sources, but it doesn't mix them, and so functionality can be moved elsewhere.
+
+Does Roller do this?
+Seems like it might. The JPAPersistenceStrategy seems to suggest compartmentalized loading of objects. They are loaded from the DB and then simply passed on. This single point of entry could likely be replicated and used by various objects, so that data wasn't bound at a single point.
+
+JOrganizer
+Alot of the graph is the castor database system, but what isn't appears to interface through a single castor database relay. Looks like this could be replicated and split up as well.
+
+JGossip:
+So far there are 3 main 'relay' classes: 
+UserDAO
+ForumDAO
+JGossipLog
+These interact with 3 jdbc classes, one for prepared statements, one for result sets, and one for connections. Finer grained data sources will take more work.
+For the ForumDAO, appears to, for some method calls, take data nicely from databases, wrap it in objects, and add those objects to others. It relays the data with little modification, and this functionality could probably be moved out of the object, or the ForumDAO could be replicated.
+The Logger is also worth looking at. It receives data from many classes, but likely in such a way that it could also be replicated easily, or that the classes could take on the logging functionality easily. If the logging DB were ever a bottleneck this could be done.
+Comments from meeting with Rodger: Need to be able to express problem clearly, and how I intend to solve it. At present, I'm too focused on my original conception of things, where logging size of data passed matters.
+
+   -According to Rodger, the amount of data is not my concern. My analysis should be useful without knowing the amount of data, but rather going on where persistent data comes from, is used, flows from component to component, and is potentially modified and written back.
+
+   -That last bit is important. I need to be concerned with how data is modified and written, because of replication. Work out scenarios where data is modified and not and show how taint tracing is valuable in these situations.
+
+   -After validating Rodger's points, revise problem statement. 
+
+-From notes on paper (sheet B6), tracking modification can be very useful for replication considerations, and is what Rodger is getting at that I need to be more aware of. Need to unify concerns into a well-expressed big picture.
+
+ 
+
+Meeting with Nima Jan 11th
+
+-When making decisions about how to deal with pieces of data, only need to worry about the indicated components that deal with it (via tracing)
+
+-Think about about multiple thread model for determining stateful vs stateless.
+
+1. First step is tracking the relationship between modules and data over a full driving of an application.
+
+   -This is important because it can tell us the minimum set of modules required to deal with various portions of an application's data. We only need to worry about the relevant modules when, for example, relocating data.
+
+2. After that, the next big component is analyzing the statefulness of components, so that components as well as data can be replicated.
+
+   -This breaks down into: Analyze state, find stateless modules and work with them to find best partitioning assuming replication, then we could attempt to identify stateful modules where replication is still possible under constraints.
+
+   -The big concern here is how exactly I will determine the statefulness of modules, and ultimately the safety in replicating modules/data. One idea that keeps coming up is if data is touched by multiple threads of execution, it probably represents application state. Another idea is around tracing data to see how it is potentially modified and written back. Some diagramming is needed.
+
+This is my work, now to integrate with Nima's work:
+
+-At a high level, the process should be pretty simple. I will generate multiple possible graphs for an application's modules/data based on possibility of replication/replicative relocation of data sources/etc, work out costs based on monitoring data + heuristics (because modified versions of applications won't actually exist to run), and then feed these to Nima's algorithms to choose the best partitioning, effectively giving his algorithms more freedom due to the extra input graphs.
+
+-An important side-point, I think, is that currently in partitioning work, we don't really know WHERE many of the costs come from. Taint tracing will tell us something about this. For example, we will know where much of the data communicated between modules comes from.
+
+-Important thought: If I suggest, for example, a replication of modules and data for the purpose of changing where some data is accessed from, I need to present this model to Nima's algorithms for evaluation. How will these tools know the costs of new edges? The way his tool gets these costs is by executing the application and monitoring it, but the versions of the application I may suggest would not exist without potential refactorings, and so it would be desirable for me to suggest costs. One way I could help this is monitoring communication cost of data items which would be moved by suggested refactorings. 
+
+   -What if I instead tag the data, so that Nima's profiler can do the analysis together with what it already does? That could be a reasonable idea as well.
+
+ 
+
+ ----------------------
+
+
+Jan 5th
+
+ResultSets initially brought in are not marked as tainted yet (much less how much tainted data they contain). When the strings are eventually read (through getObject at this point), the taint is noted.
+
+---
+
+Jan 6th
+
+General tainting of strings and objects now seems to be working reliably. ResultSets and the strings inside of them are marked as tainted.
+When a string is assigned to an object that object is tainted.
+
+TODO:
+-Need to indicate the size of tainted data being passed an returned.
+   -For strings can just log the byte size of the string, largely based on its length.
+   -For objects, can look keep track of what tainted strings they contain (expand taintedObj structure to track this), and look up from there.
+
+-DIFFICULT: May need to track more data types. String data may not be the biggest problem. Byte buffers could carry a lot of data. May need to do taint tracking using AspectJ, and low level instrumentation.
+
+-TAG TAINT WITH SOURCE.
+   -Could do it at the string level.
+      -Have the String class track taint sources for the string. Concatenation can result in multiple sources. Then at each passing I could check where the taint came from.
+     -Do it with aspects. When tainting the string, map it with the sources in the aspect code. Then at each passing check the map.
+        -On concatentation, unify taint.
+
+-Need to do something useful with the data.
+
+---
+
+Meeting Jan 9th
+
+Nima is going to be thinking about replication soon, do determine if it can be useful to his partitioning work.
+Amount of data communicated between classes can affect partitioning decisions even when placing between the public and private cloud (for the flow of a single request). My work can potentially make partitioning more flexible, do the splitting at different places.
+
+Size may not matter.
+-More about understanding what parts of a chunk of data come from the database.
+-Go into direction of replication, considering if data is modified and written back.
+-
+
+----------------
+
+The Cover the following:
+
+Looking at 5 applications
+-a bunch of time spent actually getting them running on Jetty, especially roller.
+Working with cytoscape to view the output of the Java Interactive Profiler
+
+-Ran into a small problem with the JIP, in that some classes aren't caught due to being loaded by the bootstrap class loader, classes which may access data.
+   -Potential solutions?
+   -AspectJ
+   -Some trick with JIP that Nima might know
+   -Intermediary classes
+
+-Concerning the graphs, Roller hasn't yet yielded much due to being a bit of a mess, RUBiS has very simple interactions... looking for more of a middleground, I think.
+
+-Just set up three other apps that I found when I went looking for other papers studying java web applications.
+   -Going to be looking at their graphs/code
+
+-One thing I've been thinking about is what my modules actually -are-. At the level of classes there can be an overwhelming amount of modules and connections between them, and it's tricky to see the order in it. Not sure at this point if that is something I really need to worry about, or if I should be trying to look at applications from a higher level, something like OSGi modules. 
+-I think now I'm going to have to start stepping through some applications in debug mode to watch where data does.
+   -JIP isn't really showing this. You can highlight where the data MIGHT be coming from, but nothing beyond just looking at class labels.
+
+Can we use taint tracking to identify situation of problems, it's not up to me to actually determine how to solve the problem. Can taint tracking identify interesting data usage scenarios to alert system developer, who can thenm
+
+---
+Looking for [revised]
+Not just about independent arrangements of so called source,anchor,relay. Also about hub classes which relay data from various sources in a manner where replication (running multiple copies of the class in various locations) can be exploited.
+
+Imagine a hub class for various data sources. Would be hard to simply move the data source, especially if it is used by multiple components, or if the component passes the data to multiple dependents (because then refactoring might need to be done at many sites). However, if we replicate the component (and necessary data), we can use it for just that case. This is enabled by knowing that data is relayed and not heavily mixed with other data.
+
+One thing I can look for is a hub class which accesses many different data sources independently. Taint tracing can show that the data that goes through these calls really does only come from one source, and thus the module can be replicated and data moved.
+
+RUBiS does this:
+Many servlets (extending the base RUBiSHttpServlet) communicate with the ServletPrinter. At first it seems as though it's a common point of dependency, but breaking it down request by request and especially by taint tracing, we see that it is used independently by each servlet, and doesn't mix any data, it can easily be replicated. Essentially, ServletPrinter is a relay for data to the user. It takes data from a Servlet which accesses a database, formats it lightly, and relays it to the user. It relays data from various sources, but it doesn't mix them, and so functionality can be moved elsewhere.
+
+Does Roller do this?
+Seems like it might. The JPAPersistenceStrategy seems to suggest compartmentalized loading of objects. They are loaded from the DB and then simply passed on. This single point of entry could likely be replicated and used by various objects, so that data wasn't bound at a single point.
+
+JOrganizer
+Alot of the graph is the castor database system, but what isn't appears to interface through a single castor database relay. Looks like this could be replicated and split up as well.
+
+JGossip:
+So far there are 3 main 'relay' classes: 
+UserDAO
+ForumDAO
+JGossipLog
+These interact with 3 jdbc classes, one for prepared statements, one for result sets, and one for connections. Finer grained data sources will take more work.
+For the ForumDAO, appears to, for some method calls, take data nicely from databases, wrap it in objects, and add those objects to others. It relays the data with little modification, and this functionality could probably be moved out of the object, or the ForumDAO could be replicated.
+The Logger is also worth looking at. It receives data from many classes, but likely in such a way that it could also be replicated easily, or that the classes could take on the logging functionality easily. If the logging DB were ever a bottleneck this could be done.
+
+PersonalBlog
+
+-----------------------
+
+Roller, RUBiS deployed on Jetty, profiling with JIP succussful, generating method call graphs from interactions with programs.
+
+Issues:
+-Graphs are generally too large and confusing to display all at once.
+   -Develop systems to generate different kinds of graphs, simpler representations.
+   -Careful not too waste too much time on this
+   -This really would be useful for speeding up code inspection
+
+Status:
+-Have nice, easily explored graphs of application execution. Can get these at the level of classes/methods (not sure which is best at the moment), and can separate into threads and  interactions, but am currently working with the entire graph at once.
+-One thing which might be useful would be trying to tease out some "modules" that exist in the app.
+
+What to look for:
+-Components (be they methods, classes, or groups of such) which are the following:
+   -Potentially anchored by a data access, or dependence on some heavily networked class.
+   -Accesses some other data source, the goal being to disconnect the component from this data source
+   -Communicates with another component to provide it with this data, but not with too many other components.
+
+Maybe need to consider suggesting very high level rearchs., as connectivity can be very high and complex.
+
+---
+------------------
+
+Discussing Thesis Proposal, first draft.
+
+Tighten up problem statement. Shorter, 2-3 sentences to drive project and validate success. Tie statement back to related work more closely.
+Do the same for the thesis statement.
+
+No one worries about partitioning code. You actually worry about partitioning execution. (Related work section on cloudward bound).
+
+-Need survey paper on distributed systems, database and code partitioning from Eric. Want to establish novelty of work further, just because it's cloud doesn't mean it hasn't been done in some distributed system.
+
+-Off the shelf tool for java taint tracing (Nima knows someone potentially with code for this).
+
+Interesting idea: predicting throughput under various partitionings.
+-Always valuable to analyze using something from the real world.
+
+-Discuss with Nima novelty of work, areas to look for related work.
+-Nima is not dealing with partitioning applications really. He's dealing with partitioning and provisioning which is cloud sensitive. The key thing is applying something to his algorithms that is about the cloud. What that often is is teasing out the cost under various constraints.
+
+-What are constraints cloud offers beyond performance and cost? Bandwidth, throughput, response time, and cost - not much beyond these. Cost is the new factor to Nima's algorithms.
+
+-Want to be careful that what I am doing isn't an easy, already done consideration of database throughput.
+
+-Nima uses a manual distribution, for OSGi.
+
+----
+Expanded research:
+-Query hotspots
+-http://dl.acm.org/citation.cfm?id=1516360.1516366&coll=DL&dl=ACM&CFID=51647307&CFTOKEN=84617083
+
+AOP + low-level instrumentation to get general DB/file access
+
+Tracing to do something original (see how much of disk data actually flows to other components). Is this interesting if we already know how much total data the components exchange?
+   -This is an important question. Can taint tracing be applied here?
+
+Data/query shipping processing in the cloud
+
+Has the cloud made data positioning a bigger issue, such that certain things may have not been considered yet when working in older distributed environments?
+
+
+---
+
+Meeting with Nima?
+
+-Is it important to detect indirect dependencies on databases using taint tracing?
+-Is it important to know if some % of data is from database?
+   -Come up with a scenario where it does.
+   -Module B indirectly accesses data from database
+
+   -Another thing is the security aspect of it, shouldn't be too hard to motivate it.
+-Security could be a good angle since it gets very cloud specific.
+   -Tracing how sensitive data moves about in the cloud
+
+Confidential data
+-code signing, any processing of code which generates binaries needs to be in private cloud. Need to understand what part of application deals with signing, what uses sensitive data like keys.
+-salaries
+-authentication data
+
+http://www.cs.columbia.edu/~vpk/research/libdft/
+
+---
+
+Current thinking:
+-Analyze app to determine indirect dependencies which could potentially be 'pulled forward' with some refactoring (get a sense of how much refactoring is needed, maybe).
+-Such an analysis could be fed to Nima's app to give more freedom to placement of databases to get better partitionings.
+
+
+Expanded approach section:
+-Will find/implement taint tracking system (goal is to complete this as quickly as possible, as taint tracking is a solved problem).
+-Will use this taint tracking system to characterize the interaction of modules in terms of the database data they access and pass.
+-Will want to show
+   A) How much data is read/written from a particular table by a particular class.
+   B) How much of this data is passed to other modules along the way (which tells us how much can be gained on communication overhead by moving it).
+   C) How is this data modified (concatenated, pruned, wrapped, transformed) along the way (which gives us an idea of the amount of effort that could be involved in moving the access of the data source).
+      -It will be important to know what other classes a class uses to modify the data, as moving the database would have implications for those classes as well then.
+
+-Will start with a simple analysis to rapidly characterize applications (order of access, draw on coign paper) access to databases based on the requests which come in.
+   -The goal of this is to locate some applications where the above analysis would be useful.
+   -Describe how the coign paper will be used
+   -Relate end example coign gives as well to later goals
+ 
+-If such applications can be found, consider a more advanced analysis.
+-Some classes may just be acting as relays, should be moved closer to where they are used.
+-Also, knowing how to place databases is useful
+-Consider Nima's model of partitioning with cost considerations to see how much influence the positioning of data can have (assuming data is free to be positioned anywhere)
+
+
+-Another interesting goal is simply finding more uses for this kind of information
+   -Could be used in caching, replication, 
+
+What is my PROBLEM STATEMENT?
+
+   The problem is that different modules have different coupling with databases AND the data from them due to how much modules modify or are influenced by the data. Low coupling allows us to potentially made assumptions about the link to the DB, one being that it might be broken and moved. This gives more freedom in partitioning scheme. In a large, complex application, this could potentially lead to some large performance improvements as modules can be placed more optimally. Anything which restricts placement is a potential performance inhibitor, especially when dealing with large amounts of database data.
+
+   The problem is that even though how the distribution of a program relates to database access has been looked at in the context of distributed systems, the cloud introduces new factors that demand new consideration.
+In the cloud the cost of communication can be very high, especially when dealing with large amounts of data, and so the placement of data must be done very carefully so as to reduce unnecessary costs.
+Furthermore, the degree of scaling that clouds offer mean that we must better understand how an application uses data, a frequent bottleneck, to achieve the highest performance possible. Higher performance is expected to be competitive.
+People are trying to distribute applications between clouds, as well as between cloud and non-cloud installations, there is likely enough push that this kind of thing will become popular. At least, doing it allows incremental cloud deployments. This will lead to applications of greater scale, with more concurrent users.
+This puts a greater load on databases, regardless of whether or not replication is involved.
+In a cloud deployment, the placement of databases can have a huge impact on what partitionings are allowed, but the placement of databases is not yet free enough. A partitioning/provisioning system needs to be able to exercise greater control over databases to get the best performance/cost possible, by doing things like suggesting beneficial partitionings and suggesting refactorings which could tie databases to different modules.
+
+ACTUAL STATEMENT:
+-need to partition in the cloud, introduction of high scaling and thus demand on data, a frequent bottleneck. Must have high performance.
+-high cost of communication in cloud deployments means partitionings need to be considered more carefully, particularly when considering placement of data
+-more freedom in placement of data could really benefit these.
+
+The value of partitioning applications within and between clouds has been demonstrated, and now there is a need for tools which can automate the discovery and placement of application components to optimize performance and cost. Due to expectations to scale to heavy user demand and the high cost of communication, persistent data is a frequent bottleneck and something which must be considered carefully to achieve the best partitionings. There is a need to understand how modules interact with persistent data, modify it, and share it with other modules. Following that, there is a need to use this knowledge to attempt to give more freedom to the placement of data and modules in a cloud deployment.    
+
+Giving more freedom to the placement of data, particularly the large amounts stored in relational databases, 
+
+What is my THESIS STATEMENT?
+
+I will address the problem by developing a dynamic taint-tracking based   
+
+ACTUAL STATEMENT:
+
+Better hybrid cloud deployments can be realized by giving more freedom to the placement and use of persistent data in partitioning schemes. This can be addressed by using dynamic taint tracking to analyze how an application's modules interact with persistent data and suggesting modifications to these interactions.
+
+---
+
+Status:
+-Approach is revised
+-Quick Problem Statement is done
+-Quick Thesis Statement is done
+-Have an example diagram to think about
+
+-Problem Statement section is still a bit of a mess
+-Related work section needs work, some additional papers
+   -More important section, I should start here:
+
+Papers to add: 
+   -coign
+
+In [], the Coign system is presented. The paper is notable in that it deals with relating application executions in terms of stack trace-like hierarchies to the requests which generate them. This can be useful both for obtaining an overview of how applications interact with data to drive a deeper analysis, and also for potentially directing requests to deployments optimized to serve a particular request form. Furthermore, this paper makes an interesting observation when partitioning an application across tiers that, contrary to programmer decisions, certain data-caching components should be moved to other tiers to be closer to the components which use the data. This is similar to the idea covered in Figure 1, a potential scenario that I seek to address.
+
+   -wiedermann
+
+Wiedermann et al., in [], perform a static analysis to transform programs which operate on relational data to execute explicit queries. As an example, consider a simple program which queries for a set of results, and then programmatically filters those results in a loop based on some predicate; their system would transform this program to instead do the filtering as a part of the initial query, if possible. This work is interesting as it provides an example of an advanced method to consider how persistent data is used and modifed by an application, even across procedural boundaries, and how it affects an application's execution.
+
+   -spaghettibowl?
+   -hybrid shipping architectures survey
+
+Considering dynamic taint tracking, it is a technique which has been almost exclusively used in a security context to analyze the flow of untrusted / secure data [3-4 sources]. To my knowledge, it has not been used in the way I am proposing, to analyze use of data and potential communication overheads.
+
+http://dl.acm.org/citation.cfm?id=1831708.1831711&coll=DL&dl=ACM&CFID=67048117&CFTOKEN=78030804 may be useful when taint tracing 
+http://dl.acm.org/citation.cfm?id=1806596.1806617&coll=DL&dl=ACM&CFID=67048117&CFTOKEN=78030804 potentially related, finding low-utility data structures
+
+---
+
+-Look into distributed virtual memory systems, they may do something similar. See if I need to say "this idea is similar to what is done in distributed memory, and we use it here"
+
+-But in the VM system it's completely dynamic, need to react to information at runtime, by scheduling and communicating data in the OS. Whereas here you would identify the problem, and potentially go back and change code.
+
+-Important thing is changing the application based on information, rather than just reacting based on what the application does. In VM situation, we can't change the application behavior.
+
+---
+
+Current Objectives:
+
+-Do some reading on SVM (Low priority, really just to have some references to it and maybe draw on some basic ideas)
+-Tidy up proposal (Low priority, will want to read SVM first, and this is mainly just boring document rewording work)
+-Find a system to get application execution summaries
+-Set up RUBiS
+-Summarize RUBiS
+-Find out from Nima if RUBiS is even worth exploring in depth for the cases I need
+-Find other applications to summarize...
+
+---
+
+Plan for next week
+
+Come up with data to determine if this is actually a problem.
+
+-----------------------
+
+The problem addressed concerns how a monolithic application interacts with persistent state, and how this interaction constrains its distribution.
+
+-An application with no persistent state whatsoever can be distributed however and then replicated arbitrarily to serve pretty much any load.
+
+-Up 'til now I've been going on vague examples and diagrams in the spirit of "what if this?" Reading papers randomly. Need to focus on a research question/justification.
+
+-I could do some analyses, try to automatically add fault tolerance and replication to an application, and see if performance gains are realized.
+-Replication without consistency management necessitates stateless components.
+-I could do some analyses on an application distributed across data centers (simulated), and see if performance can be improved beyond what is gained by a replication / consistency management strategy.
+-Replication/Consistency Management strategy: For all tables that are being accessed a lot, replicate them. Synchronize any writes that occur. Do the same with modules.
+-Is it easy to synchronize modules? Any data that ends up being persistent needs to be synchronized, but not all writes persist. Are there writes to static fields that would not persist? Possibly not, like the use of a static method which stores some data for a bit. Thus understanding state in a modules is probably necessary when replicating modules, even in a consistency management scenario.
+-This is a good starting point for why I care about state in modules.
+-Why do I care about the state that code keeps in databases when I can simply replicate tables and do consistency management?
+-If I am moving components around, I want to keep code close to data. Okay, then I simply see which code interacts with the data the most and preferentially co-locate them. Doesn't seem that interesting.
+-There's the example I did in Draw, but thsi 
+
+-Nima describes what I'm doing as investigating coupling between code and data. At a high level this seems pretty easy. It's also very tied to his work. Independently I need to know why I care about this coupling.
+
+-An application with some persistent state must be managed more carefully. Do we even care about this? Is analyzing the state of an application useful at all?
+-Does analyzing the state make replication/fault-tolerance easier? Does it make partitioning better? Does it help architects make better decisions?
+-Does it help in other ways?
+-ASSUME: applications are of massive scale, not understood well by any one person. Manually getting an understanding of how an application works and keeps state would be a very difficult task.
+-ASSUME: lack of Nima's work, I do not want to rely on this too much - need to differentiate.
+-Well, he still seems to have made a pretty solid case for distributing an application.
+-Partitioning applications is clearly useful, mainly because by doing so you can find more easily replicable components. These components can be moved to other machines and replicated. Also, 
+-If we partition and wish to replicate (or tolerate faults), understanding persistent state is key. We can make easy assumptions and replicate whatever we like, following this by adding support to keep everything consistent, but it seem a better idea to identify what can be more easily replicated.
+Ex.
+-You could simply replicate a database over multiple hosts, and ensure that writes are propagated to all of them (so you trade between consistency and performance). This can waste space and bandwidth keeping consistency.
+-A better way could be to analyze which portions of the database are less dependent, and which can be more easily replicated. So instead you split the database over multiple hosts and replicate portions independently. This could achieve desired performance in a more clean and adaptable way.
+-You could also simply replicate pretty much everything and then try to create a general consistency management system.
+-However, it may be better to use understanding of application state to save some unnecessary consistency management.
+-Modules interact with state in two important ways: persistent storage (files and databases), and persistent memory (singletons, counters, sessions, caches, etc).
+-State in persistent storage is often more detached from a module. It can be accessed in a more abstracted way like over sockets. It is also typically used for more long term data, and greater amounts of data. Persistent memory is harder to share, especially across machines and data centers. The data kept here is typically more lightweight and short-lived.
+-Do they put different constraints on distribution/replication/etc?
+Ex.
+Say some class accesses a shopping cart singleton. This means that multiple requests from the same user NEED to hit the same shopping cart, unless that shopping cart can be accessed in some other way.
+Say some class accesses a shopping cart table. This means that multiple requests from the same user, given some data that the request could potentially supply, can get the data from the database. However, this may incur overheads.
+When moving components with persistent memory state, as long as they are not replicated, they will keep their own state on whatever machine they wind up on.
+When moving components with persistent storage state, they may become distanced from their state (such as if they connect to it over a socket).
+When replicating components with persistent memory state, certain types of write-only state can be easily resolved later. Read-only state only needs to be copied once. Read-write state must be more carefully considered.
+When replicating components with persistent storage state, replicating the component does not necessarily replicate the state. 
+-Modules could be automatically tagged with state-data to help partitioning later
+-My work in the summer was dealing with application dependency discovery, and monitoring the amount/nature of data exchanged between a binary and its external dependencies. This could be shifted to monitoring such things at the level of classes (given the appropriate tooling support).
+-Taint tracing is something interesting. By monitoring how data flows from persistent areas, through modules, and potentially to other persistent areas, we can make better decisions about partitioning.
+
+----------------------
+
+http://crocodoc.com/t6gH4bX
+
+System for relational databases in the cloud. Importantly looks at partitioning databases and analyzing workloads.
+
+Summary of the Paper:
+
+They start by noting that users often face manual partitioning and load balancing, and that it is very difficult for even experienced users to do this kind of performance tuning manually.
+
+To start, they collect traces on the database access to create a graph where tuples are nodes and tuples being accessed in the same transaction creates an edge between them. They divide this graph into k balanced partitions by looking for a min-cut, and also apply some heuristics to help scale to even billions of tuples. This gives them some seemingly very good partitions, even in the presence of multiple n-to-n relations and subtle correlations.
+
+The overall architecture involves, in a single data-center, partitioning a database and then replicating partitions independently. As it is in a single data-center, partitioning is good enough, and as long as queries are routed to machines which can serve transactions locally, things go pretty well. A node can still be overloaded, which is where replication (which requires live migration to be reasonable) comes in. Partitioning and replication are controlled by the workload analyzer.
+
+Beyond partitioning, the other important thing they do is workload analysis, to achieve good performance under varying levels and kinds of load. Their idea is to dynamically adjust resource allocation and multiplex workloads as possible. This involves co-locating workloads and database instances (a workload could be a transaction or maybe an OLAP job), and also ensuring that the right storage engines are available where they are needed. Workloads (or portions of them), can be moved to new machines (probably closer to data they need), to increase scalability, and databases can be assigned to different physical nodes. This problem, concerning resources, constraints, and workloads to allocate databases and workloads properly could be a linear programming optimization problem - however this could get very complex, and some online adaptation will almost definitely be needed.
+
+Their approach to live migration is basically a caching strategy where new nodes are brought up empty, and fetch data on-demand from old nodes, eventually building itself up. This still requires careful management to guarantee consistency.
+
+An important thing about this paper is how much work still remains to be done. They are not finished with workload analysis, placement, and live migration. In particular, they have not yet seriously addressed workload analysis and resource allocation.
+
+------------------
+
+http://crocodoc.com/V4oqgy8
+
+Deals with partitioning applications by relocating components at the level of servers. Has some useful equations for working out costs due to introduced networks latency and such. Does not seem to consider partitioning at the class level or partitioning databases (though it does bring this up as a possible extension)
+
+------------------
+
+http://crocodoc.com/zCFfKOp
+
+Brings up some useful things to be aware of near the end (see annotations). Good justification for what I'm doing. Talks about creating a framework to analyze applications for migration, which includes modelling application data. 
+
+-------------------
+
+http://crocodoc.com/ho4fEeA 
+
+Useful as it mentions distributing data as being a problem for DC bound applications, and notes several ways in which an application's data may be constrained.
+
+--------------------
+
+Basically, when partitioning an application, potentially across data centers, one may end up with databases/files/etc far away from where they are needed, and thus performance can suffer greatly. Replication won't easily solve the problem, as writes need to be kept consistent. It's possible that a database can be partitioned if some modules only use certain relations which are not dependent on (or depended on by) others.
+
+My work could start with some analysis to determine which classes (unit of module) rely on what data.
+
+Some possibilities:
+-2 classes are interdependent, but only one makes use of database data, not affecting the other class with it in any way.
+-2 classes are not obviously interdependent, but make use of the same database data, directly or indirectly through the operations of another class.
+
+The benefit of this work would be knowing which classes are tied to what external data state, which would constrain the partitioning. More than constraining, we can try to work out how the external state itself can be partitioned, if possible, or learn patterns of reading/writing that may make it acceptable to move data sources even with propagation costs.
+
+
+
+One idea that may be useful it associating IP addresses with data access as well as components.
+
+What areas could have considered this?
+
+Distributing... parallelizing... dependency discovery
+-Distributing databases automatically
+-Partitioning databases automatically
+-Parallelizing/distributing applications with data dependencies
+-Dependency discovery, storage dependency discovery
+
+-Partitioning applications with databases
+-Partitioning across data centers
+Resource stranding... fragmentation
+
+Searches:
+
+web application data source extraction
+data dependency extraction
+discovery file data dependencies
+migration to cloud framework
+migration to cloud databases 
+
+
+Based on the Cloudward Bound and Relational Cloud papers, seems that this problem is worth considering, and work on it is very recent, so it hasn't been beaten to death yet. The Relational Cloud paper is able to partition databases based on how transactions use them. The key is not having transactions require data on other partitions. It's all about frequency of co-access in transactions.
+-Instead, I'm going for co-access from modules. This is so that when an application is ultimately partitioned, I find an optimal placement of data to follow those modules (or an optimal positioning of modules to follow the data).
+-Using just the work in Relational Cloud, it may be the case that transactional data is co-located, but not located with the modules which use it the most.
+-Basically what I'm doing is exploring an area which will greatly aid Nima's work in becoming a final solution to the problem of application partitioning and resource provisioning for the cloud. Based on what he's already looked at, he is addressing many previous shortcomings, some of which will require me to look into how data dependence affects partitioning.
+
+-It's probably not just database access that I should consider mining. I should also be looking at files and socket access.
+ 
+--------------------
+
+

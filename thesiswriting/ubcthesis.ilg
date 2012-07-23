@@ -1,0 +1,109 @@
+This is makeindex, version 2.15 [TeX Live 2009] (kpathsea + Thai support).
+Scanning style file /usr/share/texmf-texlive/makeindex/latex/gind.ist..........
+** Input style error (file = /usr/share/texmf-texlive/makeindex/latex/gind.ist, line = 80):
+   -- Unknown specifier lethead_prefix.
+** Input style error (file = /usr/share/texmf-texlive/makeindex/latex/gind.ist, line = 81):
+   -- Unknown specifier lethead_suffix.
+** Input style error (file = /usr/share/texmf-texlive/makeindex/latex/gind.ist, line = 82):
+   -- Unknown specifier lethead_flag.
+...done (13 attributes redefined, 3 ignored).
+Scanning input file ubcthesis.idx...
+!! Input index error (file = ubcthesis.idx, line = 1):
+   -- Extra `|' at position 28 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 2):
+   -- Extra `|' at position 28 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 3):
+   -- Extra `|' at position 26 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 4):
+   -- Extra `|' at position 26 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 5):
+   -- Extra `|' at position 26 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 6):
+   -- Extra `|' at position 32 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 7):
+   -- Extra `|' at position 32 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 8):
+   -- Extra `|' at position 36 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 9):
+   -- Extra `|' at position 36 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 10):
+   -- Extra `|' at position 36 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 11):
+   -- Extra `|' at position 28 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 12):
+   -- Extra `|' at position 32 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 13):
+   -- Extra `|' at position 34 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 14):
+   -- Extra `|' at position 38 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 15):
+   -- Extra `|' at position 36 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 16):
+   -- Extra `|' at position 40 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 17):
+   -- Extra `|' at position 42 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 18):
+   -- Extra `|' at position 46 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 19):
+   -- Extra `|' at position 36 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 20):
+   -- Extra `|' at position 40 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 21):
+   -- Extra `|' at position 24 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 22):
+   -- Extra `|' at position 22 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 23):
+   -- Extra `|' at position 26 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 24):
+   -- Extra `|' at position 26 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 25):
+   -- Extra `|' at position 24 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 26):
+   -- Extra `|' at position 42 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 27):
+   -- Extra `|' at position 46 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 28):
+   -- Extra `|' at position 42 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 29):
+   -- Extra `|' at position 46 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 30):
+   -- Extra `|' at position 44 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 31):
+   -- Extra `|' at position 48 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 32):
+   -- Extra `|' at position 48 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 33):
+   -- Extra `|' at position 52 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 34):
+   -- Extra `|' at position 46 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 35):
+   -- Extra `|' at position 50 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 36):
+   -- Extra `|' at position 34 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 37):
+   -- Extra `|' at position 38 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 38):
+   -- Extra `|' at position 36 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 39):
+   -- Extra `|' at position 40 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 40):
+   -- Extra `|' at position 36 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 41):
+   -- Extra `|' at position 50 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 42):
+   -- Extra `|' at position 54 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 43):
+   -- Extra `|' at position 30 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 44):
+   -- Extra `|' at position 34 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 45):
+   -- Extra `|' at position 38 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 46):
+   -- Extra `|' at position 34 of first argument.
+!! Input index error (file = ubcthesis.idx, line = 47):
+   -- Extra `|' at position 38 of first argument.
+...done (2980 entries accepted, 47 rejected).
+Sorting entries............................done (37262 comparisons).
+Generating output file ubcthesis.ind......done (1091 lines written, 0 warnings).
+Output written in ubcthesis.ind.
+Transcript written in ubcthesis.ilg.
