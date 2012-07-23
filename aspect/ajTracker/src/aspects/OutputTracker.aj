@@ -275,6 +275,8 @@ public aspect OutputTracker {
 			TaintLogger.getTaintLogger().logOutputStringArg(location,
 					"RESPOUT3ARG", arg, TaintUtil.getLastContext(),
 					thisJoinPoint.getTarget());
+			if (arg instanceof char[])
+				TaintLogger.getTaintLogger().dumpStack("RESPOUTDATA " + new String((char[])arg));
 			taintOutput = true;
 		} else if (arg != null) {
 			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(arg);
@@ -350,12 +352,12 @@ public aspect OutputTracker {
         Set<Object> objTaint = ReferenceMaster.fullTaintCheck(thisJoinPoint.getTarget());
     	if (location == null)
 			location = TaintUtil.getStackTraceLocation();
-    	TaintLogger.getTaintLogger().log("CHECKING EXECUTE TAINT IN: " + location);
+//    	TaintLogger.getTaintLogger().log("CHECKING EXECUTE TAINT IN: " + location);
         
         if (objTaint != null && objTaint.size() > 0) {
         	if (location == null)
 				location = TaintUtil.getStackTraceLocation();
-        	TaintLogger.getTaintLogger().log("EXECUTE TAINT IN: " + location);
+//        	TaintLogger.getTaintLogger().log("EXECUTE TAINT IN: " + location);
         	taintOutput = true;
         	TaintLogger.getTaintLogger().logOutputObjectArg(location, "DBOUT", thisJoinPoint.getTarget(), objTaint, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
         	
@@ -404,21 +406,4 @@ public aspect OutputTracker {
 		TaintUtil.popContext("AFTERDBO");
 		TaintUtil.releaseAJLock("AFTEREU" + thisJoinPoint.getSignature().toShortString());
 	}
-	
-    void around(int column, int arg): call(* java.sql.PreparedStatement+.setInt(..)) && args(column, arg) {
-    	if (!SimpleCommControl.getInstance().trackingEnabled()) {
-    		proceed(column, arg);
-    		return;
-    	}
-    	if (ReferenceMaster.isPrimaryTainted(arg)) { 
-    		/* A bit of a hack. ReferenceMaster taint scanning seems to be missing taint on PreparedStatement
-    		 * objects
-    		 */
-        	ReferenceMaster.setNewValue(arg, thisJoinPoint.getTarget());
-    		arg = ReferenceMaster.getTaintedIntOldValue(arg);
-    	}
-    	
-    	
-    	proceed(column, arg);
-    }
 }

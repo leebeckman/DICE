@@ -217,34 +217,105 @@ public aspect DBCPTaint {
 		return rs;
     }
 
-    before(): execution(public * com.mysql.jdbc.PreparedStatement.set*(..)) {
-    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    void around(int column, Object value): call(* java.sql.PreparedStatement+.set*(..)) && args(column, value) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled()) {
+    		proceed(column, value);
     		return;
-    	Object[] args = thisJoinPoint.getArgs();
+    	}
+    	
     	Object holder = new Object();
     	
     	boolean taintFound = false;
+//    	TaintLogger.getTaintLogger().log("SET* DBCPTAINT TRIGGERED: " + value + " isa: " + value.getClass());
+    	/*
+		 * Added hack to get taint into prepared statements
+		 */
+    	Object oldVal = ReferenceMaster.getSetPSColumn(thisJoinPoint.getTarget(), column);
+    	if (oldVal != null)
+    		ReferenceMaster.cleanupOldValue(oldVal, thisJoinPoint.getTarget());
     	
-    	for (int i = 0; i < args.length; i++) {
-	    	if (ReferenceMaster.isPrimaryTainted(args[i])) {
-	    		ReferenceMaster.propagateTaintSources(args[i], holder);
-	    		taintFound = true;
-	    	}
-	    	else if (args[i] != null) {
-	    		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
-	    		if (objTaint != null && objTaint.size() > 0) {
-	    			for (Object tainted : objTaint) {
-	    				ReferenceMaster.propagateTaintSources(tainted, holder);
-	    	    		taintFound = true;
-	    			}
-	    		}
-	    	}
+    	if (ReferenceMaster.isPrimaryTainted(value)) {
+    		ReferenceMaster.propagateTaintSources(value, holder);
+    		/*
+    		 * Added hack to get taint into prepared statements
+    		 */
+        	ReferenceMaster.setNewValue(value, thisJoinPoint.getTarget());
+        	StackLocation location = TaintUtil.getStackTraceLocation();
+        	TaintLogger.getTaintLogger().log("SET* DBCPTAINT SETNEWVAL: " + value + " isa: " + value.getClass() + " at: " + location);
+        	ReferenceMaster.mapSetPSColumn(thisJoinPoint.getTarget(), column, value);
+    		taintFound = true;
+    	}
+    	else if (value != null) {
+    		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(value);
+    		if (objTaint != null && objTaint.size() > 0) {
+    			for (Object tainted : objTaint) {
+    				ReferenceMaster.propagateTaintSources(tainted, holder);
+    	    		/*
+    	    		 * Added hack to get taint into prepared statements
+    	    		 */
+    	        	ReferenceMaster.setNewValue(value, thisJoinPoint.getTarget());
+    	        	ReferenceMaster.mapSetPSColumn(thisJoinPoint.getTarget(), column, value);
+    	    		taintFound = true;
+    			}
+    		}
     	}
     	
     	if (taintFound) {
-    		ReferenceMaster.mapPSToTaint(thisJoinPoint.getThis(), holder);
+    		ReferenceMaster.mapPSToTaint(thisJoinPoint.getTarget(), holder);
     	}
+
+    	if (value instanceof Integer) {
+	    	if (ReferenceMaster.isPrimaryTainted(value)) { 
+//	    		TaintLogger.getTaintLogger().log("GETOLDVALUE of : " + value);
+	    		value = ReferenceMaster.getTaintedIntOldValue((Integer)value);
+	    	}
+    	}
+    	proceed(column, value);
     }
+    
+//    before(int index, Object value): call(* java.sql.PreparedStatement+.set*(..)) && args(index, value) {
+//    	if (!SimpleCommControl.getInstance().trackingEnabled())
+//    		return;
+//    	Object holder = new Object();
+//    	
+//    	boolean taintFound = false;
+//    	TaintLogger.getTaintLogger().log("SET* DBCPTAINT TRIGGERED: " + value + " isa: " + value.getClass());
+//    	/*
+//		 * Added hack to get taint into prepared statements
+//		 */
+//    	Object oldVal = ReferenceMaster.getSetPSColumn(thisJoinPoint.getTarget(), index);
+//    	if (oldVal != null)
+//    		ReferenceMaster.cleanupOldValue(oldVal, thisJoinPoint.getTarget());
+//    	
+//    	if (ReferenceMaster.isPrimaryTainted(value)) {
+//    		ReferenceMaster.propagateTaintSources(value, holder);
+//    		/*
+//    		 * Added hack to get taint into prepared statements
+//    		 */
+//        	ReferenceMaster.setNewValue(value, thisJoinPoint.getTarget());
+//        	TaintLogger.getTaintLogger().log("SET* DBCPTAINT SETNEWVAL: " + value + " isa: " + value.getClass());
+//        	ReferenceMaster.mapSetPSColumn(thisJoinPoint.getTarget(), index, value);
+//    		taintFound = true;
+//    	}
+//    	else if (value != null) {
+//    		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(value);
+//    		if (objTaint != null && objTaint.size() > 0) {
+//    			for (Object tainted : objTaint) {
+//    				ReferenceMaster.propagateTaintSources(tainted, holder);
+//    	    		/*
+//    	    		 * Added hack to get taint into prepared statements
+//    	    		 */
+//    	        	ReferenceMaster.setNewValue(value, thisJoinPoint.getTarget());
+//    	        	ReferenceMaster.mapSetPSColumn(thisJoinPoint.getTarget(), index, value);
+//    	    		taintFound = true;
+//    			}
+//    		}
+//    	}
+//    	
+//    	if (taintFound) {
+//    		ReferenceMaster.mapPSToTaint(thisJoinPoint.getTarget(), holder);
+//    	}
+//    }
     
     
 }

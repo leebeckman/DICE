@@ -694,7 +694,9 @@
                           <Component id="edgeID" min="-2" pref="106" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="getEdgeDataButton" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace pref="726" max="32767" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="getForwardGraphButton" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace pref="576" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -704,6 +706,7 @@
                           <Component id="edgeID" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel2" alignment="3" min="-2" max="-2" attributes="0"/>
                           <Component id="getEdgeDataButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Component id="getForwardGraphButton" alignment="3" min="-2" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -725,6 +728,14 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="getEdgeDataButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JButton" name="getForwardGraphButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Get Forward Graph"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="getForwardGraphButtonActionPerformed"/>
                   </Events>
                 </Component>
               </SubComponents>

@@ -30,13 +30,17 @@ public class FilterByTaintID implements EdgeFilter {
         boolean found = false;
         outer:
         for (TaintedObject taintedObject :  taintedObjects) {
-            if (taintIDs.contains(taintedObject.getTaintID())) {
+            if (taintedObject.getTaintID() != null && taintIDs.contains(taintedObject.getTaintID())) {
                 found = true;
+                if (input.getCounter() == 782)
+                    System.out.println("782 pass on " + taintedObject.getTaintID());
                 break;
             }
             for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
-                if (taintIDs.contains(subTaintedObject.getTaintID())) {
+                if (subTaintedObject.getTaintID() != null && taintIDs.contains(subTaintedObject.getTaintID())) {
                     found = true;
+                    if (input.getCounter() == 782)
+                        System.out.println("782 subpass on " + subTaintedObject.getTaintID());
                     break outer;
                 }
             }

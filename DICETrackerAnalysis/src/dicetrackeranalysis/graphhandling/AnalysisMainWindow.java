@@ -174,6 +174,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         edgeID = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         getEdgeDataButton = new javax.swing.JButton();
+        getForwardGraphButton = new javax.swing.JButton();
         treePanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         taintIDTree = new javax.swing.JTree();
@@ -629,6 +630,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
+        getForwardGraphButton.setText("Get Forward Graph");
+        getForwardGraphButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                getForwardGraphButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -639,14 +647,17 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 .addComponent(edgeID, javax.swing.GroupLayout.PREFERRED_SIZE, 106, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(getEdgeDataButton)
-                .addContainerGap(726, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(getForwardGraphButton)
+                .addContainerGap(576, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                 .addComponent(edgeID, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addComponent(jLabel2)
-                .addComponent(getEdgeDataButton))
+                .addComponent(getEdgeDataButton)
+                .addComponent(getForwardGraphButton))
         );
 
         treePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("TaintID Filter"));
@@ -1042,14 +1053,23 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 
         Graph<TaintNode, TaintEdge> graph = null;
         if (graphMode == GraphMode.MULTILIGHTMODE) {
+//            System.out.println("MULTILIGHTMODE");
             graph = gb.getLightMultiGraph(filters);
         }
         else if(graphMode == GraphMode.MULTIMODE) {
+//            System.out.println("MULTIMODE");
             graph = gb.getMultiGraph(filters);
         }
         else if (graphMode == GraphMode.SIMPLEMODE) {
+//            System.out.println("SIMPLEMODE");
             graph = gb.getGraph(filters);
         }
+
+//        for (TaintEdge edge : graph.getEdges()) {
+//            if (edge.getCallingNode().toString().contains("fillUser") && edge.getCalledNode().toString().contains("fillUser")) {
+//                System.out.println("DRAWING fillUser EDGE: " + edge + " from " + graph.getSource(edge) + " to " + graph.getDest(edge));
+//            }
+//        }
 //        System.out.println("REDRAWING GRAPH PRE: " + gb.getLightMultiGraph().getVertexCount() + " next: " + graph.getVertexCount());
 //        for (EdgeFilter filt : filters) {
 //            System.out.println("\tFILTER: " + filt);
@@ -1075,8 +1095,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             for (TaintNode node : nodes) {
                 if (!selectionFilterNodes.contains(node))
                     graph.removeVertex(node);
-                else
-                    System.out.println("ALLOWING SELECTION NODE: " + node);
+//                else
+//                    System.out.println("ALLOWING SELECTION NODE: " + node);
             }
         }
 
@@ -1319,7 +1339,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 
     private void userStateAnalysisButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_userStateAnalysisButtonActionPerformed
         resetAnalysisGraphs();
-        UserstateAnalysis analysis = new UserstateAnalysis(mainGraphBuilder, this, analysisText);
+        UserstateAnalysis analysis = new UserstateAnalysis(mainGraphBuilder, mainTaintIDsRoot, this, analysisText);
         analysis.analyze();
     }//GEN-LAST:event_userStateAnalysisButtonActionPerformed
 
@@ -1470,6 +1490,24 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         analysisText.append(output);
     }//GEN-LAST:event_fullOutputButtonActionPerformed
 
+    private void getForwardGraphButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getForwardGraphButtonActionPerformed
+        if (edgeID.getText() != null && !edgeID.getText().isEmpty()) {
+            int edgeCounter = Integer.valueOf(edgeID.getText());
+            GraphBuilder gb = tabToBuilderMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+
+            HashSet<TaintEdge> edges = gb.getEdgeList();
+            for (TaintEdge edge : edges) {
+                if (edge.getCounter() == edgeCounter && !edge.getAdviceType().startsWith("NONTAINTRETURN")) {
+                    System.out.println("Matched: " + edge.getCounter());
+                    GraphBuilder forwardBuilder = gb.getForwardContextGraphBuilder(edge);
+                    forwardBuilder.colorNode(edge.getCallingNode(), 5);
+                    addAnalysisGraphBuilder(forwardBuilder, edge.toString(), "NONE");
+                    break;
+                }
+            }
+        }
+    }//GEN-LAST:event_getForwardGraphButtonActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -1497,6 +1535,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JTextField fileNameField;
     private javax.swing.JButton fullOutputButton;
     private javax.swing.JButton getEdgeDataButton;
+    private javax.swing.JButton getForwardGraphButton;
     private javax.swing.JCheckBox hideCheckBox;
     private javax.swing.JCheckBox hideUnusedBox;
     private javax.swing.JButton highlightButton;

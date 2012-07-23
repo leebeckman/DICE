@@ -20,6 +20,9 @@ public class FilterAllUnused implements EdgeFilter {
     public boolean pass(TaintEdge input) {
         // Only transmit if you find it in upperlevel tainted object. If it's inside, check if it's useless or not
 //        HashSet<String> edgeTaintIDs = input.getAllTaintIDs();
+        if (input.getType().equals("OUTPUT"))
+            return true;
+
         LinkedList<TaintedObject> taintedObjects = input.getTaintedObjects();
         boolean pass = false;
         outer:
@@ -42,8 +45,8 @@ public class FilterAllUnused implements EdgeFilter {
          *
          * for a blanket approach, want to filter anything where nothing is used
          */
-        if (!pass)
-            System.out.println("ALL UNUSED FAIL " + input);
+//        if (!pass)
+//            System.out.println("ALL UNUSED FAIL " + input);
 
         return pass;
     }

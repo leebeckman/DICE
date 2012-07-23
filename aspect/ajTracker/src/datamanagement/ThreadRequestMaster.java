@@ -5,10 +5,6 @@ import java.util.IdentityHashMap;
 
 import javax.servlet.http.HttpServletRequest;
 
-
-
-
-
 public class ThreadRequestMaster {
 
 	private static int counter = 0;

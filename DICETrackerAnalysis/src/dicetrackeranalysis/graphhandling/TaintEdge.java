@@ -337,6 +337,10 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         return this.requestRemoteAddr;
     }
 
+    public String getRequestName() {
+        return this.requestCounter + " - " + this.requestURI;
+    }
+
     public TaintedObject getSourceObject() {
         return this.sourceObject;
     }
@@ -370,6 +374,24 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
             if (taintedObj.getSubTaintedObjects() != null) {
                 for (TaintedObject subTaintedObj : taintedObj.getSubTaintedObjects()) {
                     if (subTaintedObj.getTaintID() != null && !subTaintedObj.getTaintID().isEmpty()) {
+                        taintIDs.add(subTaintedObj.getTaintID());
+                    }
+                }
+            }
+        }
+
+        return taintIDs;
+    }
+
+    public HashSet<String> getAllUsedTaintIDs() {
+        HashSet<String> taintIDs = new HashSet<String>();
+        for (TaintedObject taintedObj : taintedObjects) {
+            if (taintedObj.getTaintID() != null && !taintedObj.getTaintID().isEmpty() && !taintedObj.isUnused()) {
+                taintIDs.add(taintedObj.getTaintID());
+            }
+            if (taintedObj.getSubTaintedObjects() != null) {
+                for (TaintedObject subTaintedObj : taintedObj.getSubTaintedObjects()) {
+                    if (subTaintedObj.getTaintID() != null && !subTaintedObj.getTaintID().isEmpty() && !subTaintedObj.isUnused()) {
                         taintIDs.add(subTaintedObj.getTaintID());
                     }
                 }
@@ -520,7 +542,7 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
     }
 
     public String toString() {
-        return String.valueOf(this.counter) + " " + reLabel(this.type);// + "-" + this.adviceType;
+        return String.valueOf(this.counter) + " " + reLabel(this.type, this.adviceType);// + "-" + this.adviceType;
     }
 
 //    public String toString() {
@@ -536,11 +558,11 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         output += "Tainted Objects: \n";
 
         for (TaintedObject taintedObj : taintedObjects) {
-            output += "\t" + taintedObj.getType() + " - " + taintedObj.getValue() + " - " + taintedObj.getObjectID() + "\n";
+            output += "\tType: " + taintedObj.getType() + " Value: " + taintedObj.getValue() + " ObjectID: " + taintedObj.getObjectID() + " TaintID: " + taintedObj.getTaintID() + "\n";
             if (taintedObj.getSubTaintedObjects() != null) {
                 for (TaintedObject subTaintedObj : taintedObj.getSubTaintedObjects()) {
                     if (subTaintedObj.getTaintID() != null && !subTaintedObj.getTaintID().isEmpty()) {
-                        output += "\t\t" + subTaintedObj.getType() + " - " + subTaintedObj.getValue() + " - " + subTaintedObj.getTaintID() + " unused: " + subTaintedObj.isUnused() + "\n";
+                        output += "\t\tType: " + subTaintedObj.getType() + " Value: " + subTaintedObj.getValue() + " TaintID: " + subTaintedObj.getTaintID() + " Unused: " + subTaintedObj.isUnused() + "\n";
                     }
                 }
             }
@@ -550,12 +572,14 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         output += "Request URI: " + this.requestURI + "\n";
         output += "Input Context Counter: " + this.inputContextCounter + "\n";
         output += "Output Context Counter: " + this.outputContextCounter + "\n";
+        output += "Calling Node: " + this.callingNode + "\n";
+        output += "Called Node: " + this.calledNode + "\n";
 
         return output;
     }
 
     public String getNonCounterString() {
-        return this.callingNode + "->" + this.calledNode + ":" + reLabel(this.type);
+        return this.callingNode + "->" + this.calledNode + ":" + reLabel(this.type, this.adviceType);
     }
 
     public TaintNode getCallingNode() {
@@ -570,8 +594,10 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         return this.executionTime;
     }
 
-    private String reLabel(String input) {
-        if (input.equals("CALLING"))
+    private String reLabel(String input, String subInput) {
+        if (input.equals("CALLING") && subInput.endsWith("POSTARG"))
+            return "PAT";
+        else if (input.equals("CALLING"))
             return "CAL";
         else if (input.equals("SUPPLEMENTARY"))
             return "IMP";

@@ -204,10 +204,18 @@ public class PostcompAnalysis {
             return;
         visited.add(current);
 
+        if (current.getCounter() == 358) {
+            System.out.println("Visiting target");
+        }
+
         if (forwardContextSearch(new HashSet<TaintEdge>(), current, graph, userOutputEdges))
             return;
 
         foundEdges.add(current);
+
+        if (current.getCounter() == 358) {
+            System.out.println("Added target");
+        }
 
         TaintNode nextNode = null;
         String context = null;
@@ -220,13 +228,20 @@ public class PostcompAnalysis {
             context = current.getOutputContextCounter();
         }
 
+        // TODO: May need to add check for FGET/FSET context discontinuity
         for (TaintEdge nextEdge : graph.getInEdges(nextNode)) {
-            if (nextEdge.getOutputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
+//            if (nextEdge.getCounter() == 358) {
+//                System.out.println("nextEdge consider target. curr context: " + context + " nextcontext: " + nextEdge.getInputContextCounter());
+//            }
+            if (nextEdge.getInputContextCounter().equals(context)) {// && (nextEdge.getCounter() < current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
+//                if (nextEdge.getCounter() == 358) {
+//                    System.out.println("nextEdge pass target");
+//                }
                 backwardContextExpand(visited, nextEdge, false, graph, foundEdges, userOutputEdges);
             }
         }
         for (TaintEdge nextEdge : graph.getOutEdges(nextNode)) {
-            if (nextEdge.getOutputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
+            if (nextEdge.getOutputContextCounter().equals(context)) {// && (nextEdge.getCounter() < current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
                 backwardContextExpand(visited, nextEdge, true, graph, foundEdges, userOutputEdges);
             }
         }
@@ -246,7 +261,7 @@ public class PostcompAnalysis {
 
         boolean found = false;
         for (TaintEdge nextEdge : graph.getOutEdges(nextNode)) {
-            if (nextEdge.getOutputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
+            if ((nextEdge.getOutputContextCounter().equals(context) || (nextEdge.getType().equals("FIELDGET") && nextEdge.getRequestCounter().equals(current.getRequestCounter()))) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
                 if (forwardContextSearch(visited, nextEdge, graph, targetEdges)) {
                     found = true;
                     break;

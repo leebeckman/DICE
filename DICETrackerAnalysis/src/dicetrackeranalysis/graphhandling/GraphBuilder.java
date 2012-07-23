@@ -548,10 +548,17 @@ public class GraphBuilder {
                 TaintNode calledNode = null;
 
                 if (edge.getType().equals("CALLING")) {
-                    callingNode = nodeMap.get(edge.getTargettedSource());
-                    calledNode = nodeMap.get(edge.getTargettedDest());
-                    edge.setInputContextCounter(edge.getCalledContextCounter());
-                    edge.setOutputContextCounter(edge.getCallerContextCounter());
+                    if (edge.getAdviceType().endsWith("POSTARG")) {
+                        callingNode = nodeMap.get(edge.getTargettedDest());
+                        calledNode = nodeMap.get(edge.getTargettedSource());
+                        edge.setInputContextCounter(edge.getCallerContextCounter());
+                        edge.setOutputContextCounter(edge.getCalledContextCounter());
+                    } else {
+                        callingNode = nodeMap.get(edge.getTargettedSource());
+                        calledNode = nodeMap.get(edge.getTargettedDest());
+                        edge.setInputContextCounter(edge.getCalledContextCounter());
+                        edge.setOutputContextCounter(edge.getCallerContextCounter());
+                    }
                 }
                 else if (edge.getType().equals("OUTPUT"))  {
                     callingNode = nodeMap.get(edge.getTargettedSource());
@@ -633,6 +640,9 @@ public class GraphBuilder {
                     }
                     edge.setCallingNode(callingNode);
                     edge.setCalledNode(calledNode);
+//                    if (edge.getCallingNode().toString().contains("fillUser") && edge.getCalledNode().toString().contains("fillUser")) {
+//                        System.out.println("FOUND fillUser EDGE: " + edge + " from " + edge.getCallingNode() + " to " + edge.getCalledNode());
+//                    }
 
                 }
             }
@@ -678,6 +688,10 @@ public class GraphBuilder {
 //                                edge.getCallingNode().toString().contains("put Object Object:18147857") &&
 //                                edge.getType().contains("SUPP"))
 //                            System.out.println("PRIMARY UNUSED SUPP: " + subTaintedObject.getValue());
+//                        if (edge.getCounter() == 807)
+//                            System.out.println("UNUSED TAINT IN 807: " + subTaintedObject.getValue());
+//                        if (edge.getCounter() == 568)
+//                            System.out.println("UNUSED TAINT IN 568: " + subTaintedObject.getValue());
                         subTaintedObject.setUnused();
                         subTaintedObject.setMarked();
                         // This subTaintedObject is not used (basically, its taint was not found.)
@@ -730,7 +744,7 @@ public class GraphBuilder {
 
         boolean found = false;
         for (TaintEdge nextEdge : graph.getOutEdges(nextNode)) {
-            if (nextEdge.getOutputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
+            if ((nextEdge.getOutputContextCounter().equals(context) || (nextEdge.getType().equals("FIELDGET") && nextEdge.getRequestCounter().equals(current.getRequestCounter()))) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
                 if (forwardContextSearch(visited, nextEdge, graph, true, targetTaintID)) {
                     found = true;
                     break;
@@ -753,10 +767,8 @@ public class GraphBuilder {
             for (TaintedObject taintedObject : current.getTaintedObjects()) {
                 for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
                     if (!subTaintedObject.isMarked() && subTaintedObject.getTaintID().equals(targetTaintID)) {
-                        if (current.getCalledNode().toString().contains("get Object:18147857") &&
-                                current.getCallingNode().toString().contains("put Object Object:18147857") &&
-                                current.getType().contains("SUPP") && subTaintedObject.getValue().contains("First Forum"))
-                            System.out.println("SECONDARY UNUSED SUPP: " + subTaintedObject.getValue() + " - " + current);
+                        if (current.getCounter() == 568)
+                            System.out.println("UNUSED TAINT IN 568 2ary: " + subTaintedObject.getValue());
                         subTaintedObject.setUnused();
                         subTaintedObject.setMarked();
                     }
@@ -776,11 +788,53 @@ public class GraphBuilder {
         return found;
     }
 
+    public GraphBuilder getForwardContextGraphBuilder(TaintEdge startEdge) {
+        HashSet<TaintEdge> foundEdges = new HashSet<TaintEdge>();
+        getForwardContextGraphBuilder(new HashSet<TaintEdge>(), startEdge, foundEdges, getMultiGraph(), true);
+
+        return GraphBuilder.getBuilderFromEdges(this, foundEdges);
+    }
+
+    private void getForwardContextGraphBuilder(HashSet<TaintEdge> visited, TaintEdge current, HashSet<TaintEdge> found, Graph<TaintNode, TaintEdge> graph, boolean isForward) {
+        if (visited.contains(current))
+            return;
+        visited.add(current);
+
+        found.add(current);
+
+        TaintNode nextNode = null;
+        String context = null;
+        if (isForward) {
+            nextNode = graph.getDest(current);
+            context = current.getInputContextCounter();
+        }
+        else {
+            nextNode = graph.getSource(current);
+            context = current.getOutputContextCounter();
+        }
+
+        for (TaintEdge nextEdge : graph.getOutEdges(nextNode)) {
+            if ((nextEdge.getOutputContextCounter().equals(context) || (nextEdge.getType().equals("FIELDGET") && nextEdge.getRequestCounter().equals(current.getRequestCounter()))) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
+                getForwardContextGraphBuilder(visited, nextEdge, found, graph, true);
+            }
+        }
+        for (TaintEdge nextEdge : graph.getInEdges(nextNode)) {
+            if (nextEdge.getInputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY"))) {
+                getForwardContextGraphBuilder(visited, nextEdge, found, graph, false);
+            }
+        }
+    }
+
     public String getFullOutput() {
         LinkedList<TaintEdge> orderedEdges = getOrderedEdgeList();
         String ret = "";
 
+        String currentReq = null;
         for (TaintEdge edge : orderedEdges) {
+            if (currentReq == null || !edge.getRequestName().equals(currentReq)) {
+                currentReq = edge.getRequestName();
+                ret += "REQ: " + currentReq + "\n";
+            }
             if (edge.getType().equals("OUTPUT")) {
                 for (TaintedObject taintedObject : edge.getTaintedObjects()) {
                     ret += "TAINTED: " + taintedObject.getTaintID() + " - " + taintedObject.getTaintRecord() + " - " + taintedObject.getValue() + "\n";
@@ -946,11 +1000,12 @@ public class GraphBuilder {
         filters.add(new FilterByRINRETExclude());
         
         Graph<TaintNode, TaintEdge> g = new DirectedSparseMultigraph<TaintNode, TaintEdge>();
+//        System.out.println("CALLING LOADGRAPH");
         loadGraph(g, filters);
         return g;
     }
 
-    public void generateTaintIDPropagationsAndRequestCounters() {
+    private void generateTaintIDPropagationsAndRequestCounters() {
         LinkedList<TaintEdge> sortedEdgeList = new LinkedList<TaintEdge>(edgeList);
         Collections.sort(sortedEdgeList);
         for (TaintEdge edge : sortedEdgeList) {
@@ -972,7 +1027,7 @@ public class GraphBuilder {
     }
 
     // Run a propagation list through this to fix up problems when multiple taint id sources are combined
-    public void postProcessTaintIDPropagations() {
+    private void postProcessTaintIDPropagations() {
         HashMap<String, LinkedList<TaintIDPropagationPair>> proppedTo = new HashMap<String, LinkedList<TaintIDPropagationPair>>();
 
         LinkedList<TaintIDPropagationPair> toAdd = new LinkedList<TaintIDPropagationPair>();
@@ -1036,10 +1091,14 @@ public class GraphBuilder {
                     boolean pass = true;
                     for (EdgeFilter filter : filters) {
                         if (!filter.pass(edge)) {
+//                            if (edge.getCounter() == 2549) {
+//                                System.out.println("PRELOADING 2549: " + edge + " from " + filter);
+//                            }
                             pass = false;
                             break;
                         }
                     }
+
                     if (pass) {
                         g.addEdge(edge, callingNode, calledNode);
                     }
@@ -1344,7 +1403,7 @@ public class GraphBuilder {
 
             LinkedList<TaintEdge> edges = new LinkedList<TaintEdge>(output.edgeList);
             for (TaintEdge edge : edges) {
-                if (!edge.getRequestCounter().equals(counter)) {
+                if (edge.getRequestCounter() == null || !edge.getRequestCounter().equals(counter)) {
                     output.edgeList.remove(edge);
                 }
             }
@@ -1453,7 +1512,7 @@ public class GraphBuilder {
         for (TaintEdge edge : fullGraph.getEdges()) {
             if (edge.getType().equals("OUTPUT")) {
                 TaintNode outputNode = fullGraph.getDest(edge);
-                if (!outputNode.getName().contains(":write"))
+                if (outputNode.getName().contains(":write"))
                     output.add(edge);
             }
         }
@@ -1469,7 +1528,7 @@ public class GraphBuilder {
         for (TaintEdge edge : fullGraph.getEdges()) {
             if (edge.getType().equals("OUTPUT")) {
                 TaintNode outputNode = fullGraph.getDest(edge);
-                if (!outputNode.getName().contains(":execute"))
+                if (outputNode.getName().contains(":execute"))
                     output.add(edge);
             }
         }

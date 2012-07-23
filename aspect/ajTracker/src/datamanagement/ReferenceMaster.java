@@ -68,6 +68,7 @@ public class ReferenceMaster {
 	
 	private static IdentityHashMap<Object, LinkedList<Object>> psToTaintMap = new IdentityHashMap<Object, LinkedList<Object>>();
 	private static IdentityHashMap<Object, LinkedList<Object>> resultSetToPSTaintMap = new IdentityHashMap<Object, LinkedList<Object>>();
+	private static IdentityHashMap<Object, HashMap<Integer, Object>> psToSetColumnsMap = new IdentityHashMap<Object, HashMap<Integer, Object>>();
 	
 	private static IdentityHashMap<Object, Field> staticAccessedMap = new IdentityHashMap<Object, Field>();
 	
@@ -84,6 +85,24 @@ public class ReferenceMaster {
 		}
 		
 		taintList.add(taint);
+	}
+	
+	public static synchronized void mapSetPSColumn(Object ps, Integer column, Object taint) {
+		HashMap<Integer, Object> colMap = psToSetColumnsMap.get(ps);
+		if (colMap == null) {
+			colMap = new HashMap<Integer, Object>();
+			psToSetColumnsMap.put(ps, colMap);
+		}
+		
+		colMap.put(column, taint);
+	}
+	
+	public static synchronized Object getSetPSColumn(Object ps, Integer column) {
+		HashMap<Integer, Object> colMap = psToSetColumnsMap.get(ps);
+		if (colMap != null) {
+			return colMap.get(column);
+		}
+		return null;
 	}
 	
 	public static LinkedList<Object> getPSTaint(Object ps) {
