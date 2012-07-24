@@ -377,6 +377,7 @@ Todo
 
 \section{Taint Tracking}
 Todo
+% Be sure to describe very carefully how taint tracking works in general and how it works specifically for us
 
 \section{Aspect Oriented Programming}
 Todo
@@ -428,71 +429,120 @@ Finally, the Tomography System employs some heuristics to attempt to track taint
 
 \paragraph{The Logging System} provides a set of methods to be used by the other parts of the tool to log discrete events which are useful for analysis. These logs are currently formatted in XML and output to a log file.
 
-%%\begin{table}[t]                 % optional [t, b or h];
-%%  \begin{tabular}{|r||r@{.}l|}
-%%    \hline
-%%    Phoenix & \$960&35\\
-%%    \hline
-%%    Calgary & \$250&00\\
-%%    \hline
-%%  \end{tabular}
-%%  \caption[Here is the caption for this wonderful table\ldots]{
-%%    \label{tab:Table1}
-%%    Here is the caption for this wonderful table. It has not been
-%%    centered and the positioning has been specified to be at the top
-%%    of the page.  Thus it appears above the babble rather than below
-%%    where it is defined in the source file.}
-%%\end{table}
-
 \paragraph{The User Control System} was added in order to provide some control over the dynamic operation of the tool. Rather than simply logging everything for every operation performed in a target web application, the control system provides socket communication with the tool in order to enable/disable various tracking components and the application runs. This allows us to disable, for example, tracking during web server initialization which may contain data we are not interested in.
 
 \subsection{Build Architecture}
 
-% Include an architecture diagram
-	% Taint I/O, tainting of data from databases and user requests, support for additional forms of Input, like files. Detection of Important output events, like in a traditional taint tracking system, such as writing to a database or writing to the webpage output
-	% Tomography systems
-		% Method call passing, Method return passing, Separate handling of calls to Java classes
-		% Field set/get
-		% Static set/get / persistent data in general
-		% Return to args passing
-		% Fuzzy propagation using levenshtein distance, due to limitations of AspectJ-based tracking
-		% String tracking systems, as the taint we track is primarily in this form
-		% Integer tracking system, including clever hack and dependence of developer input
-	% Basic Profiling support
-	% Reference management system, significant engineering effort to deal with limitations of aspectJ, namely missing Array element operations and the internals of pure Java objects, as well as make the tool reasonably performant.
-		% Basic field set references
-		% Dealing with arrays
-		% Dealing with pure Java objects
-		% Deep scanning objects
-		% Performance benefits
-	% Simple Thread-request mapping
-	% Live control system
-	% Logging system
-		% Allows the creation of various log types which together compose a complete trace
-		
-% Build script
-	% Takes care of compiling the tool, weaving into a target web application, as well as weaving it into any libraries the application uses and any libraries that the servlet container uses, in our take, Tomcat's Catalina.
+In order to completely track tainted data through an application's execution, we must instrument not only the application, but also every library that it uses. For instrumenting new web applications, and for whenever the tracker code needs to be modified, we provide an Ant build script to automate this process. Given a target web application, the build script performs the following:
 
-% Can totally create a table of logs
+\begin{itemize}
+\item Compile the tracker code
+\item Precompile any JSP code that the web application uses, so that they can be instrumented as well
+\item Weave tracker code into all web application classes
+\item Weave tracker code into all web application provided libraries
+\item Weave tracker code into all of the servlet container's libraries
+\end{itemize}
 
-% May want to note somewhere things like excluding packages because of AspectJ sucking, weird jump target crashes
+\subsection{Example Operation of Tool}
+In order to better explain tool, give a high level but reasonably in depth breakdown of how the tool might operate.
 
 \subsection{Justification of Implementation}
 As has been discussed in this thesis, many taint tracking implementations exist [REFERENCES], and even some for Java web applications [REFERENCES]. The problem is that we could not find an implementation that would provide Tomography-level tracking, which was necessary to address our research problems. We did start out using a Java String taint tracking implementation by SO AND SO [REFERENCE], but as our system developed we realized that the fucntionality we needed from their implementation was easily and more naturally supported in our own. Aspect Oriented Programming (AOP) was chosen as it conceptually provided the high level functionality we needed to perform the tracking, saving us from writing a system completely from scratch and allowing the tracker to be implemented in the available timeframe. The alternative would likely have been to learn the use of a Java bytecode manipulation framework, such as ASM or BCEL, and build up the tracker from a much lower level. AspectJ was specifically chosen as it was the most mature, well-documented, and stable implementation of AOP available for Java programs. Other implementations were experimented with, mainly while searching for solutions to some of AspectJ's limitations, including JBoss AOP [REFERENCE] and the AspectBench Compiler [REFERENCE], but these proved to be too unstable for our needs.
 
-% Log types, overall log format
-% Tracking components
-	% reference tracking in light of Opaque Java objects, Array Tracking
-% Why AspectJ
+\subsection{Log Table}
+
+We provide here a breakdown of the log structure that our tool uses, for reference when describing other parts of our implementation and for gauging the completeness of our tracking.
+
+\begin{itemize}
+\item location Tag \\ <location callerClass, callerMethod, calledClass, calledMethod, requestCounter, requestURI, requestRemoteAddr, callerContextCounter, calledContextCounter /> This tag appears in every log entry, and contains all information needed to determine where the event occured. The attributes of this tag are as follows: \\
+[caller/called][Class/Method] - these specifies the fully qualified class name and method name with argument types of the caller and callee for a particular taint flow event. For example, for a record indicating that taint was passed in the arguments of a method call, these will indicate the method from which the call was made and the called method itself. \\
+requestCounter - this is a counter which uniquely identifies which user request a log was generated from. Everytime the application server must service a new request, a new counter value is assigned to it. \\
+requestURI - the URI of the request responsible for generating a log. \\
+requestRemoteAddr - the remote address (IP address of a web application user submitting a request) of the request responsible for generating a log. \\
+[called/called]ContextCounter - these attributes supplement the [caller/called][Class/Method] by identifying unique instances of method calls. Every
+
+\item Xobject Tag \\ <Xobject taintID, type, objectID, value, taintRecord /> Various 'object' tags (sourceObject, taintedObject, etc) appear in log records to describe important Objects in taint flow events.
+
+\item field Tag \\ <field targetClass, targetField> These tags are used in field set/get records to identify the field in question.
+
+\item taintRecord Attribute \\ TARGETCOLUMN: column CATALOG: catalog TABLE: table COLUMN: column || URI: uri PARAM: param
+
+\item Propagation Log \\ <taintlog type="PROPAGATION"><location tag><sourceObject><destObject></taintlog> Used to indicate that one tainted Object was derived from another.
+
+\item Fuzzy Propagation Log \\ Used to indicate that an Object was marked as tainted heuristically by fuzzy propagation, as described earlier
+
+\item Modification Log \\ t
+
+\item Composition Log \\ t
+
+\item Association Log \\ t
+
+\item Calling Log \\ t
+
+\item Returning Log \\ t
+
+\item Returning Args Log \\ t
+
+\item Returning Input Log \\ t
+
+\item Output Log \\ t
+
+\item Non-Taint Output Log \\ t
+
+\item Field Set Log \\ t
+
+\item Field Get Log \\ t
+
+\item Static Field Store Log \\ t
+
+\end{itemize}
+
+% Include an architecture diagram
+	% Simple Thread-request mapping (could be added to architecture description for more words)
+
+% May want to note somewhere things like excluding packages because of AspectJ sucking, weird jump target crashes
+
+% Could probably ramble on a bit about what a nightmare jsp is
+
 % Limitations of the tool (mainly due to aspectJ)
-% May want to talk about how I can generate a control flow graph
 % Will want to note that I focus on strings
 
 % Will want to, at some point, discuss why I taint the data I do, why we only taint inputs from databases/user stuff,
 % and not everything string/piece of data
 
+%\section{Overview}
+%In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is precompiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a 'trace', describing events where tainted data moves from one location to another, which when taken together describe 'flows' of tainted data throughout a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
+
+
 \section{Analysis Tool}
-Todo
+Implemented entirely in Java and using the JUNG 2.0.1 framework for visualizating and working with graphs.
+
+\subsection{Tool Components}
+The main components of the tool are as follows:
+
+\paragraph{The Visualization System} relies primarily on the JUNG framework to provide a more user-friendly means of working with the taint tracking data. To use the tool, a log file is loaded, which is then used to generate JUNG graphs 
+
+% Probably want to talk about some graph preprocessing that we do
+
+\paragraph{Automated Analyses}
+
+\subsection{Available Analyses}
+
+\subsection{Justification of Implementation}
+
+\subsubsection{Caching}
+
+\subsubsection{Precomputation}
+
+\subsubsection{Postcomputation}
+
+\subsubsection{Application State}
+
+\subsubsection{Personal State}
+
+\subsubsection{Wasteful Communication}
+
+\subsubsection{Access Path Refactoring}
 
 \chapter{Evaluation} % MODERATE-EASY
 

@@ -595,55 +595,55 @@ public class TaintLogger {
 		logTaint(logRoot.toString());
 	}
 
-	public void logJavaFieldSet(StackLocation location, String adviceType, Object taintSource, Field targetField) {
-		MyElement logRoot = getLogRoot("JAVAFIELDSET");
-		
-		addLocationElement(logRoot, location, adviceType);
-		
-		addObjectElement(logRoot, "taintedObject", taintSource, true);
-		addFieldElement(logRoot, targetField);
-		
-		logTaint(logRoot.toString());
-	}
-	
-	public void logJavaFieldSet(StackLocation location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
-		MyElement logRoot = getLogRoot("JAVAFIELDSET");
-		
-		addLocationElement(logRoot, location, adviceType);
-
-		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource, true);
-		for (Object taintedObject : subTaintSources) {
-			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
-		}
-		addFieldElement(logRoot, targetField);
-		
-		logTaint(logRoot.toString());
-	}
-	
-	public void logJavaFieldGet(StackLocation location, String adviceType, Object taintSource, Field targetField) {
-		MyElement logRoot = getLogRoot("JAVAFIELDGET");
-		
-		addLocationElement(logRoot, location, adviceType);
-		
-		addObjectElement(logRoot, "taintedObject", taintSource);
-		addFieldElement(logRoot, targetField);
-		
-		logTaint(logRoot.toString());
-	}
-	
-	public void logJavaFieldGet(StackLocation location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
-		MyElement logRoot = getLogRoot("JAVAFIELDGET");
-		
-		addLocationElement(logRoot, location, adviceType);
-
-		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
-		for (Object taintedObject : subTaintSources) {
-			addObjectElement(baseObject, "subTaintedObject", taintedObject);
-		}
-		addFieldElement(logRoot, targetField);
-		
-		logTaint(logRoot.toString());
-	}
+//	public void logJavaFieldSet(StackLocation location, String adviceType, Object taintSource, Field targetField) {
+//		MyElement logRoot = getLogRoot("JAVAFIELDSET");
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//		
+//		addObjectElement(logRoot, "taintedObject", taintSource, true);
+//		addFieldElement(logRoot, targetField);
+//		
+//		logTaint(logRoot.toString());
+//	}
+//	
+//	public void logJavaFieldSet(StackLocation location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
+//		MyElement logRoot = getLogRoot("JAVAFIELDSET");
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//
+//		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource, true);
+//		for (Object taintedObject : subTaintSources) {
+//			addObjectElement(baseObject, "subTaintedObject", taintedObject, true);
+//		}
+//		addFieldElement(logRoot, targetField);
+//		
+//		logTaint(logRoot.toString());
+//	}
+//	
+//	public void logJavaFieldGet(StackLocation location, String adviceType, Object taintSource, Field targetField) {
+//		MyElement logRoot = getLogRoot("JAVAFIELDGET");
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//		
+//		addObjectElement(logRoot, "taintedObject", taintSource);
+//		addFieldElement(logRoot, targetField);
+//		
+//		logTaint(logRoot.toString());
+//	}
+//	
+//	public void logJavaFieldGet(StackLocation location, String adviceType, Object taintSource, Set<Object> subTaintSources, Field targetField) {
+//		MyElement logRoot = getLogRoot("JAVAFIELDGET");
+//		
+//		addLocationElement(logRoot, location, adviceType);
+//
+//		MyElement baseObject = addObjectElement(logRoot, "taintedObject", taintSource);
+//		for (Object taintedObject : subTaintSources) {
+//			addObjectElement(baseObject, "subTaintedObject", taintedObject);
+//		}
+//		addFieldElement(logRoot, targetField);
+//		
+//		logTaint(logRoot.toString());
+//	}
 
 	public void logFieldSet(StackLocation location, String adviceType, Object value, Field targetField, Object calling, Object called) {
 		MyElement logRoot = getLogRoot("FIELDSET");
