@@ -8,8 +8,11 @@ By seeing where communicated data is actually unpacked from complex objects and 
 
 Maybe the intense clone nop[0] errors are caused when I supply the additional jars (for missing library types), but give the wrong version of the library?
 
+-------------------
+
 After looking at it more, I believe I can run the analysis for precomputation and caching the same. The only difference really is what the developer would have to do afterwards, given what they were told about the variability of the data in question. I don't think even invalidation means anything special. In fluxo, a cache only has invalidation nodes if the cache computation uses data tables in addition to the main lookup value - when these tables change the computations based on them must be invalidated. Really this just seems like another input to the cached nodes, and I don't see much reason to treat it differently than the lookup value input. I'm modifying the precomputation/caching analysis with these things in mind.
 
+--------------------
 http://www.informatik.uni-trier.de/~ley/db/indices/a-tree/i/Iyengar:Arun.html (paper about smart caching in here somewhere, possibly around 2005)
 
 If user input drive a database selection, the result of that selection should also be tainted by the input
