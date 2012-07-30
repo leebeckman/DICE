@@ -257,33 +257,15 @@ public class PrecompAnalysis {
     // Only a side effect if it's in the target graph, and you can't flow to it in the full graph
     public HashSet<TaintNode> checkSideEffectsInGraph(Graph<TaintNode, TaintEdge> checkGraph, Graph<TaintNode, TaintEdge> sideEffectGraph, Graph<TaintNode, TaintEdge> fullGraph) {
         HashSet<TaintNode> sideEffects = new HashSet<TaintNode>();
-//        System.out.println("Check Graph: " + checkGraph.getEdgeCount() + "-" + checkGraph.getVertexCount() + " SE Graph: " +
-//                sideEffectGraph.getEdgeCount() + "-" + sideEffectGraph.getVertexCount() + " Full Graph: " +  fullGraph.getEdgeCount() +
-//                "-" + fullGraph.getVertexCount());
 
         for (TaintNode node : checkGraph.getVertices()) {
-//            if (node.toString().contains("13914997"))
-//                System.out.println("PreEncountered 13914997 in node");
             if (node.getCallRecords() != null) {
-//                if (node.toString().startsWith("com.mysql.jdbc.ResultSet:getString String:7979570"))
-//                    System.out.println("SE PRE CHECK: " + node);
                 for (CallRecord callRecord : node.getCallRecords()) {
-//                    if (node.toString().startsWith("com.mysql.jdbc.ResultSet:getString String:7979570"))
-//                        System.out.println("SE PRE CHECK REC: " + callRecord);
                     TaintNode sideEffectNode = callRecord.getCallEdge().getCallingNode();
-//                    if (node.toString().contains("13914997"))
-//                        System.out.println("Encountered 13914997 in node");
-//                    if (sideEffectNode.toString().contains("13914997"))
-//                        System.out.println("Encountered 13914997 in se");
                     if (sideEffectGraph.containsVertex(sideEffectNode)) {
-//                        if (node.toString().contains("13914997") && sideEffectNode.toString().contains("13914997"))
-//                            System.out.println("Encountered 13914997, SE PASS");
                         // Now need to check if the nodes are attached in the full graph, if so, not a real side effect
                         if (!fullGraph.getNeighbors(node).contains(sideEffectNode)) {
-//                            if (node.toString().contains("13914997") && sideEffectNode.toString().contains("13914997"))
-//                                System.out.println("Encountered 13914997, NEI PASS");
                             sideEffects.add(sideEffectNode);
-                            System.out.println("Adding SE, CHECK: " + node + " SIDE: " + sideEffectNode);
                             continue;
                         }
                     }

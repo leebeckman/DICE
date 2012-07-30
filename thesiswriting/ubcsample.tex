@@ -280,7 +280,7 @@
 
 \maketitle                      %% Mandatory
 \begin{abstract}                %% Mandatory -  maximum 350 words
-  Todo
+  Quickly state thesis: taint tracking, previously used primarily in security applications, is useful for discovering various properties of applications which are useful for developers tasks with migrating the application to a new environment or improving it's performance in general. Started with a series of analyses inspired by the literature which we hoped to have success with in taint traces we collected, and also sought to discover unexpected uses for the taint trace data. One thing I need to make clear at some point is that this is not so much about going into great depth on any particular analysis so much as it is about showing that taint tracking supports a wide variety of potentially useful analyses, and these can be done with some success in actual applications. Will want to state here that I tested on two applications, and was able to run successful automated analyses on them with my tools.
 \end{abstract}
 
 %%\chapter{Preface} % Manditory if any of the conditions are met
@@ -335,7 +335,7 @@
 Thank Rodger, Eric, and Nima
 
 \chapter{Dedication} %% Optional
-Dedicate to Esther
+Dedicate this thesis to my wife.
 %%The dedication is usually quite short, and is a personal rather than
 %%an academic recognition.  The \emph{Dedication} does not have to be
 %%titled, but it must appear in the table of contents.  If you want to
@@ -353,39 +353,47 @@ Dedicate to Esther
 % Now regular page numbering begins.
 \mainmatter
 
-% Parts are the largest structural units, but are optional.
-%\part{Thesis}
+% Question: do I want to talk about what I did for the DICE project? It did in some ways inspire the early stages of this work, so it could be significant.
 
-% Chapters are the next main unit.
 \chapter{Introduction} % DIFFICULT
 
-% Sections are a sub-unit
 \section{Problem Statement}
-Discuss with related work
+Notes: the problem is essentially borne of a continuing need for automated analysis of existing software systems when seeking to optimize them, something which often comes up when rearchitecting/migrating them to upgraded deployments. Taint tracing is a technique that, if done in an extensive manner like with dataflow tomography, I hypothesized could be applied in a general way to this problem. The problem is not only address the need for automated analysis, but to investigate if taint tracking is actually worth using in this space.\\\\
+
+Notes: Why do I care about this problem: I believe that there is still room for new kinds of automated analyses in this space, and I think the technique is interesting as it can potentially be used to support many different kinds of analyses. Taint tracking has never really been used this way. It is a difficult problem, to take such a dynamic analysis and attempt to make meaningly automated analyses, so starting work on it is valuable.\\\\
+
+Notes: Want to say clearly at some point that what I did was: had some ideas about taint tracking and automated analysis, so I built a taint tracker, wrote some analyses (some of which were inspired by the literature and which I was confident I could find), and applied them to some real applications to see how it worked.
 
 \section{Thesis Statement}
-Todo
+Notes: Will want to say something along the lines of how I believe that taint tracking can be a powerful tool in supporting the kind of automated analyses I am interested in, and that I believe I will be able to successfully demonstrate some of these analyses in real software applications.\\
 
 \section{Relevant Literature}
-Todo
+Notes: Discuss taint tracking, it's use typically in security, as well as some other ways it has been used more relevant to my research. Discuss dataflow tomography and present it as a technique looking for some problems. Discuss Fluxo and similar systems. Discuss Arun Iyengar's work on fragment detection and caching. Use some of the earlier documents I wrote to discuss issues with application state and partitioning, as partitioning is the primary motivator for some of my analyses.
 
 \section{Contributions}
-Todo
+Notes: Main contributions are
+\begin{itemize}
+\item A dataflow tomography tool for Java web applications
+\item An analysis tool for taking dataflow tomography data and visualizing/analyzing it
+\item Implementations of a set of analyses within the analysis tool
+\item Demonstration of the analyses on real applications
+\end{itemize}
 
 \section{Thesis Outline}
-Todo
+Notes: Give a quick overview of what is to come.
 
 \chapter{Background} % MODERATE
+This seems to overlap with relevant literature in the introduction, which is a problem, and suggests that this may not justify an entire chapter. Need to find a way to organize the various concepts that need to be understood for my work. Is it possible that much of this could be moved to the introduction?
 
 \section{Taint Tracking}
-Todo
+Describe exactly what taint tracking is (tagging data, which can be done at various levels of granularity), and monitoring where that data goes. Focus less on research and more on how it is done, and some of the terminology around it. 
 % Be sure to describe very carefully how taint tracking works in general and how it works specifically for us
 
 \section{Aspect Oriented Programming}
-Todo
+As this is merely a technology we rely on, it really shouldn't appear in the relevant literature section earlier. Talk about what AOP is, what it lets us do, about dynamic instrumentation in general and how it serves taint tracking. Compare it to lower-level techniques like byte-code instrumentation and point out some advantages and disadvantages.
 
 \section{Anything Else I Should Explain}
-Todo
+Can add sections here if necessary.
 
 \section{Terms Used}
 \begin{itemize}
@@ -603,6 +611,8 @@ The main purpose of the Analysis Tool is to provide easy to use automatic analys
 
 \subsection{Available Analyses}
 
+% Need to add figures to all of these
+
 \subsubsection{Caching}
 The caching analysis seeks to find opportunities to save on computation/communication by suggesting locations where caches could be considered. By a cache we mean code and data storage mechanisms which take the results of computations over some inputs, and store the results - mapping the inputs to them. The next time the computations are invoked with the same inputs, we can return the stored results rather that redoing the computation. For a cache to work, we need to be aware of all inputs to the computation. If any inputs which affect the results are missed, when those inputs vary the cache may return invalid results from the store. What this analysis essentially does is look for regions of the graph which are only carrying taint from non-random inputs. By non-random we mean inputs with reasonably predictable values over a small enough range that the cache will be useful and not frequently missing. This analysis relies on the input description file described in Section blah to determine whether or not given tainted data is random. The assumption is that if all of the inputs to a computation, represented in the graph by a network of nodes, are predictable enough, the computation is a good candidate for caching. The identified subgraph can then be presented to the user as an indication of the possibility of a cache as well as a guide for what parts of the application must be considered when doing so.
 
@@ -620,6 +630,21 @@ The Postcomputation analysis looks for flows of tainted data which represent com
 
 The algorithm used for this analysis is as follows:
 
+% Maybe mention this node CFG generated somewhere earlier and more central, to refer back to.
+-Request from the analysis tool a data structure which provides a control flow graph for any node in the taint flow graph.
+
+-As a graph my represent data collected over multiple user requests, divide it into a set of subgraphs, one for the data from each request.
+
+-For each such request graph:
+	-Get a subgraph of nodes which carry only stable taint, called the 'Stable Subgraph'
+		-Check each edge, and if it carries something other than stable taint, remove the edge as well as the nodes it is connected to.
+	-Get a subgraph of nodes which do not carry random taint, called the 'Predictable Subgraph'
+		-Check each edge, and if it carries random taint, remove the edge as well as the nodes it is connected to.
+	-Remove from the Predictable Subgraph any nodes in the Stable Subgraph, as those are for the precomputation analysis.
+
+
+
+
 \subsubsection{Application State}
 The goal of this analysis is to locate persistent state in an application. This does not refer the data an application keeps in a database, but rather to such more temporary state as might be kept in sessions stores and static variables. This kind of state can be used to keep data associated with users to facilitate their interaction with a site over multiple requests. Examples include shopping carts, which allow users of shopping sites to collect items as they browse them, to be bought together on checkout; or something as simple as a username, displayed on each page. Knowing where such state is is useful for developers as it must be managed carefully in various scenarios. When replicating computation which relies on such state, it needs to be kept up to date and distributed to all locations where required. When migrating an application to a new environment, certain kinds of state may not be well-supported. For example, if migrating to the Google App Engine platform, state in static variables would be interfered with by the system's tendancy to shut down idle applications. This analysis identifies such state by looking for instances where the same pieces of data are accessed in over multiple requests, then presents to the user subgraphs showing where the state is stored and what parts of the application it is communicated to.
 
@@ -631,16 +656,33 @@ This analysis is similar to the one which locates application state. It goes bey
 The algorithm used for this analysis is as follows:
 
 \subsubsection{Wasteful Communication}
-Section blah describes a graph preprocessing step which the Analysis Tool performs to identify instances where tainted data is communicated between locations but subsequently never used. Given this step, this analysis is easy to perform. 
+Section blah describes a graph preprocessing step which the Analysis Tool performs to identify instances where tainted data is communicated between locations but subsequently never used. Given this step, this analysis is easy to perform, and merely needs to compile a report of where data is communicated wastefully by checking the edges in the graph for taint marked as such. 
 
-\subsubsection{Access Path Refactoring}
+An obvious use for such an analysis is to help a developer potentially eliminate these communication. Such is especially useful if the application is to be partitioned and such communication would be crossing costly boundaries. Another use for this is also motivated by application partitioning, where the data can be used to improve the analyses used in that space. Application partitioning algorithms generally consider module execution costs and communication costs between them when determining an optimal way to group and separate modules. A simple strategy which monitors inter-module communication events (such as method calls), can report the cost of the communication as the total size of the data communicated. However, some of this data may never be used, and knowing this can allow for better communication cost estimates. Such could lead to more optimal partitionings, as long as there is a mechanism in place to avoid the wasted communication, such as by eliminating it altogether or employing a lazy communication method where the data is only communicated when it is actually needed.
 
-\subsection{Justification of Implementation}
+% Need to say something about the fact that we believe we are tracking enough data by just tainting our set of inputs. We don't care about String constants in the code, or data that arises elsewise.
 
-\chapter{Evaluation} % MODERATE-EASY
+% Will definitely need some figures here to explain this
+
+\subsubsection{Access Path Refactoring (APR)}
+This last analysis is arguably the most complicated and ambitious. APR is the name we give to an analysis which attempts to discover beneficial modifications to how an applications accesses its database-resident data. This is to be used mainly in a partitioning scenario, where the data used to fulfill various requests may end up crossing expensive partition boundaries. APR takes as input a suggested partitioning of modules in a trace, and attempts to position database sources, at the granularity of columns, to lower communication costs. To do this the analysis uses the taint tracking data to locate dependencies between data sources to attempt to determine the consequences of moving various data sources - moving one data source to another partition which uses the data can save communicating data from that source, but may then require additional data from other sources to be sent to the new partition. This kind of savings/cost balance is evaluated to determine a possible 'best' arrangement of data sources.
+
+The algorithm that we use to implement this analysis is as follows:
+
+%\subsection{Justification of Implementation}
+
+%\section{Overview}
+%In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is precompiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a 'trace', describing events where tainted data moves from one location to another, which when taken together describe 'flows' of tainted data throughout a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
+
+\chapter{Evaluation} % MODERATE - DIFFICULT
+
+\section{Overview}
+Notes: Give a high level description of how the system was evaluated
+
+Notes: Will want to make the case somewhere for this being a largely qualitative work. It is difficult to numerically guage the effectiveness of our techniques without a more extensive effort to analyze, modify based on tool suggestions, and test a wide range of applications. A more quantitative analysis can be done as future work.
 
 \section{Choosing Applications}
-Todo
+
 
 \section{Evaluation Strategy/Goals}
 Todo
