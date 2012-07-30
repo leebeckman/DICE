@@ -386,20 +386,19 @@ Notes: Give a quick overview of what is to come.
 This seems to overlap with relevant literature in the introduction, which is a problem, and suggests that this may not justify an entire chapter. Need to find a way to organize the various concepts that need to be understood for my work. Is it possible that much of this could be moved to the introduction?
 
 \section{Taint Tracking}
-Describe exactly what taint tracking is (tagging data, which can be done at various levels of granularity), and monitoring where that data goes. Focus less on research and more on how it is done, and some of the terminology around it. 
+Notes: Describe exactly what taint tracking is (tagging data, which can be done at various levels of granularity), and monitoring where that data goes. Focus less on research and more on how it is done, and some of the terminology around it. 
 % Be sure to describe very carefully how taint tracking works in general and how it works specifically for us
 
 \section{Aspect Oriented Programming}
-As this is merely a technology we rely on, it really shouldn't appear in the relevant literature section earlier. Talk about what AOP is, what it lets us do, about dynamic instrumentation in general and how it serves taint tracking. Compare it to lower-level techniques like byte-code instrumentation and point out some advantages and disadvantages.
+Notes: As this is merely a technology we rely on, it really shouldn't appear in the relevant literature section earlier. Talk about what AOP is, what it lets us do, about dynamic instrumentation in general and how it serves taint tracking. Compare it to lower-level techniques like byte-code instrumentation and point out some advantages and disadvantages.
 
 \section{Anything Else I Should Explain}
 Can add sections here if necessary.
 
 \section{Terms Used}
 \begin{itemize}
-\item Taint: Where this is used, such as when saying that a piece of data in an application is 'tainted', it refers to data which has been tagged to be tracked by the system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case in our system. In this thesis we make a minor distinction between Objects which are directly tainted and those which are reachability tainted. Directly tainted Objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted Object is reachable through an Object's reference graph, such as by following a heirarchy of field references.
-
-\item Tomography: This refers to the nature of the taint tracking in question. Tomography-level taint tracking is a heavy form of the analysis where tainted data is not only tagged at a source and identified at predetermined monitoring points, but is rather tracked along its complete path, indiscriminantly through many monitoring points. The basic goal of tomography is to get a complete representation of where tainted data goes in a program. 
+\item Taint: Where this is used, such as when saying that a piece of data in an application is 'tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, refereed to as the 'taint source'. In this thesis is made a minor distinction between Objects which are directly tainted and those which are reachability tainted. Directly tainted Objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted Object is reachable through an Object's reference graph, such as by following a heirarchy of field references.
+\item Tomography: This refers to the nature of the taint tracking in question. Tomography-level taint tracking is a heavy form of the analysis where tainted data is not only tagged at a source and identified at predetermined monitoring points, but is rather tracked along its complete path, indiscriminantly through many monitoring points. The basic goal of tomography is to get a complete trace of where tainted data goes in a program. 
 \item Trace:
 \item Flow:
 \end{itemize}
@@ -407,50 +406,52 @@ Can add sections here if necessary.
 
 \chapter{Implementation} % EASY, BIG
 
+Note: There may be some use of the active voice in here ('we did such and such'). I am changing it to the passive form. Another option is using the first person. Not a very important manner, but will need to be consistent.
+
 \section{Overview}
-In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is precompiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a 'trace', describing events where tainted data moves from one location to another, which when taken together describe 'flows' of tainted data throughout a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
+In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is compiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a 'trace', describing events where tainted data moves from one location to another, which when taken together describe 'flows' of tainted data through a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
 
 \section{Taint Tracking Tool}
-Implemented entirely using AspectJ 1.7.0 and ajc as the compiler and bytecode weaver. No additional libraries were used.
+Implemented in 5.2K lines of Java entirely using AspectJ 1.7.0 and ajc as the compiler and bytecode weaver. No additional libraries were used.
 
 \subsection{Tool Components}
 The main components of the tool are as follows:
 
 \subsubsection{Taint I/O System} 
-This makes use of AspectJ, monitoring certain method invocations to intercept target data as it enters an application and is written out to interesting locations. The system captures information about the source of data which will be useful for developers, marks the data as tainted so that it is tracked by the rest of the system, and uses the logging system to record these input/output events. To catch a database read, for example, the system monitors certain calls in the mysql connector library to catch the returning of ResultSets from PreparedStatement objects and reads the metadata from the PreparedStatement to get table/column descriptions as a source of the data. It then calls into the Taint Reference Management System to tell it that data read from the ResultSet should be treated as tainted. For taint output we have pointcuts on methods which set parameters on PreparedStatements and on methods which write to ServletResponse output streams, with advice to log these events. Finally, for our taint tracking we want it so that if acquiring input takes as parameters any tainted data, that input is additionally tainted by the tainted parameters, as is shown in Figure Blah. This is managed by the Taint I/O System as well.
+This makes use of AspectJ, monitoring certain method invocations to intercept target data as it enters an application and is written out to interesting locations. The system captures information about the source of data which will be useful for developers, marks the data as tainted so that it is tracked by the rest of the system, and uses the logging system to record these input/output events. To catch a database read, for example, the system monitors certain calls in the mysql connector library to catch the returning of ResultSets from PreparedStatement objects and reads the metadata from the PreparedStatement to get table/column descriptions as the source of the data. It then calls into the Taint Reference Management System to tell it that data read from the ResultSet should be treated as tainted. As an example of taint output, there are pointcuts on methods which set parameters for database queries and on methods which write to ServletResponse output streams, with advice to log these events. Finally, for this system it is desired that if acquiring input takes as parameters any tainted data, that input is additionally tainted by the tainted parameters, as is shown in Figure X. This is managed by the Taint I/O System as well.
 
 \subsubsection{Taint Reference Management System (TRMS)} 
-The TRMS is responsible for keeping track of which objects are tainted. Other parts of the tool will call into this system to ask if a given object carries taint, and if so, where it came from. At the basic level, we only keep track of tainted Strings and numerical values manually targetted by the user of the tool. We don't track taint through primitives such as booleans and chars due to limitations of AspectJ and the fact that we cannot uniquely identify them. The TRMS marks Strings as tainted by keeping weak references to them in a map (mapping tainted Strings to information about the data source).
+The TRMS is responsible for keeping track of which objects are tainted. Other parts of the tool will call into this system to ask if a given object carries taint, and if so, where the taint came from. At the basic level, the system only keeps track of tainted Strings, character arrays, and numerical values manually targetted by the user of the tool. It doesn't track taint through primitives such as booleans and chars due to limitations of AspectJ and the fact that it cannot uniquely identify them. The TRMS marks Strings as tainted by keeping weak references to them in a map, mapping them to information about the taint source. Weak references are used so that the Objects can still be garbage collected.
 
-Tracking of numerical values, even though they are primitive, is enabled through the following method: When an integer is input from a source that we wish to track, the TRMS replaces it with a randomly generated value which is likely to be unique. The TRMS then maps the random value to information about the source of the value, just as it does with tainted Strings. Whenever the replaced value is output somewhere (such as to the user or as a database query parameter) the TRMS replaces it with the original value. There are cases where this form of tracking would change the operation of the program (such as if the numerical value is used in a loop counter), but in practice we found that interesting numerical values did not exhibit this behaviour.
+Tracking of numeric values, even though they are primitive, is enabled through the following method: When a numeric value is input from a source to be tracked, the TRMS replaces it with a randomly generated value which is likely to be unique. The TRMS then maps the random value to information about the source of the value, just as it does with tainted Strings. Whenever the replaced value is output somewhere, such as to the user or as a database query parameter, the TRMS replaces it with the original value. There are cases where this form of tracking would change the operation of the program, such as if the numerical value is used in a loop counter, but in practice it was found that numeric values in need of tracking did not exhibit this behaviour.
 
-The main function of the TRMS is the management of the Backward Reference Tree. In order to properly track the flow of tainted data, the system needs to know when a Java Object is reachability tainted (see terms definition). A naive strategy for determining whether an object is tainted as such is to simply deep scan the object using Reflection, however this is a costly operation and in practice inflicts too great of a performance penalty on target applications. A better stategy is to have a system where when taint is assigned to an Object (by setting a field or adding to a collection, as caught by AspectJ), we can quickly mark the Object as tainted as well as any parent Objects (Objects which contain the assigned to Object). Thus, the TRMS maintains a map of child-parent relationships, which is updated whenever a field is set. When taint is removed from an Object, we can similarly remove it from any parent Objects by following the child-parent mappings. This kind of updating is useful for situations like the one depicted in Figure blah.
+The main function of the TRMS is the management of a backward reference tree. In order to properly track the flow of tainted data, the system needs to know when a Java Object is reachability tainted (see terms definition). A naive strategy for determining whether an object is tainted as such is to simply deep scan the object using reflection, however this is a costly operation and in practice inflicts too great a performance penalty on target applications. A better stategy is to have a system where when taint is assigned to an Object (by setting a field or adding to a collection, as caught by AspectJ), one can quickly mark the Object as tainted as well as any parent Objects (Objects from which the originally tainted Object is reachable). Thus, the TRMS maintains a map of child-parent relationships, which is updated whenever a field is set. When taint is removed from an Object, one can similarly remove it from any parent Objects by following the child-parent mappings. This kind of updating is useful for situations like the one depicted in Figure X.
 
-There are several problems with this strategy, due to limitations of AspectJ which had to be overcome. Unfortunately, AspectJ does not support pointcuts for array element access, nor is one able to instrument any classes in the Java runtime. This means that wherever an array or an object from the Java runtime is used, we have data which AspectJ is blind to. The solution to this that we use is to track the reachability of arrays and Java runtime Objects in the same way that we track tainted Objects. Whenever we want to check if an Object contains taint, we also check if it contains the problematic types. If so, we scan the contents of these objects, recursively checking their contents for taint/problematic types in the same way as the original Object.
+There are, however, several problems with this strategy, due to limitations of AspectJ which had to be overcome. Unfortunately, AspectJ does not support pointcuts for array element access, nor is one able to instrument any classes in the Java runtime. This means that wherever an array or an object from the Java runtime is used, AspectJ is blind to reference changes made inside of it. The solution to this used here is to track the reachability of arrays and Java runtime Objects in the same way as tainted Objects themselves. Whenever one wants to check if an Object contains taint, also checked is if it contains such problematic Objects. If so, the contents of these Objects are scanned, recursively checking their contents for taint/problematic Objects in the same way as the original Object.
 
-In order to boost performance futher, we have a series of pointcuts and advice for catching modification operations on most Java Collections Objects. This serves the same function as the field set pointcuts for keeping the Backward Reference Tree up to date, but brings it so a set of Java runtime Objects which ordinarily would have needed to be deep scanned.
+In order to boost performance futher, there are a series of pointcuts and advice for catching modification operations on most Java Collections Objects. This serves the same function as field set pointcuts for keeping the backward reference tree up to date (THIS MAY NOT BE FULLY CLEAR), but brings it to a set of Java runtime Objects which ordinarily would have needed to be deep scanned.
 
-This kind of bookkeeping is less important in traditional taint tracking, where checking if data is tainted occurs at fewer points, but becomes more useful when we need to check for taint very frequently as in tomography.
+This kind of bookkeeping is less important in traditional taint tracking, where checking if data is tainted occurs at fewer points, but becomes more useful when needing to check for taint very frequently as in tomography.
 
 \subsubsection{Tomography System} 
-This relies on AspectJ to intercept various events where tainted data flows from one location to another. This fulfills the main function of the Taint Tracking Tool, building a complete picture of where data we are interested in goes. The basic events that we track are method calls, method returns, Object instantiation, and field set/get; and at each of these points the Tomography System calls into the TRMS to check if the arguments/return values are tainted. If they are, the logging system is called to record these events. In the case of a method return, we don't just check the return value for taint. In many cases values are 'returned' by modifying the arguments to the call, so we keep a record of what taint each argument carried before the method was invoked and check to see if they carry any new taint when the method is returning. 
+This relies on AspectJ to intercept various events where tainted data flows from one location to another. This fulfills the main function of the TTT, building a complete picture of where data one is interested in goes. The basic events that tracked are method calls, method returns, Object instantiation, and field set/get; and at each of these points the Tomography System calls into the TRMS to check if the arguments/return values are tainted. If they are, the logging system is called to record these events. In the case of a method return, the system doesn't just check the return value for taint; in many cases values are 'returned' by modifying the arguments to the call, so the system keeps a record of what taint each argument carried before the method was invoked and checks to see if they carry any new taint when the method is returning. 
 
-In addition to tracking these basic events, the Tomography System advises every method on String, StringBuffer, and StringBuilder Objects which cause several important events. These we call Propagation events, where tainted Strings influence the value of other Strings (example cases would be copying a String or appending it to a StringBuilder); Modification events, where tainted Strings are changed in some way (examples being appended to or having characters deleted from); and Composition/Association events, where multiple tainted Strings are combined or used together (examples being appending or equality checks). Propagation events are particularly important, as such Strings derived from tainted Strings must be added to the TRMS so that they are tracked by the rest of the Tomography System. The Modification/Composition/Association events are logged as they are of use in performing certain analyses in the Analysis Tool.
+In addition to tracking these basic events, the Tomography System advises every method on String, StringBuffer, and StringBuilder Objects which cause several important events. These are termed 'propagation' events, where tainted Strings influence the value of other Strings (example cases would be copying a String or appending it to a StringBuilder); 'modification' events, where tainted Strings are changed in some way (examples being appended to or having characters deleted from); and 'composition/association' events, where multiple tainted Strings are combined or used together (examples being appending or equality checks). Propagation events are particularly important, as such Strings derived from tainted Strings must be added to the TRMS so that they are tracked by the rest of the Tomography System. The modification/composition/association events are logged as they are of use in performing certain analyses in the Analysis Tool.
 
-Finally, the Tomography System employs some heuristics to attempt to track tainted Strings through methods which may 'lose' the taint. By 'lose' we mean that at a semantic level the method does pass tainted data from one location to another, but due to how it processes that data the kinds of checks allowed with AspectJ will not be able to rigorously track it. A real example of this are cases where a String is processed and used to build a new String character-by-character, as was the case in some encoding methods we encountered. Properly tracking this kind of taint flow would require instrumentation at a lower level not possible in AspectJ, likely requiring one to taint individual bytes (as has been done in some taint tracking research). As such was not possible in our timeframe, we address this issue using fuzzy String matching. We use a Levenshtein distance measure to check if non-tainted String outputs from a method execution match within some threshold any tainted inputs, and if so we propagate taint from the matching inputs to the outputs. These events are separately logged, so that one can additionally verify the correctness of the heuristic in each case, and in practice this worked well.
+Finally, the Tomography System employs some heuristics to attempt to track tainted Strings through methods which may 'lose' the taint. By 'lose' is meant that at a semantic level the method does pass tainted data from one location to another, but due to how it processes that data the kinds of checks allowed with AspectJ will not be able to properly track it. Real examples of this are cases where a String is processed and used to build a new String character-by-character, as was the case in some encoding methods encountered in tested applications. Properly tracking this kind of taint flow would require instrumentation at a lower level not possible in AspectJ, likely requiring one to taint individual bytes (as has been done in some taint tracking research). As such was not possible in the timeframe of this thesis, the issue was addressed using fuzzy String matching. A Levenshtein distance measure is used to check if non-tainted String outputs from a method execution match within some threshold any tainted inputs, and if so the taint is propagated from the matching inputs to the outputs. These events are separately logged, so that one can verify the correctness of the heuristic in each case, and in practice this worked well.
 
 \subsubsection{Basic Profiling}
-Code is included in the tool to gather supplementary data outside of taint tracking for the analyses. Such data could indeed be captured by other existing tools, but we implemented our own means in order to keep the data collection process simple as well as because there would likely be problems when instrumenting a web application with multiple profilers at once. Currently we log data to build control flow graphs and have some simple profiling code to log method execution times.
+Code is included in the tool to gather supplementary data outside of taint tracking for the analyses. Such data could indeed be captured by other existing tools, but the implementation is provided here in order to keep the data collection process simple as well as because there would likely be problems when instrumenting a web application with multiple profilers at once. Currently there is logging to build control flow graphs and some simple profiling code to track method execution times.
 
 \subsubsection{Logging System}
-This provides a set of methods to be used by the other parts of the tool to log discrete events which are useful for analysis. These logs are currently formatted in XML and output to a log file.
+This provides a set of methods to be used by the other parts of the tool to log the events which together form the taint traces, as well as provide additional data useful for analysis. These logs are currently formatted in XML and output to a log file.
 
 \subsubsection{User Control System} 
-This was added in order to provide some control over the dynamic operation of the tool. Rather than simply logging everything for every operation performed in a target web application, the control system provides socket communication with the tool in order to enable/disable various tracking components and the application runs. This allows us to disable, for example, tracking during web server initialization which may contain data we are not interested in.
+This was added in order to provide some control over the dynamic operation of the tool. Rather than simply logging everything for every operation performed in a target web application, the control system provides socket communication with the tool in order to enable/disable various tracking components and the application runs. This allows one to disable, for example, tracking during web server initialization which may contain data one is not interested in.
 
 \subsection{Build Architecture}
 
-In order to completely track tainted data through an application's execution, we must instrument not only the application, but also every library that it uses. For instrumenting new web applications, and for whenever the tracker code needs to be modified, we provide an Ant build script to automate this process. Given a target web application, the build script performs the following:
+In order to completely track tainted data through an application's execution, one must instrument not only the application, but also every library that it uses. For instrumenting new web applications, and for whenever the tracker code needs to be modified, an Ant build script is provided to automate this process. Given a target web application, the build script performs the following:
 
 \begin{itemize}
 \item Compile the tracker code
@@ -461,14 +462,15 @@ In order to completely track tainted data through an application's execution, we
 \end{itemize}
 
 \subsection{Example Operation of Tool}
-In order to better explain tool, give a high level but reasonably in depth breakdown of how the tool might operate.
+Notes: In order to better explain tool, give a high level but reasonably in depth breakdown of how the tool might operate.
 
 \subsection{Justification of Implementation}
-As has been discussed in this thesis, many taint tracking implementations exist [REFERENCES], and even some for Java web applications [REFERENCES]. The problem is that we could not find an implementation that would provide Tomography-level tracking, which was necessary to address our research problems. We did start out using a Java String taint tracking implementation by SO AND SO [REFERENCE], but as our system developed we realized that the fucntionality we needed from their implementation was easily and more naturally supported in our own. Aspect Oriented Programming (AOP) was chosen as it conceptually provided the high level functionality we needed to perform the tracking, saving us from writing a system completely from scratch and allowing the tracker to be implemented in the available timeframe. The alternative would likely have been to learn the use of a Java bytecode manipulation framework, such as ASM or BCEL, and build up the tracker from a much lower level. AspectJ was specifically chosen as it was the most mature, well-documented, and stable implementation of AOP available for Java programs. Other implementations were experimented with, mainly while searching for solutions to some of AspectJ's limitations, including JBoss AOP [REFERENCE] and the AspectBench Compiler [REFERENCE], but these proved to be too unstable for our needs.
+As has been discussed in this thesis, many taint tracking implementations exist [REFERENCES], and even some for Java web applications [REFERENCES]. The problem is that an implementation that would provide Tomography-level tracking could not be found, which was necessary to address the research problems. A Java String taint tracking implementation by X [REFERENCE] was used at first, but as the system presented here developed it was realized that the functionality needed from their implementation was easily and more naturally supported in the TTT. Aspect Oriented Programming (AOP) was chosen as it conceptually provided the high level functionality needed to perform the tracking, saving on effort needed to write the system and allowing the tracker to be implemented in the available timeframe. The alternative would likely have been to learn the use of a Java bytecode manipulation framework, such as ASM or BCEL, and build up the tracker from a much lower level. AspectJ was specifically chosen as it was the most mature, well-documented, and stable implementation of AOP available for Java programs. Other implementations were experimented with, mainly while searching for solutions to some of AspectJ's limitations, including JBoss AOP [REFERENCE] and the AspectBench Compiler [REFERENCE], but these proved to be too unstable or limited.
 
-\subsection{Log Table}
+\subsection{Logs}
 
-We provide here a breakdown of the log structure that our tool uses, for reference when describing other parts of our implementation and for gauging the completeness of our tracking.
+THIS NEEDS TO BE FORMATTED, DIFFICULT TO READ\\\\
+Provided here is a breakdown of the log structure that the tool uses, for reference when describing other parts of the implementation and for gauging the completeness of the tracking.
 
 \begin{itemize}
 \item location Tag \\ 
@@ -569,31 +571,31 @@ This is similar to the Returning Log, but indicates that a tainted Object has be
 % and not everything string/piece of data
 
 \section{Analysis Tool}
-Implemented entirely in Java and using the JUNG 2.0.1 framework for visualizating and working with graphs.
+Implemented in 5.7K lines of Java using the JUNG 2.0.1 framework for visualizating and working with graph data.
 
 \subsection{Tool Components}
 The main components of the tool are as follows:
 
 \subsubsection{Visualization System} 
-This relies primarily on the JUNG framework to provide a more user-friendly means of working with the taint tracking data. To use the tool, a log file is specified which is then used to generate an internal JUNG graph representation. The presentation of taint traces in graph form is as depicted in Figure Blah. Nodes in the graph represent locations where tainted data has been detected. These are mostly method calls, where a node is identified by its class name, method name, argument types, and Object ID if the method is non-static; fields, with a class name, fieldname, and Object ID if needed; and input nodes, which provide information about where tainted data originated. The nodes are connected by directed edges describing each event where tainted data flows from one location to another, listing the type of event (Call, Return, Field Get/Set, etc) and an identifier. Using the identifier, the user can view the details of the tainted data flowing on a particular edge.
+This relies primarily on the JUNG framework to provide a more user-friendly means of working with the taint tracking data. To use the tool, a log file is specified which is then used to generate an internal JUNG graph representation. The presentation of taint traces in graph form is as depicted in Figure X. Nodes in the graph represent locations where tainted data has been detected; these are mostly method calls, where a node is identified by its class name, method name, argument types, and Object ID if the method is non-static; fields, with a class name, fieldname, and Object ID if needed; and input nodes, which provide information about where tainted data originated. The nodes are connected by directed edges describing each event where tainted data flows from one location to another, listing the type of event (Call, Return, Field Get/Set, etc) and an identifier. Using the identifier, the user can view the details of the tainted data flowing on a particular edge.
 
 The entire graph can be viewed all at once, but the traces are often so large that it is impossible to comprehend the output. To support a more controlled viewing, the Visualization System supplies several filters to look at subsets of the full graph. These are:
 
 \begin{itemize}
-\item TaintID Filter: Presented in the tool is a tree-style list of the taintIDs in the trace, as is shown in Figure Blah. At the top level of the list are original TaintIDs assigned to data as it was read from tainted input sources. Expanding an item reveals taintIDs which are result of Propagation events from the parent taintID. Selecting an item will cause the graph to only show edges which carry taint which matches the selected ID. Selecting the 'Deep' checkbox extends this to show the selected taintID and any IDs which were propagated from it, giving a complete picture of where data with the selected taintID flowed.
+\item TaintID Filter: Presented in the tool is a tree-style list of the taintIDs in the trace, as is shown in Figure X. At the top level of the list are original taintIDs assigned to data as it was read from tainted input sources. Expanding an item reveals taintIDs which are result of Propagation events from the parent taintID. Selecting an item will cause the graph to only show edges which carry taint which matches the selected ID. Selecting the 'Deep' checkbox extends this to show the selected taintID and any IDs which were propagated from it, giving a complete picture of where data with the selected taintID flowed.
 
 \item RequestID Filter: For traces taken over multiple requests to the application, this allows a user to view the data collected for a single request.
 
-\item Forward Graph Filter: This allows one to specify an edge, which is then expanded into a graph by following the flow of tainted data carried by that edge. It makes use of the caller/called ContextCounter information from the logs to only expand to edges which were actually caused by the specified edge. 
+\item Forward Graph Filter: This allows one to specify an edge, which is then expanded into a graph by following the flow of tainted data carried by that edge. It makes use of the caller/called ContextCounter information from the logs to only expand to edges which were actually 'caused' by the specified edge. 
 
 \item Manual Filter: For fine viewing control, this allows a user to view only selected nodes, and then expand to neigboring nodes to track the flow of tainted data step by step.
 
 \end{itemize}
 
-Having these tools for working with the graphs, while no substitute for the automated analyses, are nevertheless very important when a user needs to make use of the data. The results of analyses are themselves often presented in the same graph form, which can still be difficult to understand without some filtering.
+Having these tools for working with the graphs, while no substitute for the automated analyses, is nevertheless very important when a user needs to make use of the data. The results of analyses are themselves often presented in the same graph form, which can still be difficult to understand without some filtering.
 
 \subsubsection{Graph Preprocessing}
-Before the graphs are displayed or analyzed, the Analysis Tool performs proprocessing steps on the data in order to better work with it. The first is the addition of supplementary edges. There are cases when tracking the flow of tainted data where representation of it requires some care. Consider for example the case in Figure Blah where a tainted String is used to construct a new StringBuilder; taint flows from the calling method to the StringBuilder constructor. If the StringBuilder's toString() method is then called, taint flows from the toString() method back to the calling method. As is shown in the figure, the taint is shown to flow out into one StringBuilder node, and then back from another one, with no connection between them even though intuitively tainted data flows from one to the other. Solutions to this could be to group the StringBuilder nodes somehow, or to have a node for each Object rather than each Object method, but these either don't support analysis well or lower its granularily. Instead, the graph is searched for such cases where taint flows into an Object through some method call and that same taint (or taint propagated from it) flows out of the Object through a different method returning. Supplementary edges are added between the nodes in question to reflect the flow of tainted data.
+Before the graphs are displayed or analyzed, the Analysis Tool performs proprocessing steps on the data in order to better work with it. The first is the addition of supplementary edges. There are cases when tracking the flow of tainted data where representation of it requires some care. Consider for example the case in Figure X where a tainted String is used to construct a new StringBuilder; taint flows from the calling method to the StringBuilder constructor. If the StringBuilder's toString() method is then called, taint flows from the toString() method back to the calling method. As is shown in the figure, the taint is shown to flow out into one StringBuilder node, and then back from another one, with no connection between them even though intuitively tainted data flows from one to the other. Solutions to this could be to group the StringBuilder nodes somehow, or to have a node for each Object rather than each Object method, but these either don't support analysis well or lower its granularily. Instead, the graph is searched for such cases where taint flows into an Object through some method call and that same taint (or taint propagated from it) flows out of the Object through a different method returning. Supplementary edges are added between the nodes in question to reflect the flow of tainted data.
 
 The second preprocessing step finds unused flows of tainted data. These are cases where tainted data is communicated from one location to another, but is subsequently never used. This step examines reachability tainted Objects in graph edges to see if the directly tainted Objects they carry are ever accessed from them. This is done by scanning ahead in the graph, looking for flows carrying the directly tainted Objects themselves. If not, the directly tainted Objects are marked as unused for the edge and reachability tainted Object. This preprocessing step is useful for some of automated analyses which follow.
 
@@ -604,7 +606,7 @@ The second preprocessing step finds unused flows of tainted data. These are case
 % Probably want to talk about some graph preprocessing that we do
 
 \subsubsection{Input Description File}
-This is an XML file created by the user which supplies information needed by some of the analyses. Its format is given in Appendix Blah. It is read by the analysis tool and gives a measure of how stable various data sources (database columns and user parameters) are, from producing values which change rarely to completely unpredictable input.
+This is an XML file created by the user which supplies information needed by some of the analyses. Its format is given in Appendix X. It is read by the analysis tool and gives a measure of how stable various data sources (database columns and user parameters) are, from producing values which change rarely to completely unpredictable input.
 
 \subsubsection{Automated Analyses}
 The main purpose of the Analysis Tool is to provide easy to use automatic analyses over taint trace graphs. After loading a trace, a user need only select an analysis which runs without guidance until complete. For most analyses, the results will be presented as a series of graphs added to the viewing area with some supplementary text explaining the results.
@@ -614,7 +616,7 @@ The main purpose of the Analysis Tool is to provide easy to use automatic analys
 % Need to add figures to all of these
 
 \subsubsection{Caching}
-The caching analysis seeks to find opportunities to save on computation/communication by suggesting locations where caches could be considered. By a cache we mean code and data storage mechanisms which take the results of computations over some inputs, and store the results - mapping the inputs to them. The next time the computations are invoked with the same inputs, we can return the stored results rather that redoing the computation. For a cache to work, we need to be aware of all inputs to the computation. If any inputs which affect the results are missed, when those inputs vary the cache may return invalid results from the store. What this analysis essentially does is look for regions of the graph which are only carrying taint from non-random inputs. By non-random we mean inputs with reasonably predictable values over a small enough range that the cache will be useful and not frequently missing. This analysis relies on the input description file described in Section blah to determine whether or not given tainted data is random. The assumption is that if all of the inputs to a computation, represented in the graph by a network of nodes, are predictable enough, the computation is a good candidate for caching. The identified subgraph can then be presented to the user as an indication of the possibility of a cache as well as a guide for what parts of the application must be considered when doing so.
+The caching analysis seeks to find opportunities to save on computation/communication by suggesting locations where caches could be considered. By a cache we mean code and data storage mechanisms which take the results of computations over some inputs, and store the results - mapping the inputs to them. The next time the computations are invoked with the same inputs, we can return the stored results rather that redoing the computation. For a cache to work, we need to be aware of all inputs to the computation. If any inputs which affect the results are missed, when those inputs vary the cache may return invalid results from the store. What this analysis essentially does is look for regions of the graph which are only carrying taint from non-random inputs. By non-random we mean inputs with reasonably predictable values over a small enough range that the cache will be useful and not frequently missing. This analysis relies on the input description file described in Section X to determine whether or not given tainted data is random. The assumption is that if all of the inputs to a computation, represented in the graph by a network of nodes, are predictable enough, the computation is a good candidate for caching. The identified subgraph can then be presented to the user as an indication of the possibility of a cache as well as a guide for what parts of the application must be considered when doing so.
 
 The algorithm for performing this analysis is as follows:
 
@@ -628,35 +630,32 @@ The algorithm for this analysis is the same as for caching, except that the requ
 \subsubsection{Postcomputation}
 The Postcomputation analysis looks for flows of tainted data which represent computations which could be deferred until later. This is in the context of a user submitting a request to a web application, where we are interested in opportunities to send the user a response more quickly. For some applications, the user may only be interested in data which composes the response web page for a submitted request, which we call user output. Computation which outputs to the database or other parts of the application may not need to be complete before sending the user the response, and this analysis attempts to locate such computations. At a high level, this is done by tracing the flows of tainted in the graph, looking for subgraphs carrying only taint which never flows to a user output.
 
-The algorithm used for this analysis is as follows:
+The algorithm used for this analysis is as follows: ADD ALGORITHM DESCRIPTION
 
 % Maybe mention this node CFG generated somewhere earlier and more central, to refer back to.
--Request from the analysis tool a data structure which provides a control flow graph for any node in the taint flow graph.
-
--As a graph my represent data collected over multiple user requests, divide it into a set of subgraphs, one for the data from each request.
-
--For each such request graph:
-	-Get a subgraph of nodes which carry only stable taint, called the 'Stable Subgraph'
-		-Check each edge, and if it carries something other than stable taint, remove the edge as well as the nodes it is connected to.
-	-Get a subgraph of nodes which do not carry random taint, called the 'Predictable Subgraph'
-		-Check each edge, and if it carries random taint, remove the edge as well as the nodes it is connected to.
-	-Remove from the Predictable Subgraph any nodes in the Stable Subgraph, as those are for the precomputation analysis.
-
-
-
+%-Request from the analysis tool a data structure which provides a control flow graph for any node in the taint flow graph.
+%
+%-As a graph my represent data collected over multiple user requests, divide it into a set of subgraphs, one for the data from each request.
+%
+%-For each such request graph:
+%	-Get a subgraph of nodes which carry only stable taint, called the 'Stable Subgraph'
+%		-Check each edge, and if it carries something other than stable taint, remove the edge as well as the nodes it is connected to.
+%	-Get a subgraph of nodes which do not carry random taint, called the 'Predictable Subgraph'
+%		-Check each edge, and if it carries random taint, remove the edge as well as the nodes it is connected to.
+%	-Remove from the Predictable Subgraph any nodes in the Stable Subgraph, as those are for the precomputation analysis.
 
 \subsubsection{Application State}
 The goal of this analysis is to locate persistent state in an application. This does not refer the data an application keeps in a database, but rather to such more temporary state as might be kept in sessions stores and static variables. This kind of state can be used to keep data associated with users to facilitate their interaction with a site over multiple requests. Examples include shopping carts, which allow users of shopping sites to collect items as they browse them, to be bought together on checkout; or something as simple as a username, displayed on each page. Knowing where such state is is useful for developers as it must be managed carefully in various scenarios. When replicating computation which relies on such state, it needs to be kept up to date and distributed to all locations where required. When migrating an application to a new environment, certain kinds of state may not be well-supported. For example, if migrating to the Google App Engine platform, state in static variables would be interfered with by the system's tendancy to shut down idle applications. This analysis identifies such state by looking for instances where the same pieces of data are accessed in over multiple requests, then presents to the user subgraphs showing where the state is stored and what parts of the application it is communicated to.
 
-The simple algorithm used to do this is as follows:
+The simple algorithm used to do this is as follows: ADD ALGORITHM DESCRIPTION
 
 \subsubsection{Personal State}
 This analysis is similar to the one which locates application state. It goes beyond it by trying to determine whether a given piece of such state is used to communicate data to only a single user. The shopping cart example given for the application state analysis describes such state, as no other user need view another's cart. This is opposed to persistent data which supports interaction between users, such as a chat window for sharing messages or a list of online users. The motivation for finding such state is to identify opportunities to relocate state to the user. If the data is only shared with a single user, then it could potentially be moved from the server to the client. A user's browser could store the items in a shopping cart, and submit them to the server only when needed. This has such advantages as allowing a user to keep application state despite problems on the server, or easily carry their state with them if their requests need to be directed to another server hosting the application. Personal state is identified by generating a trace while interacting with the application with multiple users, and then looking for data which is only ever accessed by a single remote IP address.
 
-The algorithm used for this analysis is as follows:
+The algorithm used for this analysis is as follows: ADD ALGORITHM DESCRIPTION
 
 \subsubsection{Wasteful Communication}
-Section blah describes a graph preprocessing step which the Analysis Tool performs to identify instances where tainted data is communicated between locations but subsequently never used. Given this step, this analysis is easy to perform, and merely needs to compile a report of where data is communicated wastefully by checking the edges in the graph for taint marked as such. 
+Section X describes a graph preprocessing step which the Analysis Tool performs to identify instances where tainted data is communicated between locations but subsequently never used. Given this step, this analysis is easy to perform, and merely needs to compile a report of where data is communicated wastefully by checking the edges in the graph for taint marked as such. 
 
 An obvious use for such an analysis is to help a developer potentially eliminate these communication. Such is especially useful if the application is to be partitioned and such communication would be crossing costly boundaries. Another use for this is also motivated by application partitioning, where the data can be used to improve the analyses used in that space. Application partitioning algorithms generally consider module execution costs and communication costs between them when determining an optimal way to group and separate modules. A simple strategy which monitors inter-module communication events (such as method calls), can report the cost of the communication as the total size of the data communicated. However, some of this data may never be used, and knowing this can allow for better communication cost estimates. Such could lead to more optimal partitionings, as long as there is a mechanism in place to avoid the wasted communication, such as by eliminating it altogether or employing a lazy communication method where the data is only communicated when it is actually needed.
 
@@ -667,7 +666,7 @@ An obvious use for such an analysis is to help a developer potentially eliminate
 \subsubsection{Access Path Refactoring (APR)}
 This last analysis is arguably the most complicated and ambitious. APR is the name we give to an analysis which attempts to discover beneficial modifications to how an applications accesses its database-resident data. This is to be used mainly in a partitioning scenario, where the data used to fulfill various requests may end up crossing expensive partition boundaries. APR takes as input a suggested partitioning of modules in a trace, and attempts to position database sources, at the granularity of columns, to lower communication costs. To do this the analysis uses the taint tracking data to locate dependencies between data sources to attempt to determine the consequences of moving various data sources - moving one data source to another partition which uses the data can save communicating data from that source, but may then require additional data from other sources to be sent to the new partition. This kind of savings/cost balance is evaluated to determine a possible 'best' arrangement of data sources.
 
-The algorithm that we use to implement this analysis is as follows:
+The algorithm that we use to implement this analysis is as follows: ADD ALGORITHM DESCRIPTION
 
 %\subsection{Justification of Implementation}
 
@@ -676,39 +675,65 @@ The algorithm that we use to implement this analysis is as follows:
 
 \chapter{Evaluation} % MODERATE - DIFFICULT
 
-\section{Overview}
-Notes: Give a high level description of how the system was evaluated
+\section{Evaluation Strategy/Goals}
+%Notes: One of my contributions is the taint tracker itself. Is there anything to be said in my evaluation about the tracker itself?
 
-Notes: Will want to make the case somewhere for this being a largely qualitative work. It is difficult to numerically guage the effectiveness of our techniques without a more extensive effort to analyze, modify based on tool suggestions, and test a wide range of applications. A more quantitative analysis can be done as future work.
+%Notes: Discuss qualitative evaluation. How the main point is to, given an application, check if each of my analyses can be applied successfully to my application. There were two ways that this was done. One was to find 'results' manually by learning and inspecting the code, and then running the analyses to see if these could be automatically identified. The other was to run the analyses, and then inspect the results we have not manually verified in advance to see if they were also valid.
+
+%Notes: Give a high level description of how the system was evaluated
+
+%Notes: Will want to make the case somewhere for this being a largely qualitative work. It is difficult to numerically guage the effectiveness of our techniques without a more extensive effort to analyze, modify based on tool suggestions, and test a wide range of applications. A more quantitative analysis can be done as future work.
+
+In using the Tracking and Analysis tools to test the claims made in the thesis, the focus was on performing a more qualitative evaluation. This was in part due to time constraints, as a proper quantitative evaluation would have required testing the tools with a wider range of applications, modifying each application according to the results of the various analyses, and testing those applications in realistic environments to assess the modifications. While such would certainly be interesting, it is beyond the scope of this thesis and must be left to future work. Additionally, a qualitative evaluation is better suited to succinctly demonstrating 
+% Time constraints, also to keep thesis focused. Not concerned with any one analysis. Want to show that taint tracking can identify various properties of a system, and that these properties do indeed exist. Not concerned precisely with HOW GOOD A CACHE IS. To evaluate such would require checking many applications, and rigorously testing performance. Also subject to how well a developer even implements the cache. The goal is instead to show that taint tracking supports SO MANY real things. Want to showcase a variety of analyses to show the potential of the analysis.
+
+%Notes: Have I check enough applications? Only 2 at present, RUBiS and jGossip.
+%Notes: I talk about 'migration' but I don't actually migrate anything. I am more showcasing some analyses which COULD be useful for migration. Will maybe want to cover this in the discussion, and relate the evaluation results to this reality.
 
 \section{Choosing Applications}
 
+Notes: Have currently tested the tool on RUBiS and jGossip. Justify the choice of each one. RUBiS was chosen as it was a realistic, working application, and mainly as a starting point for our analyses because it is small, easy to understand (for manually checking analyses), and easy to modify where needed.
 
-\section{Evaluation Strategy/Goals}
-Todo
+Notes: jGossip was chosen by searching for large, popular open source Java web applications.
 
-\section{Applications}
-Todo
+\section{Application Results}
+
+% The thing to be wary of here is that at this point I have only checked my results by code inspection, and by really just going with what I feel. I haven't really acted on any of the analysis results at all, but it is possible that I could in some cases.
+
+% RUBiS:
+% Persistent State:
+% User State:
+% Caching:
+% Precomputation: 
+% Postcomputation: 
+% Wasteful communication: 
+% APR: 
+
+% jGossip:
+% Persistent State:
+% User State:
+% Caching:
+% Precomputation:
+% Postcomputation:
+% Wasteful communication:
+% APR: NOT ATTEMPTED
 
 \subsection{RUBiS}
-Todo
+Discuss results of analysis on RUBiS. Break down by individual analysis.
 
 \subsection{jGossip}
-Todo
+Do the same for jGossip
 
 \chapter{Conclusions} % DIFFICULT
 
-\section{Statement of Results}
-Todo
-
-\section{Discussion}
-Todo
+\section{Discussion of Results}
+Notes: Basically the analyses were mostly successful. Most interesting results were the those from caching, post computation, and user-state finding. Discuss presence of false positives.
 
 \section{Future Work}
-Todo
+Notes: This section will include: developing the APR analysis further, finding more analyses, testing with more applications, a more in-depth study where suggestions made by the tool are properly implemented and deployed, a user-study where developers are tested with the analysis tool to see if they can make sense of the results and if it helps them in understanding the target applications
 
 \section{Final Words}
-Todo
+Notes: Wrap up the thesis with a summary of everything discussed and some key thoughts to take away from it. Basically want to state that given what is presented here, one should believe that taint tracking can gather data which supports well many useful analyses for optimizing web applications in a variety of ways. Would be worth it to develop these techniques further.
 
 %%Here is a section with some text.  Equations look like this
 %%$y=x$.\footnote{Here is a footnote.

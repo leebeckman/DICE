@@ -20,42 +20,42 @@
 \contentsline {section}{\numberline {3.1}{Overview}}{5}{section.3.1}
 \contentsline {section}{\numberline {3.2}{Taint Tracking Tool}}{5}{section.3.2}
 \contentsline {subsection}{\numberline {3.2.1}{Tool Components}}{5}{subsection.3.2.1}
-\contentsline {subsubsection}{{Taint I/O System}}{5}{section*.8}
+\contentsline {subsubsection}{{Taint I/O System}}{6}{section*.8}
 \contentsline {subsubsection}{{Taint Reference Management System (TRMS)}}{6}{section*.9}
-\contentsline {subsubsection}{{Tomography System}}{7}{section*.10}
-\contentsline {subsubsection}{{Basic Profiling}}{8}{section*.11}
+\contentsline {subsubsection}{{Tomography System}}{8}{section*.10}
+\contentsline {subsubsection}{{Basic Profiling}}{9}{section*.11}
 \contentsline {subsubsection}{{Logging System}}{9}{section*.12}
 \contentsline {subsubsection}{{User Control System}}{9}{section*.13}
 \contentsline {subsection}{\numberline {3.2.2}{Build Architecture}}{9}{subsection.3.2.2}
-\contentsline {subsection}{\numberline {3.2.3}{Example Operation of Tool}}{9}{subsection.3.2.3}
+\contentsline {subsection}{\numberline {3.2.3}{Example Operation of Tool}}{10}{subsection.3.2.3}
 \contentsline {subsection}{\numberline {3.2.4}{Justification of Implementation}}{10}{subsection.3.2.4}
-\contentsline {subsection}{\numberline {3.2.5}{Log Table}}{10}{subsection.3.2.5}
-\contentsline {section}{\numberline {3.3}{Analysis Tool}}{14}{section.3.3}
-\contentsline {subsection}{\numberline {3.3.1}{Tool Components}}{14}{subsection.3.3.1}
-\contentsline {subsubsection}{{Visualization System}}{14}{section*.14}
+\contentsline {subsection}{\numberline {3.2.5}{Logs}}{10}{subsection.3.2.5}
+\contentsline {section}{\numberline {3.3}{Analysis Tool}}{15}{section.3.3}
+\contentsline {subsection}{\numberline {3.3.1}{Tool Components}}{15}{subsection.3.3.1}
+\contentsline {subsubsection}{{Visualization System}}{15}{section*.14}
 \contentsline {subsubsection}{{Graph Preprocessing}}{16}{section*.15}
-\contentsline {subsubsection}{{Input Description File}}{16}{section*.16}
+\contentsline {subsubsection}{{Input Description File}}{17}{section*.16}
 \contentsline {subsubsection}{{Automated Analyses}}{17}{section*.17}
 \contentsline {subsection}{\numberline {3.3.2}{Available Analyses}}{17}{subsection.3.3.2}
 \contentsline {subsubsection}{{Caching}}{17}{section*.18}
-\contentsline {subsubsection}{{Precomputation}}{17}{section*.19}
+\contentsline {subsubsection}{{Precomputation}}{18}{section*.19}
 \contentsline {subsubsection}{{Postcomputation}}{18}{section*.20}
-\contentsline {subsubsection}{{Application State}}{18}{section*.21}
+\contentsline {subsubsection}{{Application State}}{19}{section*.21}
 \contentsline {subsubsection}{{Personal State}}{19}{section*.22}
-\contentsline {subsubsection}{{Wasteful Communication}}{19}{section*.23}
+\contentsline {subsubsection}{{Wasteful Communication}}{20}{section*.23}
 \contentsline {subsubsection}{{Access Path Refactoring (APR)}}{20}{section*.24}
-\contentsline {chapter}{\numberline {4}{Evaluation}}{21}{chapter.4}
-\contentsline {section}{\numberline {4.1}{Choosing Applications}}{21}{section.4.1}
-\contentsline {section}{\numberline {4.2}{Evaluation Strategy/Goals}}{21}{section.4.2}
-\contentsline {section}{\numberline {4.3}{Applications}}{21}{section.4.3}
-\contentsline {subsection}{\numberline {4.3.1}{RUBiS}}{21}{subsection.4.3.1}
-\contentsline {subsection}{\numberline {4.3.2}{jGossip}}{21}{subsection.4.3.2}
-\contentsline {chapter}{\numberline {5}{Conclusions}}{22}{chapter.5}
-\contentsline {section}{\numberline {5.1}{Statement of Results}}{22}{section.5.1}
-\contentsline {section}{\numberline {5.2}{Discussion}}{22}{section.5.2}
-\contentsline {section}{\numberline {5.3}{Future Work}}{22}{section.5.3}
-\contentsline {section}{\numberline {5.4}{Final Words}}{22}{section.5.4}
-\contentsline {chapter}{{Bibliography}}{23}{chapter*.25}
+\contentsline {chapter}{\numberline {4}{Evaluation}}{22}{chapter.4}
+\contentsline {section}{\numberline {4.1}{Overview}}{22}{section.4.1}
+\contentsline {section}{\numberline {4.2}{Choosing Applications}}{22}{section.4.2}
+\contentsline {section}{\numberline {4.3}{Evaluation Strategy/Goals}}{22}{section.4.3}
+\contentsline {section}{\numberline {4.4}{Application Results}}{23}{section.4.4}
+\contentsline {subsection}{\numberline {4.4.1}{RUBiS}}{23}{subsection.4.4.1}
+\contentsline {subsection}{\numberline {4.4.2}{jGossip}}{23}{subsection.4.4.2}
+\contentsline {chapter}{\numberline {5}{Conclusions}}{24}{chapter.5}
+\contentsline {section}{\numberline {5.1}{Discussion of Results}}{24}{section.5.1}
+\contentsline {section}{\numberline {5.2}{Future Work}}{24}{section.5.2}
+\contentsline {section}{\numberline {5.3}{Final Words}}{24}{section.5.3}
+\contentsline {chapter}{{Bibliography}}{25}{chapter*.25}
 \contentsline {part}{{Appendices}}{}{}
-\contentsline {chapter}{\numberline {A}{First Appendix}}{24}{appendix.A}
-\contentsline {chapter}{\numberline {B}{Second Appendix}}{25}{appendix.B}
+\contentsline {chapter}{\numberline {A}{First Appendix}}{26}{appendix.A}
+\contentsline {chapter}{\numberline {B}{Second Appendix}}{27}{appendix.B}
