@@ -75,6 +75,8 @@ public aspect StringTracking {
 		within(org.apache.catalina.U*) ||
 		within(org.apache.catalina.V*) ||
 		within(org.apache.catalina.W*) ||
+
+		within(org.apache.jasper.xmlparser.XMLChar) ||
 		
 		within(org.apache.naming..*) ||
 		within(org.apache.AnnotationProcessor) ||
@@ -866,7 +868,7 @@ public aspect StringTracking {
     /*
      * Monitors all method invocations and returns for fuzzy propagation
      */
-    after() returning (Object ret): execution(public * *.*(..)) && !(myAdvice()) && !allExclude() {
+    after() returning (Object ret): call(public * *.*(..)) && !(myAdvice()) && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
     	Object[] args = thisJoinPoint.getArgs();

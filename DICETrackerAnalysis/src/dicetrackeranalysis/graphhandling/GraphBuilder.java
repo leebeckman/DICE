@@ -67,6 +67,7 @@ public class GraphBuilder {
         // Does this follow supplementary edges correctly? Should be able to track use even through session attribute
         // Supplementary edge can probably be though of almost as a return
         markUnusedSubTaint();
+        setObjectFieldNames();
     }
 
     public GraphBuilder(GraphBuilder input) {
@@ -286,6 +287,27 @@ public class GraphBuilder {
                     }
                 }
             }
+        }
+    }
+
+    private void setObjectFieldNames() {
+        Graph<TaintNode, TaintEdge> fullGraph = this.getMultiGraph();
+
+        HashMap<String, String> idToFieldNameMap = new HashMap<String, String>();
+
+        for (TaintEdge edge : fullGraph.getEdges()) {
+            if (edge.getType().equals("FIELDGET")) {
+                String objectID = edge.getTaintedObjects().getFirst().getObjectID();
+                String fieldName = edge.getFieldName();
+                idToFieldNameMap.put(objectID, fieldName);
+                System.out.println("Mapping " + objectID + " to " + fieldName);
+            }
+        }
+
+        for (TaintNode node : fullGraph.getVertices()) {
+            String fieldName = idToFieldNameMap.get(node.getID());
+            if (fieldName != null)
+                node.setObjectFieldName(fieldName);
         }
     }
 
@@ -596,6 +618,7 @@ public class GraphBuilder {
                 else if (edge.getType().equals("FIELDGET")) {
                     callingNode = nodeMap.get(edge.getFieldName());
                     calledNode = nodeMap.get(edge.getTargettedDest());
+                    System.out.println("FIELDGET EDGE " + edge + " FROM " + callingNode + " to " + calledNode);
                     edge.setInputContextCounter(edge.getCalledContextCounter());
                     edge.setOutputContextCounter(edge.getCalledContextCounter());
                 }
@@ -837,10 +860,10 @@ public class GraphBuilder {
             }
             if (edge.getType().equals("OUTPUT")) {
                 for (TaintedObject taintedObject : edge.getTaintedObjects()) {
-                    ret += "TAINTED: " + taintedObject.getTaintID() + " - " + taintedObject.getTaintRecord() + " - " + taintedObject.getValue() + "\n";
+                    ret += taintedObject.getValue() + " [TAINTED: " + taintedObject.getTaintID() + " - " + taintedObject.getTaintRecord() + "]\n";
                 }
             } else if (edge.getType().equals("OUTPUTNONTAINT")) {
-                ret += "NONTNTD: " + edge.getOutputObject().getValue() + "\n";
+                ret += edge.getOutputObject().getValue() + " [NONTAINTED]\n";
                 for (TaintedObject taintedObject : edge.getAccessedTaint()) {
                     ret += "\t" + taintedObject.getTaintRecord() + "\n";
                 }
@@ -1094,12 +1117,18 @@ public class GraphBuilder {
 //                            if (edge.getCounter() == 2549) {
 //                                System.out.println("PRELOADING 2549: " + edge + " from " + filter);
 //                            }
+                            if (edge.getCounter() == 14)
+                                System.out.println("14 Rejected on " + filter);
                             pass = false;
                             break;
                         }
                     }
 
                     if (pass) {
+                        if (edge.getCounter() == 18)
+                            System.out.println("Adding edge 18");
+                        if (edge.getCounter() == 14)
+                            System.out.println("Adding edge 14");
                         g.addEdge(edge, callingNode, calledNode);
                     }
                 }
@@ -1547,13 +1576,15 @@ public class GraphBuilder {
                         if (outEdge.getOutputContextCounter().equals(inEdge.getInputContextCounter())) {
                             TaintNode outNode = superset.getDest(outEdge);
                             if (outEdge.getType().equals("OUTPUT")) {
-                                node = subset.getDest(outEdge);
-                                LinkedList<TaintEdge> outEdges = outputs.get(node);
+                                TaintNode subOutNode = subset.getDest(outEdge);
+                                LinkedList<TaintEdge> outEdges = outputs.get(subOutNode);
                                 if (outEdges == null) {
                                     outEdges = new LinkedList<TaintEdge>();
-                                    outputs.put(node, outEdges);
+                                    outputs.put(subOutNode, outEdges);
                                 }
-                                outEdges.add(outEdge);
+//                                System.out.println("ADDING OUTPUT EDGE " + outEdge);
+                                if (!outEdges.contains(outEdge))
+                                    outEdges.add(outEdge);
                             }
                             else if(!subset.containsVertex(outNode)) {
                                 LinkedList<TaintEdge> outEdges = outputs.get(node);
@@ -1561,7 +1592,9 @@ public class GraphBuilder {
                                     outEdges = new LinkedList<TaintEdge>();
                                     outputs.put(node, outEdges);
                                 }
-                                outEdges.add(outEdge);
+//                                System.out.println("ADDING OUTPUT EDGE " + outEdge + " to node " + outNode);
+                                if (!outEdges.contains(outEdge))
+                                    outEdges.add(outEdge);
                             }
                         }
                     }

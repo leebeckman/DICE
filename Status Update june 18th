@@ -1,0 +1,17 @@
+Status Update on June 18th:
+
+-Forward progress was stalled a bit
+-Dealing with bugs in analysis code for last two analyses, nothing new and demoable at this point.
+
+-Finishing up those analyses, the caching and data source relocating, led to the realization that...
+-Big addition that I realized was necessary: Integer tracking, to track IDs. Tracker is more complete now, tracking everything in RUBiS, at least
+
+-Really just a matter of working on it more:
+    -Need to finish analysis bugs immediately. Need to then move on to the big applications.
+
+-
+
+---
+
+
+

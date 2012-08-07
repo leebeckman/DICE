@@ -20,7 +20,7 @@ public class TaintNode {
     private String methodName;
     private String name;
     private String id;
-    private int counter;
+    private String objectFieldName; // Used for calls which store/retrieve data in collections objects which are fields on other objects
     private LinkedList<CallRecord> callRecords;
     private LinkedList<TaintEdge> dataMixingEdges;
 
@@ -35,7 +35,6 @@ public class TaintNode {
         this.methodName = methodName;
         this.name = className + ":" + methodName;
         this.id = id;
-        this.counter = TaintNode.nodeCounter++;
         this.colorValue = 0;
     }
 
@@ -45,7 +44,6 @@ public class TaintNode {
         if (this.name == null) {
             System.out.println("NULL NAMED!!!!!!!!!!!!!!!!!!1");
         }
-        this.counter = TaintNode.nodeCounter++;
         this.colorValue = 0;
     }
 
@@ -65,6 +63,10 @@ public class TaintNode {
         this.callRecords.add(record);
     }
 
+    public void setObjectFieldName(String name) {
+        this.objectFieldName = name;
+    }
+
     public LinkedList<TaintEdge> getDataMixingEdges() {
         return this.dataMixingEdges;
     }
@@ -78,10 +80,14 @@ public class TaintNode {
 //        return String.valueOf(this.counter) + " " + this.id;
 //        if (targetID != null && !targetID.isEmpty())
 //            return this.id + ":" + targetID;
+        String idStr = "";
+        String objFieldNameStr = "";
         if (this.id != null)
-            return this.name + ":" + this.id;
-        else
-            return this.name;
+            idStr = ":" + this.id;
+        if (this.objectFieldName != null)
+            objFieldNameStr = " [" + this.objectFieldName + "]";
+
+        return this.name + idStr + objFieldNameStr;
     }
 
     public String getID() {
@@ -98,6 +104,10 @@ public class TaintNode {
 
     public String getName() {
         return this.name;
+    }
+
+    public String getObjectFieldName() {
+        return this.objectFieldName;
     }
 
 }

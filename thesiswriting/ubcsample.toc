@@ -29,33 +29,51 @@
 \contentsline {subsection}{\numberline {3.2.2}{Build Architecture}}{9}{subsection.3.2.2}
 \contentsline {subsection}{\numberline {3.2.3}{Example Operation of Tool}}{10}{subsection.3.2.3}
 \contentsline {subsection}{\numberline {3.2.4}{Justification of Implementation}}{10}{subsection.3.2.4}
-\contentsline {subsection}{\numberline {3.2.5}{Logs}}{10}{subsection.3.2.5}
-\contentsline {section}{\numberline {3.3}{Analysis Tool}}{15}{section.3.3}
-\contentsline {subsection}{\numberline {3.3.1}{Tool Components}}{15}{subsection.3.3.1}
-\contentsline {subsubsection}{{Visualization System}}{15}{section*.14}
-\contentsline {subsubsection}{{Graph Preprocessing}}{16}{section*.15}
-\contentsline {subsubsection}{{Input Description File}}{17}{section*.16}
-\contentsline {subsubsection}{{Automated Analyses}}{17}{section*.17}
-\contentsline {subsection}{\numberline {3.3.2}{Available Analyses}}{17}{subsection.3.3.2}
-\contentsline {subsubsection}{{Caching}}{17}{section*.18}
-\contentsline {subsubsection}{{Precomputation}}{18}{section*.19}
-\contentsline {subsubsection}{{Postcomputation}}{18}{section*.20}
-\contentsline {subsubsection}{{Application State}}{19}{section*.21}
-\contentsline {subsubsection}{{Personal State}}{19}{section*.22}
-\contentsline {subsubsection}{{Wasteful Communication}}{20}{section*.23}
-\contentsline {subsubsection}{{Access Path Refactoring (APR)}}{20}{section*.24}
-\contentsline {chapter}{\numberline {4}{Evaluation}}{22}{chapter.4}
-\contentsline {section}{\numberline {4.1}{Overview}}{22}{section.4.1}
-\contentsline {section}{\numberline {4.2}{Choosing Applications}}{22}{section.4.2}
-\contentsline {section}{\numberline {4.3}{Evaluation Strategy/Goals}}{22}{section.4.3}
-\contentsline {section}{\numberline {4.4}{Application Results}}{23}{section.4.4}
-\contentsline {subsection}{\numberline {4.4.1}{RUBiS}}{23}{subsection.4.4.1}
-\contentsline {subsection}{\numberline {4.4.2}{jGossip}}{23}{subsection.4.4.2}
-\contentsline {chapter}{\numberline {5}{Conclusions}}{24}{chapter.5}
-\contentsline {section}{\numberline {5.1}{Discussion of Results}}{24}{section.5.1}
-\contentsline {section}{\numberline {5.2}{Future Work}}{24}{section.5.2}
-\contentsline {section}{\numberline {5.3}{Final Words}}{24}{section.5.3}
-\contentsline {chapter}{{Bibliography}}{25}{chapter*.25}
+\contentsline {section}{\numberline {3.3}{Analysis Tool}}{10}{section.3.3}
+\contentsline {subsection}{\numberline {3.3.1}{Tool Components}}{11}{subsection.3.3.1}
+\contentsline {subsubsection}{{Visualization System}}{11}{section*.14}
+\contentsline {subsubsection}{{Graph Preprocessing}}{12}{section*.15}
+\contentsline {subsubsection}{{Input Description File}}{13}{section*.16}
+\contentsline {subsubsection}{{Automated Analyses}}{13}{section*.17}
+\contentsline {subsection}{\numberline {3.3.2}{Available Analyses}}{13}{subsection.3.3.2}
+\contentsline {subsubsection}{{Caching}}{13}{section*.18}
+\contentsline {subsubsection}{{Precomputation}}{14}{section*.19}
+\contentsline {subsubsection}{{Postcomputation}}{14}{section*.20}
+\contentsline {subsubsection}{{Application State}}{14}{section*.21}
+\contentsline {subsubsection}{{Personal State}}{15}{section*.22}
+\contentsline {subsubsection}{{Wasteful Communication}}{15}{section*.23}
+\contentsline {subsubsection}{{Access Path Refactoring (APR)}}{16}{section*.24}
+\contentsline {chapter}{\numberline {4}{Evaluation}}{17}{chapter.4}
+\contentsline {section}{\numberline {4.1}{Evaluation Strategy/Goals}}{17}{section.4.1}
+\contentsline {section}{\numberline {4.2}{Choosing Applications}}{17}{section.4.2}
+\contentsline {section}{\numberline {4.3}{Application Results}}{18}{section.4.3}
+\contentsline {subsection}{\numberline {4.3.1}{Caching}}{18}{subsection.4.3.1}
+\contentsline {paragraph}{{RUBiS}}{18}{section*.25}
+\contentsline {paragraph}{{jGossip}}{18}{section*.26}
+\contentsline {subsection}{\numberline {4.3.2}{Precomputation}}{18}{subsection.4.3.2}
+\contentsline {paragraph}{{RUBiS}}{18}{section*.27}
+\contentsline {paragraph}{{jGossip}}{18}{section*.28}
+\contentsline {subsection}{\numberline {4.3.3}{Postcomputation}}{18}{subsection.4.3.3}
+\contentsline {paragraph}{{RUBiS}}{18}{section*.29}
+\contentsline {paragraph}{{jGossip}}{18}{section*.30}
+\contentsline {subsection}{\numberline {4.3.4}{Persistent State}}{18}{subsection.4.3.4}
+\contentsline {paragraph}{{RUBiS}}{18}{section*.31}
+\contentsline {paragraph}{{jGossip}}{18}{section*.32}
+\contentsline {subsection}{\numberline {4.3.5}{User State}}{18}{subsection.4.3.5}
+\contentsline {paragraph}{{RUBiS}}{18}{section*.33}
+\contentsline {paragraph}{{jGossip}}{19}{section*.34}
+\contentsline {subsection}{\numberline {4.3.6}{Wasteful Communication}}{19}{subsection.4.3.6}
+\contentsline {paragraph}{{RUBiS}}{19}{section*.35}
+\contentsline {paragraph}{{jGossip}}{19}{section*.36}
+\contentsline {subsection}{\numberline {4.3.7}{Access Path Refactoring}}{19}{subsection.4.3.7}
+\contentsline {paragraph}{{RUBiS}}{19}{section*.37}
+\contentsline {subsection}{\numberline {4.3.8}{RUBiS}}{19}{subsection.4.3.8}
+\contentsline {subsection}{\numberline {4.3.9}{jGossip}}{19}{subsection.4.3.9}
+\contentsline {chapter}{\numberline {5}{Conclusions}}{20}{chapter.5}
+\contentsline {section}{\numberline {5.1}{Discussion of Results}}{20}{section.5.1}
+\contentsline {section}{\numberline {5.2}{Future Work}}{20}{section.5.2}
+\contentsline {section}{\numberline {5.3}{Final Words}}{20}{section.5.3}
+\contentsline {chapter}{{Bibliography}}{21}{chapter*.38}
 \contentsline {part}{{Appendices}}{}{}
-\contentsline {chapter}{\numberline {A}{First Appendix}}{26}{appendix.A}
+\contentsline {chapter}{\numberline {A}{First Appendix}}{22}{appendix.A}
 \contentsline {chapter}{\numberline {B}{Second Appendix}}{27}{appendix.B}

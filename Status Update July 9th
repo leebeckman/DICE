@@ -1,0 +1,20 @@
+Reasonably convincing story: 
+
+for a trace, look at the ouput log, can see what does and doesn't directly come from tainted data. Can see parts which are pretty much only dependent on stable data. In some cases, you get bits which are dependent on unstable data. You can see this by doing the precomputation analysis, and seeing that stable data makes a complete trip from db to output without being influenced by random data. In other cases, data is simply random.
+
+For the forum list example, we see that everything save for the inner user stuff seems to be stable. We could precompute everything except for the last post stuff. The developer could find a way to include this dynamic information.
+
+An improvement on this would be to tag the so-called NONTAINTOUTPUT with some information about what tainted data could have affected its generation
+-The problem is if some of that non-tainted output was control-influenced by random taint and I don't know it.
+
+-Now I'm working on finding some post-computation in jgossip. I know it exists, I just need to work on the analysis code a bit to identify it.
+
+-A further interesting analysis: communication cost with complex objects, what is actually used.
+
+-Thesis format, start creating an outline, what can I look at to get started on that.
+
+-
+
+-----
+
+Do a hack with database state to identify user state

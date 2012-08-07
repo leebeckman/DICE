@@ -124,7 +124,8 @@ public class PrecompAnalysis {
                         // to get outputs, find outgoing edges which connect graph to full graph, log that content
 
                     }
-                    for (TaintNode inputNode : GraphBuilder.getInputs(stableSubGraphBuilder.getMultiGraph()))
+                    HashMap<TaintNode, LinkedList<TaintEdge>> inputs = GraphBuilder.getInputs(stableSubGraphBuilder.getMultiGraph(), fullGraph);
+                    for (TaintNode inputNode : inputs.keySet())
                         stableSubGraphBuilder.colorNode(inputNode, 3);
                     String name = "PRECOMP " + graphCounter++;
                     stableGraphBuilderToNameMap.put(stableSubGraphBuilder, name);

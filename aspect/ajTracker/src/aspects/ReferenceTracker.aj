@@ -274,26 +274,31 @@ public aspect ReferenceTracker {
 			return;
 		}
 		while (clazz != null) {
-			Field[] fields = clazz.getDeclaredFields();
-			for (int i = 0; i < fields.length; i++) {
-				//TODO: is it bad that this only scans non-static fields?
-				if (!Modifier.isStatic(fields[i].getModifiers())) {
-					if (fields[i].getType().equals(Double.class) ||
-							fields[i].getType().equals(Byte.class) ||
-							fields[i].getType().equals(Short.class) ||
-							fields[i].getType().equals(Long.class) ||
-							fields[i].getType().equals(Float.class) ||
-							fields[i].getType().equals(Boolean.class) ||
-							fields[i].getType().equals(Character.class))
-						continue;
-					fields[i].setAccessible(true);
-					try {
-						Object newValue = fields[i].get(ret);
-						ReferenceMaster.setNewValue(newValue, ret);
-					} catch (IllegalAccessException ex) {
-						assert false;
+			try {
+				Field[] fields = clazz.getDeclaredFields();
+				for (int i = 0; i < fields.length; i++) {
+					//TODO: is it bad that this only scans non-static fields?
+					if (!Modifier.isStatic(fields[i].getModifiers())) {
+						if (fields[i].getType().equals(Double.class) ||
+								fields[i].getType().equals(Byte.class) ||
+								fields[i].getType().equals(Short.class) ||
+								fields[i].getType().equals(Long.class) ||
+								fields[i].getType().equals(Float.class) ||
+								fields[i].getType().equals(Boolean.class) ||
+								fields[i].getType().equals(Character.class))
+							continue;
+						fields[i].setAccessible(true);
+						try {
+							Object newValue = fields[i].get(ret);
+							ReferenceMaster.setNewValue(newValue, ret);
+						} catch (IllegalAccessException ex) {
+							assert false;
+						}
 					}
 				}
+			}
+			catch (NoClassDefFoundError e) {
+				TaintLogger.getTaintLogger().log("NoClassDefFoundError on: " + clazz.toString());				
 			}
 			clazz = clazz.getSuperclass();
 		}

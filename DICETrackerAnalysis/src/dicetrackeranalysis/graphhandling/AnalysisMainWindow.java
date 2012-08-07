@@ -112,6 +112,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
         analysisText.setTabSize(3);
+        analysisText.setLineWrap(true);
         Thread memMon = new Thread(new MemMonitor(memBar));
         memMon.start();
     }
@@ -917,7 +918,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         tabToViewPanelMap.put(tabName, analysisGraphPanel);
         tabToBuilderMap.put(tabName, analysisGraphBuilder);
 
-        VisualizationViewer<TaintNode, TaintEdge> newViewer = getVisualizationViewer(analysisGraphBuilder.getLightMultiGraph(), 60);
+        VisualizationViewer<TaintNode, TaintEdge> newViewer = getVisualizationViewer(analysisGraphBuilder.getLightMultiGraph(), 100);
         if (newViewer != null) {
             tabToViewerMap.put(tabName, newViewer);
 //            analysisGraphPanel.removeAll();

@@ -251,7 +251,7 @@ public aspect OutputTracker {
 			proceed(arg, argb, argc);
 			return;
 		}
-//		TaintLogger.getTaintLogger().log("AROUND OUTPUT TRIGGERED: " + System.identityHashCode(arg));
+		TaintLogger.getTaintLogger().log("AROUND OUTPUT TRIGGERED");
 		if (!TaintUtil.getAJLock("BEFOREOUT"
 				+ thisJoinPoint.getSignature().toShortString())) {
 			return;
@@ -320,6 +320,87 @@ public aspect OutputTracker {
 			TaintLogger.getTaintLogger().logReturning(location,
 					"NONTAINTRETURN", null, null, TaintUtil.getLastContext(),
 					thisJoinPoint.getTarget());
+		TaintUtil.popContext("AFTERRO");
+
+		TaintUtil.releaseAJLock("BEFOREOUTP"
+				+ thisJoinPoint.getSignature().toShortString());
+	}
+	
+	void around(Object arg): (execution(* org.apache.catalina.connector.CoyoteWriter.println(..))) && 
+		!within(aspects.*) && !(myAdvice()) && !allExclude() && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled()) {
+			proceed(arg);
+			return;
+		}
+		TaintLogger.getTaintLogger().log("AROUND OUTPUT TRIGGERED");
+		if (!TaintUtil.getAJLock("BEFOREOUT"
+				+ thisJoinPoint.getSignature().toShortString())) {
+			return;
+		}
+		TaintUtil.pushContext(thisJoinPoint.getTarget(),
+				thisJoinPoint.getSignature(), "AROUNDRO");
+		StackLocation location = null;
+		// if
+		// (thisJoinPoint.getTarget().getClass().getName().contains("org.apache.catalina.connector.CoyoteWriter"))
+		// {
+		boolean taintOutput = false;
+		// TODO: Deal with the fact that I added ResultSet here
+		if (ReferenceMaster.isPrimaryTainted(arg)) {
+			if (location == null)
+				location = TaintUtil.getStackTraceLocation();
+
+			if (arg instanceof Integer) {
+				arg = ReferenceMaster.getTaintedIntOldValue((Integer) arg);
+			}
+
+			TaintLogger.getTaintLogger().logOutputStringArg(location,
+					"RESPOUT3ARG", arg, TaintUtil.getLastContext(),
+					thisJoinPoint.getThis());
+			if (arg instanceof char[])
+				TaintLogger.getTaintLogger().dumpStack("RESPOUTDATA " + new String((char[])arg));
+			taintOutput = true;
+		} else if (arg != null) {
+			Set<Object> objTaint = ReferenceMaster.fullTaintCheck(arg);
+			if (objTaint != null && objTaint.size() > 0) {
+				if (location == null)
+					location = TaintUtil.getStackTraceLocation();
+				/*
+				 * TODO: add to taintedArgs here as well
+				 */
+				TaintLogger.getTaintLogger().logOutputObjectArg(location,
+						"RESPOUT3ARG", arg, objTaint, TaintUtil.getLastContext(),
+						thisJoinPoint.getThis());
+				taintOutput = true;
+			}
+		}
+
+		// if (arg.toString().contains("First Forum")) {
+		// TaintLogger.getTaintLogger().dumpStack("First Forum OUT");
+		// }
+
+		if (!taintOutput) {
+			if (location == null)
+				location = TaintUtil.getStackTraceLocation();
+			if (arg != null) {
+				TaintLogger.getTaintLogger().logNonTaintOutputStringArg(
+						location, "NONTAINTOUTPUT", arg, TaintUtil.getContextAccessedTaint(),
+						TaintUtil.getLastContext(), thisJoinPoint.getThis());
+			}
+		}
+
+		TaintUtil.releaseAJLock("BEFOREOUT"
+				+ thisJoinPoint.getSignature().toShortString());
+
+		proceed(arg);
+
+		if (!TaintUtil.getAJLock("BEFOREOUTP"
+				+ thisJoinPoint.getSignature().toShortString()))
+			return;
+
+		if (SimpleCommControl.getInstance().ntrEnabled())
+			TaintLogger.getTaintLogger().logReturning(location,
+					"NONTAINTRETURN", null, null, TaintUtil.getLastContext(),
+					thisJoinPoint.getThis());
 		TaintUtil.popContext("AFTERRO");
 
 		TaintUtil.releaseAJLock("BEFOREOUTP"

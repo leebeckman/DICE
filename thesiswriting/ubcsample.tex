@@ -278,9 +278,41 @@
 %%% Acknowledgements (Optional)                                 \\
 %%% Dedication (Optional)                                       \\
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% MEETING NOTES. SOME ARE ALSO SCATTERED THROUGHOUT IN COMMENTS
+
+%Meeting on July 30, 2012
+%
+%-Things to cover
+%	-I'll send out a version of my thesis in Google docs
+%	-Voice to use
+%	-Thoughts on writing
+%	-Thoughts on outline
+%	-Can move the log breakdown section to an appendix, most likely
+%
+%-I am currently working on the evaluation section
+%	-Start with one of the analyses for both applications (RUBiS and jGossip), send that out
+%	-Based on that, determine what needs to be worked out for the remaining analysis evaluations
+%	
+%
+% A bit too much detail in my writing, can tend to get lost in it.
+%
+% Upfront have diagram for how my tool operates: phase one, track, phase 2 analysis. Need to remind people of what's going on.
+%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \maketitle                      %% Mandatory
 \begin{abstract}                %% Mandatory -  maximum 350 words
-  Quickly state thesis: taint tracking, previously used primarily in security applications, is useful for discovering various properties of applications which are useful for developers tasks with migrating the application to a new environment or improving it's performance in general. Started with a series of analyses inspired by the literature which we hoped to have success with in taint traces we collected, and also sought to discover unexpected uses for the taint trace data. One thing I need to make clear at some point is that this is not so much about going into great depth on any particular analysis so much as it is about showing that taint tracking supports a wide variety of potentially useful analyses, and these can be done with some success in actual applications. Will want to state here that I tested on two applications, and was able to run successful automated analyses on them with my tools.
+	In this thesis is explored the use of a technique known as taint tracking - specifically a heavy-weight form of the analysis termed 'dataflow tomography' - in supporting the automated analysis of web applications. The problem addressed is that such applications, often large, complex, and not always well-understood by those working with them, are often eventually faced with the need to migrate. In response to increased user demand and other pressures, they must be made more performant, rearchitected, and even moved into new physical hardware and network topologies. Unaided, such a process is understandably difficult, especially for less experienced developers, and prone to errors or suboptimal decisions. As such, there is a need for automation in this space, to analyze applications and help developers make informed decisions. Though many efforts to this end exist, the approach presented here is unique in its use of taint tracking, which uses the dynamic information of an application's dataflow to support and improve upon a wide variety of analyses. The goal was to demonstrate that taint tracking is well-suited to such analyses, and that a variety of analyses could be successfully applied to real web applications. This is as opposed to an extensive effort to develop and test any one particular analysis. A taint tracker was written for Java applications, as well as an analysis tool to visualize collected taint traces and perform automated analyses over them. These analyses were partly inspired by other research projects, as well as by working with collected taint traces to discover what analyses could be supported. Two real web applications were selected and the analyses were evaluated by applying them to see if they could automatically discover various properties of the applications. Not only did this show that the analyses could be performed successfully using the taint tracking data, but also showed that the properties the analyses were searching for themselves actually existed in real web applications.
+	
+	% Believe in the important of data flow, knowing where each pieces of input goes and where output comes from. This is central.
+	
+%  Quickly state thesis: taint tracking, previously used primarily in security applications, is useful for discovering various properties of applications which are useful for developers tasks with migrating the application to a new environment or improving it's performance in general. Started with a series of analyses inspired by the literature which we hoped to have success with in taint traces we collected, and also sought to discover unexpected uses for the taint trace data. 
+  
+%  One thing I need to make clear at some point is that this is not so much about going into great depth on any particular analysis so much as it is about showing that taint tracking supports a wide variety of potentially useful analyses, and these can be done with some success in actual applications. Will want to state here that I tested on two applications, and was able to run successful automated analyses on them with my tools.
+  
+
 \end{abstract}
 
 %%\chapter{Preface} % Manditory if any of the conditions are met
@@ -353,11 +385,12 @@ Dedicate this thesis to my wife.
 % Now regular page numbering begins.
 \mainmatter
 
-% Question: do I want to talk about what I did for the DICE project? It did in some ways inspire the early stages of this work, so it could be significant.
-
 \chapter{Introduction} % DIFFICULT
 
+% Start off by explaining different approaches to the problem, and how taint tracking is another approach, arguably better.
 \section{Problem Statement}
+Notes: Need to have a motivating example. Like a software system being moved into the cloud, where the various things my analyses pick up become useful. Could use by basic store example. Illustrate problems encountered and describe my approach to solving these problems.
+
 Notes: the problem is essentially borne of a continuing need for automated analysis of existing software systems when seeking to optimize them, something which often comes up when rearchitecting/migrating them to upgraded deployments. Taint tracing is a technique that, if done in an extensive manner like with dataflow tomography, I hypothesized could be applied in a general way to this problem. The problem is not only address the need for automated analysis, but to investigate if taint tracking is actually worth using in this space.\\\\
 
 Notes: Why do I care about this problem: I believe that there is still room for new kinds of automated analyses in this space, and I think the technique is interesting as it can potentially be used to support many different kinds of analyses. Taint tracking has never really been used this way. It is a difficult problem, to take such a dynamic analysis and attempt to make meaningly automated analyses, so starting work on it is valuable.\\\\
@@ -366,9 +399,6 @@ Notes: Want to say clearly at some point that what I did was: had some ideas abo
 
 \section{Thesis Statement}
 Notes: Will want to say something along the lines of how I believe that taint tracking can be a powerful tool in supporting the kind of automated analyses I am interested in, and that I believe I will be able to successfully demonstrate some of these analyses in real software applications.\\
-
-\section{Relevant Literature}
-Notes: Discuss taint tracking, it's use typically in security, as well as some other ways it has been used more relevant to my research. Discuss dataflow tomography and present it as a technique looking for some problems. Discuss Fluxo and similar systems. Discuss Arun Iyengar's work on fragment detection and caching. Use some of the earlier documents I wrote to discuss issues with application state and partitioning, as partitioning is the primary motivator for some of my analyses.
 
 \section{Contributions}
 Notes: Main contributions are
@@ -382,8 +412,12 @@ Notes: Main contributions are
 \section{Thesis Outline}
 Notes: Give a quick overview of what is to come.
 
+% Chapter 2, related work: bulk of it taint tracking, some can be background stuff like AOP.
 \chapter{Background} % MODERATE
 This seems to overlap with relevant literature in the introduction, which is a problem, and suggests that this may not justify an entire chapter. Need to find a way to organize the various concepts that need to be understood for my work. Is it possible that much of this could be moved to the introduction?
+
+\section{Relevant Literature}
+Notes: Discuss taint tracking, it's use typically in security, as well as some other ways it has been used more relevant to my research. Discuss dataflow tomography and present it as a technique looking for some problems. Discuss Fluxo and similar systems. Discuss Arun Iyengar's work on fragment detection and caching. Use some of the earlier documents I wrote to discuss issues with application state and partitioning, as partitioning is the primary motivator for some of my analyses.
 
 \section{Taint Tracking}
 Notes: Describe exactly what taint tracking is (tagging data, which can be done at various levels of granularity), and monitoring where that data goes. Focus less on research and more on how it is done, and some of the terminology around it. 
@@ -406,13 +440,13 @@ Can add sections here if necessary.
 
 \chapter{Implementation} % EASY, BIG
 
-Note: There may be some use of the active voice in here ('we did such and such'). I am changing it to the passive form. Another option is using the first person. Not a very important manner, but will need to be consistent.
+% Overview of system, key design decisions
 
 \section{Overview}
 In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is compiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a 'trace', describing events where tainted data moves from one location to another, which when taken together describe 'flows' of tainted data through a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
 
 \section{Taint Tracking Tool}
-Implemented in 5.2K lines of Java entirely using AspectJ 1.7.0 and ajc as the compiler and bytecode weaver. No additional libraries were used.
+Implemented in 5.2K lines of Java entirely using AspectJ and ajc as the compiler and bytecode weaver. No additional libraries were used.
 
 \subsection{Tool Components}
 The main components of the tool are as follows:
@@ -467,95 +501,7 @@ Notes: In order to better explain tool, give a high level but reasonably in dept
 \subsection{Justification of Implementation}
 As has been discussed in this thesis, many taint tracking implementations exist [REFERENCES], and even some for Java web applications [REFERENCES]. The problem is that an implementation that would provide Tomography-level tracking could not be found, which was necessary to address the research problems. A Java String taint tracking implementation by X [REFERENCE] was used at first, but as the system presented here developed it was realized that the functionality needed from their implementation was easily and more naturally supported in the TTT. Aspect Oriented Programming (AOP) was chosen as it conceptually provided the high level functionality needed to perform the tracking, saving on effort needed to write the system and allowing the tracker to be implemented in the available timeframe. The alternative would likely have been to learn the use of a Java bytecode manipulation framework, such as ASM or BCEL, and build up the tracker from a much lower level. AspectJ was specifically chosen as it was the most mature, well-documented, and stable implementation of AOP available for Java programs. Other implementations were experimented with, mainly while searching for solutions to some of AspectJ's limitations, including JBoss AOP [REFERENCE] and the AspectBench Compiler [REFERENCE], but these proved to be too unstable or limited.
 
-\subsection{Logs}
 
-THIS NEEDS TO BE FORMATTED, DIFFICULT TO READ\\\\
-Provided here is a breakdown of the log structure that the tool uses, for reference when describing other parts of the implementation and for gauging the completeness of the tracking.
-
-\begin{itemize}
-\item location Tag \\ 
-Format: <location callerClass, callerMethod, calledClass, calledMethod, requestCounter, requestURI, requestRemoteAddr, callerContextCounter, calledContextCounter /> \\
-This tag appears in every log entry, and contains all information needed to determine where the event occured. The attributes of this tag are as follows: \\ 
-caller/called Class/Method - these specifies the fully qualified class name and method name with argument types of the caller and callee for a particular taint flow event. For example, for a record indicating that taint was passed in the arguments of a method call, these will indicate the method from which the call was made and the called method itself.
-requestCounter - this is a counter which uniquely identifies which user request a log was generated from. Everytime the application server must service a new request, a new counter value is assigned to it. \\
-requestURI - the URI of the request responsible for generating a log. \\
-requestRemoteAddr - the remote address (IP address of a web application user submitting a request) of the request responsible for generating a log. \\
-caller/called ContextCounter - these attributes supplement the caller/called Class/Method by identifying unique instances of method calls. Every time a method call starts and the call stack changes, a new counter value is assigned to the item on top of the stack. The counters for the current caller and called methods are used when creating log records, and are useful when analysing taint flow graphs to properly determine which flows actually connect to each other.
-
-\item Xobject Tag \\ 
-Format: <Xobject type, objectID, value, taintID, taintRecord /> \\
-Various 'object' tags (sourceObject, taintedObject, etc) appear in log records to describe important Objects in taint flow events. The attributes of this tag are as follows: \\
-type - the Java class name for this object \\
-objectID - a unique ID for the Object. We use the hashcode given by Java. \\
-value - if available, a String representation of the Object. \\
-taintID - an unique identifier for the taint an Object carries. If taint is propagated from one Object to another, they will have similar taintIDs (differing only by an identifier for the Object). If an Object is tainted by multiple sources, the taintID will reflect this.\\
-taintRecord - See below.
-
-\item taintRecord Attribute \\ 
-Format: TARGETCOLUMN: column CATALOG: catalog TABLE: table COLUMN: column... \\
-URI: uri PARAM: param \\
-This attribute, found in Xobject tags for Objects carrying taint, describes where the taint originally came from. In our implementation we taint reads from databases and from user web request parameters. For database reads we log the catalog, table, and column of every column involved in the selection query, and additionally specify the target column from which the data was actually taken. For request parameters we log the URI which received the request as well as the parameter name. 
-
-\item field Tag \\ 
-Format: <field targetClass, targetField, static> \\
-These tags are used in field set/get records to identify, by class and field name, the field in question. Also indicated is whether or not this is a field of a static class.
-
-\item Propagation Log \\ 
-Format: <taintlog type="PROPAGATION"><location /><sourceObject /><destObject /></taintlog> \\
-Indicates that taint has spread from one Object to another. These logs mostly occur as a result of String operations, such as appending and copying, which produce new Strings from tainted ones. The sourceObject tag describes the Object which was originally tainted, and the destObject tag the one receiving taint from the sourceObject.
-
-\item Fuzzy Propagation Log \\ 
-Format: <taintlog type="FUZZY"><location /><sourceObject /><destObject /></taintlog> \\
-Indicates that an Object was marked as tainted heuristically by fuzzy propagation, as described earlier. The sourceObject tag describes the Object which was originally tainted and which satisfied the levenshtein distance match with the non-tainted destObject. The destObject now carries the taint of the sourceObject.
-
-\item Modification Log \\
-Format: <taintlog type="MODIFICATION"><location /><targetObject /></taintlog> \\
-Indicates that some tainted Object has been modified. This usually means that a StringBuilder/Buffer Object was changed somehow, such as by an append. The targetObject tag describes this Object.
-
-\item Composition Log \\
-Format: <taintlog type="COMPOSITION"><location tag><composedObject><composingObject />...</composedObject></taintlog> \\
-Indicates that multiple tainted Objects have been combined into one Object which carries the combined taint. A composedObject tag describes the new Object, and nested inside it a series of composingObject tags describe the tainted Objects which were combined.
-
-\item Association Log \\
-Format: <taintlog type="ASSOCIATION"><location tag><associatingObjects><associatingObject />...</associatedObjects></taintlog> \\
-Indicates that multiple tainted Objects have associated through certain method calls but were not combined into a single Object (such as comparing one String to another). An associatingObjects tag wraps a series of associatingObject tags describing the tainted Objects which associated.
-
-\item Calling Log \\ 
-Format: <taintlog type="CALLING"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-Indicates that tainted Objects were passed in the arguments of a method call. For each argument which carries taint, a taintedObject tag describes the argument. If an argument is not directly tainted but from which taint is reachable, the taintedObject tag wraps a series of subTaintedObjects describing reachable directly tainted Objects. The caller/calledObject tags describe the Objects taking place in the method call.
-
-\item Returning Log \\ 
-Format: <taintlog type="RETURNING"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Calling Log, but indicates that a tainted Object has been returned from a method call.
-
-\item Returning Args Log \\ 
-Format: <taintlog type="RETURNINGARGS"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Calling Log, but comes when the method is returning and indicates that arguments have taken on additional taint as a result of the method execution.
-
-\item Returning Input Log \\ 
-Format: <taintlog type="RETURNINGINPUT"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Returning Log, but is used for special cases to indicate that a return value is an original source of tainted data, such as a read operation from a database Object.
-
-\item Output Log \\ 
-Format: <taintlog type="OUTPUT"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Calling Log, but is used for special cases to indicate that the arguments will be output to some important location, such as back to the user as web page text, or into a database.
-
-\item Non-Taint Output Log \\ 
-Format: <taintlog type="NONTAINTOUTPUT"><location tag><outputObject /><callerObject /><calledObject /></taintlog> \\
-This is similar to the Output Log, and is used in the same cases as it where the output data is not tainted. This allows one to see how tainted and non-tainted data mix in the output of the application.
-
-\item Field Set Log \\
-Format: <taintlog type="FIELDSET"><location tag><field /><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Calling Log, but indicates that a tainted Object has been assigned to an Object or static class field.
-
-\item Field Get Log \\
-Format: <taintlog type="FIELDGET"><location tag><field /><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Returning Log, but indicates that a tainted Object has been read from an Object or static class field.
-
-% This log type may not be needed if we replace it with FIELDSET records.
-%\item Static Field Store Log \\ t
-
-\end{itemize}
 
 % Include an architecture diagram
 	% Simple Thread-request mapping (could be added to architecture description for more words)
@@ -571,7 +517,7 @@ This is similar to the Returning Log, but indicates that a tainted Object has be
 % and not everything string/piece of data
 
 \section{Analysis Tool}
-Implemented in 5.7K lines of Java using the JUNG 2.0.1 framework for visualizating and working with graph data.
+Implemented in 5.7K lines of Java using the JUNG framework for visualizating and working with graph data.
 
 \subsection{Tool Components}
 The main components of the tool are as follows:
@@ -595,9 +541,11 @@ The entire graph can be viewed all at once, but the traces are often so large th
 Having these tools for working with the graphs, while no substitute for the automated analyses, is nevertheless very important when a user needs to make use of the data. The results of analyses are themselves often presented in the same graph form, which can still be difficult to understand without some filtering.
 
 \subsubsection{Graph Preprocessing}
-Before the graphs are displayed or analyzed, the Analysis Tool performs proprocessing steps on the data in order to better work with it. The first is the addition of supplementary edges. There are cases when tracking the flow of tainted data where representation of it requires some care. Consider for example the case in Figure X where a tainted String is used to construct a new StringBuilder; taint flows from the calling method to the StringBuilder constructor. If the StringBuilder's toString() method is then called, taint flows from the toString() method back to the calling method. As is shown in the figure, the taint is shown to flow out into one StringBuilder node, and then back from another one, with no connection between them even though intuitively tainted data flows from one to the other. Solutions to this could be to group the StringBuilder nodes somehow, or to have a node for each Object rather than each Object method, but these either don't support analysis well or lower its granularily. Instead, the graph is searched for such cases where taint flows into an Object through some method call and that same taint (or taint propagated from it) flows out of the Object through a different method returning. Supplementary edges are added between the nodes in question to reflect the flow of tainted data.
+Before the graphs are displayed or analyzed, the Analysis Tool performs proprocessing steps on the data in order to better work with it. The first is the addition of implied edges. There are cases when tracking the flow of tainted data where representation of it requires some care. Consider for example the case in Figure X where a tainted String is used to construct a new StringBuilder; taint flows from the calling method to the StringBuilder constructor. If the StringBuilder's toString() method is then called, taint flows from the toString() method back to the calling method. As is shown in the figure, the taint is shown to flow out into one StringBuilder node, and then back from another one, with no connection between them even though intuitively tainted data flows from one to the other. Solutions to this could be to group the StringBuilder nodes somehow, or to have a node for each Object rather than each Object method, but these either don't support analysis well or lower its granularily. Instead, the graph is searched for such cases where taint flows into an Object through some method call and that same taint (or taint propagated from it) flows out of the Object through a different method returning. Implied edges are added between the nodes in question to reflect the flow of tainted data.
 
 The second preprocessing step finds unused flows of tainted data. These are cases where tainted data is communicated from one location to another, but is subsequently never used. This step examines reachability tainted Objects in graph edges to see if the directly tainted Objects they carry are ever accessed from them. This is done by scanning ahead in the graph, looking for flows carrying the directly tainted Objects themselves. If not, the directly tainted Objects are marked as unused for the edge and reachability tainted Object. This preprocessing step is useful for some of automated analyses which follow.
+
+Notes: Additional preprocessing step where field reads are checked and matched against other nodes in the graph to show how taint flows into fields. Simply annotate other method nodes if the objects of those nodes are tainted fields elsewhere in the graph. Could also add implication edges, but this may make less sense.
 
 % There is an argument to be made that beyond the automated analyses, what I'm really trying to do is show that these traces can support developer understanding of applications in useful ways, and so the viewing/filtering tools are useful in doing this.
 
@@ -614,6 +562,7 @@ The main purpose of the Analysis Tool is to provide easy to use automatic analys
 \subsection{Available Analyses}
 
 % Need to add figures to all of these
+% Somewhere in this document I probably need to justify the analyses themselves a bit better. Why have I chosen these, why do they support migration, why are they a good idea and interesting. And why is the way that I do them supporting the key ideas of the analyses themselves?
 
 \subsubsection{Caching}
 The caching analysis seeks to find opportunities to save on computation/communication by suggesting locations where caches could be considered. By a cache we mean code and data storage mechanisms which take the results of computations over some inputs, and store the results - mapping the inputs to them. The next time the computations are invoked with the same inputs, we can return the stored results rather that redoing the computation. For a cache to work, we need to be aware of all inputs to the computation. If any inputs which affect the results are missed, when those inputs vary the cache may return invalid results from the store. What this analysis essentially does is look for regions of the graph which are only carrying taint from non-random inputs. By non-random we mean inputs with reasonably predictable values over a small enough range that the cache will be useful and not frequently missing. This analysis relies on the input description file described in Section X to determine whether or not given tainted data is random. The assumption is that if all of the inputs to a computation, represented in the graph by a network of nodes, are predictable enough, the computation is a good candidate for caching. The identified subgraph can then be presented to the user as an indication of the possibility of a cache as well as a guide for what parts of the application must be considered when doing so.
@@ -680,23 +629,156 @@ The algorithm that we use to implement this analysis is as follows: ADD ALGORITH
 
 %Notes: Discuss qualitative evaluation. How the main point is to, given an application, check if each of my analyses can be applied successfully to my application. There were two ways that this was done. One was to find 'results' manually by learning and inspecting the code, and then running the analyses to see if these could be automatically identified. The other was to run the analyses, and then inspect the results we have not manually verified in advance to see if they were also valid.
 
-%Notes: Give a high level description of how the system was evaluated
+In using the Tracking and Analysis tools to test the claims made in the thesis, the focus was on performing a more qualitative evaluation. This was in part due to time constraints, as a proper quantitative evaluation would have required testing the tools with a wider range of applications, modifying each application according to the results of the various analyses, and testing those applications in realistic environments to assess the modifications. While such would certainly be interesting, it is beyond the scope of this thesis and must be left to future work. Additionally, a qualitative evaluation is better suited to a sufficiently succinct demonstration of the tools' usefulness. The goal was not to provide an in-depth look at any one analysis supported by the taint tracking data, but rather to show how the technique of taint tracking could be used to support a variety of useful analyses, and to show that these analyses could be applied successfully to realistic web applications. To this end, the evaluation strategy presented here is to take an application, apply an analysis to it, and then justify the correctness and usefulness of the results through manual code inspection, knowledge of the application, and light testing of the application. By showing how each of a wide range of analyses are actually successful on such applications, taint tracking is demonstrated as a robust application analysis technique.
 
-%Notes: Will want to make the case somewhere for this being a largely qualitative work. It is difficult to numerically guage the effectiveness of our techniques without a more extensive effort to analyze, modify based on tool suggestions, and test a wide range of applications. A more quantitative analysis can be done as future work.
-
-In using the Tracking and Analysis tools to test the claims made in the thesis, the focus was on performing a more qualitative evaluation. This was in part due to time constraints, as a proper quantitative evaluation would have required testing the tools with a wider range of applications, modifying each application according to the results of the various analyses, and testing those applications in realistic environments to assess the modifications. While such would certainly be interesting, it is beyond the scope of this thesis and must be left to future work. Additionally, a qualitative evaluation is better suited to succinctly demonstrating 
+ 
 % Time constraints, also to keep thesis focused. Not concerned with any one analysis. Want to show that taint tracking can identify various properties of a system, and that these properties do indeed exist. Not concerned precisely with HOW GOOD A CACHE IS. To evaluate such would require checking many applications, and rigorously testing performance. Also subject to how well a developer even implements the cache. The goal is instead to show that taint tracking supports SO MANY real things. Want to showcase a variety of analyses to show the potential of the analysis.
 
 %Notes: Have I check enough applications? Only 2 at present, RUBiS and jGossip.
 %Notes: I talk about 'migration' but I don't actually migrate anything. I am more showcasing some analyses which COULD be useful for migration. Will maybe want to cover this in the discussion, and relate the evaluation results to this reality.
 
-\section{Choosing Applications}
+% All about telling stories of my analyses, even APR presents an interesting story to tell, though I did not really evaluate it.
 
-Notes: Have currently tested the tool on RUBiS and jGossip. Justify the choice of each one. RUBiS was chosen as it was a realistic, working application, and mainly as a starting point for our analyses because it is small, easy to understand (for manually checking analyses), and easy to modify where needed.
+\section{Evaluated Applications}
+	The applications selected for the evaluation were RUBiS, an auction site prototype, and jGossip, a web forum. What follows is a justification for the choice of each application, as well as a brief description of their functionality and design.
+	
+\subsection{RUBiS}
+RUBiS is a realistic application, providing all the necessary functionality for users to put items up for auction, browse running auctions, and make bids on items. It is already a popular choice in various research efforts (REFERENCE?), making it a desirable representative example. The small code size made it easy to understand and manually inspect, which was of great help when developing and testing the analyses, but at the same time it was not written to be easily amenable to such analysis. As such it served as a reasonable introductory proving ground for the taint tracking and analysis tools.
 
-Notes: jGossip was chosen by searching for large, popular open source Java web applications.
+\subsubsection{RUBiS Details}
+The functionality of RUBiS is quite simple. Visiting the homepage for the application, users are presented with links describing various actions they can take in the auction, including registering an account, browsing items for auction, and selling an item of their own. Items are grouped by geographical region and item category, and a user navigates through several pages to select a region and category before bidding on or selling any items. A user does not actually log into the application to get a persistent session, but rather supplies their username and password whenever taking a sensitive action such as selling and bidding.
+
+Architecturally, RUBiS is a very simple servlets application, relying on no external libraries beyond a MySQL driver for database connectivity. Every action on the site has a servlet dedicated to it, such as the BrowseCategories servlet, which writes out a list of item categories for the user to choose from, or the RegisterItem servlet, which takes parameters from a web form describing an item and creates a new auction from them. Most of the servlets make use of a ServletPrinter object which provides a series of methods for writing html output to the servlet response stream.
+
+\subsection{jGossip}
+jGossip was found by searching SourceForge for popular open-source Java web applications of greater complexity. It was briefly checked in the early stages of the research to see if it likely contained properties which would be amenable to interesting analyses, and along with several other applications was deemed promising. It was chosen from among these as web forums are a commonly used kind of application, and as such jGossip was a more representative example.
+
+\subsubsection{jGossip Details}
+jGossip is interesting in that it makes extensive use of libraries, such as the Apache Struts framework, JSP, and the JSP Standard Tag Library (JSTL). This is partially desirable as many applications make use these libraries, so jGossip serves as a more realistic example. However, the use of some libraries presents some difficulties for the kind of analysis performed here. In particular, JSP is somewhat problematic in that it allows application code to be created from HTML-like markup. JSP pages are compiled into Java code, and generally a developer never works with this generated code. JSTL compounds the 'problem' by providing a large set of JSP tags to perform various kinds of logic which would normally be written directly in Java. For applications which make extensive use of JSP, it may be that automated analysis results suggest making changes within generated code. Such may be less meaningful as the mapping from JSP to the generated code, and thus how to modify the generated code, may not be obvious. However, as JSP is a popular technology in Java web applications, attempting to analyze an application making use of it is a valuable exercise.
+
+Users log into jGossip to get a persistent session to interact with the forum. Whenever data is needed from the database, such as to get information about a user or display a forum, a data access object generally instantiates and fills in various 'bean' objects (serializable, with getters/setters to store properties) from the database data. These objects are then stored as session attributes to be loaded and reused later.
+
+\section{Completeness of Tracker}
+One of the minor goals of the research was to develop the Java taint tracker itself. It is important that the tracker is complete, meaning that it is capable of tracing tainted data wherever it goes. If this were not the case, the analyses would be less reliable, having incomplete data to work with. The tracker presented here chiefly traces only data in Strings read from designated input sources, as manually specified numeric values. As this tracker does not consider taint propagation by control dependence, such as a tainted variable influencing the value of another through a control-flow statement, the completeness of the tracker can be evaluated somewhat simply.
+
+First, the tracker needs to intercept every operation which communicates data in a program. Using AspectJ, the tracker is able to inspect the data flowing on every method call, method return, and field set/get, which captures the flow of all program data (we do not consider data exchanged outside of the context of the application). The only issue here concerns code from the Java Runtime, which cannot be instrumented. It would be hypothetically possible, for example, for such non-instrumented code to take a tainted String, copy it, and store it somewhere. The copy would not be tainted as the call to the copy method would not have been intercepted due to lack of instrumentation. In practice, however, we found that such problems did not occur. To check that all data which should be tainted actually was, the test applications were supplied with input data which could be easily identified. By performing String matching on any communicated data, the presence of data derived from the input sources could be identified, and then the taint tracking system could be checked to ensure that it had properly marked the data as tainted and from the correct source. The test applications were manually driven through various operations, looking for any data which seemed as though it should be tainted but was not. Eventually, after sufficiently developing the tracker, no such data was present, and the tracker was judged as being reasonably complete.
+
+% Earlier in the thesis need to explain why I don't worry about control dependence
+
+-taint strings
+-see that at every point in the program any data which looks like it should be tainted is.
 
 \section{Application Results}
+
+\subsection{Example Trace}
+In order to understand the evaluation which follows, consider figure X, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. At the labeled point 1 in figure X are two input nodes for database data used in displaying the page. A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each column accessed (the target column). The edges out of these nodes are labeled 'RIN' for 'Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the 'missing' edge numbers. From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders. After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds 'IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call. At point 5 is shown how the data is passed to an encode method which processes the data in a way which would have lost the data were it not for the fuzzy propagation methods described earlier. The 'FZZ' edge is present to indicate the use of this heuristic. Finally, the categories are written out to the response output stream, at point 6 depicted as an 'OUT' edge to a println method.
+
+\subsection{Precomputation}
+\subsubsection{RUBiS}
+
+\begin{figure}[ht]
+  \begin{center}
+%% psfrag: comment the following line if not using the psfrag package
+    \psfrag{pie makes me happy!}{$\pi$ makes me happy!}
+%% includegraphics: comment the following if not using the graphicx package
+    \includegraphics[width=0.4\textwidth]{figs/rubis_BrowseCategories_NUMBERED.png}
+    \caption[Happy Face: figure example.]{\label{fig:happy} This is a figure of
+      a happy face with a \texttt{psfrag} replacement.  The original figure
+      (drawn in xfig and exported to a .eps file) has the text ``pie makes me
+      happy!''.  The \texttt{psfrag} package replaces this with ``$\pi$ makes me
+      happy!''.  Note: the Makefile compiles the sample using pdf\LaTeX\ which
+      cannot use \texttt{psfrag} directly.  For some options that work with
+      pdf\LaTeX, please see this discussion:
+      \url{http://tex.stackexchange.com/questions/11839}.  For the caption, we
+      have used the optional argument for the caption command so that only a
+      short version of this caption occurs in the list of figures.}
+  \end{center}
+\end{figure}
+
+%MAKE FIGURE:
+%REQ: 1 - /rubis_servlets/edu.rice.rubis.servlets.BrowseCategories
+%<title>RUBiS available categories</title> [NONTAINTED]
+%<div style="border:solid 1px black;"><p>Popular Items</p> [NONTAINTED]
+%<div style="border:solid 1px black;"><p>Chats</p></div><form action="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" method=POST> <input type=text size=20 name=chatMessage /> <input type=submit value="Post" /></form> [NONTAINTED]
+%<h2>Currently available categories</h2><br> [NONTAINTED]
+%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=1&categoryName=Antiques+%26+Art+">Antiques & Art </a><br> [TAINTED: 20090212:id:2,20090212:name:1 [15759798] - TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
+%START: class org.apache.catalina.connector.CoyoteWriter END [NONTAINTED]
+%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=2&categoryName=Books+">Books </a><br> [TAINTED: 20090212:id:4,20090212:name:3 [15134979] - TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
+%START: class org.apache.catalina.connector.CoyoteWriter END [NONTAINTED]
+%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=3&categoryName=Business%2C+Office+%26+Industrial+">Business, Office & Industrial </a><br> [TAINTED: 20090212:name:5,20090212:id:6 [5433945] - TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
+%START: class org.apache.catalina.connector.CoyoteWriter END [NONTAINTED]
+%<br><hr>RUBiS (C) Rice University/INRIA<br><i>Page generated by BrowseCategories in      8 seconds 518 milliseconds </i><br> [NONTAINTED]
+%</body> [NONTAINTED]
+%</html> [NONTAINTED]
+%END MAKE FIGURE
+
+%MAKE FIGURE:
+%REQ: 3 - /rubis_servlets/edu.rice.rubis.servlets.BrowseCategories
+%<title>RUBiS available categories</title> [NONTAINTED]
+%<div style="border:solid 1px black;"><p>Popular Items</p> [NONTAINTED]
+%<div style="border:solid 1px black;"><p>Chats</p><p>hello 1</p></div><form action="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" method=POST> <input type=text size=20 name=chatMessage /> <input type=submit value="Post" /></form> [TAINTED: 33440105:0 [12767107] - URI:/rubis_servlets/edu.rice.rubis.servlets.SubmitChat:chatMessage]
+%<h2>Currently available categories</h2><br> [NONTAINTED]
+%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=1&categoryName=Antiques+%26+Art+">Antiques & Art </a><br> [TAINTED: 24037827:id:3,24037827:name:2 [640451] - TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
+%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=2&categoryName=Books+">Books </a><br> [TAINTED: 24037827:id:5,24037827:name:4 [13477454] - TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
+%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=3&categoryName=Business%2C+Office+%26+Industrial+">Business, Office & Industrial </a><br> [TAINTED: 24037827:name:6,24037827:id:7 [5340732] - TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
+%<br><hr>RUBiS (C) Rice University/INRIA<br><i>Page generated by BrowseCategories in      3 seconds 772 milliseconds </i><br> [NONTAINTED]
+%</body> [NONTAINTED]
+%</html> [NONTAINTED]
+%END MAKE FIGURE
+
+Figure X shows the results of running the precomputation analysis over the same trace depicted in Figure X. The first thing to notice here is that it is the same graph. Such is not always the case for this analysis, but in this instance the input trace was simple enough that the  analysis identified the entire trace as being precomputable. Consider the request in question, which only needs to access the categories table to list the names and ids of the categories to the user. Both the name and id columns of this table have been manually marked as being stable. This means that one does not expect category names or ids to be unpredictable - the same values will be present in the table for extended periods of application use. Given this information about these values and the input trace, the precomputation analysis determined that the tainted data flowing in this graph was entirely stable data, and thus the output of the analysis is the entire graph with the inputs and outputs coloured orange and red respectively. Additional data is obtained by viewing the details of the analysis, which mainly shows tainted data sent to each output node in the output graph. For this graph, the output node's data shows the HTML for three hyperlinks, these being the categories presented to the user. 
+
+Interpreting this, a developer can reasonably assume that for the request responsible for this trace, the computation which reads category names and ids from the database and displays them to the user in this hyperlink form can be precomputed. At no point does this computation seemingly make use of any unpredictable data in generating the category hyperlinks, and so one could alter the application to essentially immediately output the hardcoded hyperlinks instead of fetching the data from the database and formatting it. If and when the category data does happen to change, one would then have to update the precomputed data, but it is assumed that this would happen very rarely.
+
+The analysis can be taken further in this case. The tracking code not only logs tainted output, but also creates logs for non-tainted output. Using these one can observe the mixing of tainted and non-tainted data as it is composed together in the output. Looking to Figure X, generated in the analysis tool from the output logs, we can see that the only tainted output involved in the response web page is from the three hyperlinks identified in the precomputation analysis. The rest of the data is non-tainted, and for this application this equates to it being hardcoded. Given these analysis results a developer can decide to simply precompute the entire response for this category listing page, saving on database access and formatting computation. 
+
+
+
+\subsubsection{jGossip} 
+
+
+\subsection{Caching}
+
+
+\subsubsection{RUBiS}
+
+
+\subsubsection{jGossip} 
+
+
+\subsection{Postcomputation}
+\subsubsection{RUBiS}
+
+
+\subsubsection{jGossip} 
+
+
+\subsection{Persistent State}
+\subsubsection{RUBiS}
+
+
+\subsubsection{jGossip} 
+
+
+\subsection{User State}
+\subsubsection{RUBiS}
+
+
+\subsubsection{jGossip} 
+
+
+\subsection{Wasteful Communication}
+\subsubsection{RUBiS}
+
+
+\subsubsection{jGossip} 
+
+
+\subsection{Access Path Refactoring}
+\subsubsection{RUBiS}
+
+
+% Instead of breaking down by application, break down by analysis. This makes more sense, and will be better to read
 
 % The thing to be wary of here is that at this point I have only checked my results by code inspection, and by really just going with what I feel. I haven't really acted on any of the analysis results at all, but it is possible that I could in some cases.
 
@@ -1110,12 +1192,100 @@ Notes: Wrap up the thesis with a summary of everything discussed and some key th
 %%% If you only have one appendix, please uncomment the following line.
 % \renewcommand{\appendicesname}{Appendix}
 \appendix
-\chapter{First Appendix}
-Here you can have your appendices.  Note that if you only have a
-single appendix, you should issue
-\verb|\renewcommand{\appendicesname}{Appendix}| before calling
-\verb|\appendix| to display the singular ``Appendix'' rather than the
-default plural ``Appendices''.
+\chapter{Taint Tracking Tool Logging Format}
+
+THIS NEEDS TO BE FORMATTED, DIFFICULT TO READ\\\\
+Provided here is a breakdown of the log structure that the tool uses, for reference when describing other parts of the implementation and for gauging the completeness of the tracking.
+
+\begin{itemize}
+\item location Tag \\ 
+Format: <location callerClass, callerMethod, calledClass, calledMethod, requestCounter, requestURI, requestRemoteAddr, callerContextCounter, calledContextCounter /> \\
+This tag appears in every log entry, and contains all information needed to determine where the event occured. The attributes of this tag are as follows: \\ 
+caller/called Class/Method - these specifies the fully qualified class name and method name with argument types of the caller and callee for a particular taint flow event. For example, for a record indicating that taint was passed in the arguments of a method call, these will indicate the method from which the call was made and the called method itself.
+requestCounter - this is a counter which uniquely identifies which user request a log was generated from. Everytime the application server must service a new request, a new counter value is assigned to it. \\
+requestURI - the URI of the request responsible for generating a log. \\
+requestRemoteAddr - the remote address (IP address of a web application user submitting a request) of the request responsible for generating a log. \\
+caller/called ContextCounter - these attributes supplement the caller/called Class/Method by identifying unique instances of method calls. Every time a method call starts and the call stack changes, a new counter value is assigned to the item on top of the stack. The counters for the current caller and called methods are used when creating log records, and are useful when analysing taint flow graphs to properly determine which flows actually connect to each other.
+
+\item Xobject Tag \\ 
+Format: <Xobject type, objectID, value, taintID, taintRecord /> \\
+Various 'object' tags (sourceObject, taintedObject, etc) appear in log records to describe important Objects in taint flow events. The attributes of this tag are as follows: \\
+type - the Java class name for this object \\
+objectID - a unique ID for the Object. We use the hashcode given by Java. \\
+value - if available, a String representation of the Object. \\
+taintID - an unique identifier for the taint an Object carries. If taint is propagated from one Object to another, they will have similar taintIDs (differing only by an identifier for the Object). If an Object is tainted by multiple sources, the taintID will reflect this.\\
+taintRecord - See below.
+
+\item taintRecord Attribute \\ 
+Format: TARGETCOLUMN: column CATALOG: catalog TABLE: table COLUMN: column... \\
+URI: uri PARAM: param \\
+This attribute, found in Xobject tags for Objects carrying taint, describes where the taint originally came from. In our implementation we taint reads from databases and from user web request parameters. For database reads we log the catalog, table, and column of every column involved in the selection query, and additionally specify the target column from which the data was actually taken. For request parameters we log the URI which received the request as well as the parameter name. 
+
+\item field Tag \\ 
+Format: <field targetClass, targetField, static> \\
+These tags are used in field set/get records to identify, by class and field name, the field in question. Also indicated is whether or not this is a field of a static class.
+
+\item Propagation Log \\ 
+Format: <taintlog type="PROPAGATION"><location /><sourceObject /><destObject /></taintlog> \\
+Indicates that taint has spread from one Object to another. These logs mostly occur as a result of String operations, such as appending and copying, which produce new Strings from tainted ones. The sourceObject tag describes the Object which was originally tainted, and the destObject tag the one receiving taint from the sourceObject.
+
+\item Fuzzy Propagation Log \\ 
+Format: <taintlog type="FUZZY"><location /><sourceObject /><destObject /></taintlog> \\
+Indicates that an Object was marked as tainted heuristically by fuzzy propagation, as described earlier. The sourceObject tag describes the Object which was originally tainted and which satisfied the levenshtein distance match with the non-tainted destObject. The destObject now carries the taint of the sourceObject.
+
+\item Modification Log \\
+Format: <taintlog type="MODIFICATION"><location /><targetObject /></taintlog> \\
+Indicates that some tainted Object has been modified. This usually means that a StringBuilder/Buffer Object was changed somehow, such as by an append. The targetObject tag describes this Object.
+
+\item Composition Log \\
+Format: <taintlog type="COMPOSITION"><location tag><composedObject><composingObject />...</composedObject></taintlog> \\
+Indicates that multiple tainted Objects have been combined into one Object which carries the combined taint. A composedObject tag describes the new Object, and nested inside it a series of composingObject tags describe the tainted Objects which were combined.
+
+\item Association Log \\
+Format: <taintlog type="ASSOCIATION"><location tag><associatingObjects><associatingObject />...</associatedObjects></taintlog> \\
+Indicates that multiple tainted Objects have associated through certain method calls but were not combined into a single Object (such as comparing one String to another). An associatingObjects tag wraps a series of associatingObject tags describing the tainted Objects which associated.
+
+\item Calling Log \\ 
+Format: <taintlog type="CALLING"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
+Indicates that tainted Objects were passed in the arguments of a method call. For each argument which carries taint, a taintedObject tag describes the argument. If an argument is not directly tainted but from which taint is reachable, the taintedObject tag wraps a series of subTaintedObjects describing reachable directly tainted Objects. The caller/calledObject tags describe the Objects taking place in the method call.
+
+\item Returning Log \\ 
+Format: <taintlog type="RETURNING"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
+This is similar to the Calling Log, but indicates that a tainted Object has been returned from a method call.
+
+\item Returning Args Log \\ 
+Format: <taintlog type="RETURNINGARGS"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
+This is similar to the Calling Log, but comes when the method is returning and indicates that arguments have taken on additional taint as a result of the method execution.
+
+\item Returning Input Log \\ 
+Format: <taintlog type="RETURNINGINPUT"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
+This is similar to the Returning Log, but is used for special cases to indicate that a return value is an original source of tainted data, such as a read operation from a database Object.
+
+\item Output Log \\ 
+Format: <taintlog type="OUTPUT"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
+This is similar to the Calling Log, but is used for special cases to indicate that the arguments will be output to some important location, such as back to the user as web page text, or into a database.
+
+\item Non-Taint Output Log \\ 
+Format: <taintlog type="NONTAINTOUTPUT"><location tag><outputObject /><callerObject /><calledObject /></taintlog> \\
+This is similar to the Output Log, and is used in the same cases as it where the output data is not tainted. This allows one to see how tainted and non-tainted data mix in the output of the application.
+
+\item Field Set Log \\
+Format: <taintlog type="FIELDSET"><location tag><field /><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
+This is similar to the Calling Log, but indicates that a tainted Object has been assigned to an Object or static class field.
+
+\item Field Get Log \\
+Format: <taintlog type="FIELDGET"><location tag><field /><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
+This is similar to the Returning Log, but indicates that a tainted Object has been read from an Object or static class field.
+
+% This log type may not be needed if we replace it with FIELDSET records.
+%\item Static Field Store Log \\ t
+
+\end{itemize}
+%Here you can have your appendices.  Note that if you only have a
+%single appendix, you should issue
+%\verb|\renewcommand{\appendicesname}{Appendix}| before calling
+%\verb|\appendix| to display the singular ``Appendix'' rather than the
+%default plural ``Appendices''.
 
 \chapter{Second Appendix}
 Here is the second appendix.

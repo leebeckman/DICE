@@ -92,6 +92,8 @@ public aspect GeneralTracker {
 							within(org.apache.catalina.V*) ||
 							within(org.apache.catalina.W*) ||
 							
+							within(org.apache.jasper.xmlparser.XMLChar) ||
+							
 							within(org.apache.naming..*) ||
 							within(org.apache.AnnotationProcessor) ||
 							within(org.apache.PeriodicEventListener) ||
