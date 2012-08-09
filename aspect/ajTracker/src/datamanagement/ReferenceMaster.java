@@ -377,7 +377,11 @@ public class ReferenceMaster {
 	 *  taintsource is unique to ResultSet (or other source)
 	 */
 	public static synchronized String getTaintIdentifier(Object obj) {
-		if (isPrimaryTainted(obj)) {
+		return getTaintIdentifier(obj, false);
+	}
+	
+	public static synchronized String getTaintIdentifier(Object obj, boolean force) {
+		if (isPrimaryTainted(obj) || force) {
 			String ret = "";
 			HashSet<IDdTaintSource> sources = null;
 			if (obj instanceof Integer)
@@ -399,6 +403,10 @@ public class ReferenceMaster {
 	}
 	
 	public static synchronized void propagateTaintSources(Object sourceData, Object targetData) {
+		propagateTaintSources(sourceData, targetData, false);
+	}
+	
+	public static synchronized void propagateTaintSources(Object sourceData, Object targetData, boolean forceIntTaint) {
 		HashSet<IDdTaintSource> source = null;
 		
 		if (sourceData instanceof Integer)
@@ -407,17 +415,17 @@ public class ReferenceMaster {
 			source = taintSourcesMap.get(sourceData);
 			
 		// Not getting a new ID here.
-		if (targetData instanceof Integer) {
+		if (targetData instanceof Integer && forceIntTaint) {
 			/*
 			 * Removing this for now, as tainting ints like this is too collision-prone
 			 */
-//			if (intTaintSourcesMap.get(targetData) == null) {
-//				intTaintSourcesMap.put((Integer)targetData, new HashSet<IDdTaintSource>());
+			if (intTaintSourcesMap.get(targetData) == null) {
+				intTaintSourcesMap.put((Integer)targetData, new HashSet<IDdTaintSource>());
 //				TaintLogger.getTaintLogger().log("INT TAINTED CAST: " + (Integer)targetData);
 //				TaintLogger.getTaintLogger().dumpStack("INT TAINT CAST");
-//			}
-//			HashSet<IDdTaintSource> target = intTaintSourcesMap.get(targetData);
-//			target.addAll(source);
+			}
+			HashSet<IDdTaintSource> target = intTaintSourcesMap.get(targetData);
+			target.addAll(source);
 		}
 		else {
 			if (taintSourcesMap.get(targetData) == null)

@@ -570,7 +570,7 @@ The caching analysis seeks to find opportunities to save on computation/communic
 The algorithm for performing this analysis is as follows:
 
 \subsubsection{Precomputation}
-This analysis is essentially the same as the one for caching, and in fact both are computed together. The difference is that in the case of precomputation, the inputs in question must change very rarely. If this is the case, instead of having a cache implemented, the user is advised to simply compute the result of the computation in advance and return it wherever the computation normally would have taken place. It is then their responsibility to update this precomputed value if the inputs should ever change.
+This analysis is essentially the same as the one for caching, and in fact both are computed together. The difference is that in the case of precomputation, the inputs in question must change very rarely. If this is the case, instead of having a cache implemented the user is advised to simply compute the result of the computation in advance and return it wherever the computation normally would have taken place. It is then their responsibility to update this precomputed value if the inputs should ever change.
 
 The algorithm for this analysis is the same as for caching, except that the requirement on the variability of tainted data in subgraphs is set more strictly to only allow very stable sources.
 
@@ -650,6 +650,8 @@ The functionality of RUBiS is quite simple. Visiting the homepage for the applic
 
 Architecturally, RUBiS is a very simple servlets application, relying on no external libraries beyond a MySQL driver for database connectivity. Every action on the site has a servlet dedicated to it, such as the BrowseCategories servlet, which writes out a list of item categories for the user to choose from, or the RegisterItem servlet, which takes parameters from a web form describing an item and creates a new auction from them. Most of the servlets make use of a ServletPrinter object which provides a series of methods for writing html output to the servlet response stream.
 
+Notes: RUBiS, being simple, serves as a great application to simply explain the analysis results from, and how the analyses are working given some data to crunch. Showing a trace from a large application is not really possible in this thesis format, and explaining those examples requires a more high level approach which misses some of the interesting details.
+
 \subsection{jGossip}
 jGossip was found by searching SourceForge for popular open-source Java web applications of greater complexity. It was briefly checked in the early stages of the research to see if it likely contained properties which would be amenable to interesting analyses, and along with several other applications was deemed promising. It was chosen from among these as web forums are a commonly used kind of application, and as such jGossip was a more representative example.
 
@@ -671,7 +673,7 @@ First, the tracker needs to intercept every operation which communicates data in
 \section{Application Results}
 
 \subsection{Example Trace}
-In order to understand the evaluation which follows, consider figure X, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. At the labeled point 1 in figure X are two input nodes for database data used in displaying the page. A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each column accessed (the target column). The edges out of these nodes are labeled 'RIN' for 'Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the 'missing' edge numbers. From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders. After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds 'IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call. At point 5 is shown how the data is passed to an encode method which processes the data in a way which would have lost the data were it not for the fuzzy propagation methods described earlier. The 'FZZ' edge is present to indicate the use of this heuristic. Finally, the categories are written out to the response output stream, at point 6 depicted as an 'OUT' edge to a println method.
+In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each column accessed (the target column). The edges out of these nodes are labeled 'RIN' for 'Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the 'missing' edge numbers. From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders. After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds 'IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call. At point 5 is shown how the data is passed to an encode method which processes the data in a way which would have lost the data were it not for the fuzzy propagation methods described earlier. The 'FZZ' edge is present to indicate the use of this heuristic. Finally, the categories are written out to the response output stream, at point 6 depicted as an 'OUT' edge to a println method.
 
 \subsection{Precomputation}
 \subsubsection{RUBiS}
@@ -679,19 +681,44 @@ In order to understand the evaluation which follows, consider figure X, which sh
 \begin{figure}[ht]
   \begin{center}
 %% psfrag: comment the following line if not using the psfrag package
-    \psfrag{pie makes me happy!}{$\pi$ makes me happy!}
+%    \psfrag{pie makes me happy!}{makes me happy!}
 %% includegraphics: comment the following if not using the graphicx package
-    \includegraphics[width=0.4\textwidth]{figs/rubis_BrowseCategories_NUMBERED.png}
-    \caption[Happy Face: figure example.]{\label{fig:happy} This is a figure of
-      a happy face with a \texttt{psfrag} replacement.  The original figure
-      (drawn in xfig and exported to a .eps file) has the text ``pie makes me
-      happy!''.  The \texttt{psfrag} package replaces this with ``$\pi$ makes me
-      happy!''.  Note: the Makefile compiles the sample using pdf\LaTeX\ which
-      cannot use \texttt{psfrag} directly.  For some options that work with
-      pdf\LaTeX, please see this discussion:
-      \url{http://tex.stackexchange.com/questions/11839}.  For the caption, we
-      have used the optional argument for the caption command so that only a
-      short version of this caption occurs in the list of figures.}
+    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_NUMBERED.eps}
+    \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategories} This is a figure
+    which needs a caption.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+%% psfrag: comment the following line if not using the psfrag package
+%    \psfrag{pie makes me happy!}{makes me happy!}
+%% includegraphics: comment the following if not using the graphicx package
+    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Chat_NUMBERED.eps}
+    \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategorieschat} This is a figure
+    which needs a caption.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+%% psfrag: comment the following line if not using the psfrag package
+%    \psfrag{pie makes me happy!}{makes me happy!}
+%% includegraphics: comment the following if not using the graphicx package
+    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Precomp.eps}
+    \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategoriesprecomp} This is a figure
+    which needs a caption.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+%% psfrag: comment the following line if not using the psfrag package
+%    \psfrag{pie makes me happy!}{makes me happy!}
+%% includegraphics: comment the following if not using the graphicx package
+    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Chat_Precomp.eps}
+    \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategorieschatprecomp} This is a figure
+    which needs a caption.}
   \end{center}
 \end{figure}
 
@@ -712,6 +739,14 @@ In order to understand the evaluation which follows, consider figure X, which sh
 %</html> [NONTAINTED]
 %END MAKE FIGURE
 
+%MAKE FIGURE
+%Output Data:
+%Node: org.apache.catalina.connector.CoyoteWriter:println String:26517368
+%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=1&categoryName=Antiques+%26+Art+">Antiques & Art </a><br>
+%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=2&categoryName=Books+">Books </a><br>
+%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=3&categoryName=Business%2C+Office+%26+Industrial+">Business, Office & Industrial </a><br>
+%END MAKE FIGURE
+
 %MAKE FIGURE:
 %REQ: 3 - /rubis_servlets/edu.rice.rubis.servlets.BrowseCategories
 %<title>RUBiS available categories</title> [NONTAINTED]
@@ -726,32 +761,51 @@ In order to understand the evaluation which follows, consider figure X, which sh
 %</html> [NONTAINTED]
 %END MAKE FIGURE
 
-Figure X shows the results of running the precomputation analysis over the same trace depicted in Figure X. The first thing to notice here is that it is the same graph. Such is not always the case for this analysis, but in this instance the input trace was simple enough that the  analysis identified the entire trace as being precomputable. Consider the request in question, which only needs to access the categories table to list the names and ids of the categories to the user. Both the name and id columns of this table have been manually marked as being stable. This means that one does not expect category names or ids to be unpredictable - the same values will be present in the table for extended periods of application use. Given this information about these values and the input trace, the precomputation analysis determined that the tainted data flowing in this graph was entirely stable data, and thus the output of the analysis is the entire graph with the inputs and outputs coloured orange and red respectively. Additional data is obtained by viewing the details of the analysis, which mainly shows tainted data sent to each output node in the output graph. For this graph, the output node's data shows the HTML for three hyperlinks, these being the categories presented to the user. 
+%MAKE FIGURE
+%Output Data:
+%Node: edu.rice.rubis.servlets.ServletPrinter:printCategory String int:19112841
+%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=1&categoryName=Antiques+%26+Art+">Antiques & Art </a><br>
+%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=2&categoryName=Books+">Books </a><br>
+%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=3&categoryName=Business%2C+Office+%26+Industrial+">Business, Office & Industrial </a><br>
+%END MAKE FIGURE
 
-Interpreting this, a developer can reasonably assume that for the request responsible for this trace, the computation which reads category names and ids from the database and displays them to the user in this hyperlink form can be precomputed. At no point does this computation seemingly make use of any unpredictable data in generating the category hyperlinks, and so one could alter the application to essentially immediately output the hardcoded hyperlinks instead of fetching the data from the database and formatting it. If and when the category data does happen to change, one would then have to update the precomputed data, but it is assumed that this would happen very rarely.
+\paragraph{Figure~\ref{fig:browsecategoriesprecomp}} shows the results of running the precomputation analysis over the same trace depicted in Figure~\ref{fig:browsecategories}. The first thing to notice here is that it is the same graph. Such is not always the case for this analysis, but in this instance the input trace was simple enough that the  analysis identified the entire trace as being precomputable. Consider the request in question, which only needs to access the categories table to list the names and ids of the categories to the user. Both the name and id columns of this table have been manually marked as being stable. This means that one does not expect category names or ids to be unpredictable - the same values will be present in the table for extended periods of application use. Given this information about these values and the input trace, the precomputation analysis determined that the tainted data flowing in this graph was entirely stable data, and thus the output of the analysis is the entire graph with the inputs and outputs coloured orange and red respectively. Additional data is obtained by viewing the details of the analysis, which mainly shows tainted data sent to each output node in the output graph. For this graph, the output node's data shows the HTML for three hyperlinks as in Figure C1b, these being the categories presented to the user. 
 
-The analysis can be taken further in this case. The tracking code not only logs tainted output, but also creates logs for non-tainted output. Using these one can observe the mixing of tainted and non-tainted data as it is composed together in the output. Looking to Figure X, generated in the analysis tool from the output logs, we can see that the only tainted output involved in the response web page is from the three hyperlinks identified in the precomputation analysis. The rest of the data is non-tainted, and for this application this equates to it being hardcoded. Given these analysis results a developer can decide to simply precompute the entire response for this category listing page, saving on database access and formatting computation. 
+\paragraph{Interpreting this,} a developer can reasonably assume that for the request responsible for this trace, the computation which reads category names and ids from the database and displays them to the user in this hyperlink form can be precomputed. At no point does this computation seemingly make use of any unpredictable data in generating the category hyperlinks, and so one could alter the application to essentially immediately output the hardcoded hyperlinks instead of fetching the data from the database and formatting it. If and when the category data does happen to change, one would then have to update the precomputed data, but it is assumed that this would happen very rarely.
 
+\paragraph{The analysis} can be taken further in this case. The tracking code not only logs tainted output, but also creates logs for non-tainted output. Using these one can observe the mixing of tainted and non-tainted data as it is composed together in the output. Looking to Figure C1, generated in the analysis tool from the output logs, we can see that the only tainted output involved in the response web page is from the three hyperlinks identified in the precomputation analysis. The rest of the data is non-tainted, and for this application this equates to it being hardcoded. Given these analysis results a developer can decide to simply precompute the entire response for this category listing page, saving on database access and formatting computation. 
 
+Notes: Should I say that such was done and the application still functioned correctly?
 
+\paragraph{RUBiS was modified} to display a chat box on every page, allowing anyone to post messages to the server for everyone to see. Whenever a message is submitted by a user, it is posted to a SubmitChat servlet which is responsible for adding the message to a list of messages. The important thing to note about this data is that it is very unpredictable. The list of messages can change at any time, with random data input to them, and as such any computations which work with this data are poor candidates for any kind of caching. Figure~\ref{fig:browsecategorieschat} shows a trace for the same page load as before, but including a post to the chat box. The left side of the graph in the figure is as before, the portion outlined in the red box shows the additional flow of the chat message data. This new portion of the graph actually spans two requests to the application - one to submit the chat message and another to display the list of categories along with the new message. The portion of the graph from labeled points 1 to 2 covers the submission of the message, starting with the source node showing the relative URI of the request and the name of the tainted parameter, 'chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, passed to the addChatMessage method of a ServletPrinter Object where it is concatenated with some formatting text, and finally appended to a LinkedList at point 2 by the addLast method. Note that the label for this addLast node ends in the name of a field, the 'chattyList' field of a ServletPrinter Object. This means that this field points to the LinkedList in question and indicates that by storing tainted data in the LinkedList it is effectively stored in that field. Such is useful for a developer to know when interpreting these graphs and mapping them back to the code responsible for them. Point 3 shows where the chat message data flows for the category list request, as a LinkedList is read from the chattyList along edge 18 in the getChatBox method. Following that an iterator over the LinkedList returned along edge 19, and the iterator is accessed along edge 20. The messages inside are concatenate with some formatting text before being passed along to point 4, being returned to the printHTMLHeader method of a ServletPrinter Object and written to the user response stream along with the list of categories.
+
+\paragraph{Figure~\ref{fig:browsecategorieschatprecomp}} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the precomputation ends at the red PrintCategory node, no longer extending to the println nodes. This is because the println method on the same PrintWriter Object now also receives the random data of the chat messages, and thus one cannot replace calls to this method with precomputed data. Given the precomputation output in Figure C2b and the response output breakdown in Figure C2, a developer can determine that the page can be mostly precomputed, only needing to dynamically generate the portion tainted by the chatMessage data.
+
+Notes: Could try to wrap up by noting how the analysis has been demonstrated in this simple case, and thus is useful.
+
+% The traces for jgossip will not really be shown and described in detail (at least not the pre-analysis traces), will be more about showing the post analysis trace and describing the implications of it
 \subsubsection{jGossip} 
+
+Today 
 
 
 \subsection{Caching}
-
-
 \subsubsection{RUBiS}
 
+Consider Figure
 
 \subsubsection{jGossip} 
 
+Today
 
 \subsection{Postcomputation}
 \subsubsection{RUBiS}
 
+Today
 
 \subsubsection{jGossip} 
 
+Today
 
 \subsection{Persistent State}
 \subsubsection{RUBiS}

@@ -473,6 +473,11 @@ public aspect OutputTracker {
 ////    			TaintLogger.getTaintLogger().logNonTaintOutputStringArg(location, "NONTAINTOUTPUT", null, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
 //    	}
     	
+        /*
+         * There is a bug with too much context being pushed due to aspect here and in generaltracker
+         * catching the executeQuery method. popping here and repushing in the after call below
+         */
+        TaintUtil.popContext("BEFOREDBO");
         TaintUtil.releaseAJLock("BEFOREEU" + thisJoinPoint.getSignature().toShortString());
     }
 	
@@ -481,6 +486,7 @@ public aspect OutputTracker {
     		return;
     	if (!TaintUtil.getAJLock("AFTEREU" + thisJoinPoint.getSignature().toShortString()))
     		return;
+    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "AFTERDBO");
     	StackLocation location = TaintUtil.getStackTraceLocation();
 		if (SimpleCommControl.getInstance().ntrEnabled())
 			TaintLogger.getTaintLogger().logReturning(location, "NONTAINTRETURN", null, null, TaintUtil.getLastContext(), thisJoinPoint.getTarget());

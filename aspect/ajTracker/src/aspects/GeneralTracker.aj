@@ -638,6 +638,8 @@ public aspect GeneralTracker {
 //			if (ThreadRequestMaster.checkStateful(location, ret))
 //				TaintLogger.getTaintLogger().log("STATE FOUND: " + ret);
 			TaintLogger.getTaintLogger().logReturning(location, "JAVACALLSTRINGRETURN", ret, totalTime, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
+//			if (location.destMethod.equals("executeQuery"))
+//				TaintLogger.getTaintLogger().dumpStack("dest: " + location.getDest() + " src: " + location.getSource());
 			TaintUtil.addContextAccessedTaint(ret);
 			taintReturned = true;
 //			else 

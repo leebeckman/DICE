@@ -69,6 +69,8 @@ public class TaintUtil {
 		if (sig instanceof MethodSignature)  {
 			MethodSignature methodSig = (MethodSignature) sig;
 			pushed = new ContextRecord(context, methodSig.getMethod().getDeclaringClass().getName(), methodSig.getName(), methodSig.getParameterTypes());
+//			if (pushed.getContextMethodName().equals("executeQuery"))
+//				TaintLogger.getTaintLogger().dumpStack("PUSHING EXECUTEQUERY");
 			stack.push(pushed);
 		}
 		else if (sig instanceof ConstructorSignature) {
@@ -193,7 +195,8 @@ public class TaintUtil {
 		}
 		else {
 			ContextRecord popped = stack.pop();
-			
+//			if (popped.getContextMethodName().equals("executeQuery"))
+//				TaintLogger.getTaintLogger().log("POPPED EXECUTEQUERY");
 //			if (popped != null && popped.getContextClassName().contains("_jsp") && popped.getContextMethodName().startsWith("_jspService")) {
 //				Stack<ContextRecord> jspStack = jspContextStore.get(threadID);
 //				jspStack.pop();

@@ -101,12 +101,17 @@ public aspect DBCPTaint {
 				if (HeuristicIntTainter.getInstance().sourceSafeForIntTracking(catalogName, tableName, columnName)) {
 					ret = ReferenceMaster.doPrimaryIntTaint((Integer)ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()), columnName);
 	    			
+					TaintLogger.getTaintLogger().log("INT ACCESS TAINT: " + ReferenceMaster.getTaintIdentifier(ret, true));
+					
 					LinkedList<Object> psTaint = ReferenceMaster.getResultSetPSTaint(thisJoinPoint.getThis());
 	    			if (psTaint != null) {
 	    				for (Object psTainted : psTaint) {
-	    					ReferenceMaster.propagateTaintSources(psTainted, ret);
+	    					ReferenceMaster.propagateTaintSources(psTainted, ret, true);
+	    					TaintLogger.getTaintLogger().log("PS TAINTING INT: " + ret + " with " + ReferenceMaster.getTaintIdentifier(psTainted, true));
 	    				}
 	    			}
+	    			
+	    			TaintLogger.getTaintLogger().log("INT ACCESS POST TAINT: " + ReferenceMaster.getTaintIdentifier(ret, true));
 					
 	    			StackLocation location = TaintUtil.getStackTraceLocation();
 	    			if (!location.getDest().startsWith("java"))
@@ -172,7 +177,8 @@ public aspect DBCPTaint {
 	    			LinkedList<Object> psTaint = ReferenceMaster.getResultSetPSTaint(thisJoinPoint.getThis());
 	    			if (psTaint != null) {
 	    				for (Object psTainted : psTaint) {
-	    					ReferenceMaster.propagateTaintSources(psTainted, ret);
+	    					ReferenceMaster.propagateTaintSources(psTainted, ret, true);
+	    					TaintLogger.getTaintLogger().log("PS TAINTING: " + ret);
 	    				}
 	    			}
 	    			
@@ -236,6 +242,7 @@ public aspect DBCPTaint {
     	
     	if (ReferenceMaster.isPrimaryTainted(value)) {
     		ReferenceMaster.propagateTaintSources(value, holder);
+    		TaintLogger.getTaintLogger().log("HOLDER TAINTED: " + ReferenceMaster.getTaintIdentifier(holder, true) + " from: " + ReferenceMaster.getTaintIdentifier(value, true));
     		/*
     		 * Added hack to get taint into prepared statements
     		 */
@@ -250,6 +257,7 @@ public aspect DBCPTaint {
     		if (objTaint != null && objTaint.size() > 0) {
     			for (Object tainted : objTaint) {
     				ReferenceMaster.propagateTaintSources(tainted, holder);
+    				TaintLogger.getTaintLogger().log("HOLDER OBJ TAINTED: " + ReferenceMaster.getTaintIdentifier(holder, true) + " from: " + ReferenceMaster.getTaintIdentifier(tainted, true));
     	    		/*
     	    		 * Added hack to get taint into prepared statements
     	    		 */
@@ -261,6 +269,7 @@ public aspect DBCPTaint {
     	}
     	
     	if (taintFound) {
+    		TaintLogger.getTaintLogger().log("MAP PS TO TAINT, holder taint: " + ReferenceMaster.getTaintIdentifier(holder, true));
     		ReferenceMaster.mapPSToTaint(thisJoinPoint.getTarget(), holder);
     	}
 
