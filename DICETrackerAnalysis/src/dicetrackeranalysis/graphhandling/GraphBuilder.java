@@ -215,41 +215,54 @@ public class GraphBuilder {
                         LinkedList<TaintEdge> outEdges = new LinkedList<TaintEdge>(fullGraph.getOutEdges(outNode));
 
                         boolean alreadyConnected = false;
+                        boolean nonTerminus = false;
                         for (TaintEdge checkEdge : fullGraph.getOutEdges(inNode)) {
                             TaintNode destNode = fullGraph.getDest(checkEdge);
                             if (destNode == outNode) {
                                 alreadyConnected = true;
                                 break;
                             }
+                            if (checkEdge.getType().equals("CALLING") && !checkEdge.getAdviceType().endsWith("POSTARG")) {
+                                nonTerminus = true;
+                                break;
+                            }
                         }
-                        if (alreadyConnected)
+                        if (alreadyConnected || nonTerminus)
                             continue;
 
-                        
                         for (TaintEdge inEdge : inEdges) {
                             for (TaintEdge outEdge : outEdges) {
+                                // MAKE SURE NEITHER IS AN IMPLICATION EDGE
+                                if (inEdge.getType().equals("SUPPLEMENTARY") || outEdge.getType().equals("SUPPLEMENTARY"))
+                                    continue;
                                 if (outEdge.getCounter() > inEdge.getCounter()) {
                                     if (fullGraph.getSource(inEdge) == fullGraph.getSource(outEdge) &&
                                             fullGraph.getDest(inEdge) == fullGraph.getDest(outEdge))
                                         continue;
+
                                     HashSet<String> inTaintIDs = getPropagatedTaintIDs(inEdge.getAllTaintIDs(), propagationMap);
                                     HashSet<String> outTaintIDs = outEdge.getAllTaintIDs();
-                                    
+
                                     boolean match = false;
+                                    outer:
                                     for (String outTaintID : outTaintIDs) {
-                                        if (inTaintIDs.contains(outTaintID)) {
-                                            match = true;
-//                                            System.out.println("TAINT MATCH SUCCESS");
-                                            break;
+                                        for (String inTaintID : inTaintIDs) {
+                                            if (taintIDListMatch(inTaintID, outTaintID)) {
+                                                match = true;
+                                                break outer;
+                                            }
                                         }
                                     }
 
-                                    if (inNode.getMethodName().startsWith("set") &&
-                                            fullGraph.getOutEdges(inNode).isEmpty() &&
-                                            outNode.getMethodName().startsWith("executeQuery")) {
-//                                        System.out.println("POTENTIAL MATCH SUCCESS");
-                                        match = true;
-                                    }
+                                    /*
+                                     * Probably don't need this block anymore, being handled by previous block with better taintID matching
+                                     * and additional tainting of resultset return from PS in tracking code. COMMENTED OUT
+                                     */
+//                                    if (inNode.getMethodName().startsWith("set") &&
+//                                            fullGraph.getOutEdges(inNode).isEmpty() && // change to allow PAT
+//                                            outNode.getMethodName().startsWith("executeQuery")) {
+//                                        match = true;
+//                                    }
                                     
                                     if (match) {
                                         // TODO: mostly does an edge copy, could probably be replaced with an edge clone method
@@ -279,7 +292,7 @@ public class GraphBuilder {
 
                                         newEdge.setIsPostProcessingEdge();
                                         edgeList.add(newEdge);
-//                                        System.out.println("SPL EDGE: " + newEdge);
+//                                        System.out.println("SPL EDGE: " + newEdge + " from in: " + inEdge + " out: " + outEdge);
                                     }
                                 }
                             }
@@ -288,6 +301,37 @@ public class GraphBuilder {
                 }
             }
         }
+    }
+
+    /*
+     * Given two taintIDs which are actually a more complex list of taintIDs (due to propagation),
+     * this returns true if there are any matching taintID components between the two inputs.
+     */
+    private boolean taintIDListMatch(String taintIDA, String taintIDB) {
+        LinkedList<String> aComponents = new LinkedList<String>();
+        LinkedList<String> bComponents = new LinkedList<String>();
+        for (String item : taintIDA.split(",")) {
+            for (String subitem : item.split(" ")) {
+                if (!subitem.startsWith("[")) {
+                    aComponents.add(subitem);
+                }
+            }
+        }
+        for (String item : taintIDB.split(",")) {
+            for (String subitem : item.split(" ")) {
+                if (!subitem.startsWith("[")) {
+                    bComponents.add(subitem);
+                }
+            }
+        }
+        boolean match = false;
+        for (String component : aComponents) {
+            if (bComponents.contains(component)) {
+                match = true;
+                break;
+            }
+        }
+        return match;
     }
 
     private void setObjectFieldNames() {

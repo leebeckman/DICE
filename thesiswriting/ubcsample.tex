@@ -631,6 +631,7 @@ The algorithm that we use to implement this analysis is as follows: ADD ALGORITH
 
 In using the Tracking and Analysis tools to test the claims made in the thesis, the focus was on performing a more qualitative evaluation. This was in part due to time constraints, as a proper quantitative evaluation would have required testing the tools with a wider range of applications, modifying each application according to the results of the various analyses, and testing those applications in realistic environments to assess the modifications. While such would certainly be interesting, it is beyond the scope of this thesis and must be left to future work. Additionally, a qualitative evaluation is better suited to a sufficiently succinct demonstration of the tools' usefulness. The goal was not to provide an in-depth look at any one analysis supported by the taint tracking data, but rather to show how the technique of taint tracking could be used to support a variety of useful analyses, and to show that these analyses could be applied successfully to realistic web applications. To this end, the evaluation strategy presented here is to take an application, apply an analysis to it, and then justify the correctness and usefulness of the results through manual code inspection, knowledge of the application, and light testing of the application. By showing how each of a wide range of analyses are actually successful on such applications, taint tracking is demonstrated as a robust application analysis technique.
 
+Notes: Want to make a point about how in the evaluations which follow, RUBiS will be a more detailed graph-focused example due to its simpler nature and ease of relating between the results and the code in the space alloted here, and will serve to really get at an understanding of the taint graphs and how the analyses operate over them. jGossip, on the other hand, involves very large graphs and more general, sweeping analyses. The evalution presentation there will be different, with likely fewer detailed figures demonstrating how to read the graphs and interpret the analysis results. It's just the way it really has to be.
  
 % Time constraints, also to keep thesis focused. Not concerned with any one analysis. Want to show that taint tracking can identify various properties of a system, and that these properties do indeed exist. Not concerned precisely with HOW GOOD A CACHE IS. To evaluate such would require checking many applications, and rigorously testing performance. Also subject to how well a developer even implements the cache. The goal is instead to show that taint tracking supports SO MANY real things. Want to showcase a variety of analyses to show the potential of the analysis.
 
@@ -672,6 +673,55 @@ First, the tracker needs to intercept every operation which communicates data in
 
 \section{Application Results}
 
+\subsection{RUBiS Input Source Description File [may need to rename this]}
+<root>
+    <databasesourceinfo catalog="rubis" table="categories" column="id" variability="STABLE" inttracking="true" />
+    <databasesourceinfo catalog="rubis" table="categories" column="name" variability="STABLE" />
+    <databasesourceinfo catalog="rubis" table="regions" column="id" variability="STABLE" inttracking="true" />
+    <databasesourceinfo catalog="rubis" table="regions" column="name" variability="STABLE" />
+    <databasesourceinfo catalog="rubis" table="users" column="id" variability="STABLE" inttracking="true" />
+    
+    <requestsourceinfo uri="/rubisUNDERSCOREservlets/edu.rice.rubis.servlets.SubmitChat" parameter="chatMessage" variability="RANDOM" />
+
+    <requestsourceinfo uri="/rubisUNDERSCOREservlets/edu.rice.rubis.servlets.BrowseCategories" parameter="region" variability="PREDICTABLE" />
+    <requestsourceinfo uri="/rubisUNDERSCOREservlets/edu.rice.rubis.servlets.BrowseCategories" parameter="nickname" variability="PREDICTABLE" />
+    <requestsourceinfo uri="/rubisUNDERSCOREservlets/edu.rice.rubis.servlets.BrowseCategories" parameter="password" variability="PREDICTABLE" />
+</root>
+
+\subsection{jGossip Input Source Description File [rename?]}
+<root>
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREforum" column="forumtitle" variability="STABLE" inttracking="false" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREforum" column="forumdesc" variability="STABLE" inttracking="false" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREforum" column="forumid" variability="STABLE" inttracking="true" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREforum" column="locked" variability="STABLE" inttracking="false" />
+
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREgroup" column="groupUNDERSCOREname" variability="STABLE" inttracking="false" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREgroup" column="groupid" variability="STABLE" inttracking="true" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREgroup" column="groupUNDERSCOREsort" variability="STABLE" inttracking="false" />
+
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREmessage" column="cont" variability="RANDOM" inttracking="false" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREmessage" column="mUNDERSCOREfrom" variability="RANDOM" inttracking="false" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREmessage" column="id" variability="RANDOM" inttracking="true" />
+
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREthread" column="tUNDERSCOREstamp" variability="PREDICTABLE" inttracking="false" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREthread" column="tid" variability="PREDICTABLE" inttracking="true" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREthread" column="sortby" variability="PREDICTABLE" inttracking="false" />
+
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREwhois" column="id" variability="PREDICTABLE" inttracking="true" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREwhois" column="ip" variability="RANDOM" inttracking="false" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREwhois" column="sessionid" variability="RANDOM" inttracking="false" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREwhois" column="userUNDERSCOREname" variability="PREDICTABLE" inttracking="false" />
+
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREskinUNDERSCOREparams" column="paramUNDERSCOREname" variability="STABLE" />
+    <databasesourceinfo catalog="forumUNDERSCOREdb" table="jrfUNDERSCOREskinUNDERSCOREparams" column="paramUNDERSCOREvalue" variability="STABLE" />
+
+    <requestsourceinfo uri="/jgossip/jgossip/DeleteForum.do" parameter="fid" variability="RANDOM" inttracking="true" />
+    <!--
+    <requestsourceinfo uri="/rubisUNDERSCOREservlets/edu.rice.rubis.servlets.BrowseCategories" parameter="region" variability="PREDICTABLE" />
+    <requestsourceinfo uri="/rubisUNDERSCOREservlets/edu.rice.rubis.servlets.BrowseCategories" parameter="nickname" variability="PREDICTABLE" />
+    <requestsourceinfo uri="/rubisUNDERSCOREservlets/edu.rice.rubis.servlets.BrowseCategories" parameter="password" variability="PREDICTABLE" />-->
+</root>
+
 \subsection{Example Trace}
 In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each column accessed (the target column). The edges out of these nodes are labeled 'RIN' for 'Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the 'missing' edge numbers. From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders. After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds 'IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call. At point 5 is shown how the data is passed to an encode method which processes the data in a way which would have lost the data were it not for the fuzzy propagation methods described earlier. The 'FZZ' edge is present to indicate the use of this heuristic. Finally, the categories are written out to the response output stream, at point 6 depicted as an 'OUT' edge to a println method.
 
@@ -680,10 +730,7 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 
 \begin{figure}[ht]
   \begin{center}
-%% psfrag: comment the following line if not using the psfrag package
-%    \psfrag{pie makes me happy!}{makes me happy!}
-%% includegraphics: comment the following if not using the graphicx package
-    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_NUMBERED.eps}
+    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Numbered.eps}
     \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategories} This is a figure
     which needs a caption.}
   \end{center}
@@ -691,33 +738,24 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 
 \begin{figure}[ht]
   \begin{center}
-%% psfrag: comment the following line if not using the psfrag package
-%    \psfrag{pie makes me happy!}{makes me happy!}
-%% includegraphics: comment the following if not using the graphicx package
-    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Chat_NUMBERED.eps}
-    \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategorieschat} This is a figure
+    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Chat_Numbered.eps}
+    \caption[RUBiS Browse Categories With Chat Trace]{\label{fig:browsecategorieschat} This is a figure
     which needs a caption.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
-%% psfrag: comment the following line if not using the psfrag package
-%    \psfrag{pie makes me happy!}{makes me happy!}
-%% includegraphics: comment the following if not using the graphicx package
     \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Precomp.eps}
-    \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategoriesprecomp} This is a figure
+    \caption[RUBiS Browse Categories Precomputation Results]{\label{fig:browsecategoriesprecomp} This is a figure
     which needs a caption.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
-%% psfrag: comment the following line if not using the psfrag package
-%    \psfrag{pie makes me happy!}{makes me happy!}
-%% includegraphics: comment the following if not using the graphicx package
     \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Chat_Precomp.eps}
-    \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategorieschatprecomp} This is a figure
+    \caption[RUBiS Browse Categories With Chat Precomputation Results]{\label{fig:browsecategorieschatprecomp} This is a figure
     which needs a caption.}
   \end{center}
 \end{figure}
@@ -786,26 +824,68 @@ Notes: Could try to wrap up by noting how the analysis has been demonstrated in 
 % The traces for jgossip will not really be shown and described in detail (at least not the pre-analysis traces), will be more about showing the post analysis trace and describing the implications of it
 \subsubsection{jGossip} 
 
-Today 
-
+NEED TO COLLECT DATA, MAKE FIGURES
 
 \subsection{Caching}
 \subsubsection{RUBiS}
 
-Consider Figure
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseRegionCategories_Numbered.eps}
+    \caption[RUBiS Browse Categories By Region Trace]{\label{fig:browseregioncategories} This is a figure
+    which needs a caption.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseRegionCategories_Caching.eps}
+    \caption[RUBiS Browse Categories By Region Precomputation Results]{\label{fig:browseregioncategoriescaching} This is a figure
+    which needs a caption.}
+  \end{center}
+\end{figure}
+
+%MAKE FIGURE
+%REQ: 3 - /rubis_servlets/edu.rice.rubis.servlets.BrowseCategories
+%<title>RUBiS available categories</title> [NONTAINTED]
+%<div style="border:solid 1px black;"><p>Popular Items</p> [NONTAINTED]
+%<div style="border:solid 1px black;"><p>Chats</p></div><form action="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" method=POST> <input type=text size=20 name=chatMessage /> <input type=submit value="Post" /></form> [NONTAINTED]
+%<h2>Currently available categories</h2><br> [NONTAINTED]
+%<a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=1&categoryName=Antiques+%26+Art+&region=1">Antiques & Art </a><br> [TAINTED: 30453968:id:6,3156700:name:8,3156700:id:9,23441609:4 [4724538] - TARGETCOLUMN: id CATALOG: rubis TABLE: regions COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#URI:/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories:region]
+%<a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=2&categoryName=Books+&region=1">Books </a><br> [TAINTED: 30453968:id:6,23441609:4,3156700:id:11,3156700:name:10 [575947] - TARGETCOLUMN: id CATALOG: rubis TABLE: regions COLUMN: id #RECSEP#URI:/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories:region#RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
+%<a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=3&categoryName=Business%2C+Office+%26+Industrial+&region=1">Business, Office & Industrial </a><br> [TAINTED: 30453968:id:6,23441609:4,3156700:name:12,3156700:id:13 [33336785] - TARGETCOLUMN: id CATALOG: rubis TABLE: regions COLUMN: id #RECSEP#URI:/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories:region#RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
+%<br><hr>RUBiS (C) Rice University/INRIA<br><i>Page generated by BrowseCategories in      3 seconds 973 milliseconds </i><br> [NONTAINTED]
+%</body> [NONTAINTED]
+%</html> [NONTAINTED]
+%END MAKE FIGURE
+
+%MAKE FIGURE
+%Output Data:
+%Node: org.apache.catalina.connector.CoyoteWriter:println String:22693155
+%	Data: <a href="edu.rice.rubis.servlets.BrowseCategories?region=AZ--Phoenix">AZ--Phoenix</a><br>
+%	Data: <a href="edu.rice.rubis.servlets.BrowseCategories?region=CA--Los+Angeles">CA--Los Angeles</a><br>
+%	Data: <a href="edu.rice.rubis.servlets.BrowseCategories?region=CA--Oakland">CA--Oakland</a><br>
+%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=1&categoryName=Antiques+%26+Art+&region=1">Antiques & Art </a><br>
+%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=2&categoryName=Books+&region=1">Books </a><br>
+%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=3&categoryName=Business%2C+Office+%26+Industrial+&region=1">Business, Office & Industrial </a><br>
+%END MAKE FIGURE
+
+\paragraph{Figure~\ref{fig:browseregioncategories} shows} a trace taken from viewing the same RUBiS categories list as previously shown with an additional constraint. For this trace, a user first submits a request to get a list of geographical regions. Once these are displayed, a user picks a region, which submits another request to obtain the category list. The region name selected in the first request is used to obtain a region id, which is included in the category hyperlinks output to the user in the second request. The important point to note is that this category list should not be outright precomputed, as the region id parameter varies based on user input. However, this region id is over a small enough range that it is reasonably predictable, and thus it seems that a cache could be implemented here. Breaking down Figure~\ref{fig:browseregioncategories}, point 1 shows the region name data being read from the database for the first request. Note that this trace has been filtered to hide string concatenation dataflow (removing StringBuilder nodes), make it more presentable. At point the region names are passed to the encode method during concatenation with formatting text, and then output to the user at point 3. A user clicks on a region, submitting its name as a parameter in the next request. This is shown at point 4, as the 'region' parameter. From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement Object to be used as a predicate in a database query. When the query is executed at point 7, note how the input node is labeled as being tainted by not only the id column from the regions table, but also by the region parameter that the query was predicated on. Point 5 receives the region id, and passes it to point 8, which receives category names and ids from point 9. The category data and region id are sent point 10, the 'printCategoryByRegion' method, which concatenates them with formatting text, encodes them, and writes them out to the user at point 3.
+
+\paragraph{Running the caching analysis} over this graph and filtering the results to only show the dataflow for the second request, the result graph show in Figure~\ref{fig:browseregioncategoriescaching} is obtained. The first important point to note is that this graph was not eligible for precomputation, due to the influence of the user-supplied region parameter in every part of this graph except for the upper-left portion showing the flow of the category name/id data. However, since this parameter has 
 
 \subsubsection{jGossip} 
 
-Today
+NEED TO COLLECT DATA, MAKE FIGURES
 
 \subsection{Postcomputation}
 \subsubsection{RUBiS}
 
-Today
+NEED TO COLLECT DATA, MAKE FIGURES
 
 \subsubsection{jGossip} 
 
-Today
+NEED TO COLLECT DATA, MAKE FIGURES
 
 \subsection{Persistent State}
 \subsubsection{RUBiS}
@@ -830,7 +910,6 @@ Today
 
 \subsection{Access Path Refactoring}
 \subsubsection{RUBiS}
-
 
 % Instead of breaking down by application, break down by analysis. This makes more sense, and will be better to read
 

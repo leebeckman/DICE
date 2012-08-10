@@ -45,41 +45,50 @@
 \contentsline {subsubsection}{{Access Path Refactoring (APR)}}{16}{section*.24}
 \contentsline {chapter}{\numberline {4}{Evaluation}}{17}{chapter.4}
 \contentsline {section}{\numberline {4.1}{Evaluation Strategy/Goals}}{17}{section.4.1}
-\contentsline {section}{\numberline {4.2}{Evaluated Applications}}{17}{section.4.2}
+\contentsline {section}{\numberline {4.2}{Evaluated Applications}}{18}{section.4.2}
 \contentsline {subsection}{\numberline {4.2.1}{RUBiS}}{18}{subsection.4.2.1}
 \contentsline {subsubsection}{{RUBiS Details}}{18}{section*.25}
-\contentsline {subsection}{\numberline {4.2.2}{jGossip}}{18}{subsection.4.2.2}
+\contentsline {subsection}{\numberline {4.2.2}{jGossip}}{19}{subsection.4.2.2}
 \contentsline {subsubsection}{{jGossip Details}}{19}{section*.26}
-\contentsline {section}{\numberline {4.3}{Completeness of Tracker}}{19}{section.4.3}
-\contentsline {section}{\numberline {4.4}{Application Results}}{20}{section.4.4}
-\contentsline {subsection}{\numberline {4.4.1}{Example Trace}}{20}{subsection.4.4.1}
-\contentsline {subsection}{\numberline {4.4.2}{Precomputation}}{21}{subsection.4.4.2}
-\contentsline {subsubsection}{{RUBiS}}{21}{section*.27}
-\contentsline {subsubsection}{{jGossip}}{24}{section*.28}
-\contentsline {subsection}{\numberline {4.4.3}{Caching}}{24}{subsection.4.4.3}
-\contentsline {subsubsection}{{RUBiS}}{24}{section*.29}
-\contentsline {subsubsection}{{jGossip}}{24}{section*.30}
-\contentsline {subsection}{\numberline {4.4.4}{Postcomputation}}{24}{subsection.4.4.4}
-\contentsline {subsubsection}{{RUBiS}}{24}{section*.31}
-\contentsline {subsubsection}{{jGossip}}{24}{section*.32}
-\contentsline {subsection}{\numberline {4.4.5}{Persistent State}}{24}{subsection.4.4.5}
-\contentsline {subsubsection}{{RUBiS}}{24}{section*.33}
-\contentsline {subsubsection}{{jGossip}}{24}{section*.34}
-\contentsline {subsection}{\numberline {4.4.6}{User State}}{24}{subsection.4.4.6}
-\contentsline {subsubsection}{{RUBiS}}{24}{section*.35}
-\contentsline {subsubsection}{{jGossip}}{24}{section*.36}
-\contentsline {subsection}{\numberline {4.4.7}{Wasteful Communication}}{24}{subsection.4.4.7}
-\contentsline {subsubsection}{{RUBiS}}{24}{section*.37}
-\contentsline {subsubsection}{{jGossip}}{24}{section*.38}
-\contentsline {subsection}{\numberline {4.4.8}{Access Path Refactoring}}{24}{subsection.4.4.8}
-\contentsline {subsubsection}{{RUBiS}}{24}{section*.39}
-\contentsline {subsection}{\numberline {4.4.9}{RUBiS}}{24}{subsection.4.4.9}
-\contentsline {subsection}{\numberline {4.4.10}{jGossip}}{24}{subsection.4.4.10}
-\contentsline {chapter}{\numberline {5}{Conclusions}}{25}{chapter.5}
-\contentsline {section}{\numberline {5.1}{Discussion of Results}}{25}{section.5.1}
-\contentsline {section}{\numberline {5.2}{Future Work}}{25}{section.5.2}
-\contentsline {section}{\numberline {5.3}{Final Words}}{25}{section.5.3}
-\contentsline {chapter}{{Bibliography}}{26}{chapter*.40}
+\contentsline {section}{\numberline {4.3}{Completeness of Tracker}}{20}{section.4.3}
+\contentsline {section}{\numberline {4.4}{Application Results}}{21}{section.4.4}
+\contentsline {subsection}{\numberline {4.4.1}{RUBiS Input Source Description File [may need to rename this]}}{21}{subsection.4.4.1}
+\contentsline {subsection}{\numberline {4.4.2}{jGossip Input Source Description File [rename?]}}{21}{subsection.4.4.2}
+\contentsline {subsection}{\numberline {4.4.3}{Example Trace}}{22}{subsection.4.4.3}
+\contentsline {subsection}{\numberline {4.4.4}{Precomputation}}{23}{subsection.4.4.4}
+\contentsline {subsubsection}{{RUBiS}}{23}{section*.27}
+\contentsline {paragraph}{{Figure\nobreakspace {}\ref {fig:browsecategoriesprecomp}}}{23}{section*.28}
+\contentsline {paragraph}{{Interpreting this,}}{24}{section*.29}
+\contentsline {paragraph}{{The analysis}}{24}{section*.30}
+\contentsline {paragraph}{{RUBiS was modified}}{25}{section*.31}
+\contentsline {paragraph}{{Figure\nobreakspace {}\ref {fig:browsecategorieschatprecomp}}}{27}{section*.32}
+\contentsline {subsubsection}{{jGossip}}{27}{section*.33}
+\contentsline {subsection}{\numberline {4.4.5}{Caching}}{28}{subsection.4.4.5}
+\contentsline {subsubsection}{{RUBiS}}{28}{section*.34}
+\contentsline {paragraph}{{Figure\nobreakspace {}\ref {fig:browseregioncategories} shows}}{28}{section*.35}
+\contentsline {paragraph}{{Running the caching analysis}}{29}{section*.36}
+\contentsline {subsubsection}{{jGossip}}{29}{section*.37}
+\contentsline {subsection}{\numberline {4.4.6}{Postcomputation}}{30}{subsection.4.4.6}
+\contentsline {subsubsection}{{RUBiS}}{30}{section*.38}
+\contentsline {subsubsection}{{jGossip}}{30}{section*.39}
+\contentsline {subsection}{\numberline {4.4.7}{Persistent State}}{30}{subsection.4.4.7}
+\contentsline {subsubsection}{{RUBiS}}{30}{section*.40}
+\contentsline {subsubsection}{{jGossip}}{30}{section*.41}
+\contentsline {subsection}{\numberline {4.4.8}{User State}}{30}{subsection.4.4.8}
+\contentsline {subsubsection}{{RUBiS}}{30}{section*.42}
+\contentsline {subsubsection}{{jGossip}}{30}{section*.43}
+\contentsline {subsection}{\numberline {4.4.9}{Wasteful Communication}}{30}{subsection.4.4.9}
+\contentsline {subsubsection}{{RUBiS}}{30}{section*.44}
+\contentsline {subsubsection}{{jGossip}}{30}{section*.45}
+\contentsline {subsection}{\numberline {4.4.10}{Access Path Refactoring}}{30}{subsection.4.4.10}
+\contentsline {subsubsection}{{RUBiS}}{30}{section*.46}
+\contentsline {subsection}{\numberline {4.4.11}{RUBiS}}{30}{subsection.4.4.11}
+\contentsline {subsection}{\numberline {4.4.12}{jGossip}}{30}{subsection.4.4.12}
+\contentsline {chapter}{\numberline {5}{Conclusions}}{31}{chapter.5}
+\contentsline {section}{\numberline {5.1}{Discussion of Results}}{31}{section.5.1}
+\contentsline {section}{\numberline {5.2}{Future Work}}{31}{section.5.2}
+\contentsline {section}{\numberline {5.3}{Final Words}}{31}{section.5.3}
+\contentsline {chapter}{{Bibliography}}{32}{chapter*.47}
 \contentsline {part}{{Appendices}}{}{}
-\contentsline {chapter}{\numberline {A}{Taint Tracking Tool Logging Format}}{27}{appendix.A}
-\contentsline {chapter}{\numberline {B}{Second Appendix}}{32}{appendix.B}
+\contentsline {chapter}{\numberline {A}{Taint Tracking Tool Logging Format}}{33}{appendix.A}
+\contentsline {chapter}{\numberline {B}{Second Appendix}}{38}{appendix.B}

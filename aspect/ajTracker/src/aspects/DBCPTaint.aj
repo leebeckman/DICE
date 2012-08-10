@@ -213,7 +213,18 @@ public aspect DBCPTaint {
 				StackLocation location = TaintUtil.getStackTraceLocation();
     			
 				if (thisJoinPoint.getThis() instanceof PreparedStatement) {
-    				ReferenceMaster.mapResultSetToPSTaint(rs, ReferenceMaster.getPSTaint(thisJoinPoint.getThis()));
+    				LinkedList<Object> psTaint = ReferenceMaster.getPSTaint(thisJoinPoint.getThis());
+    				ReferenceMaster.mapResultSetToPSTaint(rs, psTaint);
+    				
+    				/*
+    				 * Added this to additionally taint result sets with PS taint,
+    				 * to try to get IMP edges connecting better
+    				 */
+    				if (psTaint != null) {
+	    				for (Object psTainted : psTaint) {
+	    					ReferenceMaster.propagateTaintSources(psTainted, rs, true);
+	    				}
+	    			}
     			}
 				
 			}
