@@ -1,4 +1,5 @@
-<project default="weaveddeploy" name="JBoss/AOP">
+<!--<project default="weaveddeploy" name="JBoss/AOP">-->
+<project default="jspcprepare" name="JBoss/AOP">
     <property name="dice.dir" value="${user.home}/DICE" />
     <property name="aspect.dir" value="${dice.dir}/aspect" />
     <property name="tomcat.home" value="${dice.dir}/tomcat" />
@@ -20,11 +21,6 @@
         <property name="webapp.name" value="jgossip" />
         <unwar src="${dice.dir}/jgossip/dist/default/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
 
-        <!--
-        <property name="webapp.name" value="rubis_servlets" />
-        <unwar src="${dice.dir}/RUBiS/Servlets/${webapp.name}.war" dest="${aspect.dir}/build/${webapp.name}" />
-        -->
-
         <property name="webapp.path" value="${aspect.dir}/build/${webapp.name}" />
 
         <taskdef resource="org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties">
@@ -44,22 +40,24 @@
                 <fileset dir="${aspect.dir}/ajTracker/lib">
                     <include name="*.jar"/>
                 </fileset>
-                <!--<fileset dir="${dice.dir}/jgossip/lib">
+                <fileset dir="${dice.dir}/jgossip/lib">
                     <include name="*.jar"/>
-                </fileset>-->
+                </fileset>
             </classpath>
         </iajc>
     </target>
 
-    <target name="jspcprepare" depends="prepare"> 
+    <target name="jspcprepare" depends="prepare">
         <jasper 
             validateXml="false" 
             uriroot="${webapp.path}" 
             webXmlFragment="${webapp.path}/WEB-INF/generated_web.xml" 
+            addWebXmlMappings="true"
             outputDir="${webapp.path}/WEB-INF/src"
             compilerTargetVM="1.5"
             compilerSourceVM="1.5"
-            failOnError="false" /> 
+            failOnError="false">
+        </jasper> 
     </target>
 
     <target name="jspprecompile" depends="jspcprepare">
