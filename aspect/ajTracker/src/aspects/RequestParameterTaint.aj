@@ -20,7 +20,7 @@ public aspect RequestParameterTaint {
     		return;
     	if (!TaintUtil.getAJLock("BEFORERP1" + thisJoinPoint.getSignature().toShortString()))
     		return;
-    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRIN");
+    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
     	TaintUtil.releaseAJLock("BEFORERP1" + thisJoinPoint.getSignature().toShortString());
 	}
 	
@@ -29,7 +29,7 @@ public aspect RequestParameterTaint {
     		return;
     	if (!TaintUtil.getAJLock("BEFORERP2" + thisJoinPoint.getSignature().toShortString()))
     		return;
-    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BPRINV");
+    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
     	TaintUtil.releaseAJLock("BEFORERP2" + thisJoinPoint.getSignature().toShortString());
 	}
 	
@@ -53,7 +53,7 @@ public aspect RequestParameterTaint {
 //    		}
 //    		TaintLogger.getTaintLogger().log("END REQRIN LOG");
     	}
-    	TaintUtil.popContext("APRIN");
+    	TaintUtil.popContext();
     	TaintUtil.releaseAJLock("AFTERRP1" + thisJoinPoint.getSignature().toShortString());
     }
     
@@ -76,7 +76,7 @@ public aspect RequestParameterTaint {
     			TaintLogger.getTaintLogger().logReturningInput(location, "REQPARAMETER", values[i], TaintUtil.getLastContext(), thisJoinPoint.getThis());
     		}
     	}
-    	TaintUtil.popContext("APRINV");
+    	TaintUtil.popContext();
     	TaintUtil.releaseAJLock("AFTERRP2" + thisJoinPoint.getSignature().toShortString());
     	return values;
     }

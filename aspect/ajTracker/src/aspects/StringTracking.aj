@@ -1,8 +1,7 @@
 package aspects;
 
+import java.nio.charset.Charset;
 import java.util.ArrayList;
-
-import com.rsa.certj.xml.dsig.Reference;
 
 import datamanagement.ReferenceMaster;
 import datamanagement.SimpleCommControl;
@@ -87,6 +86,14 @@ public aspect StringTracking {
 		within(org.apache.tomcat.dbcp..*) ||
 		withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
 		withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
+//		withincode(* org.apache.jsp.jgossip.content.Search_jsp._jspService(..)) ||
+//		withincode(* org.apache.jsp.jgossip.content.UserList_jsp._jspService(..)) ||
+//		withincode(* org.apache.jsp.jgossip.content.Unsubscribe_jsp._jspService(..)) ||
+//		withincode(* org.apache.jsp.jgossip.content.DropOldMess_jsp._jspService(..)) ||
+//		withincode(* org.apache.jsp.jgossip.content.EditAttachInfo_jsp._jspService(..)) ||
+//		withincode(* org.apache.jsp.jgossip.content.SetAvatar_jsp._jspService(..)) ||
+//		withincode(* org.apache.jsp.jgossip.content.SetMailPassword_jsp._jspService(..)) ||
+//		withincode(* org.apache.jsp.jgossip.content.NewTopicsList_jsp._jspService(..));
 	//pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);

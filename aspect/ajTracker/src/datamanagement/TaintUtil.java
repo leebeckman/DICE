@@ -58,7 +58,7 @@ public class TaintUtil {
 		}
 	}
 	
-	public static synchronized void pushContext(Object context, Signature sig, String src) {
+	public static synchronized void pushContext(Object context, Signature sig) {
 		Long threadID = Thread.currentThread().getId();
 		Stack<ContextRecord> stack = contextStore.get(threadID);
 		if (stack == null) {
@@ -187,7 +187,7 @@ public class TaintUtil {
 		}
 	}
 	
-	public static synchronized void popContext(String src) {
+	public static synchronized void popContext() {
 		Long threadID = Thread.currentThread().getId();
 		Stack<ContextRecord> stack = contextStore.get(threadID);
 		if (stack == null || stack.size() == 0) {

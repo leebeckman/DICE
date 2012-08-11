@@ -1,14 +1,8 @@
 package aspects;
 
-import java.lang.reflect.Field;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.aspectj.lang.reflect.MethodSignature;
 
 import datamanagement.ArgBackTaintChecker;
 import datamanagement.ReferenceMaster;
@@ -17,7 +11,6 @@ import datamanagement.StaticFieldBackTaintChecker;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
 import datamanagement.TaintedArg;
-import datamanagement.TaintUtil.StackLocation;
 
 
 public aspect GeneralTracker {
@@ -103,6 +96,14 @@ public aspect GeneralTracker {
 							within(org.apache.tomcat.dbcp..*) ||
 							withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
 							withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
+//							withincode(* org.apache.jsp.jgossip.content.Search_jsp._jspService(..)) ||
+//							withincode(* org.apache.jsp.jgossip.content.UserList_jsp._jspService(..)) ||
+//							withincode(* org.apache.jsp.jgossip.content.Unsubscribe_jsp._jspService(..)) ||
+//							withincode(* org.apache.jsp.jgossip.content.DropOldMess_jsp._jspService(..)) ||
+//							withincode(* org.apache.jsp.jgossip.content.EditAttachInfo_jsp._jspService(..)) ||
+//							withincode(* org.apache.jsp.jgossip.content.SetAvatar_jsp._jspService(..)) ||
+//							withincode(* org.apache.jsp.jgossip.content.SetMailPassword_jsp._jspService(..)) ||
+//							withincode(* org.apache.jsp.jgossip.content.NewTopicsList_jsp._jspService(..));
 //	pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
@@ -164,7 +165,7 @@ public aspect GeneralTracker {
     		return;
     	if (!TaintUtil.getAJLock("BEFORE " + thisJoinPoint.getSignature().toShortString()))
     		return;
-    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature(), "BE");
+    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
     	
 //    	if (TaintUtil.getContext().getContextClassName().startsWith("org.jresearch.gossip.dao.ForumDAO") &&
 //    			TaintUtil.getContext().getContextMethodName().startsWith("getForums")) {
@@ -432,7 +433,7 @@ public aspect GeneralTracker {
     	if (!TaintUtil.getAJLock("AFTERALL " + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.popStartTime();
-    	TaintUtil.popContext("AE");
+    	TaintUtil.popContext();
     	TaintUtil.releaseAJLock("AFTERALL " + thisJoinPoint.getSignature().toShortString());
     }
 	
@@ -445,7 +446,7 @@ public aspect GeneralTracker {
     		return;
     	if (!TaintUtil.getAJLock("BEFOREJ" + thisJoinPoint.getSignature().toShortString()))
     		return;
-    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "BJC");
+    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature());
     	TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
         
@@ -522,7 +523,7 @@ public aspect GeneralTracker {
     		return;
     	if (!TaintUtil.getAJLock("BEFOREJC" + thisJoinPoint.getSignature().toShortString()))
     		return;
-    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "BJCC");
+    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature());
     	TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
         
@@ -728,7 +729,7 @@ public aspect GeneralTracker {
     	if (!TaintUtil.getAJLock("AFTERJALL" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.popStartTime();
-    	TaintUtil.popContext("AJC");
+    	TaintUtil.popContext();
         TaintUtil.releaseAJLock("AFTERJALL" + thisJoinPoint.getSignature().toShortString());
     }
 

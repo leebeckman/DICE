@@ -1,5 +1,4 @@
-<!--<project default="weaveddeploy" name="JBoss/AOP">-->
-<project default="jspcprepare" name="JBoss/AOP">
+<project default="weaveddeploy" name="JBoss/AOP">
     <property name="dice.dir" value="${user.home}/DICE" />
     <property name="aspect.dir" value="${dice.dir}/aspect" />
     <property name="tomcat.home" value="${dice.dir}/tomcat" />
@@ -52,7 +51,6 @@
             validateXml="false" 
             uriroot="${webapp.path}" 
             webXmlFragment="${webapp.path}/WEB-INF/generated_web.xml" 
-            addWebXmlMappings="true"
             outputDir="${webapp.path}/WEB-INF/src"
             compilerTargetVM="1.5"
             compilerSourceVM="1.5"

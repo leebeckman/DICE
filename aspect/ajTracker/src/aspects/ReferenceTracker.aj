@@ -5,7 +5,6 @@ import java.lang.reflect.Modifier;
 import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,13 +16,13 @@ import org.aspectj.lang.reflect.FieldSignature;
 
 import datamanagement.HeuristicIntTainter;
 import datamanagement.ReferenceMaster;
+import datamanagement.ReferenceMaster.IDdTaintSource;
 import datamanagement.SimpleCommControl;
 import datamanagement.StaticFieldBackTaintChecker;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
-import datamanagement.ThreadRequestMaster;
-import datamanagement.ReferenceMaster.IDdTaintSource;
 import datamanagement.TaintUtil.StackLocation;
+import datamanagement.ThreadRequestMaster;
 
 
 public aspect ReferenceTracker {

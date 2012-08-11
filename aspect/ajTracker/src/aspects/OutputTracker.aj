@@ -257,7 +257,7 @@ public aspect OutputTracker {
 			return;
 		}
 		TaintUtil.pushContext(thisJoinPoint.getTarget(),
-				thisJoinPoint.getSignature(), "AROUNDRO");
+				thisJoinPoint.getSignature());
 		StackLocation location = null;
 		// if
 		// (thisJoinPoint.getTarget().getClass().getName().contains("org.apache.catalina.connector.CoyoteWriter"))
@@ -320,7 +320,7 @@ public aspect OutputTracker {
 			TaintLogger.getTaintLogger().logReturning(location,
 					"NONTAINTRETURN", null, null, TaintUtil.getLastContext(),
 					thisJoinPoint.getTarget());
-		TaintUtil.popContext("AFTERRO");
+		TaintUtil.popContext();
 
 		TaintUtil.releaseAJLock("BEFOREOUTP"
 				+ thisJoinPoint.getSignature().toShortString());
@@ -338,7 +338,7 @@ public aspect OutputTracker {
 			return;
 		}
 		TaintUtil.pushContext(thisJoinPoint.getTarget(),
-				thisJoinPoint.getSignature(), "AROUNDRO");
+				thisJoinPoint.getSignature());
 		StackLocation location = null;
 		// if
 		// (thisJoinPoint.getTarget().getClass().getName().contains("org.apache.catalina.connector.CoyoteWriter"))
@@ -401,7 +401,7 @@ public aspect OutputTracker {
 			TaintLogger.getTaintLogger().logReturning(location,
 					"NONTAINTRETURN", null, null, TaintUtil.getLastContext(),
 					thisJoinPoint.getThis());
-		TaintUtil.popContext("AFTERRO");
+		TaintUtil.popContext();
 
 		TaintUtil.releaseAJLock("BEFOREOUTP"
 				+ thisJoinPoint.getSignature().toShortString());
@@ -425,7 +425,7 @@ public aspect OutputTracker {
     		return;
     	if (!TaintUtil.getAJLock("BEFOREEU" + thisJoinPoint.getSignature().toShortString()))
     		return;
-    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "BEFOREDBO");
+    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature());
 		StackLocation location = null;
 
         boolean taintOutput = false;
@@ -477,7 +477,7 @@ public aspect OutputTracker {
          * There is a bug with too much context being pushed due to aspect here and in generaltracker
          * catching the executeQuery method. popping here and repushing in the after call below
          */
-        TaintUtil.popContext("BEFOREDBO");
+        TaintUtil.popContext();
         TaintUtil.releaseAJLock("BEFOREEU" + thisJoinPoint.getSignature().toShortString());
     }
 	
@@ -486,11 +486,11 @@ public aspect OutputTracker {
     		return;
     	if (!TaintUtil.getAJLock("AFTEREU" + thisJoinPoint.getSignature().toShortString()))
     		return;
-    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature(), "AFTERDBO");
+    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature());
     	StackLocation location = TaintUtil.getStackTraceLocation();
 		if (SimpleCommControl.getInstance().ntrEnabled())
 			TaintLogger.getTaintLogger().logReturning(location, "NONTAINTRETURN", null, null, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
-		TaintUtil.popContext("AFTERDBO");
+		TaintUtil.popContext();
 		TaintUtil.releaseAJLock("AFTEREU" + thisJoinPoint.getSignature().toShortString());
 	}
 }
