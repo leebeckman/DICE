@@ -97,9 +97,7 @@ public aspect ReferenceTracker {
 								within(org.apache.coyote..*) ||
 								within(org.apache.jk..*) ||
 								within(org.apache.tomcat..*) ||
-								within(org.apache.tomcat.dbcp..*) ||
-								withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
-								withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
+								within(org.apache.tomcat.dbcp..*);
 //	pointcut allExclude(): within(javax.ejb.AccessLocalException);
 	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);

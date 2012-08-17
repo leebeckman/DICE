@@ -83,9 +83,7 @@ public aspect StringTracking {
 		within(org.apache.coyote..*) ||
 		within(org.apache.jk..*) ||
 		within(org.apache.tomcat..*) ||
-		within(org.apache.tomcat.dbcp..*) ||
-		withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
-		withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
+		within(org.apache.tomcat.dbcp..*);
 //		withincode(* org.apache.jsp.jgossip.content.Search_jsp._jspService(..)) ||
 //		withincode(* org.apache.jsp.jgossip.content.UserList_jsp._jspService(..)) ||
 //		withincode(* org.apache.jsp.jgossip.content.Unsubscribe_jsp._jspService(..)) ||
@@ -95,6 +93,9 @@ public aspect StringTracking {
 //		withincode(* org.apache.jsp.jgossip.content.SetMailPassword_jsp._jspService(..)) ||
 //		withincode(* org.apache.jsp.jgossip.content.NewTopicsList_jsp._jspService(..));
 	//pointcut allExclude(): within(javax.ejb.AccessLocalException);
+	
+	pointcut jspExclude(): withincode(* org.apache.jsp.jgossip.content.*._jspService(..));
+//		withincode(* org.apache.jsp.jgossip.content._jsp._jspService(..)) ||
 	
 	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
 	 /*
@@ -875,7 +876,7 @@ public aspect StringTracking {
     /*
      * Monitors all method invocations and returns for fuzzy propagation
      */
-    after() returning (Object ret): call(public * *.*(..)) && !(myAdvice()) && !allExclude() {
+    after() returning (Object ret): call(public * *.*(..)) && !(myAdvice()) && !allExclude() && !jspExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
     	Object[] args = thisJoinPoint.getArgs();

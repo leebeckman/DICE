@@ -17,7 +17,15 @@
 <link rel="top" href="Main.do" title="<fmt:message key="forum.ROOT"/>" />
 <link rel="search" href="showSearch.do" title="<fmt:message key="forum.SEARCH"/>" />
 <link rel="help" href="showTipsAndTricks.do" title="<fmt:message key="global.TRICKS"/>" />
-
+<c:if test="${!empty requestScope.JRF_GROUPS}" >
+    <c:forEach items="${requestScope.JRF_GROUPS}" var="group">
+       <c:forEach items="${group.forums}" var="forum" >		
+  	       <link rel="chapter forum" href="<c:url value="ShowForum.do">
+			                                       <c:param name="fid" value="${forum.forumid}"/>
+                                            </c:url>" title="<c:out value="${forum.title}"/>" />
+  	   </c:forEach>
+    </c:forEach>
+</c:if>
 <link rel="alternate" type="application/rss+xml" title="RSS 2.0" href="RSSLastTopics.do" />
 <tiles:insert attribute="css"/>
 <tiles:insert attribute="validate_js" ignore="true"/>

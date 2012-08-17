@@ -12,3 +12,6 @@ do
 	kill -9 $killpid
 done
 ps -A | grep java
+
+rm *.log
+rm *.lck

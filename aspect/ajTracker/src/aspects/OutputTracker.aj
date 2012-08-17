@@ -161,9 +161,7 @@ public aspect OutputTracker {
 							within(com.sun.mail.imap.IMAPFolder) ||
 							within(com.jhlabs.image..*) ||
 							within(com.mchange.v2.cfg..*) ||
-							within(com.mchange.v2.codegen.bean..*) ||
-							withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
-							withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
+							within(com.mchange.v2.codegen.bean..*);
 
 	pointcut myAdvice(): adviceexecution() || within(aspects.*) || within(datamanagement.*);
 

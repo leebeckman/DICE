@@ -15,7 +15,7 @@ public class HeuristicIntTainter {
 	private HashMap<Integer, Integer> newValOldValMap;
 	
 	private HeuristicIntTainter() {
-		dataInfoBuilder = new DataSourceInfoBuilder(new File("/home/lee/DICE/rubisDataInfo.xml"));
+		dataInfoBuilder = new DataSourceInfoBuilder(new File("/home/lee/DICE/jgossipDataInfo.xml"));
 		rg = new Random();
 		newValOldValMap = new HashMap<Integer, Integer>();
 	}

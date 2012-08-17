@@ -310,6 +310,9 @@ public class GraphBuilder {
     private boolean taintIDListMatch(String taintIDA, String taintIDB) {
         LinkedList<String> aComponents = new LinkedList<String>();
         LinkedList<String> bComponents = new LinkedList<String>();
+        if (taintIDA == null || taintIDB == null)
+            return false;
+
         for (String item : taintIDA.split(",")) {
             for (String subitem : item.split(" ")) {
                 if (!subitem.startsWith("[")) {
@@ -399,6 +402,7 @@ public class GraphBuilder {
 //            ProgressDialog monitor = new ProgressDialog(AnalysisMainWindow.mainWindow, "Building Graph", childNodes.getLength() * 2);
 //            int progCounter = 0;
             int lineCounter = 0;
+            outer:
             for (int i = 0, length = childNodes.getLength(); i < length; i++ ) {
 //                if (progCounter++ % 10000 == 0)
 //                    monitor.setValue(progCounter);
@@ -423,6 +427,12 @@ public class GraphBuilder {
                             taintEdge.setCalledContextCounter(taintLogChildElem.getAttribute("calledContextCounter"));
                             taintEdge.setAdviceType(taintLogChildElem.getAttribute("adviceType"));
                             String requestCounter = taintLogChildElem.getAttribute("requestCounter");
+                            // Don't bother if it doesn't have a request counter, otherwise causes some problems later
+                            if (requestCounter == null || requestCounter.isEmpty())
+                                continue outer;
+//                            if (taintEdge.getCounter() == 3890) {
+//                                System.out.println("CREATING 3890: req counter: " + requestCounter);
+//                            }
                             taintEdge.setRequestCounter(requestCounter);
                             taintEdge.setRequestURI(taintLogChildElem.getAttribute("requestURI"));
                             taintEdge.setRequestRemoteAddr(taintLogChildElem.getAttribute("requestRemoteAddr"));
@@ -662,7 +672,7 @@ public class GraphBuilder {
                 else if (edge.getType().equals("FIELDGET")) {
                     callingNode = nodeMap.get(edge.getFieldName());
                     calledNode = nodeMap.get(edge.getTargettedDest());
-                    System.out.println("FIELDGET EDGE " + edge + " FROM " + callingNode + " to " + calledNode);
+//                    System.out.println("FIELDGET EDGE " + edge + " FROM " + callingNode + " to " + calledNode);
                     edge.setInputContextCounter(edge.getCalledContextCounter());
                     edge.setOutputContextCounter(edge.getCalledContextCounter());
                 }
@@ -811,7 +821,15 @@ public class GraphBuilder {
 
         boolean found = false;
         for (TaintEdge nextEdge : graph.getOutEdges(nextNode)) {
-            if ((nextEdge.getOutputContextCounter().equals(context) || (nextEdge.getType().equals("FIELDGET") && nextEdge.getRequestCounter().equals(current.getRequestCounter()))) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
+            if (nextEdge.getOutputContextCounter() == null)
+                System.out.println("A FAIL");
+            if (nextEdge.getRequestCounter() == null) {
+                System.out.println("B FAIL on edge " + nextEdge);
+            }
+            if ((nextEdge.getOutputContextCounter().equals(context) ||
+                    (nextEdge.getType().equals("FIELDGET") && nextEdge.getRequestCounter().equals(current.getRequestCounter())))
+                    && (nextEdge.getCounter() > current.getCounter() ||
+                    (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
                 if (forwardContextSearch(visited, nextEdge, graph, true, targetTaintID)) {
                     found = true;
                     break;
@@ -820,7 +838,8 @@ public class GraphBuilder {
         }
         if (!found) {
             for (TaintEdge nextEdge : graph.getInEdges(nextNode)) {
-                if (nextEdge.getInputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY"))) {
+                if (nextEdge.getInputContextCounter().equals(context) &&
+                        (nextEdge.getCounter() > current.getCounter() || current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY"))) {
                     if (forwardContextSearch(visited, nextEdge, graph, false, targetTaintID)) {
                         found = true;
                         break;
@@ -1161,18 +1180,18 @@ public class GraphBuilder {
 //                            if (edge.getCounter() == 2549) {
 //                                System.out.println("PRELOADING 2549: " + edge + " from " + filter);
 //                            }
-                            if (edge.getCounter() == 14)
-                                System.out.println("14 Rejected on " + filter);
+//                            if (edge.getCounter() == 14)
+//                                System.out.println("14 Rejected on " + filter);
                             pass = false;
                             break;
                         }
                     }
 
                     if (pass) {
-                        if (edge.getCounter() == 18)
-                            System.out.println("Adding edge 18");
-                        if (edge.getCounter() == 14)
-                            System.out.println("Adding edge 14");
+//                        if (edge.getCounter() == 18)
+//                            System.out.println("Adding edge 18");
+//                        if (edge.getCounter() == 14)
+//                            System.out.println("Adding edge 14");
                         g.addEdge(edge, callingNode, calledNode);
                     }
                 }

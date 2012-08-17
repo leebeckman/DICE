@@ -143,7 +143,7 @@ public aspect GeneralTracker {
 //									withincode(* org.apache.jsp.jgossip.content.EditMessage_jsp._jspService(..)) ||
 //									withincode(* org.apache.jsp.jgossip.content.ShowForum_jsp._jspService(..));
 	
-	pointcut tooBigErrorExcludeFields(): withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
+//	pointcut tooBigErrorExcludeFields(): withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
     
 	
 	/*
