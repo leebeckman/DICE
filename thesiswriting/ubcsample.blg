@@ -1,47 +1,52 @@
 This is BibTeX, Version 0.99c (TeX Live 2009/Debian)
 The top-level auxiliary file: ubcsample.aux
 The style file: plain.bst
-I found no \citation commands---while reading file ubcsample.aux
 Database file #1: sample.bib
-You've used 0 entries,
+Warning--I didn't find a database entry for "Hudgins2004"
+Warning--I didn't find a database entry for "Degerano2000"
+Warning--empty journal in Kangkook2012
+Warning--there's a number but no volume in Kiczales1997
+Warning--empty journal in Newsome2005
+Warning--empty journal in Rasmussen2009
+You've used 27 entries,
             2118 wiz_defined-function locations,
-            497 strings with 3997 characters,
-and the built_in function-call counts, 18 in all, are:
-= -- 0
-> -- 0
-< -- 0
-+ -- 0
-- -- 0
-* -- 2
-:= -- 7
-add.period$ -- 0
-call.type$ -- 0
-change.case$ -- 0
+            667 strings with 9323 characters,
+and the built_in function-call counts, 9596 in all, are:
+= -- 938
+> -- 530
+< -- 12
++ -- 207
+- -- 180
+* -- 658
+:= -- 1618
+add.period$ -- 81
+call.type$ -- 27
+change.case$ -- 171
 chr.to.int$ -- 0
-cite$ -- 0
-duplicate$ -- 0
-empty$ -- 1
-format.name$ -- 0
-if$ -- 1
+cite$ -- 31
+duplicate$ -- 371
+empty$ -- 632
+format.name$ -- 180
+if$ -- 1989
 int.to.chr$ -- 0
-int.to.str$ -- 0
-missing$ -- 0
-newline$ -- 3
-num.names$ -- 0
-pop$ -- 0
+int.to.str$ -- 27
+missing$ -- 27
+newline$ -- 138
+num.names$ -- 54
+pop$ -- 169
 preamble$ -- 1
-purify$ -- 0
+purify$ -- 144
 quote$ -- 0
-skip$ -- 1
+skip$ -- 300
 stack$ -- 0
-substring$ -- 0
-swap$ -- 0
-text.length$ -- 0
+substring$ -- 471
+swap$ -- 108
+text.length$ -- 12
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 0
-warning$ -- 0
-while$ -- 0
-width$ -- 0
-write$ -- 2
-(There was 1 error message)
+type$ -- 108
+warning$ -- 4
+while$ -- 92
+width$ -- 29
+write$ -- 287
+(There were 6 warnings)

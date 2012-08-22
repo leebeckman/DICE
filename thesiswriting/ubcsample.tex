@@ -278,6 +278,8 @@
 %%% Acknowledgements (Optional)                                 \\
 %%% Dedication (Optional)                                       \\
 
+Notes: whenever I talk about related work, I need to explain why I am different. Someone did this, I'm different this way.
+
 \maketitle                      %% Mandatory
 \begin{abstract}                %% Mandatory -  maximum 350 words
 	In this thesis is explored the use of a technique known as taint tracking - specifically a heavy-weight form of the analysis termed 'dataflow tomography' - in supporting the automated analysis of web applications. The problem addressed is that such applications, often large, complex, and not always well-understood by those working with them, are often eventually faced with the need to migrate. In response to increased user demand and other pressures, they must be made more performant, rearchitected, and even moved into new physical hardware and network topologies. Unaided, such a process is understandably difficult, especially for less experienced developers, and prone to errors or suboptimal decisions. As such, there is a need for automation in this space, to analyze applications and help developers make informed decisions. Though many efforts to this end exist, the approach presented here is unique in its use of taint tracking, which uses the dynamic information of an application's dataflow to support and improve upon a wide variety of analyses. The goal was to demonstrate that taint tracking is well-suited to such analyses, and that a variety of analyses could be successfully applied to real web applications. This is as opposed to an extensive effort to develop and test any one particular analysis. A taint tracker was written for Java applications, as well as an analysis tool to visualize collected taint traces and perform automated analyses over them. These analyses were partly inspired by other research projects, as well as by working with collected taint traces to discover what new analyses could be supported. Two real web applications were selected and the analyses were evaluated by applying them to see if they could automatically discover various properties of the applications. Not only did this show that the analyses could be performed successfully using the taint tracking data, but also showed that the properties the analyses were searching for themselves actually existed in real web applications.
@@ -370,77 +372,122 @@ Dedicate this thesis to my wife.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-TODO LIST:
+%TODO LIST:
+%
+%motivating examples
+%contributions
+%thesis organization
+%related work section (yikes)
 
-motivating examples
-contributions
-thesis organization
-related work section (yikes)
-rubis post computation
-rubis state finding
-rubis user state finding (tricky since I've only done this with jGossip, and I don't have another physical machine)
-implementation modifications (referring to diagrams, maybe trimming it down a bit)
-implementation analysis algorithm descriptions
-maybe some future work stuff
+%rubis post computation
+%rubis state finding
+%rubis user state finding (tricky since I've only done this with jGossip, and I don't have another physical machine)
 
-LATER
-jgossip evaluations
-discussion
-future work
-conclusions
+%implementation modifications (referring to diagrams, maybe trimming it down a bit)
+%implementation analysis algorithm descriptions
+%maybe some future work stuff
+%
+%LATER
+%jgossip evaluations
+%discussion
+%future work
+%conclusions
 
-\chapter{Introduction - BOOK DENTIST APPOINTMENT} % DIFFICULT
+Notes from meeting 20th of August
+-writing is maybe a bit verbose
+-could be a bit clearer. Tighten it up
+-go through paragraphs, find what I can throw away
+-"as such, automated analysis tools have been extremely sought after" -> this is why there has been research in this area.
 
-- problem statement is going to introduce the problem of migrating an existing application, understanding it, having developers work with it.
-- we believe that taint tracking / dynamic information flow tracking / dataflow tomography can be used to support this process. The interesting thing is that we believe it can support a variety of analyses
+-took some time to understand what I was telling them.
+-the reader isn't along for the ride, every paragraph has to be about one thing. Each paragraph is about such and such, check. Readers want a kind of A, B, C. 
 
+Try to find what each paragraph is about, and if any sentence disagrees with that, throw it out.
+
+\chapter{Introduction} % DIFFICULT
+
+%- problem statement is going to introduce the problem of migrating an existing application, understanding it, having developers work with it.
+%- we believe that taint tracking / dynamic information flow tracking / dataflow tomography can be used to support this process. The interesting thing is that we believe it can support a variety of analyses
+%
+%
+%DISTILLED OUTLINE:
 	
-- different approaches to the problem (this is probably the hardest thing I'll have to deal with)
-	- analyzing the output of an application
-	- manual analysis
-	- implement and check iteratively
-	- using expert developers
-	- static analysis techniques
-	- one point will be that my analysis is exploratory in nature. At this point I'm not out to really beat any related attempts in quantifiable ways, but rather to explore this area in a newish application.
-	- hard to say how this is better, but at least it could be more general.
-	- It is MOST similar to fluxo (as fluxo applies a general set of analyses to some input data), and is potentially superior in that it may be applied to existing applications.
-	- It is also related to dataflow tomography paper, though this paper doesn't put forth any uses for it.
-	- There is that paper about uses of DIFT. This goes to a higher semantic level to get data more useful for application understanding.
-	- Application partitioning systems do some of this too, during the profiling stage where they try to check how modules communicate. They to not, however, go as far as this analysis in checking where the data actually comes from. In fact, in doing this work we solved a problem which was identified in real partitioning research, that of wasteful communication.
-	- Could maybe talk about the smart caching by Arun Iyengar, if I can pin down some decent references and similarities in our work. He rigorously evaluates his stuff, so my comparison will need to be high level.
-	- data update propagation research from Iyengar is much like my caching, but without automatic instrumentation
+Notes: should just say the problem outride. Want to focus more on my particular thread of research. Too much in the larger story, risk losing reader in first few sentences. Really want to start off in a focused manner. It's not a story, should get to the point quicker.
 
+Notes: Really just need to refine this bulk of text.
 
-
-DISTILLED OUTLINE:
-
-Chapter: Introduction (really want to draw people in here, high level what is going on)
+The problem which motivates this work is a broad one, and thus is one which has been the subject of a wide variety of attempts to solve it, or at least offer some assistance. We refer to the task of automated application understanding and optimization, in our case specifically dealing with web applications and in the context of such an application being faced with changes to its operating environment, or a need thereof. It is frequently the case that over the lifetime of these applications new demands will be placed on them which encourage change and adaptation, such as increased load from a growing user base or availability of new technologies. This is termed 'migration', which could imply changes ranging from a significant moving of the application to new hardware with large architectural changes to merely modifying some small part of the system to make better use of the resources available to it. The main point is that such tasks are often very difficult to perform manually, especially when done by non-expert developers who must first seek an understanding of the complex applications in question. Gaining such an understanding can be time-consuming, and even then the changes made to the application are prone to errors as developers may miss consequences of their changes. As such, automated analysis tools have been extensively sought after. The goal of such tools is to reduce the need for human experts of existing applications - to support non-experts in gaining an understanding of a system and even suggesting and/or making beneficial changes to it with little human intervention required. %Presented in this thesis is one such system, and we will begin with a motivating example to illustrate some of the problems we are interested in.
 	
-	Sectionless: Statement of problem
+\section{Origins of Research}
 	
-	The problem which motivates this work is a broad one, and thus is one which has been the subject of a wide variety of attempts to solve it, or at least offer some assistance. We refer to the task of automated application understanding and optimization, in our case specifically dealing with web applications and in the context of such an application being faced with changes to its operating environment, or a need thereof. It is frequently the case that over the lifetime of these applications new demands will be placed on them which encourage change and adaptation, such as increased load from a growing user base or availability of new technologies. This is termed 'migration', which could imply changes ranging from a significant moving of the application to new hardware with large architectural changes to merely modifying some small part of the system to make better use of the resources available to it. The main point is that such tasks are often very difficult to perform manually, especially when done by non-expert developers who must first seek an understanding of the complex applications in question. Gaining such an understanding can be time-consuming, and even then the changes made to the application are prone to errors as developers may miss consequences of their changes. As such, automated analysis tools have been extensively sought after. The goal of such tools is to reduce the need for human experts of existing applications - to support non-experts in gaining an understanding of a system and even suggesting and/or making beneficial changes to it with little human intervention required. Presented in this thesis is one such system, and we will begin with a motivating example to illustrate some of the problems we are interested in.
-	
-	Section: Motivating Example DEF WANT TO TALK ABOUT PARTITIONING, PRETTY CRAAAAZY MIGRATION (ALSO USE PPT SLIDE AS INSPIRATION)
-	
-	Consider a simple online shopping site, the basic architecture of which is presented in Figure Blah. 
+Many research efforts and general techniques exist to address the need for this kind of automated analysis, some of which focus on very specific cases and others which go for more general, broad-based analyses. These are discussed at length in the related work chapter which follows in order to motivate and position our own work, but it is useful to immediately identify several key elements of our project concerning its origins. 
 
+Firstly, the TaTAMi project is a system which uses a technique variably referred to as dynamic information flow tracking (DIFT), taint tracking, and dataflow tomography to support a variety of analyses for Java web applications. Essentially, DIFT is a technique where data is tainted (or tagged) so that its progress can be tracked throughout a system, allowing one to see what parts of the system certain data interacts with and how new data is derived from existing data. The method has been used almost exclusively in the security and privacy domains, but we realized that for many of the analyses that we wanted to perform, knowledge of the flow of an application's data throughout its components was key. We anticipated that a certain variant of taint tracking, dataflow tomography, which seeks to discover software behavior from data flow traces, could extract data which could support varied analysis cases. 
+
+The analyses in question, for this project, have been largely inspired by works focusing on various forms of dataflow optimization. Such includes application partitioning, which seeks to split programs into functional pieces and optimally distribute them, and works such as the Fluxo system [ref]. Fluxo provided a series of automatic analyses which could be performed over dataflow graph representations of programs, including discovering potential caches, finding opportunities to delay computation to lower latency, and differentiating between stateful and stateless components. Many of the analyses developed for TaTAMi were derived from those presented in the Fluxo system, though TaTAMi operates under considerably fewer constraints, as will be discussed later.	
+	
+\section{Motivating Example}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/cap1.PNG.eps}
+    \caption[Example web store architecture.]{\label{fig:cap1} Example web store architecture.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/cap2.PNG.eps}
+    \caption[Sample dataflow for web store.]{\label{fig:cap2} Sample dataflow for web store.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/cap3.PNG.eps}
+    \caption[Dataflow indicative of possible caching opportunity.]{\label{fig:cap3} Dataflow indicative of possible caching opportunity.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/cap4.PNG.eps}
+    \caption[Dataflow indicative of sources to be careful of when implementing a cache.]{\label{fig:cap4} Dataflow indicative of sources to be careful of when implementing a cache.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/cap5.PNG.eps}
+    \caption[Simple dataflow indicating peristent state which is shared with only one user.]{\label{fig:cap5} Simple dataflow indicating peristent state which is shared with only one user.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/cap7.PNG.eps}
+    \caption[Example partitioning of application.]{\label{fig:cap7} Example partitioning of application.}
+  \end{center}
+\end{figure}
+	
+To further motivate the TaTAMi system and especially illustrate the natural fit of dataflow tracking to the problem at hand, consider the following example. Presented is a simple online shopping site, the basic architecture of which is given in Figure~\ref{fig:cap1}. The system has back-end data stores for shop inventory and user account info and the logic to access them. For interacting with the site, there are two front-end components: the browsing component which accepts requests from the user to fetch groups of shop items for display, formatted by the page render component; and the purchasing component, which allows users to maintain a 'shopping cart' list of items they wish to buy (kept in a persistent 'Order State', which could be a session attribute) and ultimately bill an order to their account. Now, imagine that this system needs to be upgraded to meet increased user demand. The developers responsible for this will need to have a good understanding of the site's operation in order to make informed modifications which do not cause more problems than they solve. As stated, we believe that capturing the dataflow of this system will naturally support developers in this effort, and as such Figure~\ref{fig:cap2} presents a possible dataflow for the system that our tool would obtain. The points to note here are the flow of shop item data from the Inventory database through the browsing system to the user, and the contribution of data from both back-end stores and user input into the 'Order State' shopping cart data. 
+
+Looking first to the flow of data from the Inventory data to the user, additionally consider Figure~\ref{fig:cap3} and Figure~\ref{fig:cap4}, which outline two important dataflow cases. The first shows how the dataflow could indicate that the data used to generate responses to user browse requests could be entirely from predictable sources. Say the browsing involves simply displaying all of the item names, and the set of available items rarely changes, then the output browsing page would remain the same for long periods. The application could potentially be optimized by pregenerating the browsing page and serving it directly to the user, rather than going to the database. Figure~\ref{fig:cap4} shows an alternate dataflow where user input is tracked and determined to be also responsible for the browsing page. Such could arise, say, if the user supplies some filters to search for items. The input may be very unpredictable, as is indicated here, such as for a free text search, and thus the output browsing page may also be unpredictable and thus a poor candidate for any kind of precomputation. On the other hand, if the user input occurs over some reasonably predictable range, such as if the items were being filtered over a set range of categories, the various output browsing pages from this input may be good candidates for cachable data. An automated analysis could point this out, and thus a developer is aided applying this performance improving optimization, being given such useful insights as which data sources to use for cache keys (user input parameters) and which to check for cache invalidation (the Inventory database).
+
+Looking now to the flow of data around the Order State persistent store, another use of dataflow tracking emerges. First and quite simply, dataflow can potentially pinpoint with ease and accuracy various points in a program where persistent data is stored. By following data into the Order State area, and observing that it persists across multiple requests to the application, an automated analysis can determine that this data is used to communicate data beyond the scope of a single request. Identifying such data is useful as it marks the distinction between stateful and stateless components of a system. Stateful components may necessitate careful handling in certain environments, such as when computation involving those components is to be replicated, or when a new environment may not allow a component to store its state reliably. Again, knowledge of an application's dataflow has the potential to support understanding. Taking this analysis further, Figure~\ref{fig:cap5} alludes to the possibility of a dataflow tracking which might reveal how certain data items only flow to and from certain users. For data constituting persistent state, this might be personal data which is not used to communicate between multiple users, such as one's own shopping cart. Once such state is identified by an analysis, one might be able to make decisions like moving the state from the server into the client, potentially making the application more robust.
+
+If these examples seem scattered at this point, bear in mind that they have largely been inspired by the literature and that the point of our work is to explore a variety of analyses. Continuing, another interesting kind of rearchitecting that might be performed on our web store is to partition it. Figure~\ref{fig:cap7} demonstrates a such a scheme, where the two front end components are moved into separate, independent  deployments, communicating with the backend over the network when database data is needed. Such a change could increase the user serving capacity of the application by providing more processing power to the front-end systems to render pages. Application partitioning algorithms generally seek to identify ways to split of application components in a way which makes efficient use of resources while carefully managing communication overhead between partitions. Generally this involves profiling the application to determine component execution and intercomponent communication costs. Obtaining a more complete view of the dataflow can provide deeper knowledge into, say, this communication. Not only can one know when components share data, but can additionally find out where that data is eventually used. In some cases, the data may never be used at all, and thus the dataflow tracking reveals aspects of the application which could be useful when partitioning it.
+	
 %-need to set up a motivating running example
 %	- consider a large, existing web application (web store application)
 %		- can use slide examples to mess with the application in various ways
 %	- reasonable to expect that this application will need to be migrated, and basically we need to take care of two things: improving performance + finding any properties of the application which might be problematic in the new environment.
 %	- a lot of these things have to do with one thing: the application's data. That is what web sites pretty much are, machines which receive data from and present it to the user. Data is where many problems come from, be it cache consistency, replicating it, communicating it when partitioned, computing over it, and storing it around somewhere.
 %	- make the case for the data being key for many instances, and so it seems natural to see what we can do with traces of where all the data goes.	
+
+\section{Statement of Thesis}
 	
-	
-	Section: Origins of Research
-	
-	Many research efforts and general techniques exist to address this need, some of which focus on very specific cases and others which go for more general, broad-based analyses. These are discussed in the following related work chapter in order to motivate and position our own work, but it is useful to immediately identify several key elements of our project.% concerning its origins. 
-	Firstly, the TaTAMi project is a system which uses a technique variably referred to as dynamic information flow tracking (DIFT), taint tracking, and dataflow tomography to support a variety of analyses for Java web applications. Essentially, DIFT is a technique where data is tainted (or tagged) so that its progress can be tracked throughout a system, allowing one to see what parts of the system certain data interacts with and how new data is derived from existing data. The method has been used almost exclusively in the security and privacy domains, but we realized that for many of the analyses that we wanted to perform, knowledge of the flow of an application's data throughout its components was key. We anticipated that a certain variant of taint tracking, dataflow tomography, which seeks to discover software behavior from data flow traces, could extract data which could support varied analysis cases. 
-	The analyses in question, for this project, have been largely inspired by works focusing on various forms of dataflow optimization. Such includes application partitioning, which seeks to split programs into functional pieces and optimally distribute them, and works such as the Fluxo system [ref]. Fluxo provided a series of automatic analyses which could be performed over dataflow graph representations of programs, including discovering potential caches, finding opportunities to delay computation to lower latency, and differentiating between stateful and stateless components. Many of the analyses developed for TaTAMi were derived from those presented in the Fluxo system, though TaTAMi operates under considerably fewer constraints, as will be discussed later.	
-	
-	Section: Statement of Thesis	
-	
-	It is important to keep in mind that this work pursues a more general analysis approach, and that the form this thesis takes is of a more exploratory, completely qualitative nature. We do not explicitly seek to outperform other specific analysis efforts but rather to demonstrate the value of the DIFT technique for these kinds of analyses, something that we feel has not been significantly addressed in the literature. We hypothesized that due to the focus on data provided by DIFT and because web applications are often basically a means to allow users to access and share data, DIFT would naturally support analyses which could optimize web applications and help developers to understand important properties of them. We believed that several such analyses could be developed and then applied to DIFT traces of real-world web applications successfully, demonstrating both the viability of the analyses as well as the existence of the analysis targets in real applications.
+It is important to keep in mind that this work pursues a more general analysis approach, and that the form this thesis takes is of a more exploratory, completely qualitative nature. We do not explicitly seek to outperform other specific analysis efforts but rather to demonstrate the value of the DIFT technique for these kinds of analyses, something that we feel has not been significantly addressed in the literature. We hypothesized that due to the focus on data provided by DIFT and because web applications are often basically a means to allow users to access and share data, DIFT would naturally support analyses which could optimize web applications and help developers to understand important properties of them. We believed that several such analyses could be developed and then applied to DIFT traces of real-world web applications successfully, demonstrating both the viability of the analyses as well as the existence of the analysis targets in real applications.
 	
 %- we taint at a high semantic level for simplicity and ease of getting info developers care about
 %- want to explore how many useful things we can discover with this kind of data
@@ -450,79 +497,100 @@ Chapter: Introduction (really want to draw people in here, high level what is go
 %-another important point is that this analysis typically is not used in this way. This is a new application for DIFT, arguably.
 %-security
 %-also used for malware analysis	
-	
-	Section: Contributions
-	
-	The main contributions of this work are as follows: the construction of a dataflow tomography tool for Java web applications, able to track tainted Strings and numerical values throughout a single program and report wherever they flow; the construction of an analysis tool to both visualize tomographic data and run analyses over it; the identification and implementation of several analyses designed to operate over tomographic data; and the demonstration that these analyses can be applied to real applications successfully.
-	
-	Section: Thesis Organization
-	
-	The remainder of this thesis is organized thusly: Chapter 2 discusses the body of related work to cover attempts to address related problems and also to show how some of the techniques we use have not been sufficiently explored in this space. It also covers some relevant background material for technologies used in this project. Chapter 3 covers the implementation of the dataflow tomography tool and the analysis tool, breaking down their key components and explaining important design decisions. Chapter 3 presents an evaluation of the tools, demonstrating the output of the tomography tool and the results of the automated analyses. Chapter 4 finishes with a discussion of the results from the evaluation, possible future work, and overall conclusions.
-	
-	
-Chapter: Related Work
-	Here is where we delve deeper into related work, to really localize what I'm doing
-	Section: Migration support, something to say that migration is hard
-	Section: Taint Tracking/DIFT/Tomography (with a focus on visualization)/DAP
-	Section: AOP/Instrumentation/Profiling in General
-	Section: Dataflow graph analysis
-	Section: Application Partitioning - very important motivator
-		-originally developed to be complementary to a partitioning analysis
-		-"which seeks to split applications into pieces and then optimally distribute those pieces at different locations while considering computation requirements at each location and communication costs between them."
-
-start off by immediately introducing the problem at a high level. Talk about migrating applications, understanding them, being faced with optimization and problem avoidance (can mine refs from Fluxo).
-
-% 
-% Start off by explaining different approaches to the problem, and how taint tracking is another approach, arguably better.
-\section{Problem Statement}
-Notes: Need to have a motivating example. Like a software system being moved into the cloud, where the various things my analyses pick up become useful. Could use by basic store example. Illustrate problems encountered and describe my approach to solving these problems.
-
-Notes: the problem is essentially borne of a continuing need for automated analysis of existing software systems when seeking to optimize them, something which often comes up when rearchitecting/migrating them to upgraded deployments. Taint tracing is a technique that, if done in an extensive manner like with dataflow tomography, I hypothesized could be applied in a general way to this problem. The problem is not only address the need for automated analysis, but to investigate if taint tracking is actually worth using in this space.\\\\
-
-Notes: Why do I care about this problem: I believe that there is still room for new kinds of automated analyses in this space, and I think the technique is interesting as it can potentially be used to support many different kinds of analyses. Taint tracking has never really been used this way. It is a difficult problem, to take such a dynamic analysis and attempt to make meaningly automated analyses, so starting work on it is valuable.\\\\
-
-Notes: Want to say clearly at some point that what I did was: had some ideas about taint tracking and automated analysis, so I built a taint tracker, wrote some analyses (some of which were inspired by the literature and which I was confident I could find), and applied them to some real applications to see how it worked.
-
-\section{Thesis Statement}
-Notes: Will want to say something along the lines of how I believe that taint tracking can be a powerful tool in supporting the kind of automated analyses I am interested in, and that I believe I will be able to successfully demonstrate some of these analyses in real software applications.\\
 
 \section{Contributions}
-Notes: Main contributions are
-\begin{itemize}
-\item A dataflow tomography tool for Java web applications
-\item An analysis tool for taking dataflow tomography data and visualizing/analyzing it
-\item Implementations of a set of analyses within the analysis tool
-\item Demonstration of the analyses on real applications
-\end{itemize}
+	
+The main contributions of this work are as follows: the construction of a dataflow tomography tool for Java web applications, able to track tainted Strings and numerical values throughout a single program and report wherever they flow; the construction of an analysis tool to both visualize tomographic data and run analyses over it; the identification and implementation of several analyses designed to operate over tomographic data; and the demonstration that these analyses can be applied to real applications successfully.
 
-\section{Thesis Outline}
-Notes: Give a quick overview of what is to come.
+\section{Thesis Organization}
+	
+The remainder of this thesis is organized thusly: Chapter 2 discusses the body of related work to cover attempts to address related problems and also to show how some of the techniques we use have not been sufficiently explored in this space. It also covers some relevant background material for technologies used in this project. Chapter 3 covers the implementation of the dataflow tomography tool and the analysis tool, breaking down their key components and explaining important design decisions. Chapter 3 presents an evaluation of the tools, demonstrating the output of the tomography tool and the results of the automated analyses. Chapter 4 finishes with a discussion of the results from the evaluation, possible future work, and overall conclusions.
+	
+\chapter{Related Work}
+
+\section{Dynamic Information Flow Tracking}
+	
+	The main stream of research contributing to this project is that of dynamic information flow tracking (DIFT), a technique which may alternately be referred to as tain tracking or dataflow tomography. Introduced by Suh et al. in \cite{Suh2004}, DIFT refers to tagging (tainting) data used by an application at runtime so that its flow through the application can be tracked. Often one works in terms of various interesting sources - places in an application where input is received, such as by reading from a database or receiving input from a user - where data coming from a source in tainted. From the sources, DIFT systems employ some set of propagation rules which define how tainted data is spread through the system. As a simple case, when a variable is produced by copying a tainted input value, the taint tag should be copied from the input value to the new variable. Finally, DIFT systems will establish a set of monitoring sink points in the application to check and report if any tainted data flows through there. These can include entities from the arguments to a certain function or even specific memory locations, depending on the needs of the tool. Many DIFT systems do taint tracking at a fairly low level, down to the level of individual bytes of an application's memory in order to support such security analyses as memory corruption detection. Taint tracking has been used almost exclusively in the domain of security/privacy, and such systems include \cite{Suh2004} \cite{Newsome2005}, where it is to detect if bytes from untrusted input sources like user input ever end up tainting such sinks as jump target addresses or executable instructions; \cite{Hudgins2004}, where it is used trace sensitive data like passwords throughout a system to see where and for how long sensitive data is potentially accessible; \cite{Dalton2007}, where the focus shifts to higher-level SQL injection and cross-site scripting attacks, checking if user input taints such sinks as database queries; and \cite{Al-Saleh2010} \cite{Al-Saleh2010a}, which identifies malware and network protocol analysis as uses. \cite{Al-Saleh2010} is also interesting in that it focuses on a taint propagation policy known as control flow dependence, where values are tainted if they are assigned values in the scope of a control flow statement (such as an if branch) predicated on tainted data. Such propagation is difficult as it often leads to an explosion of taint in the system, and must be very carefully managed, and our own system does not use it as an intentional design decision. \cite{Gupta2008} additionally identifies data lineage tracing as a use, which focuses on determining the inputs responsible for outputs in various scientific computations, which is similar to some of the analyses we do. \cite{Dalton2010}, \cite{Zavou2011}, and \cite{Kangkook2012} present more security-focused systems, as indeed the majority of taint tracking tools are.
+	\cite{Mysore2008} presents something different, and was one of the key pieces in developing our own system. Unlike the previous systems, which are security focused and generally only place sinks at critical points where tainted data is not supposed to reach, dataflow tomogrpahy as introduced in this work does a heavier form of tracking. In this work, tainted data is reported as it flows through every function call (or even instruction) with the ultimate goal of providing a complete end-to-end picture of how data flows through a system. The goal of this system is to help users understand a target application, as is ours, and the works shares our attention to visualization, noting the difficulty of displaying what our often very large flow graphs, as well as our qualitative evaluation strategy. They make the point that while most uses of DIFT are focused on policy enforcement, as with security and privacy, their own work is one which focuses on using the analysis for discovery. They do not, however, give any concrete uses for their analysis beyond general understanding, and as such we feel our own work fills some of this void.
+	\cite{Haldar2005} and \cite{Chin2009} present Java taint tracking systems, like ours, which modify the Java runtime to track taint in Strings. By contrast, our system uses AspectJ to obviate the need for such modifications, and we additionally have limited support for tracking taint in numerical values, as described in the Implementation chapter. These systems are, like other efforts, focused on preventing untrusted data from propagating to secure locations.
+	
+\section{Data Update Propagation}
+	Data Update Propagation (DUP) is a line of research presented in \cite{Challenger1999} \cite{Degenaro2000} \cite{Challenger2001} \cite{Challenger2004} and \cite{Challenger2005} by Arun Iyengar et al. Essentially, DUP is a scheme designed to help consistently cache dynamic data. It does this by maintaining a depedence graph between underlying data sources like database tables and cached objects, through any intermediate objects along the way. When underlying data is modified, the dependence graph is traversed to discover which cached objects need to be invalidated. In the first paper, the chief limitation of this strategy is the requirement that the application (and thus the developer) maintain the dependence graph itself through the use of a provided API. DUP is similar to the caching analysis performed in this thesis, where data flow graphs are searched to discover possible caches and all relevant inputs to them. In our case, however, the graphs are created automatically, without the requirement on the developer to manually specify them. \cite{Degerano2000} does automatically generate dependence graphs, but only because the system cache at the level of immediate query results and the depedence graphs come from query analysis. \cite{Challenger2001} uses the same manual DUP strategy, but introduces such useful concepts as web page fragmenting, where dynamic fragments of a page are identified and able to be tied to underlying data, as well as page pregeneration. This last is much like another of the analyses we perform, known as precomputation, which seeks to find computation results, and even parts of output webpages which can simply be pregenerated due to being based on infrequently changing data.
+
+\section{Automated Analysis and Decision Support}
+	
+	We present here an assortment of works which in some way seek to automatically aide developers in similar manners to our own work, and which use similar ideas to us. Fluxo \cite{Kiciman2010} is a system from which we drew significant inspiration. In Fluxo, developers write applications in a restricted, higher level language which can then be compiled into a dataflow graph representation of the program. This representation is similar to what our own system obtains by monitoring dataflow in an application, though ours operates on unmodified, existing programs and thus the graphs tend to be less restricted and more difficult to work with. The paper supplies a series of tranformations which can be applied to these graph representations to optimize the programs, with the goal of reducing end-to-end latency and addressing what they identify as a need to save developers from having to manually determine the best use of their infrastructure. These analyses include discovering caches, identifying precomputable data, finding computations which can be delayed until later, and separating stateful and stateless components. In Fluxo these optimizations can be applied automatically when found, due to the use of the restricted programming model, whereas in our work this is not yet the case. However, we do support analyses to at least direct developers to where they can apply similar optimizations, and do so for legacy software systems.
+	The Fluxo paper is preceded by \cite{Rasmussen2009}, which gives greater attention to the problem of discovering caches in a dataflow graph. Most imporantly, this paper identifies some key points to consider when searching for caches which were encountered in our own work. These include attempting to choose caches which will actualy provide worthwhile execution savings and being sure that adding a cache does violate the semantics of the application, such as by skipping executions which have important side effects besides producing the cached data.
+	Tralfamadore \cite{Lefebvre2012} is a system which shares with our own the design where data is collected from an application dynamically at runtime to be analyzed repeatedly offline. Their system provides a much more extensive tracing at a lower level such that the execution of an entire OS can be replayed deterministically from the collected data. Using such data and their various analysis operators, one could even potentially build up a DIFT analysis similar to what is presented in the dataflow tomography paper or our own system. Like in Fluxo, the authors make the argument that developers are often given just the source code in order to understand a system, and thus are in great need of automated support tools to aide them. Like our system, they provide a varied set of analyses to be performed over the data their tool collects, though the examples presented operate at a lower level than our own reflecting the binary nature of the tool, determining such things as argument value distributions to instructions. The profiling and analyses we investigate are less general, but as such are more easily able to support the specific, higher semantic level cases we target.
+	Netflow \cite{Caracas2008} mines network activity logs to obtain dependency graphs for components in a network, such that one can answer such questions as which servers will be affected when some upstream component fails. This is at a much higher granularity than our own work, at the level of network devices rather than method calls in a program. However, they seek similarly to help developers understand complex systems using dataflow in order to facilitate low-risk changes. Presumably our analyses could be applied in a broader, distributed setting, given a more powerful taint tracking tool.
+
+\section{Application Partitioning}
+
+	Application partitioning research seeks ways to take monolithic applications and distribute their execution across physical devices and locations, for such benefits as offloading computationally expensive parts of an application to more capable hardware or locating specific services closer to the users which need them. Much research has gone into automatically analyzing applications to determine how best to partition them. In most cases, these analyses profile the applications to determine the execution costs of various components and the communication bandwidth between them. They then apply various algorithms to find a partitioning which places components to make efficient use of available resources while not incurring too great a communication overhead. This last point is important, as parts of an application's execution may be moved to a different physical location, and moving data to and from that location could use expensive network links. Existing works generally use a very basic measure of communication between components, simply totalling the size of data sent in a communication event (such as a method call) \cite{Nahrstedt2003} \cite{Ou2007} \cite{Hajjat2010} \cite{Chun2010} \cite{Chun2011}. While not a partitioning tool, the dataflows that our system extracts can be used to locate unnecessary flows, where data is communicated but then subsequently never used. By finding such flows, we envision that our tool could obtain more accurate bounds on optimal communication costs in a partitioning scenario, allowing better distributions of components to be found by automated tools.
+		
+\section{Aspect Oriented Programming}
+	Aspect Oriented Programming (AOP) \cite{Kiczales1997} is a technology that we rely heavily on to perform our taint tracking. AOP allows one to perform high-level instrumentation of existing programs, injecting code into them to add functionality. In order to augment a program with AOP, one writes pointcuts and advice. Pointcuts are descriptions of locations in a program where code should be added, such as "before every method call of classes within a specific package" or "whenever the value of a field on an object changes". Advice is the code which is injected into the program, and is associated with pointcuts to specify what code is added where. This naturally enables the rapid development of a high-level (and the level of methods and variables as opposed to instructions and bytes of memory) dataflow tomography tool, as one can create pointcuts targetting every location in a program where data is communicated and write advice which inspects the data communicated at those locations for taint.
+
+
+% DONE WITH THESE, WORK TIME
+%- different approaches to the problem (this is probably the hardest thing I'll have to deal with)
+%	- analyzing the output of an application
+%	- manual analysis
+%	- implement and check iteratively
+%	- using expert developers
+%	- static analysis techniques
+%	- hard to say how this is better, but at least it could be more general.
+%	- It is MOST similar to fluxo (as fluxo applies a general set of analyses to some input data), and is potentially superior in that it may be applied to existing applications.
+%	- It is also related to dataflow tomography paper, though this paper doesn't put forth any uses for it.
+%	- There is that paper about uses of DIFT. This goes to a higher semantic level to get data more useful for application understanding.
+%	- Application partitioning systems do some of this too, during the profiling stage where they try to check how modules communicate. They to not, however, go as far as this analysis in checking where the data actually comes from. In fact, in doing this work we solved a problem which was identified in real partitioning research, that of wasteful communication.
+%	- Could maybe talk about the smart caching by Arun Iyengar, if I can pin down some decent references and similarities in our work. He rigorously evaluates his stuff, so my comparison will need to be high level.
+%	- data update propagation research from Iyengar is much like my caching, but without automatic instrumentation
+
+
+
+% OLD NOTES:
+% Start off by explaining different approaches to the problem, and how taint tracking is another approach, arguably better.
+%\section{Problem Statement}
+%Notes: Need to have a motivating example. Like a software system being moved into the cloud, where the various things my analyses pick up become useful. Could use by basic store example. Illustrate problems encountered and describe my approach to solving these problems.
+%
+%Notes: the problem is essentially borne of a continuing need for automated analysis of existing software systems when seeking to optimize them, something which often comes up when rearchitecting/migrating them to upgraded deployments. Taint tracing is a technique that, if done in an extensive manner like with dataflow tomography, I hypothesized could be applied in a general way to this problem. The problem is not only address the need for automated analysis, but to investigate if taint tracking is actually worth using in this space.\\\\
+%
+%Notes: Why do I care about this problem: I believe that there is still room for new kinds of automated analyses in this space, and I think the technique is interesting as it can potentially be used to support many different kinds of analyses. Taint tracking has never really been used this way. It is a difficult problem, to take such a dynamic analysis and attempt to make meaningly automated analyses, so starting work on it is valuable.\\\\
+%
+%Notes: Want to say clearly at some point that what I did was: had some ideas about taint tracking and automated analysis, so I built a taint tracker, wrote some analyses (some of which were inspired by the literature and which I was confident I could find), and applied them to some real applications to see how it worked.
+
+%\section{Thesis Statement}
+%Notes: Will want to say something along the lines of how I believe that taint tracking can be a powerful tool in supporting the kind of automated analyses I am interested in, and that I believe I will be able to successfully demonstrate some of these analyses in real software applications.\\
+
+%\section{Contributions}
+%Notes: Main contributions are
+%\begin{itemize}
+%\item A dataflow tomography tool for Java web applications
+%\item An analysis tool for taking dataflow tomography data and visualizing/analyzing it
+%\item Implementations of a set of analyses within the analysis tool
+%\item Demonstration of the analyses on real applications
+%\end{itemize}
+%
+%\section{Thesis Outline}
+%Notes: Give a quick overview of what is to come.
 
 % Chapter 2, related work: bulk of it taint tracking, some can be background stuff like AOP.
-\chapter{Related Work} % MODERATE
-This seems to overlap with relevant literature in the introduction, which is a problem, and suggests that this may not justify an entire chapter. Need to find a way to organize the various concepts that need to be understood for my work. Is it possible that much of this could be moved to the introduction?
-
-\section{Relevant Literature}
-Notes: Discuss taint tracking, it's use typically in security, as well as some other ways it has been used more relevant to my research. Discuss dataflow tomography and present it as a technique looking for some problems. Discuss Fluxo and similar systems. Discuss Arun Iyengar's work on fragment detection and caching. Use some of the earlier documents I wrote to discuss issues with application state and partitioning, as partitioning is the primary motivator for some of my analyses.
-
-\section{Taint Tracking}
-Notes: Describe exactly what taint tracking is (tagging data, which can be done at various levels of granularity), and monitoring where that data goes. Focus less on research and more on how it is done, and some of the terminology around it. 
-% Be sure to describe very carefully how taint tracking works in general and how it works specifically for us
-
-\section{Aspect Oriented Programming}
-Notes: As this is merely a technology we rely on, it really shouldn't appear in the relevant literature section earlier. Talk about what AOP is, what it lets us do, about dynamic instrumentation in general and how it serves taint tracking. Compare it to lower-level techniques like byte-code instrumentation and point out some advantages and disadvantages.
-
-\section{Anything Else I Should Explain}
-Can add sections here if necessary.
-
-\section{Terms Used}
-\begin{itemize}
-\item Taint: Where this is used, such as when saying that a piece of data in an application is 'tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, refereed to as the 'taint source'. In this thesis is made a minor distinction between Objects which are directly tainted and those which are reachability tainted. Directly tainted Objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted Object is reachable through an Object's reference graph, such as by following a heirarchy of field references.
-\item Tomography: This refers to the nature of the taint tracking in question. Tomography-level taint tracking is a heavy form of the analysis where tainted data is not only tagged at a source and identified at predetermined monitoring points, but is rather tracked along its complete path, indiscriminantly through many monitoring points. The basic goal of tomography is to get a complete trace of where tainted data goes in a program. 
-\item Trace:
-\item Flow:
-\end{itemize}
-
+%\chapter{Related Work} % MODERATE
+%This seems to overlap with relevant literature in the introduction, which is a problem, and suggests that this may not justify an entire chapter. Need to find a way to organize the various concepts that need to be understood for my work. Is it possible that much of this could be moved to the introduction?
+%
+%\section{Relevant Literature}
+%Notes: Discuss taint tracking, it's use typically in security, as well as some other ways it has been used more relevant to my research. Discuss dataflow tomography and present it as a technique looking for some problems. Discuss Fluxo and similar systems. Discuss Arun Iyengar's work on fragment detection and caching. Use some of the earlier documents I wrote to discuss issues with application state and partitioning, as partitioning is the primary motivator for some of my analyses.
+%
+%\section{Taint Tracking}
+%Notes: Describe exactly what taint tracking is (tagging data, which can be done at various levels of granularity), and monitoring where that data goes. Focus less on research and more on how it is done, and some of the terminology around it. 
+%% Be sure to describe very carefully how taint tracking works in general and how it works specifically for us
+%
+%\section{Aspect Oriented Programming}
+%Notes: As this is merely a technology we rely on, it really shouldn't appear in the relevant literature section earlier. Talk about what AOP is, what it lets us do, about dynamic instrumentation in general and how it serves taint tracking. Compare it to lower-level techniques like byte-code instrumentation and point out some advantages and disadvantages.
+%
+%\section{Anything Else I Should Explain}
+%Can add sections here if necessary.
 
 \chapter{Implementation} % EASY, BIG
 
@@ -1417,6 +1485,15 @@ Notes: Wrap up the thesis with a summary of everything discussed and some key th
 %%% If you only have one appendix, please uncomment the following line.
 % \renewcommand{\appendicesname}{Appendix}
 \appendix
+
+\chapter{Terms Used}
+\begin{itemize}
+\item Taint: Where this is used, such as when saying that a piece of data in an application is 'tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, refereed to as the 'taint source'. In this thesis is made a minor distinction between Objects which are directly tainted and those which are reachability tainted. Directly tainted Objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted Object is reachable through an Object's reference graph, such as by following a heirarchy of field references.
+\item Tomography: This refers to the nature of the taint tracking in question. Tomography-level taint tracking is a heavy form of the analysis where tainted data is not only tagged at a source and identified at predetermined monitoring points, but is rather tracked along its complete path, indiscriminantly through many monitoring points. The basic goal of tomography is to get a complete trace of where tainted data goes in a program. 
+\item Trace:
+\item Flow:
+\end{itemize}
+
 \chapter{Taint Tracking Tool Logging Format}
 
 THIS NEEDS TO BE FORMATTED, DIFFICULT TO READ\\\\

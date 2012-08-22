@@ -1,7 +1,7 @@
 #!/bin/bash
 
 rm *.eps
-for file in `ls *.png`
+for file in `ls *.png *.PNG`
 do
 	echo "Converting $file..."
 	convfile=${file%.png}.eps
