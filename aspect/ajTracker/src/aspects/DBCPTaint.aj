@@ -8,7 +8,7 @@ import java.util.Set;
 
 import com.mysql.jdbc.PreparedStatement;
 
-import datamanagement.HeuristicIntTainter;
+import datamanagement.HeuristicNumericTainter;
 import datamanagement.ReferenceMaster;
 import datamanagement.SimpleCommControl;
 import datamanagement.TaintLogger;
@@ -95,7 +95,7 @@ public aspect DBCPTaint {
 						TaintUtil.getLastContext().getContextMethodName().contains("countForumMessages")) {
 				}
 				
-				if (HeuristicIntTainter.getInstance().sourceSafeForIntTracking(catalogName, tableName, columnName)) {
+				if (HeuristicNumericTainter.getInstance().sourceSafeForIntTracking(catalogName, tableName, columnName)) {
 					ret = ReferenceMaster.doPrimaryIntTaint((Integer)ret, ReferenceMaster.getResultSetSource(thisJoinPoint.getThis()), columnName);
 	    			
 					LinkedList<Object> psTaint = ReferenceMaster.getResultSetPSTaint(thisJoinPoint.getThis());

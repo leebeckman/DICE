@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.apache.catalina.connector.RequestFacade;
 import org.aspectj.lang.reflect.FieldSignature;
 
-import datamanagement.HeuristicIntTainter;
+import datamanagement.HeuristicNumericTainter;
 import datamanagement.ReferenceMaster;
 import datamanagement.ReferenceMaster.IDdTaintSource;
 import datamanagement.SimpleCommControl;
@@ -143,7 +143,7 @@ public aspect ReferenceTracker {
 			TaintLogger.getTaintLogger().log("PARSEINT on TAINTED: " + arg);
 			boolean safeForTracking = false;
 			for (IDdTaintSource source : ReferenceMaster.getDataSources(arg)) {
-				if (HeuristicIntTainter.getInstance().sourceSafeForIntTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
+				if (HeuristicNumericTainter.getInstance().sourceSafeForIntTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
 					safeForTracking = true;
 					break;
 				}

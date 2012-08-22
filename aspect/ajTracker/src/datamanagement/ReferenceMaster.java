@@ -345,7 +345,7 @@ public class ReferenceMaster {
 		if (intTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Integer remapped = HeuristicIntTainter.getInstance().taintInt(target);
+		Integer remapped = HeuristicNumericTainter.getInstance().taintInt(target);
 		if (!intTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
 			sources.add(new IDdTaintSource(new TaintSource(taintSource, columnName)));
@@ -359,7 +359,7 @@ public class ReferenceMaster {
 		if (intTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Integer remapped = HeuristicIntTainter.getInstance().taintInt(target);
+		Integer remapped = HeuristicNumericTainter.getInstance().taintInt(target);
 		if (!intTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
 			intTaintSourcesMap.put(remapped, sources);
@@ -369,7 +369,7 @@ public class ReferenceMaster {
 	}
 	
 	public static synchronized int getTaintedIntOldValue(Integer input) {
-		return HeuristicIntTainter.getInstance().getRealValue(input);
+		return HeuristicNumericTainter.getInstance().getRealValue(input);
 	}
 	
 	/*

@@ -6,21 +6,21 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {1.1}{\ignorespaces Example web store architecture.}}{4}{figure.1.1}
-\contentsline {figure}{\numberline {1.2}{\ignorespaces Sample dataflow for web store.}}{5}{figure.1.2}
-\contentsline {figure}{\numberline {1.3}{\ignorespaces Dataflow indicative of possible caching opportunity.}}{6}{figure.1.3}
-\contentsline {figure}{\numberline {1.4}{\ignorespaces Dataflow indicative of sources to be careful of when implementing a cache.}}{7}{figure.1.4}
-\contentsline {figure}{\numberline {1.5}{\ignorespaces Simple dataflow indicating peristent state which is shared with only one user.}}{8}{figure.1.5}
-\contentsline {figure}{\numberline {1.6}{\ignorespaces Example partitioning of application.}}{9}{figure.1.6}
+\contentsline {figure}{\numberline {1.1}{\ignorespaces Example web store architecture.}}{3}{figure.1.1}
+\contentsline {figure}{\numberline {1.2}{\ignorespaces Sample dataflow for web store.}}{4}{figure.1.2}
+\contentsline {figure}{\numberline {1.3}{\ignorespaces Dataflow indicative of possible caching opportunity.}}{5}{figure.1.3}
+\contentsline {figure}{\numberline {1.4}{\ignorespaces Dataflow indicative of sources to be careful of when implementing a cache.}}{6}{figure.1.4}
+\contentsline {figure}{\numberline {1.5}{\ignorespaces Simple dataflow indicating peristent state which is shared with only one user.}}{7}{figure.1.5}
+\contentsline {figure}{\numberline {1.6}{\ignorespaces Example partitioning of application.}}{8}{figure.1.6}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {4.1}{\ignorespaces RUBiS Browse Categories Trace}}{34}{figure.4.1}
-\contentsline {figure}{\numberline {4.2}{\ignorespaces RUBiS Browse Categories With Chat Trace}}{35}{figure.4.2}
-\contentsline {figure}{\numberline {4.3}{\ignorespaces RUBiS Browse Categories Precomputation Results}}{36}{figure.4.3}
-\contentsline {figure}{\numberline {4.4}{\ignorespaces RUBiS Browse Categories With Chat Precomputation Results}}{37}{figure.4.4}
-\contentsline {figure}{\numberline {4.5}{\ignorespaces RUBiS Browse Categories By Region Trace}}{38}{figure.4.5}
-\contentsline {figure}{\numberline {4.6}{\ignorespaces RUBiS Browse Categories By Region Precomputation Results}}{39}{figure.4.6}
+\contentsline {figure}{\numberline {4.1}{\ignorespaces RUBiS Browse Categories Trace}}{33}{figure.4.1}
+\contentsline {figure}{\numberline {4.2}{\ignorespaces RUBiS Browse Categories With Chat Trace}}{34}{figure.4.2}
+\contentsline {figure}{\numberline {4.3}{\ignorespaces RUBiS Browse Categories Precomputation Results}}{35}{figure.4.3}
+\contentsline {figure}{\numberline {4.4}{\ignorespaces RUBiS Browse Categories With Chat Precomputation Results}}{36}{figure.4.4}
+\contentsline {figure}{\numberline {4.5}{\ignorespaces RUBiS Browse Categories By Region Trace}}{37}{figure.4.5}
+\contentsline {figure}{\numberline {4.6}{\ignorespaces RUBiS Browse Categories By Region Precomputation Results}}{38}{figure.4.6}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

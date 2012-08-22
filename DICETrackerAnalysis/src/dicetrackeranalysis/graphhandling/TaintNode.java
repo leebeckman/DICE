@@ -82,12 +82,32 @@ public class TaintNode {
 //            return this.id + ":" + targetID;
         String idStr = "";
         String objFieldNameStr = "";
+        String methodIndicator = "";
         if (this.id != null)
             idStr = ":" + this.id;
         if (this.objectFieldName != null)
-            objFieldNameStr = " [" + this.objectFieldName + "]";
+            objFieldNameStr = " [" + removeArgTypes(removePackageName(this.objectFieldName)) + "]";
+        if (this.methodName != null)
+            methodIndicator = "()";
 
-        return this.name + idStr + objFieldNameStr;
+        if (this.name.contains("CATALOG") && this.name.contains("TABLE") && this.name.contains("COLUMN"))
+            return this.name.replaceAll("TARGETCOLUMN: ", "").replaceAll("CATALOG:", "/").replaceAll("TABLE:", "/").replaceAll("COLUMN:", "/").replaceAll("#RECSEP#", "&& ");
+        return removeArgTypes(removePackageName(this.name)) + methodIndicator + idStr + objFieldNameStr;
+//        return this.name + idStr + objFieldNameStr;
+    }
+
+    private String removePackageName(String input) {
+        int dotIndex = input.lastIndexOf(".");
+        if (dotIndex > 0 && dotIndex < input.length())
+            return input.substring(dotIndex + 1);
+        return input;
+    }
+
+    private String removeArgTypes(String input) {
+        int spaceIndex = input.indexOf(" ");
+        if (spaceIndex > 0 && spaceIndex < input.length())
+            return input.substring(0, spaceIndex);
+        return input;
     }
 
     public String getID() {

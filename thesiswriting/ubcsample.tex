@@ -278,7 +278,9 @@
 %%% Acknowledgements (Optional)                                 \\
 %%% Dedication (Optional)                                       \\
 
-Notes: whenever I talk about related work, I need to explain why I am different. Someone did this, I'm different this way.
+% NOTES *********************************************
+%Notes: whenever I talk about related work, I need to explain why I am different. Someone did this, I'm different this way.
+% NOTES *********************************************
 
 \maketitle                      %% Mandatory
 \begin{abstract}                %% Mandatory -  maximum 350 words
@@ -372,37 +374,43 @@ Dedicate this thesis to my wife.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%TODO LIST:
+TODO LIST:
+
+rubis post computation <----
+rubis state finding
+rubis user state finding (tricky since I've only done this with jGossip, and I don't have another physical machine)
+rubis APR... PROBABLY NOT
+rubis useless comm (MAY NOT BE ANY)
+
+jgossip caching
+jgossip precomp
+jgossip post computation
+jgossip user state finding
+jgossip useless comm
+
+
+implementation modifications (referring to diagrams, maybe trimming it down a bit)
+implementation analysis algorithm descriptions
+maybe some future work stuff
+
+LATER
+jgossip evaluations
+discussion
+future work
+conclusions
+
+% NOTES *********************************************
+%Notes from meeting 20th of August
+%-writing is maybe a bit verbose
+%-could be a bit clearer. Tighten it up
+%-go through paragraphs, find what I can throw away
+%-"as such, automated analysis tools have been extremely sought after" -> this is why there has been research in this area.
 %
-%motivating examples
-%contributions
-%thesis organization
-%related work section (yikes)
-
-%rubis post computation
-%rubis state finding
-%rubis user state finding (tricky since I've only done this with jGossip, and I don't have another physical machine)
-
-%implementation modifications (referring to diagrams, maybe trimming it down a bit)
-%implementation analysis algorithm descriptions
-%maybe some future work stuff
+%-took some time to understand what I was telling them.
+%-the reader isn't along for the ride, every paragraph has to be about one thing. Each paragraph is about such and such, check. Readers want a kind of A, B, C. 
 %
-%LATER
-%jgossip evaluations
-%discussion
-%future work
-%conclusions
-
-Notes from meeting 20th of August
--writing is maybe a bit verbose
--could be a bit clearer. Tighten it up
--go through paragraphs, find what I can throw away
--"as such, automated analysis tools have been extremely sought after" -> this is why there has been research in this area.
-
--took some time to understand what I was telling them.
--the reader isn't along for the ride, every paragraph has to be about one thing. Each paragraph is about such and such, check. Readers want a kind of A, B, C. 
-
-Try to find what each paragraph is about, and if any sentence disagrees with that, throw it out.
+%Try to find what each paragraph is about, and if any sentence disagrees with that, throw it out.
+% NOTES *********************************************
 
 \chapter{Introduction} % DIFFICULT
 
@@ -412,9 +420,11 @@ Try to find what each paragraph is about, and if any sentence disagrees with tha
 %
 %DISTILLED OUTLINE:
 	
-Notes: should just say the problem outride. Want to focus more on my particular thread of research. Too much in the larger story, risk losing reader in first few sentences. Really want to start off in a focused manner. It's not a story, should get to the point quicker.
-
-Notes: Really just need to refine this bulk of text.
+% NOTES *********************************************
+%Notes: should just say the problem outride. Want to focus more on my particular thread of research. Too much in the larger story, risk losing reader in first few sentences. Really want to start off in a focused manner. It's not a story, should get to the point quicker.
+%
+%Notes: Really just need to refine this bulk of text.
+% NOTES *********************************************
 
 The problem which motivates this work is a broad one, and thus is one which has been the subject of a wide variety of attempts to solve it, or at least offer some assistance. We refer to the task of automated application understanding and optimization, in our case specifically dealing with web applications and in the context of such an application being faced with changes to its operating environment, or a need thereof. It is frequently the case that over the lifetime of these applications new demands will be placed on them which encourage change and adaptation, such as increased load from a growing user base or availability of new technologies. This is termed 'migration', which could imply changes ranging from a significant moving of the application to new hardware with large architectural changes to merely modifying some small part of the system to make better use of the resources available to it. The main point is that such tasks are often very difficult to perform manually, especially when done by non-expert developers who must first seek an understanding of the complex applications in question. Gaining such an understanding can be time-consuming, and even then the changes made to the application are prone to errors as developers may miss consequences of their changes. As such, automated analysis tools have been extensively sought after. The goal of such tools is to reduce the need for human experts of existing applications - to support non-experts in gaining an understanding of a system and even suggesting and/or making beneficial changes to it with little human intervention required. %Presented in this thesis is one such system, and we will begin with a motivating example to illustrate some of the problems we are interested in.
 	

@@ -31,6 +31,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Paint;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -40,7 +41,9 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -63,6 +66,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private DefaultMutableTreeNode selectedTaintNode;
     public static JFrame mainWindow;
     private GraphBuilder mainGraphBuilder;
+
+    private String graphFileName;
 
     HashMap<String, GraphBuilder> tabToBuilderMap;
     HashMap<String, VisualizationViewer<TaintNode, TaintEdge>> tabToViewerMap;
@@ -139,6 +144,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         analysisScroller = new javax.swing.JScrollPane();
         analysisText = new javax.swing.JTextArea();
         analysisClearButton = new javax.swing.JButton();
+        screenCapButton = new javax.swing.JButton();
         jPanel5 = new javax.swing.JPanel();
         analysisButtonsPanel = new javax.swing.JPanel();
         staticStateAnalyzeButton = new javax.swing.JButton();
@@ -217,7 +223,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
-        jungViewPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("JUNG View"));
+        jungViewPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Dataflow View"));
 
         javax.swing.GroupLayout jungViewPanelLayout = new javax.swing.GroupLayout(jungViewPanel);
         jungViewPanel.setLayout(jungViewPanelLayout);
@@ -264,6 +270,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 
         tabView.addTab("Analysis", analysisPanel);
 
+        screenCapButton.setText("Capture");
+        screenCapButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                screenCapButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
@@ -280,7 +293,9 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                             .addComponent(sourceFileName, javax.swing.GroupLayout.DEFAULT_SIZE, 753, Short.MAX_VALUE)
                             .addComponent(fileNameField, javax.swing.GroupLayout.DEFAULT_SIZE, 753, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(quickLoadButton))
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(screenCapButton)
+                            .addComponent(quickLoadButton)))
                     .addComponent(tabView, javax.swing.GroupLayout.DEFAULT_SIZE, 1004, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -294,7 +309,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(loadSource)
-                    .addComponent(sourceFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(sourceFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(screenCapButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(tabView, javax.swing.GroupLayout.DEFAULT_SIZE, 597, Short.MAX_VALUE)
                 .addContainerGap())
@@ -799,6 +815,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         if (returnVal == JFileChooser.APPROVE_OPTION) {
             resetAnalysisGraphs();
             File file = chooser.getSelectedFile();
+            graphFileName = file.getName();
             loadTrackingFile(file);
 
         } else {
@@ -911,7 +928,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 
     public void addAnalysisGraphBuilder(GraphBuilder analysisGraphBuilder, String tabName, String analysisText) {
         JPanel analysisGraphPanel = new javax.swing.JPanel();
-        analysisGraphPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("JUNG View"));
+        analysisGraphPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Dataflow Analysis View"));
         tabView.addTab(tabName, analysisGraphPanel);
         analysisGraphPanel.setLayout(new FlowLayout());
 
@@ -1079,15 +1096,15 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         if (noSBCheckbox.isSelected()) {
             LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
             for (TaintNode node : nodes) {
-                if (node.toString().startsWith("java.lang.StringBuilder:toString") ||
-                        node.toString().startsWith("java.lang.StringBuilder:append"))
+                if (node.toString().startsWith("StringBuilder:toString") ||
+                        node.toString().startsWith("StringBuilder:append"))
                     graph.removeVertex(node);
             }
         }
         if (noGCCheckBox.isSelected()) {
             LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
             for (TaintNode node : nodes) {
-                if (node.toString().startsWith("java.lang.String:getChars"))
+                if (node.toString().startsWith("String:getChars"))
                     graph.removeVertex(node);
             }
         }
@@ -1190,15 +1207,15 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         if (noSBCheckbox.isSelected()) {
             LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
             for (TaintNode node : nodes) {
-                if (node.toString().startsWith("java.lang.StringBuilder:toString") ||
-                        node.toString().startsWith("java.lang.StringBuilder:append"))
+                if (node.toString().startsWith("StringBuilder:toString") ||
+                        node.toString().startsWith("StringBuilder:append"))
                     graph.removeVertex(node);
             }
         }
         if (noGCCheckBox.isSelected()) {
             LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
             for (TaintNode node : nodes) {
-                if (node.toString().startsWith("java.lang.String:getChars"))
+                if (node.toString().startsWith("String:getChars"))
                     graph.removeVertex(node);
             }
         }
@@ -1509,6 +1526,22 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_getForwardGraphButtonActionPerformed
 
+    private void screenCapButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_screenCapButtonActionPerformed
+        String outFileName = "/home/lee/DICE/thesiswriting/figs/" + graphFileName + ".png";
+        writeToImageFile(outFileName);
+    }//GEN-LAST:event_screenCapButtonActionPerformed
+
+    private void writeToImageFile(String imageFileName) {
+        BufferedImage bufImage = ScreenImage.createImage((JComponent) tabToViewPanelMap.get(tabView.getTitleAt(tabView.getSelectedIndex())));
+        try {
+            File outFile = new File(imageFileName);
+            ImageIO.write(bufImage, "png", outFile);
+            System.out.println("wrote image to " + imageFileName);
+        } catch (Exception e) {
+            System.out.println("writeToImageFile(): " + e.getMessage());
+        }
+    }
+
     /**
     * @param args the command line arguments
     */
@@ -1568,6 +1601,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JButton resetAnalysisButton;
     private javax.swing.JButton resetPartitionsButton;
     private javax.swing.JButton resetSelectionFilterButton;
+    private javax.swing.JButton screenCapButton;
     private javax.swing.JButton showConnectedButton;
     private javax.swing.JButton showInputsButton;
     private javax.swing.JButton showOnlySelectedButton;
