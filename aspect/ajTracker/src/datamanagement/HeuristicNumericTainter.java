@@ -12,12 +12,12 @@ public class HeuristicNumericTainter {
 	private static HeuristicNumericTainter self;
 	private DataSourceInfoBuilder dataInfoBuilder;
 	private Random rg;
-	private HashMap<Integer, Integer> newValOldValMap;
+	private HashMap<Object, Object> newValOldValMap;
 	
 	private HeuristicNumericTainter() {
 		dataInfoBuilder = new DataSourceInfoBuilder(new File("/home/lee/DICE/rubisDataInfo.xml"));
 		rg = new Random();
-		newValOldValMap = new HashMap<Integer, Integer>();
+		newValOldValMap = new HashMap<Object, Object>();
 	}
 	
 	public static HeuristicNumericTainter getInstance() {
@@ -40,7 +40,7 @@ public class HeuristicNumericTainter {
 		return info.intTracking();
 	}
 	
-	public boolean sourceSafeForIntTracking(Object source, String targetColumn) {
+	public boolean sourceSafeForNumericTracking(Object source, String targetColumn) {
 		TaintLogger.getTaintLogger().log("SSFIT: B: " + source.getClass());
 		if (source instanceof ResultSetMetaData) {
 			try {
@@ -73,16 +73,16 @@ public class HeuristicNumericTainter {
 		return false;
 	}
 	
-	public int taintInt(Integer toTaint) {
-		Integer newVal = 1000000 + rg.nextInt(Integer.MAX_VALUE - 1000000);
+	public Object taintNumeric(Object toTaint) {
+		Object newVal = 1000000 + rg.nextInt(Integer.MAX_VALUE - 1000000);
 		
 		newValOldValMap.put(newVal, toTaint);
 //		TaintLogger.getTaintLogger().log("INT TAINTING: " + toTaint + " to " + newVal);
 		return newVal;
 	}
 	
-	public int getRealValue(Integer newVal) {
-		int oldVal = newValOldValMap.get(newVal);
+	public Object getRealValue(Object newVal) {
+		Object oldVal = newValOldValMap.get(newVal);
 //		TaintLogger.getTaintLogger().log("INT GETTING OLD: " + newVal + " was: " + oldVal);
 		return oldVal;
 	}

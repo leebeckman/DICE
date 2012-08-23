@@ -271,10 +271,10 @@ public aspect DBCPTaint {
     		ReferenceMaster.mapPSToTaint(thisJoinPoint.getTarget(), holder);
     	}
 
-    	if (value instanceof Integer) {
+    	if (value instanceof Integer || value instanceof Double || value instanceof Float) {
 	    	if (ReferenceMaster.isPrimaryTainted(value)) { 
 //	    		TaintLogger.getTaintLogger().log("GETOLDVALUE of : " + value);
-	    		value = ReferenceMaster.getTaintedIntOldValue((Integer)value);
+	    		value = ReferenceMaster.getTaintedNumericOldValue(value);
 	    	}
     	}
     	proceed(column, value);

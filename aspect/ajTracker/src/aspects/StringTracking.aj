@@ -748,7 +748,7 @@ public aspect StringTracking {
     		return proceed(arg);
     	if (ReferenceMaster.isPrimaryTainted(arg)) {
 //        	TaintLogger.getTaintLogger().log("SB APPEND MOD " + arg + " to " + ReferenceMaster.getTaintedIntOldValue(arg));
-    		arg = ReferenceMaster.getTaintedIntOldValue(arg);
+    		arg = (Integer)ReferenceMaster.getTaintedNumericOldValue(arg);
     	}
     	
     	return proceed(arg);
@@ -760,7 +760,7 @@ public aspect StringTracking {
     		return proceed(index, arg);
     	
     	if (ReferenceMaster.isPrimaryTainted(arg)) {
-    		arg = ReferenceMaster.getTaintedIntOldValue(arg);
+    		arg = (Integer)ReferenceMaster.getTaintedNumericOldValue(arg);
     	}
     	
     	return proceed(index, arg);

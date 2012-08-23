@@ -63,7 +63,7 @@ public class ReferenceMaster {
 	private static IdentityHashMap<Object, IdentityHashMap<Object, CountingMap>> objectJavasSourcesMap = new IdentityHashMap<Object, IdentityHashMap<Object,CountingMap>>();
 	
 	private static IdentityHashMap<Object, HashSet<IDdTaintSource>> taintSourcesMap = new IdentityHashMap<Object, HashSet<IDdTaintSource>>();
-	private static HashMap<Integer, HashSet<IDdTaintSource>> intTaintSourcesMap = new HashMap<Integer, HashSet<IDdTaintSource>>();
+	private static HashMap<Object, HashSet<IDdTaintSource>> numericTaintSourcesMap = new HashMap<Object, HashSet<IDdTaintSource>>();
 	private static IdentityHashMap<Object, Object> resultSetToSourceMap = new IdentityHashMap<Object, Object>();
 	
 	private static IdentityHashMap<Object, LinkedList<Object>> psToTaintMap = new IdentityHashMap<Object, LinkedList<Object>>();
@@ -342,33 +342,87 @@ public class ReferenceMaster {
 	}
 	
 	public static synchronized int doPrimaryIntTaint(Integer target, Object taintSource, String columnName) {
-		if (intTaintSourcesMap.containsKey(target))
+		if (numericTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Integer remapped = HeuristicNumericTainter.getInstance().taintInt(target);
-		if (!intTaintSourcesMap.containsKey(remapped)) {
+		Integer remapped = (Integer)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		if (!numericTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
 			sources.add(new IDdTaintSource(new TaintSource(taintSource, columnName)));
-			intTaintSourcesMap.put(remapped, sources);
+			numericTaintSourcesMap.put(remapped, sources);
+		}
+		
+		return remapped;
+	}
+	
+	public static synchronized double doPrimaryDoubleTaint(Double target, Object taintSource, String columnName) {
+		if (numericTaintSourcesMap.containsKey(target))
+			return target;
+		
+		Double remapped = (Double)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		if (!numericTaintSourcesMap.containsKey(remapped)) {
+			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
+			sources.add(new IDdTaintSource(new TaintSource(taintSource, columnName)));
+			numericTaintSourcesMap.put(remapped, sources);
+		}
+		
+		return remapped;
+	}
+	
+	public static synchronized float doPrimaryFloatTaint(Float target, Object taintSource, String columnName) {
+		if (numericTaintSourcesMap.containsKey(target))
+			return target;
+		
+		Float remapped = (Float)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		if (!numericTaintSourcesMap.containsKey(remapped)) {
+			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
+			sources.add(new IDdTaintSource(new TaintSource(taintSource, columnName)));
+			numericTaintSourcesMap.put(remapped, sources);
 		}
 		
 		return remapped;
 	}
 	
 	public static synchronized int doPrimaryIntTaint(Integer target) {
-		if (intTaintSourcesMap.containsKey(target))
+		if (numericTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Integer remapped = HeuristicNumericTainter.getInstance().taintInt(target);
-		if (!intTaintSourcesMap.containsKey(remapped)) {
+		Integer remapped = (Integer)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		if (!numericTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
-			intTaintSourcesMap.put(remapped, sources);
+			numericTaintSourcesMap.put(remapped, sources);
 		}
 		
 		return remapped;
 	}
 	
-	public static synchronized int getTaintedIntOldValue(Integer input) {
+	public static synchronized double doPrimaryDoubleTaint(Double target) {
+		if (numericTaintSourcesMap.containsKey(target))
+			return target;
+		
+		Double remapped = (Double)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		if (!numericTaintSourcesMap.containsKey(remapped)) {
+			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
+			numericTaintSourcesMap.put(remapped, sources);
+		}
+		
+		return remapped;
+	}
+	
+	public static synchronized float doPrimaryFloatTaint(Float target) {
+		if (numericTaintSourcesMap.containsKey(target))
+			return target;
+		
+		Float remapped = (Float)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		if (!numericTaintSourcesMap.containsKey(remapped)) {
+			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
+			numericTaintSourcesMap.put(remapped, sources);
+		}
+		
+		return remapped;
+	}
+	
+	public static synchronized Object getTaintedNumericOldValue(Object input) {
 		return HeuristicNumericTainter.getInstance().getRealValue(input);
 	}
 	
@@ -384,8 +438,8 @@ public class ReferenceMaster {
 		if (isPrimaryTainted(obj) || force) {
 			String ret = "";
 			HashSet<IDdTaintSource> sources = null;
-			if (obj instanceof Integer)
-				sources = intTaintSourcesMap.get(obj);
+			if (obj instanceof Integer || obj instanceof Double || obj instanceof Float)
+				sources = numericTaintSourcesMap.get(obj);
 			else
 				sources = taintSourcesMap.get(obj);
 			for (IDdTaintSource source : sources) {
@@ -393,7 +447,7 @@ public class ReferenceMaster {
 			}
 			if (ret.endsWith(","))
 				ret = ret.substring(0, ret.length() - 1);
-			if (obj instanceof Integer)
+			if (obj instanceof Integer || obj instanceof Double || obj instanceof Float)
 				ret += " [" + obj + "]";
 			else
 				ret += " [" + String.valueOf(System.identityHashCode(obj)) + "]";
@@ -409,22 +463,22 @@ public class ReferenceMaster {
 	public static synchronized void propagateTaintSources(Object sourceData, Object targetData, boolean forceIntTaint) {
 		HashSet<IDdTaintSource> source = null;
 		
-		if (sourceData instanceof Integer)
-			source = intTaintSourcesMap.get(sourceData);
+		if (sourceData instanceof Integer || sourceData instanceof Double || sourceData instanceof Float)
+			source = numericTaintSourcesMap.get(sourceData);
 		else
 			source = taintSourcesMap.get(sourceData);
 			
 		// Not getting a new ID here.
-		if (targetData instanceof Integer && forceIntTaint) {
+		if ((targetData instanceof Integer || targetData instanceof Double || targetData instanceof Float) && forceIntTaint) {
 			/*
 			 * Removing this for now, as tainting ints like this is too collision-prone
 			 */
-			if (intTaintSourcesMap.get(targetData) == null) {
-				intTaintSourcesMap.put((Integer)targetData, new HashSet<IDdTaintSource>());
+			if (numericTaintSourcesMap.get(targetData) == null) {
+				numericTaintSourcesMap.put(targetData, new HashSet<IDdTaintSource>());
 //				TaintLogger.getTaintLogger().log("INT TAINTED CAST: " + (Integer)targetData);
 //				TaintLogger.getTaintLogger().dumpStack("INT TAINT CAST");
 			}
-			HashSet<IDdTaintSource> target = intTaintSourcesMap.get(targetData);
+			HashSet<IDdTaintSource> target = numericTaintSourcesMap.get(targetData);
 			target.addAll(source);
 		}
 		else {
@@ -436,23 +490,23 @@ public class ReferenceMaster {
 		
 	}
 	
-	public static synchronized void propagateTaintSourcesToInt(String sourceData, Integer targetData) {
+	public static synchronized void propagateTaintSourcesToNumeric(String sourceData, Object targetData) {
 		HashSet<IDdTaintSource> source = taintSourcesMap.get(sourceData);
 			
 		// Not getting a new ID here.
-		if (intTaintSourcesMap.get(targetData) == null) {
-			intTaintSourcesMap.put(targetData, new HashSet<IDdTaintSource>());
+		if (numericTaintSourcesMap.get(targetData) == null) {
+			numericTaintSourcesMap.put(targetData, new HashSet<IDdTaintSource>());
 //			TaintLogger.getTaintLogger().log("INT TAINTED CAST: " + (Integer)targetData);
 //			TaintLogger.getTaintLogger().dumpStack("INT TAINT CAST");
 		}
-		HashSet<IDdTaintSource> target = intTaintSourcesMap.get(targetData);
+		HashSet<IDdTaintSource> target = numericTaintSourcesMap.get(targetData);
 		target.addAll(source);
 	}
 	
 	public static synchronized boolean isPrimaryTainted(Object obj) {
 		if (isPrimaryType(obj)) {
-			if (obj instanceof Integer) {
-				return intTaintSourcesMap.containsKey((Integer)obj);
+			if (obj instanceof Integer || obj instanceof Double || obj instanceof Float) {
+				return numericTaintSourcesMap.containsKey(obj);
 			}
 			else
 				return taintSourcesMap.containsKey(obj);
@@ -463,6 +517,8 @@ public class ReferenceMaster {
 	public static synchronized boolean isPrimaryType(Object obj) {
 		if (obj != null) {
 			if (obj instanceof Integer || 
+					obj instanceof Double ||
+					obj instanceof Float ||
 					obj instanceof String || 
 					obj instanceof StringBuilder || 
 					obj instanceof StringBuffer || 
@@ -474,8 +530,8 @@ public class ReferenceMaster {
 	}
 	
 	public static HashSet<IDdTaintSource> getDataSources(Object data) {
-		if (data instanceof Integer)
-			return intTaintSourcesMap.get(data);
+		if (data instanceof Integer || data instanceof Double || data instanceof Float)
+			return numericTaintSourcesMap.get(data);
 		else
 			return taintSourcesMap.get(data);
 	}
@@ -552,7 +608,8 @@ public class ReferenceMaster {
 					for (int i = 0; i < fields.length; i++) {
 						//TODO: is it bad that this only scans non-static fields?
 						if (!Modifier.isStatic(fields[i].getModifiers())) {
-							if (!fields[i].getType().isPrimitive() || fields[i].getType().equals(Integer.class)) {
+							if (!fields[i].getType().isPrimitive() || fields[i].getType().equals(Integer.class)
+									|| fields[i].getType().equals(Double.class) || fields[i].getType().equals(Float.class)) {
 								fields[i].setAccessible(true);
 								try {
 									Object visit = fields[i].get(obj);
@@ -635,7 +692,10 @@ public class ReferenceMaster {
 	public static synchronized boolean isValidArrayType(Object check) {
 		if (check.getClass().isArray()) {
 //			if (!check.getClass().getComponentType().isPrimitive() || check.getClass().equals(Integer.class)) {
-			if (!check.getClass().getComponentType().isPrimitive() || check.getClass().getComponentType().equals(Integer.class)) {
+			if (!check.getClass().getComponentType().isPrimitive() 
+					|| check.getClass().getComponentType().equals(Integer.class)
+					|| check.getClass().getComponentType().equals(Double.class)
+					|| check.getClass().getComponentType().equals(Float.class)) {
 				return true;
 			}
 			return false;

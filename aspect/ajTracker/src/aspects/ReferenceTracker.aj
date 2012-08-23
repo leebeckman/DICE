@@ -130,7 +130,7 @@ public aspect ReferenceTracker {
 	}
 	
 	/*
-	 * Advice to propagate taint from tainted Strings to the inttracking system
+	 * Advice to propagate taint from tainted Strings to the numerictracking system
 	 */
 	Integer around(String arg): call(* Integer.parseInt(..)) && args(arg) {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
@@ -143,17 +143,76 @@ public aspect ReferenceTracker {
 			TaintLogger.getTaintLogger().log("PARSEINT on TAINTED: " + arg);
 			boolean safeForTracking = false;
 			for (IDdTaintSource source : ReferenceMaster.getDataSources(arg)) {
-				if (HeuristicNumericTainter.getInstance().sourceSafeForIntTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
+				if (HeuristicNumericTainter.getInstance().sourceSafeForNumericTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
 					safeForTracking = true;
 					break;
 				}
 			}
 			if (safeForTracking) {
 				ret = ReferenceMaster.doPrimaryIntTaint(ret);
-				ReferenceMaster.propagateTaintSourcesToInt(arg, ret);
+				ReferenceMaster.propagateTaintSourcesToNumeric(arg, ret);
 				TaintLogger.getTaintLogger().log("PARSE INT PROPAGATION: " + ret);
 				StackLocation location = TaintUtil.getStackTraceLocation();
 				TaintLogger.getTaintLogger().logPropagation(location, "PARSEINT", arg, ret);
+			}
+		}
+		
+		return ret;
+	}
+	
+	/*
+	 * Advice to propagate taint from tainted Strings to the numerictracking system
+	 */
+	Double around(String arg): call(* Double.parseDouble(..)) && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
+
+		TaintLogger.getTaintLogger().log("PARSEDOUBLE CALLED: " + arg);
+		Double ret = proceed(arg);
+		
+		if (ReferenceMaster.isPrimaryTainted(arg)) {
+			TaintLogger.getTaintLogger().log("PARSEDOUBLE on TAINTED: " + arg);
+			boolean safeForTracking = false;
+			for (IDdTaintSource source : ReferenceMaster.getDataSources(arg)) {
+				if (HeuristicNumericTainter.getInstance().sourceSafeForNumericTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
+					safeForTracking = true;
+					break;
+				}
+			}
+			if (safeForTracking) {
+				ret = ReferenceMaster.doPrimaryDoubleTaint(ret);
+				ReferenceMaster.propagateTaintSourcesToNumeric(arg, ret);
+				TaintLogger.getTaintLogger().log("PARSE DOUBLE PROPAGATION: " + ret);
+				StackLocation location = TaintUtil.getStackTraceLocation();
+				TaintLogger.getTaintLogger().logPropagation(location, "PARSEDOUBLE", arg, ret);
+			}
+		}
+		
+		return ret;
+	}
+	
+	Float around(String arg): call(* Float.parseFloat(..)) && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
+
+		TaintLogger.getTaintLogger().log("PARSEFLOAT CALLED: " + arg);
+		Float ret = proceed(arg);
+		
+		if (ReferenceMaster.isPrimaryTainted(arg)) {
+			TaintLogger.getTaintLogger().log("PARSEFLOAT on TAINTED: " + arg);
+			boolean safeForTracking = false;
+			for (IDdTaintSource source : ReferenceMaster.getDataSources(arg)) {
+				if (HeuristicNumericTainter.getInstance().sourceSafeForNumericTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
+					safeForTracking = true;
+					break;
+				}
+			}
+			if (safeForTracking) {
+				ret = ReferenceMaster.doPrimaryFloatTaint(ret);
+				ReferenceMaster.propagateTaintSourcesToNumeric(arg, ret);
+				TaintLogger.getTaintLogger().log("PARSE FLOAT PROPAGATION: " + ret);
+				StackLocation location = TaintUtil.getStackTraceLocation();
+				TaintLogger.getTaintLogger().logPropagation(location, "PARSEFLOAT", arg, ret);
 			}
 		}
 		

@@ -266,8 +266,8 @@ public aspect OutputTracker {
 			if (location == null)
 				location = TaintUtil.getStackTraceLocation();
 
-			if (arg instanceof Integer) {
-				arg = ReferenceMaster.getTaintedIntOldValue((Integer) arg);
+			if (arg instanceof Integer || arg instanceof Double || arg instanceof Float) {
+				arg = ReferenceMaster.getTaintedNumericOldValue(arg);
 			}
 
 			TaintLogger.getTaintLogger().logOutputStringArg(location,
@@ -347,8 +347,8 @@ public aspect OutputTracker {
 			if (location == null)
 				location = TaintUtil.getStackTraceLocation();
 
-			if (arg instanceof Integer) {
-				arg = ReferenceMaster.getTaintedIntOldValue((Integer) arg);
+			if (arg instanceof Integer || arg instanceof Double || arg instanceof Float) {
+				arg = ReferenceMaster.getTaintedNumericOldValue(arg);
 			}
 
 			TaintLogger.getTaintLogger().logOutputStringArg(location,
