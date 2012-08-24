@@ -252,6 +252,7 @@ public class RegisterItem extends RubisHttpServlet
     catch (Exception e)
     {
       sp.printHTML("Exception getting comment list: " + e + "<br>");
+      e.printStackTrace(sp.getWriter());
       try
       {
         conn.rollback();

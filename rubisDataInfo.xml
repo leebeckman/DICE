@@ -10,4 +10,11 @@
     <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="region" variability="PREDICTABLE" />
     <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="nickname" variability="PREDICTABLE" />
     <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="password" variability="PREDICTABLE" />
+
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.RegisterItem" parameter="initialPrice" variability="RANDOM" inttracking="true" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.RegisterItem" parameter="reservePrice" variability="RANDOM" inttracking="true" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.RegisterItem" parameter="buyNow" variability="RANDOM" inttracking="true" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.RegisterItem" parameter="quantity" variability="RANDOM" inttracking="true" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.RegisterItem" parameter="userId" variability="PREDICTABLE" inttracking="true" />
+    <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.RegisterItem" parameter="categoryId" variability="PREDICTABLE" inttracking="true" />
 </root>

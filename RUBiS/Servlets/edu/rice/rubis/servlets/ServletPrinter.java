@@ -872,5 +872,9 @@ public class ServletPrinter
   {
     out.println("</DL>");
   }
+  
+  public PrintWriter getWriter() {
+	  return this.out;
+  }
 
 }

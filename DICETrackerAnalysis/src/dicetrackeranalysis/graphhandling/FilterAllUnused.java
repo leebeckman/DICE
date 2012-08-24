@@ -39,6 +39,10 @@ public class FilterAllUnused implements EdgeFilter {
             }
         }
 
+        // Hack which saves edge if containing object is com.mysql.jdbc.PreparedStatement
+        if (taintedObjects.size() == 1 && taintedObjects.getFirst().getType().contains("com.mysql.jdbc.PreparedStatement"))
+            return true;
+
         /*
          * goes thru tainted objects, if top level matches, include.
          * if subobject matches, make sure it is used

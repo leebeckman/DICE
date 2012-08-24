@@ -17,6 +17,7 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
 
     private static int edgeCounter = 0;
     private static int edgeSortingCounter = 0;
+    public int colorValue;
 
     private String type;
     private String requestCounter;
@@ -53,6 +54,8 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
 
     private TaintNode callingNode;
     private TaintNode calledNode;
+
+    private String debugID;
 
     public TaintEdge copyEdge() {
         TaintEdge output = new TaintEdge();
@@ -97,6 +100,14 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         associatedObjects = new LinkedList<TaintedObject>();
         this.counter = edgeCounter++;
         this.sortingCounter = edgeSortingCounter++;
+    }
+
+    public void setDebugID(String debugID) {
+        this.debugID = debugID;
+    }
+
+    public String getDebugID() {
+        return this.debugID;
     }
 
     public void setCounter(int counter) {
@@ -579,7 +590,7 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
     }
 
     public String getNonCounterString() {
-        return this.callingNode + "->" + this.calledNode + ":" + reLabel(this.type, this.adviceType);
+        return this.callingNode.toFullString() + "->" + this.calledNode.toFullString() + ":" + reLabel(this.type, this.adviceType);
     }
 
     public TaintNode getCallingNode() {

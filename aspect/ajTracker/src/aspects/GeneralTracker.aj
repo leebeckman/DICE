@@ -27,7 +27,6 @@ public aspect GeneralTracker {
 							within(javax.management.MBeanOperationInfo) ||
 							within(javax.management.MBeanInfo) ||
 							within(javax.management.MBeanNotificationInfo) ||
-//							within(com.mysql.jdbc..*) ||
 							within(org.apache.jasper.runtime.JspWriterImpl) ||
 							within(org.hsqldb.types.Binary) ||
 							within(oracle.jpub.runtime.MutableStruct) ||
@@ -95,7 +94,8 @@ public aspect GeneralTracker {
 							within(org.apache.tomcat..*) ||
 							within(org.apache.tomcat.dbcp..*) ||
 							withincode(* org.apache.jsp.jgossip.content.EditConstants_jsp._jspService(..)) ||
-							withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
+							withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..)) ||
+							call(* java.sql.PreparedStatement.executeUpdate(..));
 //							withincode(* org.apache.jsp.jgossip.content.Search_jsp._jspService(..)) ||
 //							withincode(* org.apache.jsp.jgossip.content.UserList_jsp._jspService(..)) ||
 //							withincode(* org.apache.jsp.jgossip.content.Unsubscribe_jsp._jspService(..)) ||
@@ -523,7 +523,14 @@ public aspect GeneralTracker {
     		return;
     	if (!TaintUtil.getAJLock("BEFOREJC" + thisJoinPoint.getSignature().toShortString()))
     		return;
+    	
     	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature());
+    	// Quick hack to fix executeUpdate graph disconnect due to call/exec issues
+//    	if (TaintUtil.getContext().getContextClassName().contains("java.sql.PreparedStatement") && TaintUtil.getContext().getContextMethodName().contains("executeUpdate")) {
+//    		TaintUtil.popContext();
+//    		return;
+//    	}
+    	
     	TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
         

@@ -77,9 +77,6 @@ public class TaintNode {
 
     @Override
     public String toString() {
-//        return String.valueOf(this.counter) + " " + this.id;
-//        if (targetID != null && !targetID.isEmpty())
-//            return this.id + ":" + targetID;
         String idStr = "";
         String objFieldNameStr = "";
         String methodIndicator = "";
@@ -90,16 +87,42 @@ public class TaintNode {
         if (this.methodName != null)
             methodIndicator = "()";
 
+//        if (this.name.contains("<init>") && this.name.contains("$ParseInfo") && idStr.contains("16741124")) {
+//            System.out.println("INIT TOSTRING CALLED");
+//            try {
+//                throw new Exception();
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
         if (this.name.contains("CATALOG") && this.name.contains("TABLE") && this.name.contains("COLUMN"))
             return this.name.replaceAll("TARGETCOLUMN: ", "").replaceAll("CATALOG:", "/").replaceAll("TABLE:", "/").replaceAll("COLUMN:", "/").replaceAll("#RECSEP#", "&& ");
         return removeArgTypes(removePackageName(this.name)) + methodIndicator + idStr + objFieldNameStr;
-//        return this.name + idStr + objFieldNameStr;
+//        return this.name + methodIndicator + idStr + objFieldNameStr;
+    }
+
+    public String toFullString() {
+        String idStr = "";
+        String objFieldNameStr = "";
+        String methodIndicator = "";
+        if (this.id != null)
+            idStr = ":" + this.id;
+        if (this.objectFieldName != null)
+            objFieldNameStr = " [" + removeArgTypes(removePackageName(this.objectFieldName)) + "]";
+        if (this.methodName != null)
+            methodIndicator = "()";
+
+        return this.name + methodIndicator + idStr + objFieldNameStr;
     }
 
     private String removePackageName(String input) {
+        String URIstr = "";
+        if (input.startsWith("URI:"))
+            URIstr = "URI:";
+
         int dotIndex = input.lastIndexOf(".");
         if (dotIndex > 0 && dotIndex < input.length())
-            return input.substring(dotIndex + 1);
+            return URIstr + input.substring(dotIndex + 1);
         return input;
     }
 

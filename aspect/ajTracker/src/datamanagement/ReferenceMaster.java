@@ -345,7 +345,7 @@ public class ReferenceMaster {
 		if (numericTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Integer remapped = (Integer)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		Integer remapped = HeuristicNumericTainter.getInstance().taintNumeric(target).intValue();
 		if (!numericTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
 			sources.add(new IDdTaintSource(new TaintSource(taintSource, columnName)));
@@ -359,7 +359,7 @@ public class ReferenceMaster {
 		if (numericTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Double remapped = (Double)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		Double remapped = HeuristicNumericTainter.getInstance().taintNumeric(target).doubleValue();
 		if (!numericTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
 			sources.add(new IDdTaintSource(new TaintSource(taintSource, columnName)));
@@ -373,7 +373,7 @@ public class ReferenceMaster {
 		if (numericTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Float remapped = (Float)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		Float remapped = HeuristicNumericTainter.getInstance().taintNumeric(target).floatValue();
 		if (!numericTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
 			sources.add(new IDdTaintSource(new TaintSource(taintSource, columnName)));
@@ -387,7 +387,7 @@ public class ReferenceMaster {
 		if (numericTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Integer remapped = (Integer)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		Integer remapped = HeuristicNumericTainter.getInstance().taintNumeric(target).intValue();
 		if (!numericTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
 			numericTaintSourcesMap.put(remapped, sources);
@@ -400,7 +400,7 @@ public class ReferenceMaster {
 		if (numericTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Double remapped = (Double)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		Double remapped = HeuristicNumericTainter.getInstance().taintNumeric(target).doubleValue();
 		if (!numericTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
 			numericTaintSourcesMap.put(remapped, sources);
@@ -413,7 +413,7 @@ public class ReferenceMaster {
 		if (numericTaintSourcesMap.containsKey(target))
 			return target;
 		
-		Float remapped = (Float)HeuristicNumericTainter.getInstance().taintNumeric(target);
+		Float remapped = HeuristicNumericTainter.getInstance().taintNumeric(target).floatValue();
 		if (!numericTaintSourcesMap.containsKey(remapped)) {
 			HashSet<IDdTaintSource> sources = new HashSet<IDdTaintSource>();
 			numericTaintSourcesMap.put(remapped, sources);
@@ -422,7 +422,7 @@ public class ReferenceMaster {
 		return remapped;
 	}
 	
-	public static synchronized Object getTaintedNumericOldValue(Object input) {
+	public static synchronized Number getTaintedNumericOldValue(Number input) {
 		return HeuristicNumericTainter.getInstance().getRealValue(input);
 	}
 	

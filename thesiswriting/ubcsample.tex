@@ -376,13 +376,12 @@ Dedicate this thesis to my wife.
 
 TODO LIST:
 
-rubis post computation <----
-rubis state finding
-rubis user state finding (tricky since I've only done this with jGossip, and I don't have another physical machine)
-rubis APR... PROBABLY NOT
-rubis useless comm (MAY NOT BE ANY)
+rubis post computation DIAGRAM COMPLETE
+rubis state finding DIAGRAM COMPLETE
+rubis user state finding CURRENTLY NO USER STATE IN APPLICATION <- SKIP
+rubis useless comm APPLICATION TOO SIMPLE TOO EXHIBIT MUCH OF THIS(MAY NOT BE ANY) <- SKIP
 
-jgossip caching
+jgossip caching <------
 jgossip precomp
 jgossip post computation
 jgossip user state finding
@@ -440,42 +439,42 @@ The analyses in question, for this project, have been largely inspired by works 
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{figs/cap1.PNG.eps}
+    \includegraphics[width=0.6\textwidth]{figs/cap1.eps}
     \caption[Example web store architecture.]{\label{fig:cap1} Example web store architecture.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{figs/cap2.PNG.eps}
+    \includegraphics[width=0.6\textwidth]{figs/cap2.eps}
     \caption[Sample dataflow for web store.]{\label{fig:cap2} Sample dataflow for web store.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{figs/cap3.PNG.eps}
+    \includegraphics[width=0.6\textwidth]{figs/cap3.eps}
     \caption[Dataflow indicative of possible caching opportunity.]{\label{fig:cap3} Dataflow indicative of possible caching opportunity.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{figs/cap4.PNG.eps}
+    \includegraphics[width=0.6\textwidth]{figs/cap4.eps}
     \caption[Dataflow indicative of sources to be careful of when implementing a cache.]{\label{fig:cap4} Dataflow indicative of sources to be careful of when implementing a cache.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{figs/cap5.PNG.eps}
+    \includegraphics[width=0.6\textwidth]{figs/cap5.eps}
     \caption[Simple dataflow indicating peristent state which is shared with only one user.]{\label{fig:cap5} Simple dataflow indicating peristent state which is shared with only one user.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{figs/cap7.PNG.eps}
+    \includegraphics[width=0.6\textwidth]{figs/cap7.eps}
     \caption[Example partitioning of application.]{\label{fig:cap7} Example partitioning of application.}
   \end{center}
 \end{figure}
@@ -895,7 +894,7 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Numbered.eps}
+    \includegraphics[]{figs/resized.eps}
     \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategories} This is a figure
     which needs a caption.}
   \end{center}

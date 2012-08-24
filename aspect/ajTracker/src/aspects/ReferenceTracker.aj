@@ -132,6 +132,81 @@ public aspect ReferenceTracker {
 	/*
 	 * Advice to propagate taint from tainted Strings to the numerictracking system
 	 */
+	Integer around(String arg): call(Integer.new(..)) && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
+		
+		Integer ret = proceed(arg);
+		
+		if (ReferenceMaster.isPrimaryTainted(arg)) {
+			boolean safeForTracking = false;
+			for (IDdTaintSource source : ReferenceMaster.getDataSources(arg)) {
+				if (HeuristicNumericTainter.getInstance().sourceSafeForNumericTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
+					safeForTracking = true;
+					break;
+				}
+			}
+			if (safeForTracking) {
+				ret = ReferenceMaster.doPrimaryIntTaint(ret);
+				ReferenceMaster.propagateTaintSourcesToNumeric(arg, ret);
+				StackLocation location = TaintUtil.getStackTraceLocation();
+				TaintLogger.getTaintLogger().logPropagation(location, "CREATEINT", arg, ret);
+			}
+		}
+		
+		return ret;
+	}
+	
+	Double around(String arg): call(Double.new(..)) && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
+		
+		Double ret = proceed(arg);
+		
+		if (ReferenceMaster.isPrimaryTainted(arg)) {
+			boolean safeForTracking = false;
+			for (IDdTaintSource source : ReferenceMaster.getDataSources(arg)) {
+				if (HeuristicNumericTainter.getInstance().sourceSafeForNumericTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
+					safeForTracking = true;
+					break;
+				}
+			}
+			if (safeForTracking) {
+				ret = ReferenceMaster.doPrimaryDoubleTaint(ret);
+				ReferenceMaster.propagateTaintSourcesToNumeric(arg, ret);
+				StackLocation location = TaintUtil.getStackTraceLocation();
+				TaintLogger.getTaintLogger().logPropagation(location, "CREATEDOUBLE", arg, ret);
+			}
+		}
+		
+		return ret;
+	}
+	
+	Float around(String arg): call(Float.new(..)) && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
+		
+		Float ret = proceed(arg);
+		
+		if (ReferenceMaster.isPrimaryTainted(arg)) {
+			boolean safeForTracking = false;
+			for (IDdTaintSource source : ReferenceMaster.getDataSources(arg)) {
+				if (HeuristicNumericTainter.getInstance().sourceSafeForNumericTracking(source.getTaintSource().getSource(), source.getTaintSource().getTargetColumn())) {
+					safeForTracking = true;
+					break;
+				}
+			}
+			if (safeForTracking) {
+				ret = ReferenceMaster.doPrimaryFloatTaint(ret);
+				ReferenceMaster.propagateTaintSourcesToNumeric(arg, ret);
+				StackLocation location = TaintUtil.getStackTraceLocation();
+				TaintLogger.getTaintLogger().logPropagation(location, "CREATEFLOAT", arg, ret);
+			}
+		}
+		
+		return ret;
+	}
+	
 	Integer around(String arg): call(* Integer.parseInt(..)) && args(arg) {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
     		return proceed(arg);
@@ -160,9 +235,6 @@ public aspect ReferenceTracker {
 		return ret;
 	}
 	
-	/*
-	 * Advice to propagate taint from tainted Strings to the numerictracking system
-	 */
 	Double around(String arg): call(* Double.parseDouble(..)) && args(arg) {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
     		return proceed(arg);

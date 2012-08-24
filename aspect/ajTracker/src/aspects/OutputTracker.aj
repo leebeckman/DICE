@@ -131,6 +131,7 @@ import datamanagement.ReferenceMaster;
 import datamanagement.SimpleCommControl;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
+import datamanagement.ThreadRequestMaster;
 import datamanagement.TaintUtil.StackLocation;
 
 
@@ -267,7 +268,7 @@ public aspect OutputTracker {
 				location = TaintUtil.getStackTraceLocation();
 
 			if (arg instanceof Integer || arg instanceof Double || arg instanceof Float) {
-				arg = ReferenceMaster.getTaintedNumericOldValue(arg);
+				arg = ReferenceMaster.getTaintedNumericOldValue((Number)arg);
 			}
 
 			TaintLogger.getTaintLogger().logOutputStringArg(location,
@@ -348,7 +349,7 @@ public aspect OutputTracker {
 				location = TaintUtil.getStackTraceLocation();
 
 			if (arg instanceof Integer || arg instanceof Double || arg instanceof Float) {
-				arg = ReferenceMaster.getTaintedNumericOldValue(arg);
+				arg = ReferenceMaster.getTaintedNumericOldValue((Number)arg);
 			}
 
 			TaintLogger.getTaintLogger().logOutputStringArg(location,
@@ -418,17 +419,17 @@ public aspect OutputTracker {
 //	}
 	
 	// DB Update Output
-	before(): call(* java.sql.PreparedStatement+.execute*(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+	before(): execution(* java.sql.PreparedStatement+.execute*(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
     	if (!TaintUtil.getAJLock("BEFOREEU" + thisJoinPoint.getSignature().toShortString()))
     		return;
-    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature());
+    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
 		StackLocation location = null;
 
         boolean taintOutput = false;
         
-        Set<Object> objTaint = ReferenceMaster.fullTaintCheck(thisJoinPoint.getTarget());
+        Set<Object> objTaint = ReferenceMaster.fullTaintCheck(thisJoinPoint.getThis());
     	if (location == null)
 			location = TaintUtil.getStackTraceLocation();
 //    	TaintLogger.getTaintLogger().log("CHECKING EXECUTE TAINT IN: " + location);
@@ -438,7 +439,8 @@ public aspect OutputTracker {
 				location = TaintUtil.getStackTraceLocation();
 //        	TaintLogger.getTaintLogger().log("EXECUTE TAINT IN: " + location);
         	taintOutput = true;
-        	TaintLogger.getTaintLogger().logOutputObjectArg(location, "DBOUT", thisJoinPoint.getTarget(), objTaint, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
+        	TaintLogger.getTaintLogger().logOutputObjectArg(location, "DBOUT", thisJoinPoint.getThis(), objTaint, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+//        	TaintLogger.getTaintLogger().dumpStack("DUMPING STACK FOR " + TaintUtil.getContext().getContextClassName() + ":" + TaintUtil.getContext().getContextMethodName());
         	
         }
 //    	for (int i = 0; i < args.length; i++) {
@@ -479,15 +481,15 @@ public aspect OutputTracker {
         TaintUtil.releaseAJLock("BEFOREEU" + thisJoinPoint.getSignature().toShortString());
     }
 	
-	after(): call(* java.sql.PreparedStatement+.execute*(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+	after(): execution(* java.sql.PreparedStatement+.execute*(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
 		if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
     	if (!TaintUtil.getAJLock("AFTEREU" + thisJoinPoint.getSignature().toShortString()))
     		return;
-    	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature());
+    	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
     	StackLocation location = TaintUtil.getStackTraceLocation();
 		if (SimpleCommControl.getInstance().ntrEnabled())
-			TaintLogger.getTaintLogger().logReturning(location, "NONTAINTRETURN", null, null, TaintUtil.getLastContext(), thisJoinPoint.getTarget());
+			TaintLogger.getTaintLogger().logReturning(location, "NONTAINTRETURN", null, null, TaintUtil.getLastContext(), thisJoinPoint.getThis());
 		TaintUtil.popContext();
 		TaintUtil.releaseAJLock("AFTEREU" + thisJoinPoint.getSignature().toShortString());
 	}

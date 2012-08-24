@@ -18,6 +18,7 @@ import dicetrackeranalysis.graphanalysis.PartitionSimulator;
 import dicetrackeranalysis.graphanalysis.PostcompAnalysis;
 import dicetrackeranalysis.graphanalysis.PrecompAnalysis;
 import dicetrackeranalysis.graphanalysis.StaticStateAnalysis;
+import dicetrackeranalysis.graphanalysis.UselessCommAnalysis;
 import dicetrackeranalysis.graphanalysis.UserstateAnalysis;
 import edu.uci.ics.jung.algorithms.layout.ISOMLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -157,6 +158,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         userStateAnalysisButton = new javax.swing.JButton();
         fullOutputButton = new javax.swing.JButton();
+        uselessCommButton = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         multiGraphButton = new javax.swing.JButton();
         multiLightGraphButton = new javax.swing.JButton();
@@ -385,6 +387,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
+        uselessCommButton.setText("Useless Comm");
+        uselessCommButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                uselessCommButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout analysisButtonsPanelLayout = new javax.swing.GroupLayout(analysisButtonsPanel);
         analysisButtonsPanel.setLayout(analysisButtonsPanelLayout);
         analysisButtonsPanelLayout.setHorizontalGroup(
@@ -402,7 +411,9 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(cachingAnalysisButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fullOutputButton))
+                        .addComponent(fullOutputButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(uselessCommButton))
                     .addComponent(jLabel3)
                     .addGroup(analysisButtonsPanelLayout.createSequentialGroup()
                         .addComponent(partitionButton)
@@ -410,7 +421,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                         .addComponent(aprAnalysisButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(resetPartitionsButton)))
-                .addContainerGap(376, Short.MAX_VALUE))
+                .addContainerGap(257, Short.MAX_VALUE))
         );
         analysisButtonsPanelLayout.setVerticalGroup(
             analysisButtonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -421,7 +432,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     .addComponent(userStateAnalysisButton)
                     .addComponent(postcomputationAnalyzeButton)
                     .addComponent(cachingAnalysisButton)
-                    .addComponent(fullOutputButton))
+                    .addComponent(fullOutputButton)
+                    .addComponent(uselessCommButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -988,13 +1000,17 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 //                vs.getRenderContext().setEdgeArrowTransformer(edgeArrowTransformer);
         vs.getRenderContext().setEdgeArrowPredicate(arrowPred);
         Transformer<TaintNode, Paint> vertexPaint = new Transformer<TaintNode, Paint>() {
-            
-
             public Paint transform(TaintNode node) {
                 return palette[node.colorValue];
             }
         };
+        Transformer<TaintEdge, Paint> edgePaint = new Transformer<TaintEdge, Paint>() {
+            public Paint transform(TaintEdge node) {
+                return palette[node.colorValue];
+            }
+        };
         vs.getRenderContext().setVertexFillPaintTransformer(vertexPaint);
+        vs.getRenderContext().setEdgeDrawPaintTransformer(edgePaint);
 
         DefaultModalGraphMouse gm = new DefaultModalGraphMouse();
         gm.setMode(ModalGraphMouse.Mode.TRANSFORMING);
@@ -1096,15 +1112,15 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         if (noSBCheckbox.isSelected()) {
             LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
             for (TaintNode node : nodes) {
-                if (node.toString().startsWith("StringBuilder:toString") ||
-                        node.toString().startsWith("StringBuilder:append"))
+                if (node.toString().contains("StringBuilder:toString") ||
+                        node.toString().contains("StringBuilder:append"))
                     graph.removeVertex(node);
             }
         }
         if (noGCCheckBox.isSelected()) {
             LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
             for (TaintNode node : nodes) {
-                if (node.toString().startsWith("String:getChars"))
+                if (node.toString().contains("String:getChars"))
                     graph.removeVertex(node);
             }
         }
@@ -1207,15 +1223,15 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         if (noSBCheckbox.isSelected()) {
             LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
             for (TaintNode node : nodes) {
-                if (node.toString().startsWith("StringBuilder:toString") ||
-                        node.toString().startsWith("StringBuilder:append"))
+                if (node.toString().contains("StringBuilder:toString") ||
+                        node.toString().contains("StringBuilder:append"))
                     graph.removeVertex(node);
             }
         }
         if (noGCCheckBox.isSelected()) {
             LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
             for (TaintNode node : nodes) {
-                if (node.toString().startsWith("String:getChars"))
+                if (node.toString().contains("String:getChars"))
                     graph.removeVertex(node);
             }
         }
@@ -1286,7 +1302,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 
     private void staticStateAnalyzeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staticStateAnalyzeButtonActionPerformed
         resetAnalysisGraphs();
-        StaticStateAnalysis analysis = new StaticStateAnalysis(mainGraphBuilder, this, analysisText);
+        StaticStateAnalysis analysis = new StaticStateAnalysis(mainGraphBuilder, this, mainTaintIDsRoot, analysisText);
         analysis.analyze();
     }//GEN-LAST:event_staticStateAnalyzeButtonActionPerformed
 
@@ -1531,6 +1547,12 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         writeToImageFile(outFileName);
     }//GEN-LAST:event_screenCapButtonActionPerformed
 
+    private void uselessCommButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uselessCommButtonActionPerformed
+        resetAnalysisGraphs();
+        UselessCommAnalysis analysis = new UselessCommAnalysis(mainGraphBuilder, this, analysisText);
+        analysis.analyze();
+    }//GEN-LAST:event_uselessCommButtonActionPerformed
+
     private void writeToImageFile(String imageFileName) {
         BufferedImage bufImage = ScreenImage.createImage((JComponent) tabToViewPanelMap.get(tabView.getTitleAt(tabView.getSelectedIndex())));
         try {
@@ -1612,6 +1634,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JTabbedPane tabView;
     private javax.swing.JTree taintIDTree;
     private javax.swing.JPanel treePanel;
+    private javax.swing.JButton uselessCommButton;
     private javax.swing.JButton userStateAnalysisButton;
     // End of variables declaration//GEN-END:variables
 

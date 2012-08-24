@@ -748,11 +748,37 @@ public aspect StringTracking {
     		return proceed(arg);
     	if (ReferenceMaster.isPrimaryTainted(arg)) {
 //        	TaintLogger.getTaintLogger().log("SB APPEND MOD " + arg + " to " + ReferenceMaster.getTaintedIntOldValue(arg));
-    		arg = (Integer)ReferenceMaster.getTaintedNumericOldValue(arg);
+    		arg = ReferenceMaster.getTaintedNumericOldValue(arg).intValue();
     	}
     	
     	return proceed(arg);
     }
+    
+	Object around(Double arg): 	(stringBuilderAppend() || stringBufferAppend()) 
+			&& !(myAdvice()) && !allExclude() && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+			return proceed(arg);
+		if (ReferenceMaster.isPrimaryTainted(arg)) {
+			// TaintLogger.getTaintLogger().log("SB APPEND MOD " + arg + " to "
+			// + ReferenceMaster.getTaintedIntOldValue(arg));
+			arg = ReferenceMaster.getTaintedNumericOldValue(arg).doubleValue();
+		}
+
+		return proceed(arg);
+	}
+	
+	Object around(Float arg): 	(stringBuilderAppend() || stringBufferAppend()) 
+	&& !(myAdvice()) && !allExclude() && args(arg) {
+		if (!SimpleCommControl.getInstance().trackingEnabled())
+			return proceed(arg);
+		if (ReferenceMaster.isPrimaryTainted(arg)) {
+			// TaintLogger.getTaintLogger().log("SB APPEND MOD " + arg + " to "
+			// + ReferenceMaster.getTaintedIntOldValue(arg));
+			arg = ReferenceMaster.getTaintedNumericOldValue(arg).floatValue();
+		}
+
+		return proceed(arg);
+	}
     
     Object around(Integer index, Integer arg): 	(stringBuilderInsert() || stringBufferInsert()) 
     		&& !(myAdvice()) && !allExclude() && args(index, arg) {
@@ -760,7 +786,31 @@ public aspect StringTracking {
     		return proceed(index, arg);
     	
     	if (ReferenceMaster.isPrimaryTainted(arg)) {
-    		arg = (Integer)ReferenceMaster.getTaintedNumericOldValue(arg);
+    		arg = ReferenceMaster.getTaintedNumericOldValue(arg).intValue();
+    	}
+    	
+    	return proceed(index, arg);
+    }
+    
+    Object around(Integer index, Double arg): 	(stringBuilderInsert() || stringBufferInsert()) 
+    		&& !(myAdvice()) && !allExclude() && args(index, arg) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(index, arg);
+    	
+    	if (ReferenceMaster.isPrimaryTainted(arg)) {
+    		arg = ReferenceMaster.getTaintedNumericOldValue(arg).doubleValue();
+    	}
+    	
+    	return proceed(index, arg);
+    }
+    
+    Object around(Integer index, Float arg): 	(stringBuilderInsert() || stringBufferInsert()) 
+    		&& !(myAdvice()) && !allExclude() && args(index, arg) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(index, arg);
+    	
+    	if (ReferenceMaster.isPrimaryTainted(arg)) {
+    		arg = ReferenceMaster.getTaintedNumericOldValue(arg).floatValue();
     	}
     	
     	return proceed(index, arg);

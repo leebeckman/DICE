@@ -225,6 +225,7 @@ public aspect DBCPTaint {
 		return rs;
     }
 
+    
     void around(int column, Object value): call(* java.sql.PreparedStatement+.set*(..)) && args(column, value) {
     	if (!SimpleCommControl.getInstance().trackingEnabled()) {
     		proceed(column, value);
@@ -274,7 +275,7 @@ public aspect DBCPTaint {
     	if (value instanceof Integer || value instanceof Double || value instanceof Float) {
 	    	if (ReferenceMaster.isPrimaryTainted(value)) { 
 //	    		TaintLogger.getTaintLogger().log("GETOLDVALUE of : " + value);
-	    		value = ReferenceMaster.getTaintedNumericOldValue(value);
+	    		value = ReferenceMaster.getTaintedNumericOldValue((Number)value);
 	    	}
     	}
     	proceed(column, value);

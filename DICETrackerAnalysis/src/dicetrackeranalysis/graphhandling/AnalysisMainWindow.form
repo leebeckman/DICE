@@ -310,6 +310,8 @@
                                   <Component id="cachingAnalysisButton" min="-2" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
                                   <Component id="fullOutputButton" min="-2" max="-2" attributes="0"/>
+                                  <EmptySpace max="-2" attributes="0"/>
+                                  <Component id="uselessCommButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Component id="jLabel3" alignment="0" min="-2" max="-2" attributes="0"/>
                               <Group type="102" alignment="0" attributes="0">
@@ -320,7 +322,7 @@
                                   <Component id="resetPartitionsButton" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
-                          <EmptySpace pref="376" max="32767" attributes="0"/>
+                          <EmptySpace pref="257" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                 </DimensionLayout>
@@ -334,6 +336,7 @@
                               <Component id="postcomputationAnalyzeButton" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="cachingAnalysisButton" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="fullOutputButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="uselessCommButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
@@ -424,6 +427,14 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="fullOutputButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JButton" name="uselessCommButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Useless Comm"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="uselessCommButtonActionPerformed"/>
                   </Events>
                 </Component>
               </SubComponents>

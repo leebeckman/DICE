@@ -38,6 +38,7 @@ public class GraphBuilder {
     public LinkedList<TaintIDPropagationPair> taintIDPropagations;
     public HashMap<String, RequestCounterURIPair> requestCounters;
     public HashMap<TaintNode, Integer> nodeColors;
+    public HashMap<TaintEdge, Integer> edgeColors;
 
     private HashMap<String, TaintNode> taintIDToInputMap;
 
@@ -53,6 +54,7 @@ public class GraphBuilder {
         taintIDToInputMap = new HashMap<String, TaintNode>();
         requestCounters = new HashMap<String, RequestCounterURIPair>();
         nodeColors = new HashMap<TaintNode, Integer>();
+        edgeColors = new HashMap<TaintEdge, Integer>();
     }
 
     public GraphBuilder(File input) {
@@ -414,6 +416,7 @@ public class GraphBuilder {
                     Element taintLogElem = (Element) childNodes.item(i);
                     taintEdge.setType(taintLogElem.getAttribute("type"));
                     taintEdge.setExecutionTime(taintLogElem.getAttribute("executionTime"));
+                    taintEdge.setDebugID(taintLogElem.getAttribute("debugID"));
 
                     NodeList taintLogChildNodes = taintLogElem.getChildNodes();
                     for (int j = 0; j < taintLogChildNodes.getLength(); j++) {
@@ -769,6 +772,7 @@ public class GraphBuilder {
 //                            System.out.println("UNUSED TAINT IN 807: " + subTaintedObject.getValue());
 //                        if (edge.getCounter() == 568)
 //                            System.out.println("UNUSED TAINT IN 568: " + subTaintedObject.getValue());
+                        
                         subTaintedObject.setUnused();
                         subTaintedObject.setMarked();
                         // This subTaintedObject is not used (basically, its taint was not found.)
@@ -853,8 +857,6 @@ public class GraphBuilder {
             for (TaintedObject taintedObject : current.getTaintedObjects()) {
                 for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
                     if (!subTaintedObject.isMarked() && subTaintedObject.getTaintID().equals(targetTaintID)) {
-                        if (current.getCounter() == 568)
-                            System.out.println("UNUSED TAINT IN 568 2ary: " + subTaintedObject.getValue());
                         subTaintedObject.setUnused();
                         subTaintedObject.setMarked();
                     }
@@ -994,6 +996,10 @@ public class GraphBuilder {
 
     public void colorNode(TaintNode node, int color) {
         nodeColors.put(node, color);
+    }
+
+    public void colorEdge(TaintEdge edge, int color) {
+        edgeColors.put(edge, color);
     }
 
     public Integer getNodeColor(TaintNode node) {
@@ -1162,6 +1168,8 @@ public class GraphBuilder {
 
             Integer callingColor = nodeColors.get(callingNode);
             Integer calledColor = nodeColors.get(calledNode);
+            Integer edgeColor = edgeColors.get(edge);
+
             if (callingColor != null)
                 callingNode.colorValue = callingColor;
             else if (callingNode != null)
@@ -1170,6 +1178,10 @@ public class GraphBuilder {
                 calledNode.colorValue = calledColor;
             else if (calledNode != null)
                 calledNode.colorValue = 0;
+            if (edgeColor != null)
+                edge.colorValue = edgeColor;
+            else
+                edge.colorValue = 4;
 
             if (callingNode != null && calledNode != null) {
                 if (filters != null) {
@@ -1183,6 +1195,9 @@ public class GraphBuilder {
 //                            if (edge.getCounter() == 14)
 //                                System.out.println("14 Rejected on " + filter);
                             pass = false;
+                            if (edge.getDebugID() != null && !edge.getDebugID().isEmpty()) {
+                                System.out.println("FILTERING OUT DEBUG EDGE " + filter + " " + edge.toDebugString());
+                            }
                             break;
                         }
                     }
@@ -1604,7 +1619,7 @@ public class GraphBuilder {
         for (TaintEdge edge : fullGraph.getEdges()) {
             if (edge.getType().equals("OUTPUT")) {
                 TaintNode outputNode = fullGraph.getDest(edge);
-                if (outputNode.getName().contains(":write"))
+                if (outputNode.getName().contains(":write") || outputNode.getName().contains("CoyoteWriter:println"))
                     output.add(edge);
             }
         }
@@ -1622,6 +1637,10 @@ public class GraphBuilder {
                 TaintNode outputNode = fullGraph.getDest(edge);
                 if (outputNode.getName().contains(":execute"))
                     output.add(edge);
+            }
+            if (fullGraph.getDest(edge).toFullString().contains("com.mysql.jdbc.PreparedStatement$ParseInfo")) {
+                System.out.println("Adding: " + fullGraph.getDest(edge).toFullString());
+                output.add(edge);
             }
         }
 
