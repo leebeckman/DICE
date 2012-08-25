@@ -15,7 +15,7 @@ public class HeuristicNumericTainter {
 	private HashMap<Number, Number> newValOldValMap;
 	
 	private HeuristicNumericTainter() {
-		dataInfoBuilder = new DataSourceInfoBuilder(new File("/home/lee/DICE/rubisDataInfo.xml"));
+		dataInfoBuilder = new DataSourceInfoBuilder(new File("/home/lee/DICE/jgossipDataInfo.xml"));
 		rg = new Random();
 		newValOldValMap = new HashMap<Number, Number>();
 	}
@@ -84,14 +84,14 @@ public class HeuristicNumericTainter {
 			newVal = rg.nextFloat();
 		
 		newValOldValMap.put(newVal, toTaint);
-		TaintLogger.getTaintLogger().log("NUMERIC MAPPING: " + newVal + " isa: " + newVal.getClass() + " to: " + toTaint);
+		TaintLogger.getTaintLogger().log("AAA:NUMERIC MAPPING: " + newVal + " isa: " + newVal.getClass() + " to: " + toTaint);
 //		TaintLogger.getTaintLogger().log("INT TAINTING: " + toTaint + " to " + newVal);
 		return newVal;
 	}
 	
 	public Number getRealValue(Number newVal) {
 		Number oldVal = newValOldValMap.get(newVal);
-		TaintLogger.getTaintLogger().log("NUMERIC UNMAPPING OLD: " + newVal + " isa: " + newVal.getClass() + " to: " + oldVal);
+		TaintLogger.getTaintLogger().log("AAA:NUMERIC UNMAPPING OLD: " + newVal + " isa: " + newVal.getClass() + " to: " + oldVal);
 		return oldVal;
 	}
 	

@@ -207,8 +207,7 @@ public aspect StringTracking {
     	
     /* Propagation (data could be mixed in char[]. Accepts Object using toString) DONE */
     pointcut stringValueOf():
-    	(call(public * java.lang..String.valueOf(char[])) ||
-    			call(public * java.lang..String.valueOf(Object)));
+    	(call(public * java.lang..String.valueOf(*)));
     
     /* Propagation, modification DONE */
     pointcut stringValueOfCharModification():
@@ -814,6 +813,39 @@ public aspect StringTracking {
     	}
     	
     	return proceed(index, arg);
+    }
+    
+    Object around(Integer arg):		stringValueOf() && !myAdvice() && !allExclude() && args(arg) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
+    	
+    	if (ReferenceMaster.isPrimaryTainted(arg)) {
+    		arg = ReferenceMaster.getTaintedNumericOldValue(arg).intValue();
+    	}
+    	
+    	return proceed(arg);
+    }
+    
+    Object around(Double arg):		stringValueOf() && !myAdvice() && !allExclude() && args(arg) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
+    	
+    	if (ReferenceMaster.isPrimaryTainted(arg)) {
+    		arg = ReferenceMaster.getTaintedNumericOldValue(arg).doubleValue();
+    	}
+    	
+    	return proceed(arg);
+    }
+    
+    Object around(Float arg):		stringValueOf() && !myAdvice() && !allExclude() && args(arg) {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed(arg);
+    	
+    	if (ReferenceMaster.isPrimaryTainted(arg)) {
+    		arg = ReferenceMaster.getTaintedNumericOldValue(arg).floatValue();
+    	}
+    	
+    	return proceed(arg);
     }
     
     after() returning (Object ret): 	(stringBuilderAppend() || stringBuilderInsert() || stringBuilderReplace() ||

@@ -1309,16 +1309,38 @@ public class GraphBuilder {
                 if (dsib.checkTaintRecordMatchesVariability(record, "PREDICTABLE") ||
                         dsib.checkTaintRecordMatchesVariability(record, "RANDOM")) {
                     output.edgeList.remove(edge);
-                    Collection<TaintEdge> calledEdges = inputGraph.getIncidentEdges(edge.getCalledNode());
-                    if (calledEdges != null) {
-                        for (TaintEdge removeEdge : calledEdges) {
-                            output.edgeList.remove(removeEdge);
+
+                    // This now removes all edges on the same node. Instead, should only remove in matching context.
+                    Collection<TaintEdge> calledInEdges = inputGraph.getInEdges(edge.getCalledNode());
+                    if (calledInEdges != null) {
+                        for (TaintEdge removeEdge : calledInEdges) {
+                            if (edge.getInputContextCounter() == removeEdge.getInputContextCounter()) {
+                                output.edgeList.remove(removeEdge);
+                            }
                         }
                     }
-                    Collection<TaintEdge> callingEdges = inputGraph.getIncidentEdges(edge.getCallingNode());
-                    if (callingEdges != null) {
-                        for (TaintEdge removeEdge : callingEdges) {
-                            output.edgeList.remove(removeEdge);
+                    Collection<TaintEdge> calledOutEdges = inputGraph.getOutEdges(edge.getCalledNode());
+                    if (calledOutEdges != null) {
+                        for (TaintEdge removeEdge : calledOutEdges) {
+                            if (edge.getInputContextCounter() == removeEdge.getOutputContextCounter()) {
+                                output.edgeList.remove(removeEdge);
+                            }
+                        }
+                    }
+                    Collection<TaintEdge> callingInEdges = inputGraph.getInEdges(edge.getCallingNode());
+                    if (callingInEdges != null) {
+                        for (TaintEdge removeEdge : callingInEdges) {
+                            if (edge.getOutputContextCounter() == removeEdge.getInputContextCounter()) {
+                                output.edgeList.remove(removeEdge);
+                            }
+                        }
+                    }
+                    Collection<TaintEdge> callingOutEdges = inputGraph.getOutEdges(edge.getCallingNode());
+                    if (callingOutEdges != null) {
+                        for (TaintEdge removeEdge : callingOutEdges) {
+                            if (edge.getOutputContextCounter() == removeEdge.getOutputContextCounter()) {
+                                output.edgeList.remove(removeEdge);
+                            }
                         }
                     }
                 }

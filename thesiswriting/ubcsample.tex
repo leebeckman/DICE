@@ -381,11 +381,11 @@ rubis state finding DIAGRAM COMPLETE
 rubis user state finding CURRENTLY NO USER STATE IN APPLICATION <- SKIP
 rubis useless comm APPLICATION TOO SIMPLE TOO EXHIBIT MUCH OF THIS(MAY NOT BE ANY) <- SKIP
 
-jgossip caching <------
-jgossip precomp
-jgossip post computation
-jgossip user state finding
-jgossip useless comm
+jgossip precomp <------ DONE BEFORE, SHOULDN'T BE TOO BAD
+jgossip caching <------ INPUT COULD BE A FORUM ID, TO DISPLAY A THREAD
+jgossip post computation <------ FOUND THIS IN FORM OF CREATING A POST
+jgossip user state finding <------ THIS WORKED WITH SINGLE USER, NEED TO SPOOF MULTIPLE USERS
+jgossip useless comm <----- CAN JUST RUN THIS ON ANYTHING
 
 
 implementation modifications (referring to diagrams, maybe trimming it down a bit)
@@ -894,33 +894,29 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[]{figs/resized.eps}
-    \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategories} This is a figure
-    which needs a caption.}
+    \includegraphics[]{figs/rubis_BrowseCategories_Numbered.eps}
+    \caption[RUBiS Browse Categories Trace]{\label{fig:browsecategories} RUBiS Browse Categories Trace.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
     \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Chat_Numbered.eps}
-    \caption[RUBiS Browse Categories With Chat Trace]{\label{fig:browsecategorieschat} This is a figure
-    which needs a caption.}
+    \caption[RUBiS Browse Categories With Chat Trace]{\label{fig:browsecategorieschat} RUBiS Browse Categories With Chat Trace.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
     \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Precomp.eps}
-    \caption[RUBiS Browse Categories Precomputation Results]{\label{fig:browsecategoriesprecomp} This is a figure
-    which needs a caption.}
+    \caption[RUBiS Browse Categories Precomputation Results]{\label{fig:browsecategoriesprecomp} RUBiS Browse Categories Precomputation Results.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
     \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseCategories_Chat_Precomp.eps}
-    \caption[RUBiS Browse Categories With Chat Precomputation Results]{\label{fig:browsecategorieschatprecomp} This is a figure
-    which needs a caption.}
+    \caption[RUBiS Browse Categories With Chat Precomputation Results]{\label{fig:browsecategorieschatprecomp} RUBiS Browse Categories With Chat Precomputation Results.}
   \end{center}
 \end{figure}
 
@@ -997,16 +993,14 @@ NEED TO COLLECT DATA, MAKE FIGURES
 \begin{figure}[ht]
   \begin{center}
     \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseRegionCategories_Numbered.eps}
-    \caption[RUBiS Browse Categories By Region Trace]{\label{fig:browseregioncategories} This is a figure
-    which needs a caption.}
+    \caption[RUBiS Browse Categories By Region Trace]{\label{fig:browseregioncategories} RUBiS Browse Categories By Region Trace.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
     \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseRegionCategories_Caching.eps}
-    \caption[RUBiS Browse Categories By Region Precomputation Results]{\label{fig:browseregioncategoriescaching} This is a figure
-    which needs a caption.}
+    \caption[RUBiS Browse Categories By Region Precomputation Results]{\label{fig:browseregioncategoriescaching} RUBiS Browse Categories By Region Precomputation Results.}
   \end{center}
 \end{figure}
 
@@ -1050,7 +1044,19 @@ NEED TO COLLECT DATA, MAKE FIGURES
 \subsection{Postcomputation}
 \subsubsection{RUBiS}
 
-NEED TO COLLECT DATA, MAKE FIGURES
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=1.0\textwidth]{figs/rubis_SellItem_Numbered.eps}
+    \caption[RUBiS Sell Item Trace]{\label{fig:browseregioncategories} RUBiS Sell Item Trace.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=1.0\textwidth]{figs/rubis_SellItem_PostComp.eps}
+    \caption[RUBiS Sell Item Postcomputation Analysis Results]{\label{fig:browseregioncategoriescaching} RUBiS Sell Item Postcomputation Analysis Results.}
+  \end{center}
+\end{figure}
 
 \subsubsection{jGossip} 
 
@@ -1062,51 +1068,26 @@ NEED TO COLLECT DATA, MAKE FIGURES
 
 \subsubsection{jGossip} 
 
+NEED TO COLLECT DATA, MAKE FIGURES
 
 \subsection{User State}
 \subsubsection{RUBiS}
 
+Notes: None present in the RUBiS application
 
 \subsubsection{jGossip} 
+
+NEED TO COLLECT DATA, MAKE FIGURES
 
 
 \subsection{Wasteful Communication}
 \subsubsection{RUBiS}
 
+Notes: None present in the RUBiS application
 
 \subsubsection{jGossip} 
 
-
-\subsection{Access Path Refactoring}
-\subsubsection{RUBiS}
-
-% Instead of breaking down by application, break down by analysis. This makes more sense, and will be better to read
-
-% The thing to be wary of here is that at this point I have only checked my results by code inspection, and by really just going with what I feel. I haven't really acted on any of the analysis results at all, but it is possible that I could in some cases.
-
-% RUBiS:
-% Persistent State:
-% User State:
-% Caching:
-% Precomputation: 
-% Postcomputation: 
-% Wasteful communication: 
-% APR: 
-
-% jGossip:
-% Persistent State:
-% User State:
-% Caching:
-% Precomputation:
-% Postcomputation:
-% Wasteful communication:
-% APR: NOT ATTEMPTED
-
-\subsection{RUBiS}
-Discuss results of analysis on RUBiS. Break down by individual analysis.
-
-\subsection{jGossip}
-Do the same for jGossip
+NEED TO COLLECT DATA, MAKE FIGURES
 
 \chapter{Conclusions} % DIFFICULT
 

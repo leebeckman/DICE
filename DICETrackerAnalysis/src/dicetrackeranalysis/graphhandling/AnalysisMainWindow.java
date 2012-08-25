@@ -1345,7 +1345,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_analysisClearButtonActionPerformed
 
     private void quickLoadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quickLoadButtonActionPerformed
-        File trackerFile = new File("/home/lee/DICE/full.xml");
+        File trackerFile = new File("/home/lee/DICE/DATA_jgossip_precomp_mainpage_afterupdates.xml");
         File sourceFile = new File("/home/lee/DICE/jgossipDataInfo.xml");
 
         loadTrackingFile(trackerFile);

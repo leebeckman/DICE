@@ -24,6 +24,9 @@
     <databasesourceinfo catalog="forum_db" table="jrf_skin_params" column="param_name" variability="STABLE" />
     <databasesourceinfo catalog="forum_db" table="jrf_skin_params" column="param_value" variability="STABLE" />
 
+    <databasesourceinfo catalog="forum_db" table="jrf_constants" column="c_name" variability="STABLE" />
+    <databasesourceinfo catalog="forum_db" table="jrf_constants" column="c_value" variability="STABLE" />
+
     <requestsourceinfo uri="/jgossip/jgossip/DeleteForum.do" parameter="fid" variability="RANDOM" inttracking="true" />
     <!--
     <requestsourceinfo uri="/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories" parameter="region" variability="PREDICTABLE" />

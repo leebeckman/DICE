@@ -61,7 +61,8 @@ public class TaintLogger {
 	}
 	
 	public void log(String message) {
-		dlogger.log(Level.INFO, message);
+		if (message.startsWith("AAA:"))
+			dlogger.log(Level.INFO, message.substring(4));
 	}
 	
 	private void logTaint(String message) {

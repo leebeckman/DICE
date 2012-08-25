@@ -1,10 +1,10 @@
 \contentsline {chapter}{{Abstract}}{ii}{chapter*.1}
 \contentsline {chapter}{{Table of Contents}}{iii}{chapter*.2}
-\contentsline {chapter}{{List of Tables}}{vi}{chapter*.3}
-\contentsline {chapter}{{List of Figures}}{vii}{chapter*.4}
-\contentsline {chapter}{{List of Programs}}{viii}{chapter*.5}
-\contentsline {chapter}{{Acknowledgements}}{ix}{chapter*.6}
-\contentsline {chapter}{{Dedication}}{x}{chapter*.7}
+\contentsline {chapter}{{List of Tables}}{v}{chapter*.3}
+\contentsline {chapter}{{List of Figures}}{vi}{chapter*.4}
+\contentsline {chapter}{{List of Programs}}{vii}{chapter*.5}
+\contentsline {chapter}{{Acknowledgements}}{viii}{chapter*.6}
+\contentsline {chapter}{{Dedication}}{ix}{chapter*.7}
 \contentsline {chapter}{\numberline {1}{Introduction}}{2}{chapter.1}
 \contentsline {section}{\numberline {1.1}{Origins of Research}}{2}{section.1.1}
 \contentsline {section}{\numberline {1.2}{Motivating Example}}{3}{section.1.2}
@@ -70,8 +70,8 @@
 \contentsline {paragraph}{{Running the caching analysis}}{36}{section*.36}
 \contentsline {paragraph}{{Using the graph}}{37}{section*.37}
 \contentsline {subsubsection}{{jGossip}}{37}{section*.38}
-\contentsline {subsection}{\numberline {4.4.6}{Postcomputation}}{37}{subsection.4.4.6}
-\contentsline {subsubsection}{{RUBiS}}{37}{section*.39}
+\contentsline {subsection}{\numberline {4.4.6}{Postcomputation}}{38}{subsection.4.4.6}
+\contentsline {subsubsection}{{RUBiS}}{38}{section*.39}
 \contentsline {subsubsection}{{jGossip}}{38}{section*.40}
 \contentsline {subsection}{\numberline {4.4.7}{Persistent State}}{38}{subsection.4.4.7}
 \contentsline {subsubsection}{{RUBiS}}{38}{section*.41}
@@ -82,16 +82,12 @@
 \contentsline {subsection}{\numberline {4.4.9}{Wasteful Communication}}{38}{subsection.4.4.9}
 \contentsline {subsubsection}{{RUBiS}}{38}{section*.45}
 \contentsline {subsubsection}{{jGossip}}{38}{section*.46}
-\contentsline {subsection}{\numberline {4.4.10}{Access Path Refactoring}}{38}{subsection.4.4.10}
-\contentsline {subsubsection}{{RUBiS}}{38}{section*.47}
-\contentsline {subsection}{\numberline {4.4.11}{RUBiS}}{38}{subsection.4.4.11}
-\contentsline {subsection}{\numberline {4.4.12}{jGossip}}{38}{subsection.4.4.12}
-\contentsline {chapter}{\numberline {5}{Conclusions}}{44}{chapter.5}
-\contentsline {section}{\numberline {5.1}{Discussion of Results}}{44}{section.5.1}
-\contentsline {section}{\numberline {5.2}{Future Work}}{44}{section.5.2}
-\contentsline {section}{\numberline {5.3}{Final Words}}{44}{section.5.3}
-\contentsline {chapter}{{Bibliography}}{45}{chapter*.48}
+\contentsline {chapter}{\numberline {5}{Conclusions}}{45}{chapter.5}
+\contentsline {section}{\numberline {5.1}{Discussion of Results}}{45}{section.5.1}
+\contentsline {section}{\numberline {5.2}{Future Work}}{45}{section.5.2}
+\contentsline {section}{\numberline {5.3}{Final Words}}{45}{section.5.3}
+\contentsline {chapter}{{Bibliography}}{46}{chapter*.47}
 \contentsline {part}{{Appendices}}{}{}
-\contentsline {chapter}{\numberline {A}{Terms Used}}{48}{appendix.A}
-\contentsline {chapter}{\numberline {B}{Taint Tracking Tool Logging Format}}{49}{appendix.B}
-\contentsline {chapter}{\numberline {C}{Second Appendix}}{54}{appendix.C}
+\contentsline {chapter}{\numberline {A}{Terms Used}}{49}{appendix.A}
+\contentsline {chapter}{\numberline {B}{Taint Tracking Tool Logging Format}}{50}{appendix.B}
+\contentsline {chapter}{\numberline {C}{Second Appendix}}{55}{appendix.C}
