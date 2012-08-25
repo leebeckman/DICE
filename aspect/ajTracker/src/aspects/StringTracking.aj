@@ -848,6 +848,32 @@ public aspect StringTracking {
     	return proceed(arg);
     }
     
+    // More aspects needed to handled converting tracked numerics to old values for proper output
+//    (call(public * java.lang..String.valueOf(*)))
+    String around():	call(public * java.lang.Object.toString()) && !myAdvice() && !allExclude() {
+    	if (!SimpleCommControl.getInstance().trackingEnabled())
+    		return proceed();
+    	
+    	Object target = thisJoinPoint.getTarget();
+    	if (target instanceof Number) {
+    		Number numericTarget = (Number)target;
+    		
+	    	TaintLogger.getTaintLogger().log("AAA: INT TOSTRING on " + target + " old val: " + ReferenceMaster.getTaintedNumericOldValue(numericTarget));
+	    	
+	    	if (ReferenceMaster.isPrimaryTainted(numericTarget)) {
+	    		String retString = ReferenceMaster.getTaintedNumericOldValue(numericTarget).toString();
+	    		ReferenceMaster.propagateTaintSources(numericTarget, retString);
+	    		
+	    		// This location may not be correct, but it doesn't matter since propagation logs don't generate graphs
+	    		StackLocation location = TaintUtil.getStackTraceLocation();
+        		TaintLogger.getTaintLogger().logPropagation(location, "STRINGPROPTHISA", numericTarget, retString);
+	    		return retString;
+	    	}
+    	}
+    	
+    	return proceed();
+    }
+    
     after() returning (Object ret): 	(stringBuilderAppend() || stringBuilderInsert() || stringBuilderReplace() ||
     					stringBufferAppend() || stringBufferInsert() || stringBufferReplace()) && !(myAdvice()) && !allExclude() {
 //    	System.out.println("this mod");

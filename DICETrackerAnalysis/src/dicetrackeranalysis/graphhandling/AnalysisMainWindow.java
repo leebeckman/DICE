@@ -82,6 +82,9 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private HashSet<TaintNode> selectionFilterNodes;
     private HashSet<TaintNode> connectBlockedNodes;
 
+    private HashSet<TaintNode> inputNodes;
+    private HashSet<TaintNode> outputNodes;
+
 //    private Object[] selectedTaintPath;
 
     private enum GraphMode {
@@ -101,6 +104,9 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         heldTaintIDSelections = new HashSet<DefaultMutableTreeNode>();
         selectionFilterNodes = new HashSet<TaintNode>();
         connectBlockedNodes = new HashSet<TaintNode>();
+
+        inputNodes = new HashSet<TaintNode>();
+        outputNodes = new HashSet<TaintNode>();
 
         try {
             UIManager.setLookAndFeel(new GTKLookAndFeel());
@@ -179,6 +185,10 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         showOutputButton = new javax.swing.JButton();
         showPathButton = new javax.swing.JButton();
         hideUnusedBox = new javax.swing.JCheckBox();
+        linkColoredButton = new javax.swing.JButton();
+        setInputsButton = new javax.swing.JButton();
+        setOutputsButton = new javax.swing.JButton();
+        linkIOButton = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         edgeID = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
@@ -231,7 +241,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         jungViewPanel.setLayout(jungViewPanelLayout);
         jungViewPanelLayout.setHorizontalGroup(
             jungViewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 984, Short.MAX_VALUE)
+            .addGap(0, 1017, Short.MAX_VALUE)
         );
         jungViewPanelLayout.setVerticalGroup(
             jungViewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -260,7 +270,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, analysisPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(analysisClearButton))
-            .addComponent(analysisScroller, javax.swing.GroupLayout.DEFAULT_SIZE, 984, Short.MAX_VALUE)
+            .addComponent(analysisScroller, javax.swing.GroupLayout.DEFAULT_SIZE, 1017, Short.MAX_VALUE)
         );
         analysisPanelLayout.setVerticalGroup(
             analysisPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -292,13 +302,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                             .addComponent(loadTracking, javax.swing.GroupLayout.Alignment.LEADING))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(sourceFileName, javax.swing.GroupLayout.DEFAULT_SIZE, 753, Short.MAX_VALUE)
-                            .addComponent(fileNameField, javax.swing.GroupLayout.DEFAULT_SIZE, 753, Short.MAX_VALUE))
+                            .addComponent(sourceFileName, javax.swing.GroupLayout.DEFAULT_SIZE, 786, Short.MAX_VALUE)
+                            .addComponent(fileNameField, javax.swing.GroupLayout.DEFAULT_SIZE, 786, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(screenCapButton)
                             .addComponent(quickLoadButton)))
-                    .addComponent(tabView, javax.swing.GroupLayout.DEFAULT_SIZE, 1004, Short.MAX_VALUE))
+                    .addComponent(tabView, javax.swing.GroupLayout.DEFAULT_SIZE, 1037, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
@@ -421,7 +431,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                         .addComponent(aprAnalysisButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(resetPartitionsButton)))
-                .addContainerGap(257, Short.MAX_VALUE))
+                .addContainerGap(290, Short.MAX_VALUE))
         );
         analysisButtonsPanelLayout.setVerticalGroup(
             analysisButtonsPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -557,43 +567,40 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
+        linkColoredButton.setText("Link Colored");
+        linkColoredButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                linkColoredButtonActionPerformed(evt);
+            }
+        });
+
+        setInputsButton.setText("Set Inputs");
+        setInputsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setInputsButtonActionPerformed(evt);
+            }
+        });
+
+        setOutputsButton.setText("Set Outputs");
+        setOutputsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                setOutputsButtonActionPerformed(evt);
+            }
+        });
+
+        linkIOButton.setText("Link IO");
+        linkIOButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                linkIOButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(multiGraphButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(multiLightGraphButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(noGCCheckBox)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(noSBCheckbox)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(hideCheckBox)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(hideUnusedBox)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(showPathButton))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(showInputsButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(showOnlySelectedButton))
-                            .addComponent(showOutputButton))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(fConnectedButton)
-                            .addGroup(jPanel1Layout.createSequentialGroup()
-                                .addComponent(showConnectedButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(blockButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(resetSelectionFilterButton)))
-                        .addGap(612, 612, 612))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -605,7 +612,50 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                                 .addComponent(highlightField, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(highlightButton))
-                            .addComponent(requestCounters, 0, 877, Short.MAX_VALUE))))
+                            .addComponent(requestCounters, 0, 910, Short.MAX_VALUE)))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(multiGraphButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(multiLightGraphButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(noGCCheckBox)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(noSBCheckbox)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(hideCheckBox)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(hideUnusedBox))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(showInputsButton)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(showOnlySelectedButton))
+                                    .addComponent(showOutputButton))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(fConnectedButton)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(showConnectedButton)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(blockButton)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(resetSelectionFilterButton)))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(setInputsButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(setOutputsButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(linkIOButton))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(showPathButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(linkColoredButton)))
+                        .addGap(261, 261, 261)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -618,14 +668,18 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     .addComponent(noSBCheckbox)
                     .addComponent(hideCheckBox)
                     .addComponent(hideUnusedBox)
-                    .addComponent(showPathButton))
+                    .addComponent(showPathButton)
+                    .addComponent(linkColoredButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(showInputsButton)
                     .addComponent(showOnlySelectedButton)
                     .addComponent(showConnectedButton)
                     .addComponent(blockButton)
-                    .addComponent(resetSelectionFilterButton))
+                    .addComponent(resetSelectionFilterButton)
+                    .addComponent(setInputsButton)
+                    .addComponent(setOutputsButton)
+                    .addComponent(linkIOButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fConnectedButton)
@@ -678,7 +732,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 .addComponent(getEdgeDataButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(getForwardGraphButton)
-                .addContainerGap(576, Short.MAX_VALUE))
+                .addContainerGap(609, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -721,7 +775,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(holdTaintIDButton)
                 .addGap(121, 121, 121))
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 980, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1013, Short.MAX_VALUE)
         );
         treePanelLayout.setVerticalGroup(
             treePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -741,7 +795,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(memBar, javax.swing.GroupLayout.DEFAULT_SIZE, 956, Short.MAX_VALUE)
+                .addComponent(memBar, javax.swing.GroupLayout.DEFAULT_SIZE, 989, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -789,7 +843,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1024, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -1345,7 +1399,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_analysisClearButtonActionPerformed
 
     private void quickLoadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quickLoadButtonActionPerformed
-        File trackerFile = new File("/home/lee/DICE/DATA_jgossip_precomp_mainpage_afterupdates.xml");
+        File trackerFile = new File("/home/lee/DICE/DATA_jgossip_caching_ShowForum.xml");
         File sourceFile = new File("/home/lee/DICE/jgossipDataInfo.xml");
 
         loadTrackingFile(trackerFile);
@@ -1553,6 +1607,78 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         analysis.analyze();
     }//GEN-LAST:event_uselessCommButtonActionPerformed
 
+    private void linkColoredButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkColoredButtonActionPerformed
+        VisualizationViewer<TaintNode, TaintEdge> vv = tabToViewerMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        GraphBuilder gb = tabToBuilderMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        Graph<TaintNode, TaintEdge> filteredGraph = tabToGraphMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+
+
+        LinkedList<TaintNode> coloredNodes = new LinkedList<TaintNode>();
+        for (TaintNode node : filteredGraph.getVertices()) {
+            if (node.colorValue != 0) {
+                coloredNodes.add(node);
+            }
+        }
+
+        HashSet<TaintNode> linkNodes = new HashSet<TaintNode>();
+
+        for (int i = 0; i < coloredNodes.size(); i++) {
+            for (int j = i + 1; j < coloredNodes.size(); j++) {
+                TaintNode start = coloredNodes.get(i);
+                TaintNode end = coloredNodes.get(j);
+
+                HashSet<TaintNode> path = gb.getPathBetween(filteredGraph, start, end);
+                HashSet<TaintNode> backpath = gb.getPathBetween(filteredGraph, start, end);
+
+                linkNodes.addAll(path);
+                linkNodes.addAll(backpath);
+            }
+        }
+
+        selectionFilterNodes.clear();
+        selectionFilterNodes.addAll(linkNodes);
+
+        redrawGraph();
+    }//GEN-LAST:event_linkColoredButtonActionPerformed
+
+    private void setInputsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setInputsButtonActionPerformed
+        VisualizationViewer<TaintNode, TaintEdge> vv = tabToViewerMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+
+        HashSet<TaintNode> picked = new HashSet<TaintNode>(vv.getPickedVertexState().getPicked());
+        inputNodes.clear();
+        inputNodes.addAll(picked);
+        redrawGraph();
+    }//GEN-LAST:event_setInputsButtonActionPerformed
+
+    private void setOutputsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_setOutputsButtonActionPerformed
+        VisualizationViewer<TaintNode, TaintEdge> vv = tabToViewerMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+
+        HashSet<TaintNode> picked = new HashSet<TaintNode>(vv.getPickedVertexState().getPicked());
+        outputNodes.clear();
+        outputNodes.addAll(picked);
+        redrawGraph();
+    }//GEN-LAST:event_setOutputsButtonActionPerformed
+
+    private void linkIOButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_linkIOButtonActionPerformed
+        GraphBuilder gb = tabToBuilderMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        Graph<TaintNode, TaintEdge> filteredGraph = tabToGraphMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        
+        HashSet<TaintNode> linkNodes = new HashSet<TaintNode>();
+
+        for (TaintNode inputNode : inputNodes) {
+            for (TaintNode outputNode : outputNodes) {
+                HashSet<TaintNode> path = gb.getPathBetween(filteredGraph, inputNode, outputNode);
+
+                linkNodes.addAll(path);
+            }
+        }
+
+        selectionFilterNodes.clear();
+        selectionFilterNodes.addAll(linkNodes);
+
+        redrawGraph();
+    }//GEN-LAST:event_linkIOButtonActionPerformed
+
     private void writeToImageFile(String imageFileName) {
         BufferedImage bufImage = ScreenImage.createImage((JComponent) tabToViewPanelMap.get(tabView.getTitleAt(tabView.getSelectedIndex())));
         try {
@@ -1609,6 +1735,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JPanel jungViewPanel;
+    private javax.swing.JButton linkColoredButton;
+    private javax.swing.JButton linkIOButton;
     private javax.swing.JButton loadSource;
     private javax.swing.JButton loadTracking;
     private javax.swing.JProgressBar memBar;
@@ -1624,6 +1752,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JButton resetPartitionsButton;
     private javax.swing.JButton resetSelectionFilterButton;
     private javax.swing.JButton screenCapButton;
+    private javax.swing.JButton setInputsButton;
+    private javax.swing.JButton setOutputsButton;
     private javax.swing.JButton showConnectedButton;
     private javax.swing.JButton showInputsButton;
     private javax.swing.JButton showOnlySelectedButton;

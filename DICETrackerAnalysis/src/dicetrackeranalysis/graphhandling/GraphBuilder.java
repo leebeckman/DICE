@@ -410,8 +410,8 @@ public class GraphBuilder {
 //                    monitor.setValue(progCounter);
                 if (childNodes.item(i) instanceof Element) {
                     lineCounter++;
-//                    if (lineCounter % 1000 == 0)
-//                        System.out.println("LineCounter: " + lineCounter + " used: " + (runtime.totalMemory() - runtime.freeMemory()) + " remain: " + runtime.freeMemory());
+                    if (lineCounter % 1000 == 0)
+                        System.out.println("LineCounter: " + lineCounter + " used: " + (runtime.totalMemory() - runtime.freeMemory()) + " remain: " + runtime.freeMemory());
                     TaintEdge taintEdge = new TaintEdge();
                     Element taintLogElem = (Element) childNodes.item(i);
                     taintEdge.setType(taintLogElem.getAttribute("type"));
@@ -733,7 +733,12 @@ public class GraphBuilder {
 
     }
 
+    public class TempCounter {
+        public int counter = 0;
+    }
+
     private void markUnusedSubTaint() {
+        Runtime runtime = Runtime.getRuntime();
         LinkedList<TaintEdge> orderedEdges = getOrderedEdgeList();
 
         // Loop over
@@ -746,12 +751,13 @@ public class GraphBuilder {
         // If we know a subtaint is not used... when if it occurs in same context later, already marked
         TaintEdge edge = null;
         for (int i = 0; i < orderedEdges.size(); i++) {
-//            if (i % 1000 == 0)
-//                System.out.println("Marking Unused " + i + " of: " + orderedEdges.size());
+            System.out.println("Marking Unused " + i + " of: " + orderedEdges.size() + " used: " + (runtime.totalMemory() - runtime.freeMemory()) + " remain: " + runtime.freeMemory());
             edge = orderedEdges.get(i);
             for (TaintedObject taintedObject : edge.getTaintedObjects()) {
+                System.out.println("OVERSIZE " + edge.getTaintedObjects().size());
                 if (taintedObject.getSubTaintedObjects() == null)
                     continue;
+                int scounter = 0;
                 for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
                     // Want to check if the sub tainted object is useless.
                     // Want to scan forward in context
@@ -759,7 +765,8 @@ public class GraphBuilder {
                     visited.clear();
                     if (subTaintedObject.isMarked())
                         continue;
-                    boolean subFound = forwardContextSearch(visited, edge, fullGraph, true, subTaintedObject.getTaintID());
+                    System.out.println("SIZE: " + taintedObject.getSubTaintedObjects().size() + " at: " + (scounter++));
+                    boolean subFound = forwardContextSearch(visited, edge, fullGraph, true, subTaintedObject.getTaintID(), new TempCounter());
 
                     // subFound also if enclosing object is saved somewhere, like in a static or in a setAttribute
                     if (!subFound) {
@@ -784,11 +791,16 @@ public class GraphBuilder {
         }
     }
 
-    private boolean forwardContextSearch(HashSet<TaintEdge> visited, TaintEdge current, Graph<TaintNode, TaintEdge> graph, boolean isForward, String targetTaintID) {
+    private boolean forwardContextSearch(HashSet<TaintEdge> visited, TaintEdge current, Graph<TaintNode, TaintEdge> graph, boolean isForward, String targetTaintID, TempCounter tcounter) {
         // Looking for taint in high level object
         if (visited.contains(current))
             return false;
         visited.add(current);
+
+        tcounter.counter++;
+        if ((tcounter.counter % 1000) == 0) {
+            System.out.println("FCS: " + tcounter.counter);
+        }
 
 //        if (targetTaintID.contains("28412859:forumtitle:73")) {
 //            System.out.println("TSCAN: " + current);
@@ -834,7 +846,7 @@ public class GraphBuilder {
                     (nextEdge.getType().equals("FIELDGET") && nextEdge.getRequestCounter().equals(current.getRequestCounter())))
                     && (nextEdge.getCounter() > current.getCounter() ||
                     (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
-                if (forwardContextSearch(visited, nextEdge, graph, true, targetTaintID)) {
+                if (forwardContextSearch(visited, nextEdge, graph, true, targetTaintID, tcounter)) {
                     found = true;
                     break;
                 }
@@ -844,7 +856,7 @@ public class GraphBuilder {
             for (TaintEdge nextEdge : graph.getInEdges(nextNode)) {
                 if (nextEdge.getInputContextCounter().equals(context) &&
                         (nextEdge.getCounter() > current.getCounter() || current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY"))) {
-                    if (forwardContextSearch(visited, nextEdge, graph, false, targetTaintID)) {
+                    if (forwardContextSearch(visited, nextEdge, graph, false, targetTaintID, tcounter)) {
                         found = true;
                         break;
                     }
@@ -1017,6 +1029,11 @@ public class GraphBuilder {
             System.out.println("Coloring Node " + pathNode);
             colorNode(pathNode, 10);
         }
+    }
+
+    public HashSet<TaintNode> getPathBetween(Graph<TaintNode, TaintEdge> graph, TaintNode start, TaintNode end) {
+        HashSet<TaintNode> path = colorPathBetweenHelper(new HashSet<TaintNode>(), graph, start, end);
+        return path;
     }
 
     public HashSet<TaintNode> colorPathBetweenHelper(HashSet<TaintNode> visited, Graph<TaintNode, TaintEdge> graph, TaintNode current, TaintNode target) {
@@ -1314,7 +1331,7 @@ public class GraphBuilder {
                     Collection<TaintEdge> calledInEdges = inputGraph.getInEdges(edge.getCalledNode());
                     if (calledInEdges != null) {
                         for (TaintEdge removeEdge : calledInEdges) {
-                            if (edge.getInputContextCounter() == removeEdge.getInputContextCounter()) {
+                            if (edge.getInputContextCounter().equals(removeEdge.getInputContextCounter())) {
                                 output.edgeList.remove(removeEdge);
                             }
                         }
@@ -1322,7 +1339,7 @@ public class GraphBuilder {
                     Collection<TaintEdge> calledOutEdges = inputGraph.getOutEdges(edge.getCalledNode());
                     if (calledOutEdges != null) {
                         for (TaintEdge removeEdge : calledOutEdges) {
-                            if (edge.getInputContextCounter() == removeEdge.getOutputContextCounter()) {
+                            if (edge.getInputContextCounter().equals(removeEdge.getOutputContextCounter())) {
                                 output.edgeList.remove(removeEdge);
                             }
                         }
@@ -1330,7 +1347,7 @@ public class GraphBuilder {
                     Collection<TaintEdge> callingInEdges = inputGraph.getInEdges(edge.getCallingNode());
                     if (callingInEdges != null) {
                         for (TaintEdge removeEdge : callingInEdges) {
-                            if (edge.getOutputContextCounter() == removeEdge.getInputContextCounter()) {
+                            if (edge.getOutputContextCounter().equals(removeEdge.getInputContextCounter())) {
                                 output.edgeList.remove(removeEdge);
                             }
                         }
@@ -1338,7 +1355,7 @@ public class GraphBuilder {
                     Collection<TaintEdge> callingOutEdges = inputGraph.getOutEdges(edge.getCallingNode());
                     if (callingOutEdges != null) {
                         for (TaintEdge removeEdge : callingOutEdges) {
-                            if (edge.getOutputContextCounter() == removeEdge.getOutputContextCounter()) {
+                            if (edge.getOutputContextCounter().equals(removeEdge.getOutputContextCounter())) {
                                 output.edgeList.remove(removeEdge);
                             }
                         }

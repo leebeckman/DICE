@@ -1035,11 +1035,9 @@ NEED TO COLLECT DATA, MAKE FIGURES
 
 \paragraph{Using the graph} and some rudimentary knowledge of the application, a cache could be implemented as follows. First, consider the inputs. All of them, save for the region parameter, are stable, and thus the only parameter the cache need use to store and return results is that region parameter. For the other inputs, like those from the categories and regions tables, these data sources need only to be monitored to detect if they are modified. If so, the cached results are invalidated to be regenerated. As the doGet node is the first to receive the region parameter, the cache check could be performed there. If the cache hits for a given region, the output data (perhaps the entire response page or just the category hyperlinks) can be returned and written to the response stream. In the event of a cache miss, the computation can proceed as normal, and the results picked up in the printCategoryByRegion node to be placed in the cache for later.
 
-Notes: May want to elaborate more. This example comes out rather quickly, and the explanation of the results may be a bit brief compared to the explanation of the initial trace graph. Some kind of wrap up statement about what this says about the caching analysis in general might be useful.
-
 \subsubsection{jGossip} 
 
-NEED TO COLLECT DATA, MAKE FIGURES
+NEED TO COLLECT DATA, MAKE FIGURES <--- in progress
 
 \subsection{Postcomputation}
 \subsubsection{RUBiS}
@@ -1047,16 +1045,18 @@ NEED TO COLLECT DATA, MAKE FIGURES
 \begin{figure}[ht]
   \begin{center}
     \includegraphics[width=1.0\textwidth]{figs/rubis_SellItem_Numbered.eps}
-    \caption[RUBiS Sell Item Trace]{\label{fig:browseregioncategories} RUBiS Sell Item Trace.}
+    \caption[RUBiS Sell Item Trace]{\label{fig:sellitemtrace} RUBiS Sell Item Trace.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
     \includegraphics[width=1.0\textwidth]{figs/rubis_SellItem_PostComp.eps}
-    \caption[RUBiS Sell Item Postcomputation Analysis Results]{\label{fig:browseregioncategoriescaching} RUBiS Sell Item Postcomputation Analysis Results.}
+    \caption[RUBiS Sell Item Postcomputation Analysis Results]{\label{fig:sellitempostcomputation} RUBiS Sell Item Postcomputation Analysis Results.}
   \end{center}
 \end{figure}
+
+For the postcomputation analysis, we 
 
 \subsubsection{jGossip} 
 
@@ -1065,6 +1065,12 @@ NEED TO COLLECT DATA, MAKE FIGURES
 \subsection{Persistent State}
 \subsubsection{RUBiS}
 
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=1.0\textwidth]{figs/rubis_BrowseItems_State.eps}
+    \caption[RUBiS Browse Items State Analysis Results]{\label{fig:browseitemsstate} RUBiS Browse Items State Analysis Results.}
+  \end{center}
+\end{figure}
 
 \subsubsection{jGossip} 
 
@@ -1078,7 +1084,6 @@ Notes: None present in the RUBiS application
 \subsubsection{jGossip} 
 
 NEED TO COLLECT DATA, MAKE FIGURES
-
 
 \subsection{Wasteful Communication}
 \subsubsection{RUBiS}
