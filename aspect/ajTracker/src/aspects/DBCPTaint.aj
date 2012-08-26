@@ -118,6 +118,7 @@ public aspect DBCPTaint {
     after() returning (Object ret): resultSetAccess() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
+		String retString = ret.toString();
     	if (ret instanceof String || ret instanceof StringBuilder || ret instanceof StringBuffer) {
 //    		result = new String((String)result, true);
     		boolean skip = false;
@@ -136,8 +137,15 @@ public aspect DBCPTaint {
 				else
 					skip = true;
 			} catch (SQLException e) {
-				
+				if (retString.contains("topic")) {
+	    			TaintLogger.getTaintLogger().log("AAB: TOPIC RET EXCEPTION");
+	    		}
 			}
+    		
+    		if (retString.contains("topic")) {
+    			TaintLogger.getTaintLogger().log("AAB: ret: " + retString + " skip? " + skip);
+    		}
+    		
     		if (!skip) {
     			/*
     			 * TODO: This comment is less relevant now that sized sources are not used.
@@ -173,6 +181,9 @@ public aspect DBCPTaint {
 	    				}
 	    			}
 	    			
+	    			if (retString.contains("topic")) {
+	        			TaintLogger.getTaintLogger().log("AAB: desttopic: " + location.getDest());
+	        		}
 	    			if (!location.getDest().startsWith("java"))
 	    				TaintLogger.getTaintLogger().logReturningInput(location, "DBCP", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
     			}

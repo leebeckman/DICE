@@ -189,6 +189,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         setInputsButton = new javax.swing.JButton();
         setOutputsButton = new javax.swing.JButton();
         linkIOButton = new javax.swing.JButton();
+        showOnlyButton = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         edgeID = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
@@ -595,6 +596,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
+        showOnlyButton.setText("Show Only");
+        showOnlyButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                showOnlyButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -611,7 +619,9 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(highlightField, javax.swing.GroupLayout.PREFERRED_SIZE, 249, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(highlightButton))
+                                .addComponent(highlightButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(showOnlyButton))
                             .addComponent(requestCounters, 0, 910, Short.MAX_VALUE)))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -688,7 +698,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(highlightField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(highlightButton))
+                    .addComponent(highlightButton)
+                    .addComponent(showOnlyButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
@@ -745,6 +756,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
 
         treePanel.setBorder(javax.swing.BorderFactory.createTitledBorder("TaintID Filter"));
 
+        jScrollPane1.setMaximumSize(new java.awt.Dimension(32767, 500));
+
         taintIDTree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
             public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
                 taintIDTreeValueChanged(evt);
@@ -784,7 +797,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     .addComponent(deepTaintCheckBox)
                     .addComponent(holdTaintIDButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 126, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 98, Short.MAX_VALUE))
         );
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Mem Usage"));
@@ -829,8 +842,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(treePanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(treePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -1399,7 +1412,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_analysisClearButtonActionPerformed
 
     private void quickLoadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quickLoadButtonActionPerformed
-        File trackerFile = new File("/home/lee/DICE/DATA_jgossip_caching_ShowForum.xml");
+        File trackerFile = new File("/home/lee/DICE/DATA_jgossip_postcomp_deleteforum.xml");
         File sourceFile = new File("/home/lee/DICE/jgossipDataInfo.xml");
 
         loadTrackingFile(trackerFile);
@@ -1679,6 +1692,25 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         redrawGraph();
     }//GEN-LAST:event_linkIOButtonActionPerformed
 
+    private void showOnlyButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showOnlyButtonActionPerformed
+        GraphBuilder gb = tabToBuilderMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        Graph<TaintNode, TaintEdge> fullGraph = gb.getMultiGraph();
+
+        String matchtext = highlightField.getText();
+
+        selectionFilterNodes.clear();
+
+        for (TaintNode node : fullGraph.getVertices()) {
+            if (node.toString().contains(matchtext)) {
+                selectionFilterNodes.add(node);
+                gb.colorNode(node, 10);
+                selectionFilterNodes.addAll(fullGraph.getNeighbors(node));
+            }
+        }
+
+        redrawGraph();
+    }//GEN-LAST:event_showOnlyButtonActionPerformed
+
     private void writeToImageFile(String imageFileName) {
         BufferedImage bufImage = ScreenImage.createImage((JComponent) tabToViewPanelMap.get(tabView.getTitleAt(tabView.getSelectedIndex())));
         try {
@@ -1756,6 +1788,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JButton setOutputsButton;
     private javax.swing.JButton showConnectedButton;
     private javax.swing.JButton showInputsButton;
+    private javax.swing.JButton showOnlyButton;
     private javax.swing.JButton showOnlySelectedButton;
     private javax.swing.JButton showOutputButton;
     private javax.swing.JButton showPathButton;

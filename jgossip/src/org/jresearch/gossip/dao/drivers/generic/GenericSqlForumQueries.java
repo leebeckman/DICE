@@ -306,7 +306,7 @@ class GenericSqlForumQueries extends ForumQueries {
 			+ "		 FROM jrf_message " + " 		 WHERE threadid = ? "
 			+ "		 ORDER BY intime" + "	) WHERE R BETWEEN ? AND ?";
 
-	private static final String GET_THREAD_SUBJ = "SELECT * FROM"
+	private static final String GET_THREAD_SUBJ = "SELECT heading FROM"
 			+ "	(SELECT heading, ROW_NUMBER() OVER(ORDER BY intime) AS R "
 			+ "		FROM jrf_message WHERE threadid = ? " + "		ORDER BY intime"
 			+ ") WHERE R = 1";

@@ -120,6 +120,8 @@ public class PostcompAnalysis {
                 if (!postCompEdges.isEmpty()) {
                     GraphBuilder postCompBuilder = GraphBuilder.getBuilderFromEdges(byRequestGraphBuilder, postCompEdges);
 
+                    postCompBuilder.colorNode(dbOutput.getCalledNode(), 3);
+
                     // Get input data for printing
                     HashMap<TaintNode, LinkedList<TaintEdge>> inputs = GraphBuilder.getInputs(postCompBuilder.getMultiGraph(), fullGraph);
 

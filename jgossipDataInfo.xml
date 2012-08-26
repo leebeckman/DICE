@@ -11,6 +11,7 @@
     <databasesourceinfo catalog="forum_db" table="jrf_message" column="cont" variability="RANDOM" inttracking="false" />
     <databasesourceinfo catalog="forum_db" table="jrf_message" column="m_from" variability="RANDOM" inttracking="false" />
     <databasesourceinfo catalog="forum_db" table="jrf_message" column="id" variability="RANDOM" inttracking="true" />
+    <databasesourceinfo catalog="forum_db" table="jrf_message" column="heading" variability="PREDICTABLE" inttracking="false" />
 
     <databasesourceinfo catalog="forum_db" table="jrf_thread" column="t_stamp" variability="PREDICTABLE" inttracking="false" />
     <databasesourceinfo catalog="forum_db" table="jrf_thread" column="tid" variability="PREDICTABLE" inttracking="true" />

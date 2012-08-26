@@ -937,7 +937,7 @@ public class GraphBuilder {
             }
             if (edge.getType().equals("OUTPUT")) {
                 for (TaintedObject taintedObject : edge.getTaintedObjects()) {
-                    ret += taintedObject.getValue() + " [TAINTED: " + taintedObject.getTaintID() + " - " + taintedObject.getTaintRecord() + "]\n";
+                    ret += taintedObject.getValue() + " [TAINTED: " + taintedObject.getTaintID() + " - " + taintedObject.getTaintRecord() + " - " + edge.getCalledNode() + "]\n";
                 }
             } else if (edge.getType().equals("OUTPUTNONTAINT")) {
                 ret += edge.getOutputObject().getValue() + " [NONTAINTED]\n";
@@ -1381,10 +1381,13 @@ public class GraphBuilder {
         for (TaintEdge edge : edges) {
             // Check top-level taint
             // Check the rest for mixed
-
+            //36838
             boolean remove = false;
             for (TaintedObject taintedObject : edge.getTaintedObjects()) {
                 String record = taintedObject.getTaintRecord();
+//                if (edge.getCounter() == 36838) {
+//                    System.out.println("36838 Rec: " + record);
+//                }
                 if (record != null && !dsib.checkTaintRecordMatchesVariability(record, "PREDICTABLE") &&
                         !dsib.checkTaintRecordMatchesVariability(record, "STABLE")) {
                     remove = true;
@@ -1395,9 +1398,17 @@ public class GraphBuilder {
             for (TaintedObject taintedObject : edge.getTaintedObjectsFlattened()) {
                 String record = taintedObject.getTaintRecord();
 
+                
+
                 if (record != null && !taintedObject.isUnused()) {
-                    if ((dsib.checkTaintRecordMatchesVariability(record, "PREDICTABLE") || 
-                            dsib.checkTaintRecordMatchesVariability(record, "STABLE")) &&
+//                    if (edge.getCounter() == 36838) {
+//                        System.out.println("36838 Flat Rec: " + record);
+//                        System.out.println("MATCHES: " + dsib.checkTaintRecordMatchesVariability(record, "PREDICTABLE") + " || " +
+//                                dsib.checkTaintRecordMatchesVariability(record, "STABLE") + " && " +
+//                                dsib.checkTaintRecordMatchesVariability(record, "RANDOM"));
+//                    }
+                    if ((!dsib.checkTaintRecordMatchesVariability(record, "PREDICTABLE") &&
+                            !dsib.checkTaintRecordMatchesVariability(record, "STABLE")) ||
                             dsib.checkTaintRecordMatchesVariability(record, "RANDOM")) {
                         remove = true;
                         break;
@@ -1406,45 +1417,77 @@ public class GraphBuilder {
             }
 
             if (remove) {
+//                Collection<TaintEdge> calledInEdges = inputGraph.getInEdges(edge.getCalledNode());
+//                Collection<TaintEdge> calledOutEdges = inputGraph.getOutEdges(edge.getCalledNode());
+//                if (calledInEdges != null) {
+//                    for (TaintEdge removeEdge : calledInEdges) {
+//                        // Remove edge must be in same context as edge
+//                        if (removeEdge.getInputContextCounter().equals(edge.getInputContextCounter())) {
+//                            if (removeEdge.getCounter() == 499)
+//                                System.out.println("REMOVING 499 due to " + edge);
+//                            output.edgeList.remove(removeEdge);
+//                        }
+//                    }
+//                }
+//                if (calledOutEdges != null) {
+//                    for (TaintEdge removeEdge : calledOutEdges) {
+//                        // Remove edge must be in same context as edge
+//                        if (removeEdge.getOutputContextCounter().equals(edge.getInputContextCounter())) {
+//                            if (removeEdge.getCounter() == 499)
+//                                System.out.println("REMOVING 499 due to " + edge);
+//                            output.edgeList.remove(removeEdge);
+//                        }
+//                    }
+//                }
+//
+//                Collection<TaintEdge> callingInEdges = inputGraph.getInEdges(edge.getCallingNode());
+//                Collection<TaintEdge> callingOutEdges = inputGraph.getOutEdges(edge.getCallingNode());
+//                if (callingInEdges != null) {
+//                    for (TaintEdge removeEdge : callingInEdges) {
+//                        if (removeEdge.getInputContextCounter().equals(edge.getOutputContextCounter())) {
+//                            if (removeEdge.getCounter() == 499)
+//                                System.out.println("REMOVING 499 due to " + edge);
+//                            output.edgeList.remove(removeEdge);
+//                        }
+//                    }
+//                }
+//                if (callingOutEdges != null) {
+//                    for (TaintEdge removeEdge : callingOutEdges) {
+//                        if (removeEdge.getOutputContextCounter().equals(edge.getOutputContextCounter())) {
+//                            if (removeEdge.getCounter() == 499)
+//                                System.out.println("REMOVING 499 due to " + edge);
+//                            output.edgeList.remove(removeEdge);
+//                        }
+//                    }
+//                }
                 Collection<TaintEdge> calledInEdges = inputGraph.getInEdges(edge.getCalledNode());
-                Collection<TaintEdge> calledOutEdges = inputGraph.getOutEdges(edge.getCalledNode());
                 if (calledInEdges != null) {
                     for (TaintEdge removeEdge : calledInEdges) {
-                        // Remove edge must be in same context as edge
-                        if (removeEdge.getInputContextCounter().equals(edge.getInputContextCounter())) {
-                            if (removeEdge.getCounter() == 499)
-                                System.out.println("REMOVING 499 due to " + edge);
+                        if (edge.getInputContextCounter().equals(removeEdge.getInputContextCounter())) {
                             output.edgeList.remove(removeEdge);
                         }
                     }
                 }
+                Collection<TaintEdge> calledOutEdges = inputGraph.getOutEdges(edge.getCalledNode());
                 if (calledOutEdges != null) {
                     for (TaintEdge removeEdge : calledOutEdges) {
-                        // Remove edge must be in same context as edge
-                        if (removeEdge.getOutputContextCounter().equals(edge.getInputContextCounter())) {
-                            if (removeEdge.getCounter() == 499)
-                                System.out.println("REMOVING 499 due to " + edge);
+                        if (edge.getInputContextCounter().equals(removeEdge.getOutputContextCounter())) {
                             output.edgeList.remove(removeEdge);
                         }
                     }
                 }
-
                 Collection<TaintEdge> callingInEdges = inputGraph.getInEdges(edge.getCallingNode());
-                Collection<TaintEdge> callingOutEdges = inputGraph.getOutEdges(edge.getCallingNode());
                 if (callingInEdges != null) {
                     for (TaintEdge removeEdge : callingInEdges) {
-                        if (removeEdge.getInputContextCounter().equals(edge.getOutputContextCounter())) {
-                            if (removeEdge.getCounter() == 499)
-                                System.out.println("REMOVING 499 due to " + edge);
+                        if (edge.getOutputContextCounter().equals(removeEdge.getInputContextCounter())) {
                             output.edgeList.remove(removeEdge);
                         }
                     }
                 }
+                Collection<TaintEdge> callingOutEdges = inputGraph.getOutEdges(edge.getCallingNode());
                 if (callingOutEdges != null) {
                     for (TaintEdge removeEdge : callingOutEdges) {
-                        if (removeEdge.getOutputContextCounter().equals(edge.getOutputContextCounter())) {
-                            if (removeEdge.getCounter() == 499)
-                                System.out.println("REMOVING 499 due to " + edge);
+                        if (edge.getOutputContextCounter().equals(removeEdge.getOutputContextCounter())) {
                             output.edgeList.remove(removeEdge);
                         }
                     }

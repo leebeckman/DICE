@@ -54,7 +54,7 @@ public aspect GeneralTracker {
 							within(org.apache.catalina.ha.*) ||
 							within(org.apache.catalina.tribes.*) ||
 							within(org.apache.catalina.authenticator.*) ||
-							within(org.apache.catalina.connector.*) ||
+//							within(org.apache.catalina.connector.*) || this was ignoring setAttribute calls
 							within(org.apache.catalina.core.*) ||
 							within(org.apache.catalina.deploy.*) ||
 							within(org.apache.catalina.filters.*) ||
@@ -160,6 +160,16 @@ public aspect GeneralTracker {
 //		TaintLogger.getTaintLogger().dumpStack("NEW FORUM");
 //	}
 	
+//	before(): call(* *.setAttribute(..)) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
+//		TaintLogger.getTaintLogger().dumpStack("AAC:setAttrib");
+//		TaintLogger.getTaintLogger().log("AAC:setAttrib: " + thisJoinPoint.getSignature());
+//	}
+//	
+//	before(): execution(* *.setAttribute(..)) && !within(aspects.*) && !(myAdvice()) {
+//		TaintLogger.getTaintLogger().dumpStack("AAC:setAttribTestExec");
+//		TaintLogger.getTaintLogger().log("AAC:setAttribTestExec: " + thisJoinPoint.getSignature());
+//	}
+	
     before(): (execution(* *.*(..)) || execution(*.new(..))) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
@@ -167,33 +177,28 @@ public aspect GeneralTracker {
     		return;
     	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
     	
-//    	if (TaintUtil.getContext().getContextClassName().startsWith("org.jresearch.gossip.dao.ForumDAO") &&
-//    			TaintUtil.getContext().getContextMethodName().startsWith("getForums")) {
-//    		TaintLogger.getTaintLogger().dumpStack("GET FORUMS - " + Thread.currentThread().getId());
-//    	}
-    	
 		TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
+        
+//        location = TaintUtil.getStackTraceLocation();
+//        if (location.getDest().contains("setAttribute") && args.length > 1) {
+//        	TaintLogger.getTaintLogger().dumpStack("AAC:execSetAttrib");
+//        	TaintLogger.getTaintLogger().log("AAC: AAC:execSetAttrib: " + args[1]);
+//        }
         
         // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
         ArrayList<Object> taintedArgs = new ArrayList<Object>();
         LinkedList<TaintedArg> taintedArgList = new LinkedList<TaintedArg>();
         for (int i = 0; i < args.length; i++) {
         	TaintedArg taintedArg;
-//        	if (thisJoinPoint.getSignature().getName().contains("doGet") && args[i] instanceof HttpServletRequest) {
-//        		TaintLogger.getTaintLogger().log("doGet: " + args[i]);
-//        	}
         	//TODO: Deal with the fact that I added ResultSet here
         	if (ReferenceMaster.isPrimaryTainted(args[i])) {
     			if (location == null)
     				location = TaintUtil.getStackTraceLocation();
     			taintedArgs.add(args[i]);
-//    			if (ThreadRequestMaster.checkStateful(location, args[i]))
-//    				TaintLogger.getTaintLogger().log("STATE FOUND: " + args[i]);
     			taintedArg = new TaintedArg(args[i]);
     			taintedArgList.add(taintedArg);
     			ArgBackTaintChecker.addPrimary(args[i]);
-//    			TaintLogger.getTaintLogger().logCallingStringArg(location, "EXECUTESTRINGARG", args[i], thisJoinPoint.getTarget());
         	}
         	else if (args[i] != null) {
         		Set<Object> objTaint = ReferenceMaster.fullTaintCheck(args[i]);
@@ -203,40 +208,25 @@ public aspect GeneralTracker {
         			/*
         			 * TODO: add to taintedArgs here as well
         			 */
-//        			for (Object item : objTaint) {
-//            			if (ThreadRequestMaster.checkStateful(location, item))
-//            				TaintLogger.getTaintLogger().log("STATE FOUND: " + item);
-//        			}
         			taintedArg = new TaintedArg(args[i]);
         			taintedArg.setSubTaint(objTaint);
         			taintedArgList.add(taintedArg);
         			ArgBackTaintChecker.addComplex(args[i], objTaint);
-//    				TaintLogger.getTaintLogger().logCallingObjectArg(location, "EXECUTEOBJECTARG", args[i], objTaint, thisJoinPoint.getTarget());
         		}
         	}
         }
 
-//        if (thisJoinPoint.toLongString().contains("setTitle") 
-//        		&& thisJoinPoint.toLongString().contains("Forum")) {
-//        	TaintLogger.getTaintLogger().log("SET TITLE: " + args[0] + " jp: " + thisJoinPoint.toLongString() + " lc: " + TaintUtil.getLastContext() + " cc: " + TaintUtil.getContext() + " co: " + TaintUtil.getContext().getContextObject() + " coid: " + System.identityHashCode(TaintUtil.getContext().getContextObject()));
-//        }
-        
         if (taintedArgList.size() > 0) {
-//			if (thisJoinPoint.toLongString().contains("setTitle") 
-//	        		&& thisJoinPoint.toLongString().contains("Forum")) {
-//	        	TaintLogger.getTaintLogger().log("SET TITLE TAINTED: " + args[0] + " jp: " + thisJoinPoint.toLongString() + " lc: " + TaintUtil.getLastContext() + " cc: " + TaintUtil.getContext() + " co: " + TaintUtil.getContext().getContextObject() + " coid: " + System.identityHashCode(TaintUtil.getContext().getContextObject()));
-//	        }
         	TaintLogger.getTaintLogger().logCalling(location, "REGULAREXECUTE", taintedArgList, TaintUtil.getLastContext(), thisJoinPoint.getThis());
         	for (TaintedArg taintedArg : taintedArgList) {
         		TaintUtil.addContextAccessedTaint(taintedArg.getArg(), taintedArg.getSubTaint());
         	}
         }
-        
-//        else {
-//			if (location == null)
-//				location = TaintUtil.getStackTracePath();
-//        	TaintLogger.getTaintLogger().logCalling(location, "NONTAINTCALL", null, thisJoinPoint.getThis());
+//        else if (location.getSource().contains("ShowForumAction") && location.getSource().contains("process") 
+//        		&& location.getDest().contains("setAttribute") && args.length > 1 && args[1] != null) {
+//        	TaintLogger.getTaintLogger().log("AAC: Uncaught taint on set attribute for arg: " + System.identityHashCode(args[1]) + " isa: " + args[1].getClass());
 //        }
+        
         TaintUtil.releaseAJLock("BEFORE " + thisJoinPoint.getSignature().toShortString());
         TaintUtil.pushStartTime();
     }
@@ -450,6 +440,12 @@ public aspect GeneralTracker {
     	TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
         
+//        location = TaintUtil.getStackTraceLocation();
+//        if (location.getSource().contains("ShowForumAction") && location.getSource().contains("process") 
+//        		&& location.getDest().contains("setAttribute") && args.length > 1) {
+//        	TaintLogger.getTaintLogger().log("AAC: PrecheckB set attribute for arg: " + args[1]);
+//        }
+        
         // TODO: MOVE THIS TO PRESERVE ACROSS ADVICE
         ArrayList<Object> taintedArgs = new ArrayList<Object>();
         LinkedList<TaintedArg> taintedArgList = new LinkedList<TaintedArg>();
@@ -506,6 +502,10 @@ public aspect GeneralTracker {
 //            	
 //            }
         }
+//        else if (location.getSource().contains("ShowForumAction") && location.getSource().contains("process") 
+//        		&& location.getDest().contains("setAttribute") && args.length > 1 && args[1] != null) {
+//        	TaintLogger.getTaintLogger().log("AAC: UncaughtB taint on set attribute for arg: " + System.identityHashCode(args[1]) + " isa: " + args[1].getClass());
+//        }
 //        else {
 //			if (location == null)
 //				location = TaintUtil.getStackTracePath();

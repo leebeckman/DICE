@@ -61,7 +61,7 @@ public class TaintLogger {
 	}
 	
 	public void log(String message) {
-		if (message.startsWith("AAA:"))
+		if (message.startsWith("AAC:"))
 			dlogger.log(Level.INFO, message.substring(4));
 	}
 	
@@ -820,13 +820,14 @@ public class TaintLogger {
 	}
 	
 	public void dumpStack(String tag) {
-		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-		log("STACKTRACE: " + tag);
-		for (int i = 0, length = stack.length; i < length; i++) {
-			log("\t" + stack[i]);
+		if (tag.startsWith("AAC:")) {
+			StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+			log("AAC:STACKTRACE: " + tag.substring(4));
+			for (int i = 0, length = stack.length; i < length; i++) {
+				log("AAC:\t" + stack[i]);
+			}
+			log("AAC:ENDSTACKTRACE");
 		}
-		log("ENDSTACKTRACE");
-		
 	}
 }
 
