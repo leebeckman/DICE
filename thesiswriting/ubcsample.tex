@@ -973,19 +973,21 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 
 \paragraph{The analysis} can be taken further in this case. The tracking code not only logs tainted output, but also creates logs for non-tainted output. Using these one can observe the mixing of tainted and non-tainted data as it is composed together in the output. Looking to Figure C1, generated in the analysis tool from the output logs, we can see that the only tainted output involved in the response web page is from the three hyperlinks identified in the precomputation analysis. The rest of the data is non-tainted, and for this application this equates to it being hardcoded. Given these analysis results a developer can decide to simply precompute the entire response for this category listing page, saving on database access and formatting computation. 
 
-Notes: Should I say that such was done and the application still functioned correctly?
-
 \paragraph{Going further,} RUBiS was modified to display a chat box on every page, allowing anyone to post messages to the server for everyone to see. Whenever a message is submitted by a user, it is posted to a SubmitChat servlet which is responsible for adding the message to a list of messages. The important thing to note about this data is that it is very unpredictable. The list of messages can change at any time, with random data input to them, and as such any computations which work with this data are poor candidates for any kind of caching. Figure~\ref{fig:browsecategorieschat} shows a trace for the same page load as before, but including a post to the chat box. The left side of the graph in the figure is as before, the portion outlined in the red box shows the additional flow of the chat message data. This new portion of the graph actually spans two requests to the application - one to submit the chat message and another to display the list of categories along with the new message. The portion of the graph from labeled points 1 to 2 covers the submission of the message, starting with the source node showing the relative URI of the request and the name of the tainted parameter, 'chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, passed to the addChatMessage method of a ServletPrinter Object where it is concatenated with some formatting text, and finally appended to a LinkedList at point 2 by the addLast method. Note that the label for this addLast node ends in the name of a field, the 'chattyList' field of a ServletPrinter Object. This means that this field points to the LinkedList in question and indicates that by storing tainted data in the LinkedList it is effectively stored in that field. Such is useful for a developer to know when interpreting these graphs and mapping them back to the code responsible for them. Point 3 shows where the chat message data flows for the category list request, as a LinkedList is read from the chattyList along edge 18 in the getChatBox method. Following that an iterator over the LinkedList returned along edge 19, and the iterator is accessed along edge 20. The messages inside are concatenate with some formatting text before being passed along to point 4, being returned to the printHTMLHeader method of a ServletPrinter Object and written to the user response stream along with the list of categories.
 
 \paragraph{Figure~\ref{fig:browsecategorieschatprecomp}} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the precomputation ends at the red PrintCategory node, no longer extending to the println nodes. This is because the println method on the same PrintWriter Object now also receives the random data of the chat messages, and thus one cannot replace calls to this method with precomputed data. Given the precomputation output in Figure C2b and the response output breakdown in Figure C2, a developer can determine that the page can be mostly precomputed, only needing to dynamically generate the portion tainted by the chatMessage data.
 
-Notes: Could try to wrap up by noting how the analysis has been demonstrated in this simple case, and thus is useful.
-
 % The traces for jgossip will not really be shown and described in detail (at least not the pre-analysis traces), will be more about showing the post analysis trace and describing the implications of it
 \subsubsection{jGossip} 
 
-Notes: jGossip precomputation is going to be on front page load, for the non-tainted elements, as well as things like the forum and group name components. 
-NEED TO COLLECT DATA, MAKE FIGURES
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=1.0\textwidth]{figs/jgossip_MainPage_Precomp.eps}
+    \caption[jGossip Main Page Precomputation Analysis Results]{\label{fig:mainpageprecomp} jGossip Main Page Precomputation Analysis Results.}
+  \end{center}
+\end{figure}
+
+Loading the main page of the jGossip application, which presents users with a list of available forums, and running the precomputation analysis over the dataflow produces the graph shown in Figure~\ref{fig:mainpageprecomp}. This graph is filtered to show the flow of a particular data item, the title of a forum displayed on the page. The analysis essentially indicates that the data is able to flow from the database all the way to output without any dependence on other inputs, in particular inputs with unpredictable f
 
 \subsection{Caching}
 \subsubsection{RUBiS}
@@ -1037,7 +1039,7 @@ NEED TO COLLECT DATA, MAKE FIGURES
 
 \subsubsection{jGossip} 
 
-NEED TO COLLECT DATA, MAKE FIGURES <--- in progress
+NEED TO COLLECT DATA, MAKE FIGURES <--- FRIGGIN' HARD 2
 
 \subsection{Postcomputation}
 \subsubsection{RUBiS}
@@ -1056,11 +1058,15 @@ NEED TO COLLECT DATA, MAKE FIGURES <--- in progress
   \end{center}
 \end{figure}
 
-For the postcomputation analysis, we 
+For the postcomputation analysis, we sell an item on the RUBiS Store. This simply involves filling out a web form describing various details of the item (name, price, etc), and submitting this to a RegisterItem servlet. The item is added to the database and the item details are displayed back to the user. 
+
+The dataflow for this is given in Figure~\ref{fig:sellitemtrace}. At point 1 the various parameters describing the item are read, and some of them are converted to numeric values at point 2 (and hence tracked by the numeric tracking system). The RegisterItem:doGet() method then uses these parameters to construct a PreparedStatement at point 3, which is to execute a database update at point 4. This is the update which inserts the item into the database. Following this, some of the parameters are used at point 5 to query the database checking if the item was inserted. Finally, at point 6, the parameters are written back to the response page.
+
+Figure~\ref{fig:sellitempostcomputation} shows the results of the postcomputation analysis over this graph. What this indicates is parts of the dataflow which could be delayed until later, namely the database update/query flows at points 3, 4, and 5 from Figure~\ref{fig:sellitemtrace}. Missing from this graph is the reading of the item properties and writing them to the response page. This is because if these flows were deferred until later the output that the user sees would be incomplete. The analysis reveals that the database queries return no data which goes to the user response, and thus the analysis suggests that these queries could be done asynchronously, returning back to the user without waiting for their completion.
 
 \subsubsection{jGossip} 
 
-NEED TO COLLECT DATA, MAKE FIGURES
+NEED TO COLLECT DATA, MAKE FIGURES (HOPEFULLY EASY, DID IT ONCE) 3
 
 \subsection{Persistent State}
 \subsubsection{RUBiS}
@@ -1072,27 +1078,29 @@ NEED TO COLLECT DATA, MAKE FIGURES
   \end{center}
 \end{figure}
 
+WRITE HERE LEE 4
+
 \subsubsection{jGossip} 
 
-NEED TO COLLECT DATA, MAKE FIGURES
+This analysis revealed several instances of persistent state in the jGossip application, mainly session attributes storing data read from the database for quick lookup, such as forum threads and messages. We do not present the results here, as the analysis is a basic one and explored sufficiently in the RUBiS example. Furthermore, the next analysis, user state, subsumes this one and deals with the jGossip application.
 
 \subsection{User State}
 \subsubsection{RUBiS}
 
-Notes: None present in the RUBiS application
+The RUBiS application did not contain any persistent state which was not shared between multiple users, mainly due to the fact that it had no notion of sessions.
 
 \subsubsection{jGossip} 
 
-NEED TO COLLECT DATA, MAKE FIGURES
+NEED TO COLLECT DATA, MAKE FIGURES (HOPEFULLY EASY, SORTA DID IT ONCE) 5
 
 \subsection{Wasteful Communication}
 \subsubsection{RUBiS}
 
-Notes: None present in the RUBiS application
+The RUBiS application did not exhibit significant wasteful communication, due to its simple design.
 
 \subsubsection{jGossip} 
 
-NEED TO COLLECT DATA, MAKE FIGURES
+NEED TO COLLECT DATA, MAKE FIGURES (EASY, ANECDOTAL) 6
 
 \chapter{Conclusions} % DIFFICULT
 
