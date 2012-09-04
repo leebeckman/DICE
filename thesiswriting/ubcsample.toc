@@ -58,36 +58,28 @@
 \contentsline {subsection}{\numberline {4.4.3}{Example Trace}}{32}{subsection.4.4.3}
 \contentsline {subsection}{\numberline {4.4.4}{Precomputation}}{33}{subsection.4.4.4}
 \contentsline {subsubsection}{{RUBiS}}{33}{section*.27}
-\contentsline {paragraph}{{Figure\nobreakspace {}\ref {fig:browsecategoriesprecomp}}}{33}{section*.28}
-\contentsline {paragraph}{{Interpreting this,}}{34}{section*.29}
-\contentsline {paragraph}{{The analysis}}{34}{section*.30}
-\contentsline {paragraph}{{Going further,}}{34}{section*.31}
-\contentsline {paragraph}{{Figure\nobreakspace {}\ref {fig:browsecategorieschatprecomp}}}{35}{section*.32}
-\contentsline {subsubsection}{{jGossip}}{36}{section*.33}
-\contentsline {subsection}{\numberline {4.4.5}{Caching}}{36}{subsection.4.4.5}
-\contentsline {subsubsection}{{RUBiS}}{36}{section*.34}
-\contentsline {paragraph}{{Figure\nobreakspace {}\ref {fig:browseregioncategories} shows}}{36}{section*.35}
-\contentsline {paragraph}{{Running the caching analysis}}{36}{section*.36}
-\contentsline {paragraph}{{Using the graph}}{37}{section*.37}
-\contentsline {subsubsection}{{jGossip}}{37}{section*.38}
-\contentsline {subsection}{\numberline {4.4.6}{Postcomputation}}{38}{subsection.4.4.6}
-\contentsline {subsubsection}{{RUBiS}}{38}{section*.39}
-\contentsline {subsubsection}{{jGossip}}{38}{section*.40}
-\contentsline {subsection}{\numberline {4.4.7}{Persistent State}}{38}{subsection.4.4.7}
-\contentsline {subsubsection}{{RUBiS}}{38}{section*.41}
-\contentsline {subsubsection}{{jGossip}}{38}{section*.42}
-\contentsline {subsection}{\numberline {4.4.8}{User State}}{38}{subsection.4.4.8}
-\contentsline {subsubsection}{{RUBiS}}{38}{section*.43}
-\contentsline {subsubsection}{{jGossip}}{38}{section*.44}
-\contentsline {subsection}{\numberline {4.4.9}{Wasteful Communication}}{38}{subsection.4.4.9}
-\contentsline {subsubsection}{{RUBiS}}{38}{section*.45}
-\contentsline {subsubsection}{{jGossip}}{38}{section*.46}
-\contentsline {chapter}{\numberline {5}{Conclusions}}{45}{chapter.5}
-\contentsline {section}{\numberline {5.1}{Discussion of Results}}{45}{section.5.1}
-\contentsline {section}{\numberline {5.2}{Future Work}}{45}{section.5.2}
-\contentsline {section}{\numberline {5.3}{Final Words}}{45}{section.5.3}
-\contentsline {chapter}{{Bibliography}}{46}{chapter*.47}
+\contentsline {subsubsection}{{jGossip}}{38}{section*.28}
+\contentsline {subsection}{\numberline {4.4.5}{Caching}}{39}{subsection.4.4.5}
+\contentsline {subsubsection}{{RUBiS}}{39}{section*.29}
+\contentsline {subsubsection}{{jGossip}}{41}{section*.30}
+\contentsline {subsection}{\numberline {4.4.6}{Postcomputation}}{41}{subsection.4.4.6}
+\contentsline {subsubsection}{{RUBiS}}{41}{section*.31}
+\contentsline {subsubsection}{{jGossip}}{43}{section*.32}
+\contentsline {subsection}{\numberline {4.4.7}{Persistent State}}{43}{subsection.4.4.7}
+\contentsline {subsubsection}{{RUBiS}}{43}{section*.33}
+\contentsline {subsubsection}{{jGossip}}{45}{section*.34}
+\contentsline {subsection}{\numberline {4.4.8}{User State}}{45}{subsection.4.4.8}
+\contentsline {subsubsection}{{RUBiS}}{45}{section*.35}
+\contentsline {subsubsection}{{jGossip}}{45}{section*.36}
+\contentsline {subsection}{\numberline {4.4.9}{Wasteful Communication}}{46}{subsection.4.4.9}
+\contentsline {subsubsection}{{RUBiS}}{46}{section*.37}
+\contentsline {subsubsection}{{jGossip}}{46}{section*.38}
+\contentsline {chapter}{\numberline {5}{Conclusions}}{47}{chapter.5}
+\contentsline {section}{\numberline {5.1}{Discussion of Results}}{47}{section.5.1}
+\contentsline {section}{\numberline {5.2}{Future Work}}{47}{section.5.2}
+\contentsline {section}{\numberline {5.3}{Final Words}}{47}{section.5.3}
+\contentsline {chapter}{{Bibliography}}{48}{chapter*.39}
 \contentsline {part}{{Appendices}}{}{}
-\contentsline {chapter}{\numberline {A}{Terms Used}}{49}{appendix.A}
-\contentsline {chapter}{\numberline {B}{Taint Tracking Tool Logging Format}}{50}{appendix.B}
-\contentsline {chapter}{\numberline {C}{Second Appendix}}{55}{appendix.C}
+\contentsline {chapter}{\numberline {A}{Terms Used}}{51}{appendix.A}
+\contentsline {chapter}{\numberline {B}{Taint Tracking Tool Logging Format}}{52}{appendix.B}
+\contentsline {chapter}{\numberline {C}{Second Appendix}}{57}{appendix.C}

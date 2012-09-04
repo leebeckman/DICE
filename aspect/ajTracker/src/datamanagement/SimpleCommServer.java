@@ -26,25 +26,35 @@ public class SimpleCommServer implements Runnable {
 						SimpleCommControl.getInstance().enableTracking();
 						continue;
 					}
-					if (input.startsWith("enablentr")) {
+					else if (input.startsWith("enablentr")) {
 						outToClient.writeBytes("Enabling NTR\n");
 						SimpleCommControl.getInstance().enableNTR();
 						continue;
 					}
-					if (input.startsWith("disabletracking")) {
+					else if (input.startsWith("disabletracking")) {
 						outToClient.writeBytes("Disabling tracking\n");
 						SimpleCommControl.getInstance().disableTracking();
 						continue;
 					}
-					if (input.startsWith("disablentr")) {
+					else if (input.startsWith("disablentr")) {
 						outToClient.writeBytes("Disabling NTR\n");
 						SimpleCommControl.getInstance().disableNTR();
 						continue;
 					}
-					if (input.startsWith("enable")) {
+					else if (input.startsWith("enable")) {
 						outToClient.writeBytes("Enabling all\n");
 						SimpleCommControl.getInstance().enableTracking();
 						SimpleCommControl.getInstance().enableNTR();
+						continue;
+					}
+					else if (input.startsWith("setaddrA")) {
+						outToClient.writeBytes("Forcing Remote Addr A\n");
+						SimpleCommControl.getInstance().setForcedRemoteAddr("192.168.0.1");
+						continue;
+					}
+					else if (input.startsWith("setaddrB")) {
+						outToClient.writeBytes("Forcing Remote Addr B\n");
+						SimpleCommControl.getInstance().setForcedRemoteAddr("192.168.0.2");
 						continue;
 					}
 				}

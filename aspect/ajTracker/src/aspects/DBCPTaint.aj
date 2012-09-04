@@ -22,19 +22,7 @@ public aspect DBCPTaint {
 
 	}
     
-    pointcut resultSetAccess():
-    	(execution(public * *ResultSet.getObject(..)) ||
-    	execution(public * *ResultSet.getString(..)));
-    
-    pointcut resultSetIntAccess():
-    	execution(public * *ResultSet.getInt(..));
-    	
-    
-    pointcut resultSetCreation():
-    	execution(public *ResultSet *.*(..));
-//    	(execution(public * org.apache.commons.dbcp..*PreparedStatement.executeQuery(..)) ||
-    
-    Object around(): resultSetIntAccess() {
+    Object around(): execution(public * *ResultSet.getInt(..)) {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return proceed();
     	Object ret = proceed();
@@ -106,8 +94,8 @@ public aspect DBCPTaint {
 	    			}
 	    			
 	    			StackLocation location = TaintUtil.getStackTraceLocation();
-	    			if (!location.getDest().startsWith("java"))
-	    				TaintLogger.getTaintLogger().logReturningInput(location, "DBCPINT", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+//	    			if (!location.getDest().startsWith("java"))
+    				TaintLogger.getTaintLogger().logReturningInput(location, "DBCPINT", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
 				}
     		}
     	}
@@ -115,7 +103,8 @@ public aspect DBCPTaint {
     	return ret;
     }
     
-    after() returning (Object ret): resultSetAccess() {
+    after() returning (Object ret): (execution(public * *ResultSet.getObject(..)) ||
+        	execution(public * *ResultSet.getString(..))) {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
 		String retString = ret.toString();
@@ -137,14 +126,7 @@ public aspect DBCPTaint {
 				else
 					skip = true;
 			} catch (SQLException e) {
-				if (retString.contains("topic")) {
-	    			TaintLogger.getTaintLogger().log("AAB: TOPIC RET EXCEPTION");
-	    		}
 			}
-    		
-    		if (retString.contains("topic")) {
-    			TaintLogger.getTaintLogger().log("AAB: ret: " + retString + " skip? " + skip);
-    		}
     		
     		if (!skip) {
     			/*
@@ -182,15 +164,22 @@ public aspect DBCPTaint {
 	    			}
 	    			
 	    			if (retString.contains("topic")) {
-	        			TaintLogger.getTaintLogger().log("AAB: desttopic: " + location.getDest());
+	        			TaintLogger.getTaintLogger().log("AAD: topictainting, dest: " + location.getDest() + " taintid: " + ReferenceMaster.getTaintIdentifier(ret));
 	        		}
-	    			if (!location.getDest().startsWith("java"))
-	    				TaintLogger.getTaintLogger().logReturningInput(location, "DBCP", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
+	    			// ISSUE: this creates too many RIN records, could maybe be parsed out later by analysis tool.
+//	    			if (!location.getDest().startsWith("java"))
+    				TaintLogger.getTaintLogger().logReturningInput(location, "DBCP", ret, TaintUtil.getLastContext(), thisJoinPoint.getThis());
     			}
     			
     		}
     	}
     }
+    
+    pointcut resultSetCreation():
+    	execution(public *ResultSet *.*(..));
+//    	(execution(public * org.apache.commons.dbcp..*PreparedStatement.executeQuery(..)) ||
+    
+
     
     ResultSet around(): resultSetCreation() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())

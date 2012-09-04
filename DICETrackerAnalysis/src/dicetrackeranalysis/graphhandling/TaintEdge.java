@@ -524,6 +524,12 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
         return null;
     }
 
+    public String getFirstTaintedObjectTaintID() {
+        if (this.taintedObjects.size() > 0)
+            return this.taintedObjects.get(0).getTaintID();
+        return null;
+    }
+
     public LinkedList<TaintedObject> getTaintedObjects() {
         return this.taintedObjects;
     }

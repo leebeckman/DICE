@@ -118,7 +118,7 @@ public class UserstateAnalysis {
                     DefaultMutableTreeNode childNode = childNodes.nextElement();
                     if (childNode.getUserObject() instanceof TaintIDTreeNode) {
                         String subTaintID = ((TaintIDTreeNode)childNode.getUserObject()).getTaintID();
-                        if (!subTaintID.equals(taintID))
+                        if (subTaintID != null && !subTaintID.equals(taintID))
                             derivedTaintIDs.add(subTaintID);
                     }
                 }

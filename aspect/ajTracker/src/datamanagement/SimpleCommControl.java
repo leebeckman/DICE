@@ -5,12 +5,14 @@ public class SimpleCommControl {
 	private static SimpleCommControl self;
 	private boolean trackingEnabled;
 	private boolean ntrEnabled;
+	private String forcedRemoteAddr;
 	
 	private SimpleCommControl() {
 		Thread commThread = new Thread(new SimpleCommServer());
 		commThread.start();
 		trackingEnabled = false;
 		ntrEnabled = false;
+		forcedRemoteAddr = "";
 	}
 	
 	public static SimpleCommControl getInstance() {
@@ -41,6 +43,14 @@ public class SimpleCommControl {
 	
 	public boolean ntrEnabled() {
 		return this.ntrEnabled;
+	}
+	
+	public void setForcedRemoteAddr(String forcedRemoteAddr) {
+		this.forcedRemoteAddr = forcedRemoteAddr;
+	}
+	
+	public String getForcedRemoteAddr() {
+		return forcedRemoteAddr;
 	}
 	
 }

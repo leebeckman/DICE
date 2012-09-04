@@ -190,6 +190,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         setOutputsButton = new javax.swing.JButton();
         linkIOButton = new javax.swing.JButton();
         showOnlyButton = new javax.swing.JButton();
+        taintFlowConnectedButton = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         edgeID = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
@@ -603,6 +604,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             }
         });
 
+        taintFlowConnectedButton.setText("Taint Flow Connected");
+        taintFlowConnectedButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                taintFlowConnectedButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -646,7 +654,10 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                                     .addComponent(showOutputButton))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(fConnectedButton)
+                                    .addGroup(jPanel1Layout.createSequentialGroup()
+                                        .addComponent(fConnectedButton)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(taintFlowConnectedButton))
                                     .addGroup(jPanel1Layout.createSequentialGroup()
                                         .addComponent(showConnectedButton)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -693,7 +704,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(fConnectedButton)
-                    .addComponent(showOutputButton))
+                    .addComponent(showOutputButton)
+                    .addComponent(taintFlowConnectedButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
@@ -1217,7 +1229,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         viewPanel.repaint();
     }
 
-    private void redrawGraphNextConnected(boolean extend, boolean applyFilters) {
+    private void redrawGraphNextConnected(boolean extend, boolean applyFilters, HashSet<TaintNode> selected) {
         if (tabView.getTitleAt(tabView.getSelectedIndex()).equals("Analysis"))
             return;
 
@@ -1285,7 +1297,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             offset = 60;
 
         Graph<TaintNode, TaintEdge> graph = null;
-        graph = gb.getMultiGraph(filters);
+        graph = gb.getLightMultiGraph(filters);
 
         if (noSBCheckbox.isSelected()) {
             LinkedList<TaintNode> nodes = new LinkedList<TaintNode>(graph.getVertices());
@@ -1302,12 +1314,18 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     graph.removeVertex(node);
             }
         }
+
         if (!selectionFilterNodes.isEmpty()) {
             if (extend) {
                 HashSet<TaintNode> toExtend = new HashSet<TaintNode>();
                 for (TaintNode node : selectionFilterNodes) {
-                    if (!connectBlockedNodes.contains(node))
-                        toExtend.addAll(graph.getNeighbors(node));
+                    if (!connectBlockedNodes.contains(node)) {
+                        if (selected != null && !selected.isEmpty()) {
+                            if (selected.contains(node))
+                                toExtend.addAll(graph.getNeighbors(node));
+                        } else
+                            toExtend.addAll(graph.getNeighbors(node));
+                    }
                 }
                 selectionFilterNodes.addAll(toExtend);
             }
@@ -1412,7 +1430,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_analysisClearButtonActionPerformed
 
     private void quickLoadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_quickLoadButtonActionPerformed
-        File trackerFile = new File("/home/lee/DICE/DATA_jgossip_postcomp_deleteforum.xml");
+        File trackerFile = new File("/home/lee/DICE/DATA_jgossip_caching_ShowForum_5.xml");
         File sourceFile = new File("/home/lee/DICE/jgossipDataInfo.xml");
 
         loadTrackingFile(trackerFile);
@@ -1516,7 +1534,13 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_resetSelectionFilterButtonActionPerformed
 
     private void showConnectedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showConnectedButtonActionPerformed
-        redrawGraphNextConnected(true, false);
+        VisualizationViewer<TaintNode, TaintEdge> vv = tabToViewerMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+
+        HashSet<TaintNode> picked = null;
+        if (vv != null && vv.getPickedVertexState() != null)
+            picked = new HashSet<TaintNode>(vv.getPickedVertexState().getPicked());
+
+        redrawGraphNextConnected(true, false, picked);
     }//GEN-LAST:event_showConnectedButtonActionPerformed
 
     private void blockButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_blockButtonActionPerformed
@@ -1529,11 +1553,11 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             gb.colorNode(blockedNode, 10);
         }
 
-        redrawGraphNextConnected(false, false);
+        redrawGraphNextConnected(false, false, null);
     }//GEN-LAST:event_blockButtonActionPerformed
 
     private void fConnectedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fConnectedButtonActionPerformed
-        redrawGraphNextConnected(true, true);
+        redrawGraphNextConnected(true, true, null);
     }//GEN-LAST:event_fConnectedButtonActionPerformed
 
     private void highlightButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_highlightButtonActionPerformed
@@ -1711,6 +1735,16 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         redrawGraph();
     }//GEN-LAST:event_showOnlyButtonActionPerformed
 
+    private void taintFlowConnectedButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_taintFlowConnectedButtonActionPerformed
+        VisualizationViewer<TaintNode, TaintEdge> vv = tabToViewerMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+        GraphBuilder gb = tabToBuilderMap.get(tabView.getTitleAt(tabView.getSelectedIndex()));
+
+        TaintEdge picked = new LinkedList<TaintEdge>(vv.getPickedEdgeState().getPicked()).getFirst();
+
+        selectionFilterNodes.addAll(gb.getForwardTaintContextNodes(picked));
+        redrawGraph();
+    }//GEN-LAST:event_taintFlowConnectedButtonActionPerformed
+
     private void writeToImageFile(String imageFileName) {
         BufferedImage bufImage = ScreenImage.createImage((JComponent) tabToViewPanelMap.get(tabView.getTitleAt(tabView.getSelectedIndex())));
         try {
@@ -1795,6 +1829,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
     private javax.swing.JTextField sourceFileName;
     private javax.swing.JButton staticStateAnalyzeButton;
     private javax.swing.JTabbedPane tabView;
+    private javax.swing.JButton taintFlowConnectedButton;
     private javax.swing.JTree taintIDTree;
     private javax.swing.JPanel treePanel;
     private javax.swing.JButton uselessCommButton;

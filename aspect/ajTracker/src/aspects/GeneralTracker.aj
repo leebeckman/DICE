@@ -1,16 +1,20 @@
 package aspects;
 
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Set;
 
 import datamanagement.ArgBackTaintChecker;
+import datamanagement.HeuristicNumericTainter;
 import datamanagement.ReferenceMaster;
 import datamanagement.SimpleCommControl;
 import datamanagement.StaticFieldBackTaintChecker;
 import datamanagement.TaintLogger;
 import datamanagement.TaintUtil;
 import datamanagement.TaintedArg;
+import datamanagement.TaintUtil.StackLocation;
 
 
 public aspect GeneralTracker {
@@ -144,7 +148,7 @@ public aspect GeneralTracker {
 //									withincode(* org.apache.jsp.jgossip.content.ShowForum_jsp._jspService(..));
 	
 //	pointcut tooBigErrorExcludeFields(): withincode(* org.apache.jsp.jgossip.content.ShowThread_jsp._jspService(..));
-    
+
 	
 	/*
      * BEFORE EXECUTION
@@ -176,6 +180,11 @@ public aspect GeneralTracker {
     	if (!TaintUtil.getAJLock("BEFORE " + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.pushContext(thisJoinPoint.getThis(), thisJoinPoint.getSignature());
+    	if (TaintUtil.getContext().getContextClassName().contains("ResultSet") &&
+    			TaintUtil.getContext().getContextMethodName().contains("getString")) {
+    		TaintLogger.getTaintLogger().log("AAD: PUSHED: " + TaintUtil.getContext());
+    	}
+    	
     	
 		TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
@@ -417,11 +426,19 @@ public aspect GeneralTracker {
         TaintUtil.releaseAJLock("AFTER " + thisJoinPoint.getSignature().toShortString());
     }
     
+    /* Temporarily moving these two here to try and get the ordering of instrumentation for ResultSet accesses right */
+
+    
+    
     after(): (execution(*.new(..)) || execution(* *.*(..))) && !within(aspects.*) && !(myAdvice()) && !allExclude() {
     	if (!SimpleCommControl.getInstance().trackingEnabled())
     		return;
     	if (!TaintUtil.getAJLock("AFTERALL " + thisJoinPoint.getSignature().toShortString()))
     		return;
+    	if (TaintUtil.getContext().getContextClassName().contains("ResultSet") &&
+    			TaintUtil.getContext().getContextMethodName().contains("getString")) {
+    		TaintLogger.getTaintLogger().log("AAD: POPPING: " + TaintUtil.getContext());
+    	}
     	TaintUtil.popStartTime();
     	TaintUtil.popContext();
     	TaintUtil.releaseAJLock("AFTERALL " + thisJoinPoint.getSignature().toShortString());
@@ -437,6 +454,10 @@ public aspect GeneralTracker {
     	if (!TaintUtil.getAJLock("BEFOREJ" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.pushContext(thisJoinPoint.getTarget(), thisJoinPoint.getSignature());
+    	if (TaintUtil.getContext().getContextClassName().contains("ResultSet") &&
+    			TaintUtil.getContext().getContextMethodName().contains("getString")) {
+    		TaintLogger.getTaintLogger().log("AAD: JAVAPUSHED: " + TaintUtil.getContext());
+    	}
     	TaintUtil.StackLocation location = null;
         Object[] args = thisJoinPoint.getArgs();
         
@@ -736,6 +757,10 @@ public aspect GeneralTracker {
     	if (!TaintUtil.getAJLock("AFTERJALL" + thisJoinPoint.getSignature().toShortString()))
     		return;
     	TaintUtil.popStartTime();
+    	if (TaintUtil.getContext().getContextClassName().contains("ResultSet") &&
+    			TaintUtil.getContext().getContextMethodName().contains("getString")) {
+    		TaintLogger.getTaintLogger().log("AAD: JAVAPOPPING: " + TaintUtil.getContext());
+    	}
     	TaintUtil.popContext();
         TaintUtil.releaseAJLock("AFTERJALL" + thisJoinPoint.getSignature().toShortString());
     }

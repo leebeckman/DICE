@@ -61,7 +61,7 @@ public class TaintLogger {
 	}
 	
 	public void log(String message) {
-		if (message.startsWith("AAC:"))
+		if (message.startsWith("AAD:"))
 			dlogger.log(Level.INFO, message.substring(4));
 	}
 	

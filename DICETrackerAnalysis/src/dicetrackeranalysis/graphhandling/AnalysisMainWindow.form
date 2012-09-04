@@ -497,7 +497,11 @@
                                           </Group>
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Group type="103" groupAlignment="0" attributes="0">
-                                              <Component id="fConnectedButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Group type="102" alignment="0" attributes="0">
+                                                  <Component id="fConnectedButton" min="-2" max="-2" attributes="0"/>
+                                                  <EmptySpace max="-2" attributes="0"/>
+                                                  <Component id="taintFlowConnectedButton" min="-2" max="-2" attributes="0"/>
+                                              </Group>
                                               <Group type="102" alignment="0" attributes="0">
                                                   <Component id="showConnectedButton" min="-2" max="-2" attributes="0"/>
                                                   <EmptySpace max="-2" attributes="0"/>
@@ -558,6 +562,7 @@
                           <Group type="103" groupAlignment="3" attributes="0">
                               <Component id="fConnectedButton" alignment="3" min="-2" max="-2" attributes="0"/>
                               <Component id="showOutputButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                              <Component id="taintFlowConnectedButton" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="3" attributes="0">
@@ -759,6 +764,14 @@
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="showOnlyButtonActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JButton" name="taintFlowConnectedButton">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Taint Flow Connected"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="taintFlowConnectedButtonActionPerformed"/>
                   </Events>
                 </Component>
               </SubComponents>

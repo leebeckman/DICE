@@ -118,7 +118,9 @@ public aspect ReferenceTracker {
 			if (args[i] instanceof RequestFacade) {
 				RequestFacade req = (RequestFacade)args[i];
 				URI = req.getRequestURI();
-				remoteAddr = req.getRemoteAddr();
+				// Hack to fake different IP addresses
+//				remoteAddr = req.getRemoteAddr();
+				remoteAddr = SimpleCommControl.getInstance().getForcedRemoteAddr();
 				break;
 			}
 		}
