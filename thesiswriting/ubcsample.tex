@@ -1183,31 +1183,27 @@ Finally, one of the side goals of this thesis was to find uses for the taint tra
 
 \section{Future Work}
 
-Given the analysis results and with our experiences working with the tools, there are a variety of improvements to be made and interesting future directions to explore. 
+Given the analysis results and our experiences working with the tools, there are a variety of improvements to be made and interesting directions to explore. These range from simple refinements to the taint tracking and analysis tools to new research directions.
 
-System is to be integrated into an application partitioner
+Beginning with the most basic needs, the tools need to be made more efficient. The speed of the tracker has to be improved significantly, and here we suggest looking to recent taint tracking research which has focused on ways to speed up the technique. Even just moving away from AspectJ to a handwritten, byte-code level taint tracking tool would provide large speedups. For the analysis tool, the problem is more on the memory side. When dealing with very large taint traces like those obtained from jGossip, the graphs are so large that they may not fit in memory. Addressing this could mean finding a way to compress the traces, possibly by ignoring/summarizing communication events which are not particularly valuable to analysis (framework activity is a good candidate for such measures). One could also modify the analyses to work efficiently with disk resident data, or to be more clever about how they use available memory.
 
-Analysis speed (native tracker without AJ)
+Beyond efficiency, moving away from AspectJ for the taint tracker could allow a more complete tracking. Under AspectJ there was no perfect solution for tracking the flow of primitive data types, and what we have in place for tracking numeric values is really a temporary hack. Implementing the tracker at a lower level, such as Java byte-code, would provide the control necessary to tag and track such values. One could also explore the effects of control-flow propagation, a more permissive form on taint flow, on the analyses presented here. As has been discussed in the literature, this may lead to many false positives, but there have been efforts to control the explosion of tainted data in such scenarios which may offer useful lessons. Tracking in this way may capture dependencies between data items that we miss, and allow for more accurate analyses.
 
-Testing as an input to other tools, like an application partitioner
+Concerning the actual interaction with the analysis tool, the needs are mostly down to automation. 
 
-Refinement of analysis tool and user testing
-
-Testing with more applications, more extensively. Try to find all that you can about a single application.
-
-Finding more analyses
-
+Focusing on the analyses:
+Going deeper with some analyses (access path refactoring, useless state)
 A more thorough modify and redeploy test, to see how good analysis suggestions are.
 
-More complete tracking
-
-Conflow flow propagation?
+System is to be integrated into an application partitioner
+Testing as an input to other tools, like an application partitioner
 
 Analysis automation (lots of manual intervention required)
-
-Going deeper with some analyses (access path refactoring, useless state)
-
+Refinement of analysis tool and user testing
 Automatically acting on some of the analyses, ala fluxo
+
+Testing with more applications, more extensively. Try to find all that you can about a single application.
+Finding more analyses.
 
 \section{Final Words}
 
