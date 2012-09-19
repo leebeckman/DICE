@@ -786,7 +786,7 @@ public class GraphBuilder {
         // If we know a subtaint is not used... when if it occurs in same context later, already marked
         TaintEdge edge = null;
         for (int i = 0; i < orderedEdges.size(); i++) {
-//            System.out.println("Marking Unused " + i + " of: " + orderedEdges.size() + " used: " + (runtime.totalMemory() - runtime.freeMemory()) + " remain: " + runtime.freeMemory());
+            System.out.println("Marking Unused " + i + " of: " + orderedEdges.size());
             edge = orderedEdges.get(i);
             for (TaintedObject taintedObject : edge.getTaintedObjects()) {
 //                System.out.println("OVERSIZE " + edge.getTaintedObjects().size());
@@ -925,12 +925,12 @@ public class GraphBuilder {
 
     public GraphBuilder getForwardContextGraphBuilder(TaintEdge startEdge) {
         HashSet<TaintEdge> foundEdges = new HashSet<TaintEdge>();
-        getForwardContextGraphBuilder(new HashSet<TaintEdge>(), startEdge, foundEdges, getMultiGraph(), true);
+        getForwardContextEdges(new HashSet<TaintEdge>(), startEdge, foundEdges, getMultiGraph(), true);
 
         return GraphBuilder.getBuilderFromEdges(this, foundEdges);
     }
 
-    private void getForwardContextGraphBuilder(HashSet<TaintEdge> visited, TaintEdge current, HashSet<TaintEdge> found, Graph<TaintNode, TaintEdge> graph, boolean isForward) {
+    private void getForwardContextEdges(HashSet<TaintEdge> visited, TaintEdge current, HashSet<TaintEdge> found, Graph<TaintNode, TaintEdge> graph, boolean isForward) {
         if (visited.contains(current))
             return;
         visited.add(current);
@@ -950,14 +950,21 @@ public class GraphBuilder {
 
         for (TaintEdge nextEdge : graph.getOutEdges(nextNode)) {
             if ((nextEdge.getOutputContextCounter().equals(context) || (nextEdge.getType().equals("FIELDGET") && nextEdge.getRequestCounter().equals(current.getRequestCounter()))) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
-                getForwardContextGraphBuilder(visited, nextEdge, found, graph, true);
+                getForwardContextEdges(visited, nextEdge, found, graph, true);
             }
         }
         for (TaintEdge nextEdge : graph.getInEdges(nextNode)) {
             if (nextEdge.getInputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY"))) {
-                getForwardContextGraphBuilder(visited, nextEdge, found, graph, false);
+                getForwardContextEdges(visited, nextEdge, found, graph, false);
             }
         }
+    }
+
+    public GraphBuilder getForwardTaintContextGraphBuilder(TaintEdge startEdge) {
+        HashSet<TaintEdge> foundEdges = new HashSet<TaintEdge>();
+        getForwardTaintContextEdges(new HashSet<TaintEdge>(), startEdge, foundEdges, getMultiGraph(), true);
+
+        return GraphBuilder.getBuilderFromEdges(this, foundEdges);
     }
 
     public HashSet<TaintNode> getForwardTaintContextNodes(TaintEdge startEdge) {
@@ -998,7 +1005,7 @@ public class GraphBuilder {
             if ((nextEdge.getOutputContextCounter().equals(context) || (nextEdge.getType().equals("FIELDGET") && nextEdge.getRequestCounter().equals(current.getRequestCounter()))) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
                 HashSet<String> nextEdgeTaintIDs = nextEdge.getAllTaintIDs();
                 if (taintIDMultiMatch(currentTaintIDPropagations, nextEdgeTaintIDs)) {
-                    getForwardContextGraphBuilder(visited, nextEdge, found, graph, true);
+                    getForwardTaintContextEdges(visited, nextEdge, found, graph, true);
                 }
             }
         }
@@ -1006,7 +1013,45 @@ public class GraphBuilder {
             if (nextEdge.getInputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY"))) {
                 HashSet<String> nextEdgeTaintIDs = nextEdge.getAllTaintIDs();
                 if (taintIDMultiMatch(currentTaintIDPropagations, nextEdgeTaintIDs)) {
-                    getForwardContextGraphBuilder(visited, nextEdge, found, graph, false);
+                    getForwardTaintContextEdges(visited, nextEdge, found, graph, false);
+                }
+            }
+        }
+    }
+
+    private void getForwardTaintOriginContextEdges(HashSet<TaintEdge> visited, TaintEdge current, HashSet<TaintEdge> found, Graph<TaintNode, TaintEdge> graph, boolean isForward) {
+        if (visited.contains(current))
+            return;
+        visited.add(current);
+
+        found.add(current);
+
+        TaintNode nextNode = null;
+        String context = null;
+        if (isForward) {
+            nextNode = graph.getDest(current);
+            context = current.getInputContextCounter();
+        }
+        else {
+            nextNode = graph.getSource(current);
+            context = current.getOutputContextCounter();
+        }
+
+        HashSet<String> currentTaintIDPropagations = getPropagatedTaintIDs(current.getAllTaintIDs());
+
+        for (TaintEdge nextEdge : graph.getOutEdges(nextNode)) {
+            if ((nextEdge.getOutputContextCounter().equals(context) || (nextEdge.getType().equals("FIELDGET") && nextEdge.getRequestCounter().equals(current.getRequestCounter()))) && (nextEdge.getCounter() > current.getCounter() || (current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY")))) {
+                HashSet<String> nextEdgeTaintIDs = nextEdge.getAllTaintIDs();
+                if (taintIDMultiMatch(currentTaintIDPropagations, nextEdgeTaintIDs)) {
+                    getForwardTaintOriginContextEdges(visited, nextEdge, found, graph, true);
+                }
+            }
+        }
+        for (TaintEdge nextEdge : graph.getInEdges(nextNode)) {
+            if (nextEdge.getInputContextCounter().equals(context) && (nextEdge.getCounter() > current.getCounter() || current.getType().equals("SUPPLEMENTARY") && !nextEdge.getType().equals("SUPPLEMENTARY"))) {
+                HashSet<String> nextEdgeTaintIDs = nextEdge.getAllTaintIDs();
+                if (taintIDMultiMatch(currentTaintIDPropagations, nextEdgeTaintIDs)) {
+                    getForwardTaintOriginContextEdges(visited, nextEdge, found, graph, false);
                 }
             }
         }

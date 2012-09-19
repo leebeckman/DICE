@@ -95,10 +95,11 @@ public class TaintNode {
 //                e.printStackTrace();
 //            }
 //        }
-        if (this.name.contains("CATALOG") && this.name.contains("TABLE") && this.name.contains("COLUMN"))
-            return this.name.replaceAll("TARGETCOLUMN: ", "").replaceAll("CATALOG:", "/").replaceAll("TABLE:", "/").replaceAll("COLUMN:", "/").replaceAll("#RECSEP#", "&& ");
-        return removeArgTypes(removePackageName(this.name)) + methodIndicator + idStr + objFieldNameStr;
-//        return this.name + methodIndicator + idStr + objFieldNameStr;
+        // Reactivate these 3 lines
+//        if (this.name.contains("CATALOG") && this.name.contains("TABLE") && this.name.contains("COLUMN"))
+//            return this.name.replaceAll("TARGETCOLUMN: ", "").replaceAll("CATALOG:", "/").replaceAll("TABLE:", "/").replaceAll("COLUMN:", "/").replaceAll("#RECSEP#", "&& ");
+//        return removeArgTypes(removePackageName(this.name)) + methodIndicator + idStr + objFieldNameStr;
+        return "";
     }
 
     public String toFullString() {

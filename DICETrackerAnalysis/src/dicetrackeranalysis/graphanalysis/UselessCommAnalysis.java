@@ -9,8 +9,8 @@ import dicetrackeranalysis.graphhandling.AnalysisMainWindow;
 import dicetrackeranalysis.graphhandling.GraphBuilder;
 import dicetrackeranalysis.graphhandling.TaintEdge;
 import dicetrackeranalysis.graphhandling.TaintedObject;
+import java.util.HashSet;
 import javax.swing.JTextArea;
-import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
@@ -31,15 +31,24 @@ public class UselessCommAnalysis {
     public void analyze() {
         out.append("Starting Useless Comm Analysis\n");
 
+        HashSet<TaintEdge> uselessCommingEdges = new HashSet<TaintEdge>();
         for (TaintEdge edge : gb.getEdgeList()) {
+            nextEdge:
             for (TaintedObject taintedObject : edge.getTaintedObjects()) {
                 for (TaintedObject subTaintedObject : taintedObject.getSubTaintedObjects()) {
                     if (subTaintedObject.isUnused()) {
-                        gb.colorEdge(edge, 3);
+//                        gb.colorEdge(edge, 3);
+                        uselessCommingEdges.add(edge);
+                        break nextEdge;
                     }
                 }
             }
         }
+
+        System.out.println("Useless comming edges: " + uselessCommingEdges.size() + " of " + gb.getEdgeList().size());
+
+        GraphBuilder userStateGraphBuilder = GraphBuilder.getBuilderFromEdges(gb, uselessCommingEdges);
+        analysisMainWindow.addAnalysisGraphBuilder(userStateGraphBuilder, "WASTING EDGES" + "[" + uselessCommingEdges.size() + "]", "");
     }
 
 }

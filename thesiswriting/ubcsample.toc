@@ -41,7 +41,7 @@
 \contentsline {subsubsection}{{Precomputation}}{24}{section*.19}
 \contentsline {subsubsection}{{Postcomputation}}{24}{section*.20}
 \contentsline {subsubsection}{{Application State}}{24}{section*.21}
-\contentsline {subsubsection}{{Personal State}}{25}{section*.22}
+\contentsline {subsubsection}{{User State}}{25}{section*.22}
 \contentsline {subsubsection}{{Wasteful Communication}}{25}{section*.23}
 \contentsline {subsubsection}{{Access Path Refactoring (APR)}}{26}{section*.24}
 \contentsline {chapter}{\numberline {4}{Evaluation}}{27}{chapter.4}
@@ -62,24 +62,24 @@
 \contentsline {subsection}{\numberline {4.4.5}{Caching}}{39}{subsection.4.4.5}
 \contentsline {subsubsection}{{RUBiS}}{39}{section*.29}
 \contentsline {subsubsection}{{jGossip}}{41}{section*.30}
-\contentsline {subsection}{\numberline {4.4.6}{Postcomputation}}{41}{subsection.4.4.6}
-\contentsline {subsubsection}{{RUBiS}}{41}{section*.31}
-\contentsline {subsubsection}{{jGossip}}{43}{section*.32}
-\contentsline {subsection}{\numberline {4.4.7}{Persistent State}}{43}{subsection.4.4.7}
-\contentsline {subsubsection}{{RUBiS}}{43}{section*.33}
-\contentsline {subsubsection}{{jGossip}}{45}{section*.34}
-\contentsline {subsection}{\numberline {4.4.8}{User State}}{45}{subsection.4.4.8}
-\contentsline {subsubsection}{{RUBiS}}{45}{section*.35}
-\contentsline {subsubsection}{{jGossip}}{45}{section*.36}
-\contentsline {subsection}{\numberline {4.4.9}{Wasteful Communication}}{46}{subsection.4.4.9}
-\contentsline {subsubsection}{{RUBiS}}{46}{section*.37}
-\contentsline {subsubsection}{{jGossip}}{46}{section*.38}
-\contentsline {chapter}{\numberline {5}{Conclusions}}{47}{chapter.5}
-\contentsline {section}{\numberline {5.1}{Discussion of Results}}{47}{section.5.1}
-\contentsline {section}{\numberline {5.2}{Future Work}}{47}{section.5.2}
-\contentsline {section}{\numberline {5.3}{Final Words}}{47}{section.5.3}
-\contentsline {chapter}{{Bibliography}}{48}{chapter*.39}
+\contentsline {subsection}{\numberline {4.4.6}{Postcomputation}}{43}{subsection.4.4.6}
+\contentsline {subsubsection}{{RUBiS}}{43}{section*.31}
+\contentsline {subsubsection}{{jGossip}}{44}{section*.32}
+\contentsline {subsection}{\numberline {4.4.7}{Persistent State}}{46}{subsection.4.4.7}
+\contentsline {subsubsection}{{RUBiS}}{46}{section*.33}
+\contentsline {subsubsection}{{jGossip}}{47}{section*.34}
+\contentsline {subsection}{\numberline {4.4.8}{User State}}{47}{subsection.4.4.8}
+\contentsline {subsubsection}{{RUBiS}}{47}{section*.35}
+\contentsline {subsubsection}{{jGossip}}{47}{section*.36}
+\contentsline {subsection}{\numberline {4.4.9}{Wasteful Communication}}{48}{subsection.4.4.9}
+\contentsline {subsubsection}{{RUBiS}}{48}{section*.37}
+\contentsline {subsubsection}{{jGossip}}{48}{section*.38}
+\contentsline {chapter}{\numberline {5}{Conclusions}}{50}{chapter.5}
+\contentsline {section}{\numberline {5.1}{Discussion of Results}}{50}{section.5.1}
+\contentsline {section}{\numberline {5.2}{Future Work}}{52}{section.5.2}
+\contentsline {section}{\numberline {5.3}{Final Words}}{52}{section.5.3}
+\contentsline {chapter}{{Bibliography}}{54}{chapter*.39}
 \contentsline {part}{{Appendices}}{}{}
-\contentsline {chapter}{\numberline {A}{Terms Used}}{51}{appendix.A}
-\contentsline {chapter}{\numberline {B}{Taint Tracking Tool Logging Format}}{52}{appendix.B}
-\contentsline {chapter}{\numberline {C}{Second Appendix}}{57}{appendix.C}
+\contentsline {chapter}{\numberline {A}{Terms Used}}{57}{appendix.A}
+\contentsline {chapter}{\numberline {B}{Taint Tracking Tool Logging Format}}{58}{appendix.B}
+\contentsline {chapter}{\numberline {C}{Second Appendix}}{63}{appendix.C}

@@ -559,7 +559,8 @@ public class TaintEdge extends RecordSetter implements Comparable<TaintEdge> {
     }
 
     public String toString() {
-        return String.valueOf(this.counter) + " " + reLabel(this.type, this.adviceType);// + "-" + this.adviceType;
+//        return String.valueOf(this.counter) + " " + reLabel(this.type, this.adviceType);// + "-" + this.adviceType;
+        return "";
     }
 
 //    public String toString() {

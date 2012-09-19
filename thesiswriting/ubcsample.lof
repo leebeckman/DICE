@@ -21,11 +21,14 @@
 \contentsline {figure}{\numberline {4.4}{\ignorespaces RUBiS Browse Categories With Chat Precomputation Results}}{37}{figure.4.4}
 \contentsline {figure}{\numberline {4.5}{\ignorespaces jGossip Main Page Precomputation Analysis Results}}{38}{figure.4.5}
 \contentsline {figure}{\numberline {4.6}{\ignorespaces RUBiS Browse Categories By Region Trace}}{39}{figure.4.6}
-\contentsline {figure}{\numberline {4.7}{\ignorespaces RUBiS Browse Categories By Region Precomputation Results}}{40}{figure.4.7}
-\contentsline {figure}{\numberline {4.8}{\ignorespaces RUBiS Sell Item Trace}}{42}{figure.4.8}
-\contentsline {figure}{\numberline {4.9}{\ignorespaces RUBiS Sell Item Postcomputation Analysis Results}}{43}{figure.4.9}
-\contentsline {figure}{\numberline {4.10}{\ignorespaces jGossip Delete Forum Postcomputation Analysis Results}}{44}{figure.4.10}
-\contentsline {figure}{\numberline {4.11}{\ignorespaces RUBiS Browse Items State Analysis Results}}{45}{figure.4.11}
+\contentsline {figure}{\numberline {4.7}{\ignorespaces RUBiS Browse Categories By Region Caching Results}}{40}{figure.4.7}
+\contentsline {figure}{\numberline {4.8}{\ignorespaces jGossip View Forums Caching Results}}{42}{figure.4.8}
+\contentsline {figure}{\numberline {4.9}{\ignorespaces RUBiS Sell Item Trace}}{43}{figure.4.9}
+\contentsline {figure}{\numberline {4.10}{\ignorespaces RUBiS Sell Item Postcomputation Analysis Results}}{44}{figure.4.10}
+\contentsline {figure}{\numberline {4.11}{\ignorespaces jGossip Delete Forum Postcomputation Analysis Results}}{45}{figure.4.11}
+\contentsline {figure}{\numberline {4.12}{\ignorespaces RUBiS Browse Items State Analysis Results}}{46}{figure.4.12}
+\contentsline {figure}{\numberline {4.13}{\ignorespaces jGossip Login User State Analysis Results}}{48}{figure.4.13}
+\contentsline {figure}{\numberline {4.14}{\ignorespaces jGossip Wasteful Communication Analysis Results}}{49}{figure.4.14}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

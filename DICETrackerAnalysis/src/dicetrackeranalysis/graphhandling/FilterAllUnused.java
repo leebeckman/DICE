@@ -52,7 +52,9 @@ public class FilterAllUnused implements EdgeFilter {
 //        if (!pass)
 //            System.out.println("ALL UNUSED FAIL " + input);
 
-        return pass;
+        // Temporarily disable
+//        return pass;
+        return true;
     }
 
 }

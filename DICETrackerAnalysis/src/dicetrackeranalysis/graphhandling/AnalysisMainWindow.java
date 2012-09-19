@@ -247,7 +247,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         );
         jungViewPanelLayout.setVerticalGroup(
             jungViewPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 532, Short.MAX_VALUE)
+            .addGap(0, 701, Short.MAX_VALUE)
         );
 
         tabView.addTab("Graph", jungViewPanel);
@@ -277,7 +277,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         analysisPanelLayout.setVerticalGroup(
             analysisPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, analysisPanelLayout.createSequentialGroup()
-                .addComponent(analysisScroller, javax.swing.GroupLayout.DEFAULT_SIZE, 496, Short.MAX_VALUE)
+                .addComponent(analysisScroller, javax.swing.GroupLayout.DEFAULT_SIZE, 665, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(analysisClearButton))
         );
@@ -326,7 +326,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     .addComponent(sourceFileName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(screenCapButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(tabView, javax.swing.GroupLayout.DEFAULT_SIZE, 597, Short.MAX_VALUE)
+                .addComponent(tabView, javax.swing.GroupLayout.DEFAULT_SIZE, 766, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -809,7 +809,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                     .addComponent(deepTaintCheckBox)
                     .addComponent(holdTaintIDButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 98, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         jPanel3.setBorder(javax.swing.BorderFactory.createTitledBorder("Mem Usage"));
@@ -855,7 +856,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(treePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 34, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -873,7 +874,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 719, Short.MAX_VALUE)
+            .addComponent(jTabbedPane1)
         );
 
         pack();
@@ -1569,6 +1570,8 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
         for (TaintNode node : fullGraph.getVertices()) {
             if (node.toString().contains(matchtext))
                 gb.colorNode(node, 10);
+            else
+                gb.colorNode(node, 0);
         }
         redrawGraph();
     }//GEN-LAST:event_highlightButtonActionPerformed
@@ -1624,7 +1627,7 @@ public class AnalysisMainWindow extends javax.swing.JFrame {
             for (TaintEdge edge : edges) {
                 if (edge.getCounter() == edgeCounter && !edge.getAdviceType().startsWith("NONTAINTRETURN")) {
                     System.out.println("Matched: " + edge.getCounter());
-                    GraphBuilder forwardBuilder = gb.getForwardContextGraphBuilder(edge);
+                    GraphBuilder forwardBuilder = gb.getForwardTaintContextGraphBuilder(edge);
                     forwardBuilder.colorNode(edge.getCallingNode(), 5);
                     addAnalysisGraphBuilder(forwardBuilder, edge.toString(), "NONE");
                     break;
