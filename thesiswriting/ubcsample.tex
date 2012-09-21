@@ -1189,28 +1189,19 @@ Beginning with the most basic needs, the tools need to be made more efficient. T
 
 Beyond efficiency, moving away from AspectJ for the taint tracker could allow a more complete tracking. Under AspectJ there was no perfect solution for tracking the flow of primitive data types, and what we have in place for tracking numeric values is really a temporary hack. Implementing the tracker at a lower level, such as Java byte-code, would provide the control necessary to tag and track such values. One could also explore the effects of control-flow propagation, a more permissive form on taint flow, on the analyses presented here. As has been discussed in the literature, this may lead to many false positives, but there have been efforts to control the explosion of tainted data in such scenarios which may offer useful lessons. Tracking in this way may capture dependencies between data items that we miss, and allow for more accurate analyses.
 
-Concerning the actual interaction with the analysis tool, the needs are mostly down to automation. 
+Concerning the actual interaction with the analysis tool, the needs are mostly down to automation. If the tool was to be truly used to support developer understanding of applications, it needs to be able to offer cleaner results without expert intervention. Additional study is needed to refine the analyses to more accurately identify their targets and find ways of more concisely presenting their results. Taking things much further, it would be interesting to attempt to perform some optimizations automatically, as is done in the Fluxo system. There are many challenges here, as the applications targetted by our system were not developed in restricted programming models which could make automatic changes easier. Following improvements to the analysis tool, it would be valuable to conduct a user study to determine if non-expert developers can actually use the tool to make optimization decisions about web applications they are unfamiliar with.
 
-Focusing on the analyses:
-Going deeper with some analyses (access path refactoring, useless state)
-A more thorough modify and redeploy test, to see how good analysis suggestions are.
+Related to improving the analysis tool, the analyses themselves can be developed further. In the future we would like to do a more thorough evaluation of specific analyses, taking the results from the tool and using them to modify applications. Modified applications could be evaluated under typical use scenarious to assess the quality of the optimization suggestions. Thoroughly testing the possible execution paths over a wide variety of applications could enable more accurate analyses as we discover what kinds of dataflow patterns are common and exploitable for optimization. Further study of applications and the literature would also likely reveal additional analyses supported by the taint tracking data, as our set was not intended to be an exhaustive one.
 
-System is to be integrated into an application partitioner
-Testing as an input to other tools, like an application partitioner
-
-Analysis automation (lots of manual intervention required)
-Refinement of analysis tool and user testing
-Automatically acting on some of the analyses, ala fluxo
-
-Testing with more applications, more extensively. Try to find all that you can about a single application.
-Finding more analyses.
+Finally, once the tools are mature enough, we would like to attempt to integrate their operation into other analysis tools to support them. In particular, we would start by augmenting an application partitioner by supplying it with more data upon which to make better partitioning decisions. The wasteful communication analysis would be of great use here in obtaining better intermodule communication estimates. The work of combining our tools with a real application partitioner has actually already begun.
 
 \section{Final Words}
 
-PROOF OF CONCEPT STATEMENT IN CONCLUSION
-Goal not to be exhaustive, but to merely prove the concept. 
+We have demonstrated a proof of concept taint tracker for Java web applications, and a series of analyses to consume the data and identify useful properties. The goal was to show that given taint tracking data, it could be used to naturally support a wide variety of analyses. Futhermore, the results of these analyses would be geared to supporting developers in modifying applications to better deal with migration scenarios. By choosing analyses identified in the literature as useful to this end, we feel that we have made a sound first effort. As all of the analyses were generally successful, finding correct results in real applications, we see promise in this technique. It is no trivial task to take an application written in a non-restricted environment and attempt to automatically optimize it, as there are so many unexpected patterns which can arise.
 
-Notes: Wrap up the thesis with a summary of everything discussed and some key thoughts to take away from it. Basically want to state that given what is presented here, one should believe that taint tracking can gather data which supports well many useful analyses for optimizing web applications in a variety of ways. Would be worth it to develop these techniques further.
+The success we had was a result of focusing on getting a complete picture of application dataflow, for which taint tracking was necessary. The primary function of most web applications is the processing and serving of data for their users. Data is the most natural thing to follow when seeking to understand and improve upon the functioning of these applications. Because of the nature of the data we were collecting, and analyses were conceptually quite simple, while still providing useful results.
+
+Though there are many points of refinement to be made in our tools and additional testing to be done with real applications, we feel that the work here is a significant first step, and one which should be taken further. By obtaining a more comprehensive taint tracking, analyses with will user intervention required, and even automatic application of optimizations, a powerful help for developers facing migration scenarios can be realized.
 
 %%Here is a section with some text.  Equations look like this
 %%$y=x$.\footnote{Here is a footnote.
