@@ -3,14 +3,13 @@ The top-level auxiliary file: ubcsample.aux
 The style file: plain.bst
 Database file #1: sample.bib
 Warning--I didn't find a database entry for "Hudgins2004"
-Warning--I didn't find a database entry for "Degerano2000"
 Warning--empty journal in Kangkook2012
 Warning--there's a number but no volume in Kiczales1997
 Warning--empty journal in Newsome2005
 Warning--empty journal in Rasmussen2009
 You've used 27 entries,
             2118 wiz_defined-function locations,
-            667 strings with 9323 characters,
+            665 strings with 9299 characters,
 and the built_in function-call counts, 9596 in all, are:
 = -- 938
 > -- 530
@@ -49,4 +48,4 @@ warning$ -- 4
 while$ -- 92
 width$ -- 29
 write$ -- 287
-(There were 6 warnings)
+(There were 5 warnings)
