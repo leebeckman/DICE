@@ -97,6 +97,8 @@
 % multiple pages.
 \usepackage{longtable}
 
+\usepackage{alltt}
+
 %******** graphics and graphicx *****************
 % This allows you to include encapsulated postscript files.  If you
 % don't have this, comment the \includegraphics[scale=•]{•}graphics{} line following the
@@ -677,6 +679,8 @@ String formattedData = "USERNAME:" + userName;
 %\section{Anything Else I Should Explain}
 %Can add sections here if necessary.
 
+\chapter{Implementation}
+
 \section{Overview}
 In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is compiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a 'trace', describing events where tainted data moves from one location to another, which when taken together describe 'flows' of tainted data through a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
 
@@ -807,19 +811,148 @@ The main purpose of the Analysis Tool is to provide easy to use automatic analys
 \subsubsection{Caching}
 The caching analysis seeks to find opportunities to save on computation/communication by suggesting locations where caches could be considered. By a cache we mean code and data storage mechanisms which take the results of computations over some inputs, and store the results - mapping the inputs to them. The next time the computations are invoked with the same inputs, we can return the stored results rather that redoing the computation. For a cache to work, we need to be aware of all inputs to the computation. If any inputs which affect the results are missed, when those inputs vary the cache may return invalid results from the store. What this analysis essentially does is look for regions of the graph which are only carrying taint from non-random inputs. By non-random we mean inputs with reasonably predictable values over a small enough range that the cache will be useful and not frequently missing. This analysis relies on the input description file described in Section X to determine whether or not given tainted data is random. The assumption is that if all of the inputs to a computation, represented in the graph by a network of nodes, are predictable enough, the computation is a good candidate for caching. The identified subgraph can then be presented to the user as an indication of the possibility of a cache as well as a guide for what parts of the application must be considered when doing so.
 
-The algorithm for performing this analysis is as follows:
+The high-level algorithm for performing this analysis is given in Program~\ref{prog:code2}
+
+\begin{Program}
+  \caption{\label{prog:code2} High level algorithm for caching analysis.}
+\begin{verbatim}
+function pruneToVariability(Variability):
+	OutputGraph = InputGraph.copy()
+	
+	foreach Edge in OutputGraph:
+		foreach TaintRecord in Edge.getTaintRecords():
+			if (TaintRecord.getVariability() != Variability):
+				OutputGraph.removeEdge(Edge)
+				foreach NeighborEdge in TG.getNeighborEdges():
+					if (NeighborEdge.getContextID() == Edge.getContextID()):
+						OutputGraph.removeEdge(NeighborEdge)
+						
+	return OutputGraph
+						
+function getConnectedSubGraphs(InputGraph):
+	Outputs = {}
+	VisitedNodes = {}
+	foreach Node in InputGraph.getNodes():
+		if (VisitedNodes.contains(Node):
+			continue		
+		SubGraph = Empty Graph
+		ToVisitNodes = {}
+		ToVisitNodes.add(Node)
+		
+		while (ToVisitNodes != {}):
+			VisitingNode = ToVisitNodes.removeFirst()
+			if (VisitedNodes.contains(VisitingNode)):
+				continue
+			VisitedNodes.add(VisitingNode)
+			SubGraph.add(VisitingNode)
+			SubGraph.add(VisitingNode.getNeighborEdges())
+			ToVisitNodes.add(InputGraph.getNeighborNodes(VisitingNode))
+		
+		Outputs.add(SubGraph)
+	return Outputs
+				
+function checkOverCost(Graph, CallGraph, THRESHOLD):
+	#####
+
+function getSideEffects(Graph, SideEffectGraph, CallGraph):
+	#####
+
+TG = taint trace graph, each node is a function or data source,
+   each edge is an event where tainted data is passed between nodes.
+CG = call graph, with all calls made during taint trace collection, even those
+   which did not exchange taint. Given a taint trace edge for a function call,
+   the call graph can be used to find descendant function calls. This graph
+   also contains method execution times.
+ 
+TG_stable = pruneToVariability(STABLE)
+TG_predictable = pruneToVariability(PREDICTABLE)
+TG_random = pruneToVariability(RANDOM)
+
+Stable_connected_subgraphs = getConnectedSubGraphs(TG_stable)
+Predictable_connected_subgraphs = getConnectedSubGraphs(TG_predictable)
+Random_connected_subgraphs = getConnectedSubGraphs(TG_random)
+
+foreach Predictable_CS in Predictable_connected_subgraphs:
+   if (checkOverCost(Predictable_CS, CG, ACCEPT_THRESHOLD)):
+       Random_SideEffects = getSideEffects(Predictable_CS, TG_random, CG)
+       if (checkOverCost(Random_SideEffects, CG, REJECT_THRESHOLD)):
+           continue
+       colorOutputs(Predictable_CS, TG)
+       colorInputs(Predictable_CS, TG)
+       showGraphToUser(Predictable_CS)
+\end{verbatim}
+\end{Program}
 
 \subsubsection{Precomputation}
 This analysis is essentially the same as the one for caching, and in fact both are computed together. The difference is that in the case of precomputation, the inputs in question must change very rarely. If this is the case, instead of having a cache implemented the user is advised to simply compute the result of the computation in advance and return it wherever the computation normally would have taken place. It is then their responsibility to update this precomputed value if the inputs should ever change.
 
 The algorithm for this analysis is the same as for caching, except that the requirement on the variability of tainted data in subgraphs is set more strictly to only allow very stable sources.
 
-% Could explain why we differentiate between them by noting that the fluxo paper does and explaining why they differentiate.
+The high-level algorithm for performing this analysis is given in Program~\ref{prog:code25}
+
+\begin{Program}
+  \caption{\label{prog:code25} High level precomputation for caching analysis.}
+\begin{verbatim}
+TG = taint trace graph, each node is a function or data source,
+   each edge is an event where tainted data is passed between nodes.
+CG = call graph, with all calls made during taint trace collection, even those
+   which did not exchange taint. Given a taint trace edge for a function call,
+   the call graph can be used to find descendant function calls. This graph
+   also contains method execution times.
+   
+TG_stable = pruneToVariability(STABLE)
+TG_predictable = pruneToVariability(PREDICTABLE)
+TG_random = pruneToVariability(RANDOM)
+
+Stable_connected_subgraphs = getConnectedSubGraphs(TG_stable)
+
+foreach Stable_CS in Stable_connected_subgraphs:
+   if (getSideEffects(Stable_CS, TG_random, CG) == {}):
+       if (getSideEffects(Stable_CS, TG_predictable, CG) == {}):
+           colorOutputs(Stable_CS, TG)
+           colorInputs(Stable_CS, TG)
+           showGraphToUser(Stable_CS)
+\end{verbatim}
+\end{Program}
 
 \subsubsection{Postcomputation}
 The Postcomputation analysis looks for flows of tainted data which represent computations which could be deferred until later. This is in the context of a user submitting a request to a web application, where we are interested in opportunities to send the user a response more quickly. For some applications, the user may only be interested in data which composes the response web page for a submitted request, which we call user output. Computation which outputs to the database or other parts of the application may not need to be complete before sending the user the response, and this analysis attempts to locate such computations. At a high level, this is done by tracing the flows of tainted in the graph, looking for subgraphs carrying only taint which never flows to a user output.
 
-The algorithm used for this analysis is as follows: ADD ALGORITHM DESCRIPTION
+The high-level algorithm for performing this analysis is given in Program~\ref{prog:code3}
+
+\begin{Program}
+  \caption{\label{prog:code3} High level algorithm for postcomputation analysis.}
+\begin{verbatim}
+function getRequestSubGraphs(InputGraph):
+	#####
+
+function getUserOutputEdges(InputGraph):
+	#####
+
+function getDBOutputEdges(InputGraph):
+	#####
+
+function backwardsExpand(StartEdge):
+	#####
+
+
+TG = taint trace graph, each node is a function or data source,
+   each edge is an event where tainted data is passed between nodes
+
+Request_subgraphs = getRequestSubGraphs(TG)
+
+foreach request_SG in Request_subgraphs:
+    UserOutputs = getUserOutputEdges(Request_SG)
+    DBOutputs = getDBOutputEdges(Request_SG)
+    
+    foreach DBOutputEdge in DBOutputs:
+        PostCompGraph = backwardsExpand(DBOutputEdge)
+        if (PostCompGraph != {}):
+            colorOutputs(PostCompGraph, request_SG)
+            colorInputs(PostCompGraph, request_SG)
+            showGraphToUser(PostCompGraph)
+\end{verbatim}
+\end{Program}
 
 % Maybe mention this node CFG generated somewhere earlier and more central, to refer back to.
 %-Request from the analysis tool a data structure which provides a control flow graph for any node in the taint flow graph.
@@ -836,31 +969,175 @@ The algorithm used for this analysis is as follows: ADD ALGORITHM DESCRIPTION
 \subsubsection{Application State}
 The goal of this analysis is to locate persistent state in an application. This does not refer the data an application keeps in a database, but rather to such more temporary state as might be kept in sessions stores and static variables. This kind of state can be used to keep data associated with users to facilitate their interaction with a site over multiple requests. Examples include shopping carts, which allow users of shopping sites to collect items as they browse them, to be bought together on checkout; or something as simple as a username, displayed on each page. Knowing where such state is is useful for developers as it must be managed carefully in various scenarios. When replicating computation which relies on such state, it needs to be kept up to date and distributed to all locations where required. When migrating an application to a new environment, certain kinds of state may not be well-supported. For example, if migrating to the Google App Engine platform, state in static variables would be interfered with by the system's tendancy to shut down idle applications. This analysis identifies such state by looking for instances where the same pieces of data are accessed in over multiple requests, then presents to the user subgraphs showing where the state is stored and what parts of the application it is communicated to.
 
-The simple algorithm used to do this is as follows: ADD ALGORITHM DESCRIPTION
+The high-level algorithm for performing this analysis is given in Program~\ref{prog:code4}
+
+\begin{Program}
+  \caption{\label{prog:code4} High level algorithm for application state analysis.}
+\begin{alltt}
+function getRequestSubGraphs(InputGraph):
+	#####
+
+TG = taint trace graph, each node is a function or data source,
+   each edge is an event where tainted data is passed between nodes
+
+Request_subgraphs = getRequestSubGraphs(TG)
+
+ByRequestTaintIDs = []
+PersistentTaintIDs = []
+foreach Request_SG in Request_subgraphs:
+    ByRequestTaintIDs.add(getTaintIDSet(Request_SG))
+    
+for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
+	for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
+		SetA = ByRequestTaintIDs[i]
+		SetB = ByRequestTaintIDs[j]
+	    PersistentTaintIDs.add(SetA \cap SetB)
+
+foreach PersistenTaintID in PersistentTaintIDs:
+	foreach Edge in TG.getSortedEdges():
+        if (edge.getAllTaintIDs().contains(PersistentTaintID)):
+        	colorEdgeA(edge)
+        	if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
+        	    colorEdgeB(edge)
+        	LastRequestID = Edge.getRequestID()
+        	
+showGraphToUser(TG)
+\end{alltt}
+\end{Program}
 
 \subsubsection{User State}
 This analysis is similar to the one which locates application state. It goes beyond it by trying to determine whether a given piece of such state is used to communicate data to only a single user. The shopping cart example given for the application state analysis describes such state, as no other user need view another's cart. This is opposed to persistent data which supports interaction between users, such as a chat window for sharing messages or a list of online users. The motivation for finding such state is to identify opportunities to relocate state to the user. If the data is only shared with a single user, then it could potentially be moved from the server to the client. A user's browser could store the items in a shopping cart, and submit them to the server only when needed. This has such advantages as allowing a user to keep application state despite problems on the server, or easily carry their state with them if their requests need to be directed to another server hosting the application. Personal state is identified by generating a trace while interacting with the application with multiple users, and then looking for data which is only ever accessed by a single remote IP address.
 
-The algorithm used for this analysis is as follows: ADD ALGORITHM DESCRIPTION
+The high-level algorithm for performing this analysis is given in Program~\ref{prog:code5}
+
+\begin{Program}
+  \caption{\label{prog:code5} High level algorithm for user state analysis.}
+\begin{verbatim}
+findUserState(UserStateEdges, [], FlowGraph, OtherRequestIDsToEdgeMap):
+	#####
+	
+getMasterMap(PersistentTaintIDs, RequestSubGraphs):
+	#####
+
+TG = taint trace graph, each node is a function or data source,
+   each edge is an event where tainted data is passed between nodes
+TT = taint ID tree, a tree which shows how tainted data is derived from
+   other tainted data. Taint IDs have as child nodes any taint IDs
+   which were immediately derived from them, such as a new tainted
+   string formed by concatenating with an already tainted string.
+
+RequestSubGraphs = getRequestSubGraphs(TG)
+
+ByRequestTaintIDs = []
+PersistentTaintIDs = []
+foreach Request_SG in RequestSubGraphs:
+    ByRequestTaintIDs.add(getTaintIDSet(Request_SG))
+    
+for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
+	for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
+		SetA = ByRequestTaintIDs[i]
+		SetB = ByRequestTaintIDs[j]
+	    PersistentTaintIDs.add(SetA \cap SetB)
+
+DerivedPersistentIDs = []
+foreach PersistentTaintID in PersistentTaintIDs:
+	DerivedPersistentIDs.add(TT.getAllChildrenOf(PersistentTaintID))
+
+PersistentTaintIDs.removeAll(DerivedPersistentIDs)
+
+MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
+	/* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
+	 * This map shows, for each persistent taint ID, which request graphs carry that taint,
+	 * what are the earliest edges carrying that taint, and where does each bit of persistent
+	 * taint flow from these points of origination.
+	 */
+	
+foreach PersistentTaintID in MasterMap.keys():
+	RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
+
+	foreach RequestID in RequestIDToEdgeMap.keys():
+		StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID)
+		
+		foreach StartEdge in StartEdgeToFlowGraphMap.keys():
+			FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
+			OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
+			OtherRequestIDsToEdgeMap.remove(RequestID)
+			
+			UserStateEdges = []
+			findUserState(UserStateEdges, [StartEdge], FlowGraph, OtherRequestIDsToEdgeMap)
+			
+			if (UserStateEdges != {}):
+				colorEdge(StartEdge)
+				showGraphToUser(createGraphFromEdges(UserStateEdges))		
+\end{verbatim}
+\end{Program}
 
 \subsubsection{Wasteful Communication}
 Section X describes a graph preprocessing step which the Analysis Tool performs to identify instances where tainted data is communicated between locations but subsequently never used. Given this step, this analysis is easy to perform, and merely needs to compile a report of where data is communicated wastefully by checking the edges in the graph for taint marked as such. 
 
 An obvious use for such an analysis is to help a developer potentially eliminate these communication. Such is especially useful if the application is to be partitioned and such communication would be crossing costly boundaries. Another use for this is also motivated by application partitioning, where the data can be used to improve the analyses used in that space. Application partitioning algorithms generally consider module execution costs and communication costs between them when determining an optimal way to group and separate modules. A simple strategy which monitors inter-module communication events (such as method calls), can report the cost of the communication as the total size of the data communicated. However, some of this data may never be used, and knowing this can allow for better communication cost estimates. Such could lead to more optimal partitionings, as long as there is a mechanism in place to avoid the wasted communication, such as by eliminating it altogether or employing a lazy communication method where the data is only communicated when it is actually needed.
 
+The high-level algorithm for performing this analysis is given in Program~\ref{prog:code5}
+
+\begin{Program}
+  \caption{\label{prog:code5} High level algorithm for wasteful communication analysis.}
+\begin{verbatim}			
+function forwardSearch(Edge, TG, TargetTaintedObject):
+	if (Edge already visited):
+		return false
+	
+	foreach TaintedObject in Edge.getTaintedObjects():
+		if (TaintedObject.getTaintID() == TargetTaintedObject.getTaintID())
+			return true
+		foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
+			if (SubTaintedObject.getTaintID() == TargetTaintedObject.getTaintID()):
+				if (SubTaintedObject.isMarked()):
+					if (SubTaintedObject.isUnused()):
+						return false
+					else
+						return true
+						
+	found = false;
+	foreach NextEdge in TG.getNextEdges(Edge):
+		if (Edge.getContextID() == NextEdge.getContextID()):
+			if (NextEdge.getCounter() > Edge.getCounter()):
+				if (forwardSearch(NextEdge, TG, TargetTaintedObject)):
+					found = true
+					break
+	
+	return found
+
+TG = taint trace graph, each node is a function or data source,
+   each edge is an event where tainted data is passed between nodes
+   
+foreach Edge in TG.getSortedEdges():
+	foreach TaintedObject in Edge.getTaintedObjects():
+		foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
+			if (forwardSearch(Edge, TG, SubTaintedObject)):
+				SubTaintedObject.setUnused()
+				SubTaintedObject.setMarked()
+				colorEdge(Edge)
+				
+showGraphToUser(TG)	
+
+\end{verbatim}
+\end{Program}
+
 % Need to say something about the fact that we believe we are tracking enough data by just tainting our set of inputs. We don't care about String constants in the code, or data that arises elsewise.
 
 % Will definitely need some figures here to explain this
 
-\subsubsection{Access Path Refactoring (APR)}
-This last analysis is arguably the most complicated and ambitious. APR is the name we give to an analysis which attempts to discover beneficial modifications to how an applications accesses its database-resident data. This is to be used mainly in a partitioning scenario, where the data used to fulfill various requests may end up crossing expensive partition boundaries. APR takes as input a suggested partitioning of modules in a trace, and attempts to position database sources, at the granularity of columns, to lower communication costs. To do this the analysis uses the taint tracking data to locate dependencies between data sources to attempt to determine the consequences of moving various data sources - moving one data source to another partition which uses the data can save communicating data from that source, but may then require additional data from other sources to be sent to the new partition. This kind of savings/cost balance is evaluated to determine a possible 'best' arrangement of data sources.
-
-The algorithm that we use to implement this analysis is as follows: ADD ALGORITHM DESCRIPTION
+%\subsubsection{Access Path Refactoring (APR)}
+%This last analysis is arguably the most complicated and ambitious. APR is the name we give to an analysis which attempts to discover beneficial modifications to how an applications accesses its database-resident data. This is to be used mainly in a partitioning scenario, where the data used to fulfill various requests may end up crossing expensive partition boundaries. APR takes as input a suggested partitioning of modules in a trace, and attempts to position database sources, at the granularity of columns, to lower communication costs. To do this the analysis uses the taint tracking data to locate dependencies between data sources to attempt to determine the consequences of moving various data sources - moving one data source to another partition which uses the data can save communicating data from that source, but may then require additional data from other sources to be sent to the new partition. This kind of savings/cost balance is evaluated to determine a possible 'best' arrangement of data sources.
+%
+%The algorithm that we use to implement this analysis is as follows: ADD ALGORITHM DESCRIPTION
 
 %\subsection{Justification of Implementation}
 
 %\section{Overview}
 %In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is precompiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a 'trace', describing events where tainted data moves from one location to another, which when taken together describe 'flows' of tainted data throughout a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
+
+\chapter{Evaluation}
 
 \section{Evaluation Strategy/Goals}
 %Notes: One of my contributions is the taint tracker itself. Is there anything to be said in my evaluation about the tracker itself?

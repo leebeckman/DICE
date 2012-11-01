@@ -120,12 +120,6 @@ public class StaticStateAnalysis {
                     if (relatedTaintIDs.contains(edgeTaintID)) {
                         targetBuilder.colorNode(edge.getCalledNode(), 3);
                         targetBuilder.colorNode(edge.getCallingNode(), 3);
-//                        if (lastCounter != null && !edge.getRequestCounter().equals(lastCounter)) {
-//                            targetBuilder.colorNode(edge.getCalledNode(), 2);
-//                            targetBuilder.colorNode(edge.getCallingNode(), 2);
-//                        }
-//                        foundPersistent = true;
-//                        lastCounter = edge.getRequestCounter();
                     }
                 }
             }

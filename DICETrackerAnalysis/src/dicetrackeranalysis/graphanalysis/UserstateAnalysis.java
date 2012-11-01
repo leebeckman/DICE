@@ -138,51 +138,48 @@ public class UserstateAnalysis {
         HashMap<String, HashMap<String, LinkedList<EdgePropagationGraphPair>>> masterMap = new HashMap<String, HashMap<String, LinkedList<EdgePropagationGraphPair>>>();
         HashMap<GraphBuilder, String> byRequestGraphBuilders = GraphBuilder.getByRequestGraphBuilders(gb);
         for (String taintID : persistentTaintIDs) {
-            // quick hack to pare down results
-            if (taintID.contains("19245889")) {
-                for (GraphBuilder requestGraphBuilder : byRequestGraphBuilders.keySet()) {
-                    Graph<TaintNode, TaintEdge> requestGraph = requestGraphBuilder.getMultiGraph();
+            for (GraphBuilder requestGraphBuilder : byRequestGraphBuilders.keySet()) {
+                Graph<TaintNode, TaintEdge> requestGraph = requestGraphBuilder.getMultiGraph();
 
-                    LinkedList<TaintEdge> requestTargetTaintEdges = new LinkedList<TaintEdge>();
-                    for (TaintEdge requestEdge : requestGraph.getEdges()) {
-                        if (requestEdge.getAllUsedTaintIDs().contains(taintID)) {
-                            requestTargetTaintEdges.add(requestEdge);
-                        }
+                LinkedList<TaintEdge> requestTargetTaintEdges = new LinkedList<TaintEdge>();
+                for (TaintEdge requestEdge : requestGraph.getEdges()) {
+                    if (requestEdge.getAllUsedTaintIDs().contains(taintID)) {
+                        requestTargetTaintEdges.add(requestEdge);
                     }
+                }
 
-                    if (requestTargetTaintEdges.size() > 0) {
-                        TaintEdge lowEdge = Collections.min(requestTargetTaintEdges);
-                        TaintNode originalNode = lowEdge.getCallingNode();
-    //                    System.out.println("ORIGINAL NODE: " + originalNode);
-                        for (TaintEdge originalEdge : requestTargetTaintEdges) {
-                            if (originalEdge.getCallingNode() == originalNode) {
-                                LinkedList<DefaultMutableTreeNode> nodes = taintIDToTreeNodeMap.get(taintID);
-                                HashSet<String> subTaintIDs = new HashSet<String>();
-                                subTaintIDs.add(taintID);
-                                for (DefaultMutableTreeNode node : nodes) {
-                                    Enumeration<DefaultMutableTreeNode> childNodes = node.depthFirstEnumeration();
-                                    while (childNodes.hasMoreElements()) {
-                                        DefaultMutableTreeNode childNode = childNodes.nextElement();
-                                        if (childNode.getUserObject() instanceof TaintIDTreeNode) {
-                                            String subTaintID = ((TaintIDTreeNode)childNode.getUserObject()).getTaintID();
-                                            subTaintIDs.add(subTaintID);
-                                        }
+                if (requestTargetTaintEdges.size() > 0) {
+                    TaintEdge lowEdge = Collections.min(requestTargetTaintEdges);
+                    TaintNode originalNode = lowEdge.getCallingNode();
+//                    System.out.println("ORIGINAL NODE: " + originalNode);
+                    for (TaintEdge originalEdge : requestTargetTaintEdges) {
+                        if (originalEdge.getCallingNode() == originalNode) {
+                            LinkedList<DefaultMutableTreeNode> nodes = taintIDToTreeNodeMap.get(taintID);
+                            HashSet<String> subTaintIDs = new HashSet<String>();
+                            subTaintIDs.add(taintID);
+                            for (DefaultMutableTreeNode node : nodes) {
+                                Enumeration<DefaultMutableTreeNode> childNodes = node.depthFirstEnumeration();
+                                while (childNodes.hasMoreElements()) {
+                                    DefaultMutableTreeNode childNode = childNodes.nextElement();
+                                    if (childNode.getUserObject() instanceof TaintIDTreeNode) {
+                                        String subTaintID = ((TaintIDTreeNode)childNode.getUserObject()).getTaintID();
+                                        subTaintIDs.add(subTaintID);
                                     }
                                 }
-                                EdgePropagationGraphPair requestTaintPropagation = new EdgePropagationGraphPair(originalEdge, requestGraph, subTaintIDs);
-                                if (requestTaintPropagation.getPropagationGraph() != null) {
-                                    HashMap<String, LinkedList<EdgePropagationGraphPair>> reqEdgeMap = masterMap.get(taintID);
-                                    if (reqEdgeMap == null) {
-                                        reqEdgeMap = new HashMap<String, LinkedList<EdgePropagationGraphPair>>();
-                                        masterMap.put(taintID, reqEdgeMap);
-                                    }
-                                    LinkedList<EdgePropagationGraphPair> edgePropagationPairList = reqEdgeMap.get(byRequestGraphBuilders.get(requestGraphBuilder));
-                                    if (edgePropagationPairList == null) {
-                                        edgePropagationPairList = new LinkedList<EdgePropagationGraphPair>();
-                                        reqEdgeMap.put(byRequestGraphBuilders.get(requestGraphBuilder), edgePropagationPairList);
-                                    }
-                                    edgePropagationPairList.add(requestTaintPropagation);
+                            }
+                            EdgePropagationGraphPair requestTaintPropagation = new EdgePropagationGraphPair(originalEdge, requestGraph, subTaintIDs);
+                            if (requestTaintPropagation.getPropagationGraph() != null) {
+                                HashMap<String, LinkedList<EdgePropagationGraphPair>> reqEdgeMap = masterMap.get(taintID);
+                                if (reqEdgeMap == null) {
+                                    reqEdgeMap = new HashMap<String, LinkedList<EdgePropagationGraphPair>>();
+                                    masterMap.put(taintID, reqEdgeMap);
                                 }
+                                LinkedList<EdgePropagationGraphPair> edgePropagationPairList = reqEdgeMap.get(byRequestGraphBuilders.get(requestGraphBuilder));
+                                if (edgePropagationPairList == null) {
+                                    edgePropagationPairList = new LinkedList<EdgePropagationGraphPair>();
+                                    reqEdgeMap.put(byRequestGraphBuilders.get(requestGraphBuilder), edgePropagationPairList);
+                                }
+                                edgePropagationPairList.add(requestTaintPropagation);
                             }
                         }
                     }
@@ -215,14 +212,9 @@ public class UserstateAnalysis {
                     LinkedList<TaintEdge> startPath = new LinkedList<TaintEdge>();
                     startPath.add(pair.getEdge());
 
-    //                System.out.println("\tUSERSTATE SEARCH: " + leftOverReqEdgeMap.size());
-    //                if (taintID.equals("32485824:user_name:7,16240211:2 [15502097]") &&
-    //                        reqID.equals("7"))
-    //                    debugMode = true;
                     System.out.println("Finding state");
                     findSingleUserState(new HashSet<TaintEdge>(), userStateEdges, pair.getPropagationGraph(), startPath, true, leftOverReqEdgeMap);
                     System.out.println("Done finding state");
-    //                debugMode = false;
 
                     // Do something with the userStateEdges, which is basically the result of our computations
                     if (userStateEdges.size() > 0) {
@@ -246,22 +238,14 @@ public class UserstateAnalysis {
             return;
         visited.add(path.getLast());
 
-//        if (debugMode)
-//            System.out.println("\t\tFINDSINGLEUSERSTATE");
-        
         boolean check = false;
 
         // Use the match path check here, have it on the propagation pair
         outer:
         for (LinkedList<EdgePropagationGraphPair> pairList : reqEdgeMap.values()) {
             for (EdgePropagationGraphPair testPair : pairList) {
-//                if (path.getLast().getCounter() == 13201 && pair.getEdge().getCounter() == 20433)
-//                    debugMode = true;
-//                System.out.println("\t\tTRYING TO MATCH PAIR " + pair.edge);
                 if (testPair.matchPath(path)) {
                     check = true;
-    //                if (debugMode)
-    //                    System.out.println("\t\tPATH MATCHED");
                     if (!testPair.getEdge().getRequestRemoteAddr().equals(path.getLast().getRequestRemoteAddr())) {
                         check = false;
                         break outer;
@@ -270,8 +254,6 @@ public class UserstateAnalysis {
                 debugMode = false;
             }
         }
-//        if (debugMode)
-//            System.out.println("\t\tCHECK IS: " + check);
         if (!check)
             return;
 
@@ -323,18 +305,6 @@ public class UserstateAnalysis {
         }
 
         public boolean matchPath(LinkedList<TaintEdge> path) {
-//            if (debugMode)
-//                System.out.println("MATCH PATH START");
-//            boolean result = matchPath(new HashSet<TaintEdge>(), path, this.edge, false, false);
-//            if (debugMode)
-//                System.out.println("MATCH PATH END");
-//            System.out.println("Finished matchPath");
-
-            // visited arr
-            // targetPath
-            // current edge (for recursion)
-            // match mode flags
-
             // recurse down self graph (current edge marker), until current matches targetPath
             // recurse down graph further, make smaller copy of target path, try to match that.
             // If you can't find anything, stop recursing.
@@ -394,132 +364,6 @@ public class UserstateAnalysis {
 
             return matched;
         }
-
-//        private boolean matchPath(HashSet<TaintEdge> visited, LinkedList<TaintEdge> targetPath, TaintEdge current, boolean matchMode, boolean skipVisitCheck) {
-//            if (visited.contains(current) && !skipVisitCheck)
-//                return false;
-//            visited.add(current);
-//            if (debugMode) {
-//                System.out.println("\tMATCH PATH: " + targetPath + " exploring: " + current);
-//            }
-//            boolean result = false;
-//            if (!matchMode) {
-////                if (debugMode) {
-////                    System.out.println("\t\t\tPATH CALLING NAME: " + path.getFirst().getCallingNode().getName());
-////                    System.out.println("\t\t\tPATH CALLED NAME: " + path.getFirst().getCalledNode().getName());
-////                    System.out.println("\t\t\tCURRENT CALLING NAME: " + current.getCallingNode().getName());
-////                    System.out.println("\t\t\tCURRENT CALLED NAME: " + current.getCalledNode().getName());
-////                }
-//
-//                // Quick switch to match mode once we've found the start edge in the resident graph.
-//                if (targetPath.getFirst().getCallingNode().getName().equals(current.getCallingNode().getName()) &&
-//                        targetPath.getFirst().getCalledNode().getName().equals(current.getCalledNode().getName())) {
-//                    if (matchPath(visited, targetPath, current, true, true))
-//                        result = true;
-//                    // TODO: Disabled this for now, as it leads to stackoverflow. The idea here was to look for matches later in graph, even if an earlier match is found
-////                    if (matchPath(visited, path, current, false, true))
-////                        result = true;
-//                } else {
-//                    if (propagationGraph.getIncidentEdges(current.getCalledNode()) != null) {
-//                        for (TaintEdge nextEdge : propagationGraph.getIncidentEdges(current.getCalledNode())) {
-//                            if (matchPath(visited, targetPath, nextEdge, false, false)) {
-//                                result = true;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    if (!result) {
-//                        if (propagationGraph.getIncidentEdges(current.getCallingNode()) != null) {
-//                            for (TaintEdge nextEdge : propagationGraph.getIncidentEdges(current.getCallingNode())) {
-//                                if (matchPath(visited, targetPath, nextEdge, false, false)) {
-//                                    result = true;
-//                                    break;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            } else {
-//                System.out.println("Switched to Match Mode");
-////                if (debugMode) {
-////                    System.out.println("\t\t\tMMPATH CALLING NAME: " + path.getFirst().getCallingNode().getName());
-////                    System.out.println("\t\t\tMMPATH CALLED NAME: " + path.getFirst().getCalledNode().getName());
-////                    System.out.println("\t\t\tMMCURRENT CALLING NAME: " + current.getCallingNode().getName());
-////                    System.out.println("\t\t\tMMCURRENT CALLED NAME: " + current.getCalledNode().getName());
-////                }
-//                if (targetPath.getFirst().getCallingNode().getName().equals(current.getCallingNode().getName()) &&
-//                        targetPath.getFirst().getCalledNode().getName().equals(current.getCalledNode().getName())) {
-//                    LinkedList<TaintEdge> newPath = new LinkedList<TaintEdge>(targetPath);
-//                    newPath.removeFirst();
-//                    if (newPath.size() == 0)
-//                        return true;
-//
-//                    if (propagationGraph.getIncidentEdges(current.getCalledNode()) != null) {
-//                        for (TaintEdge nextEdge : propagationGraph.getIncidentEdges(current.getCalledNode())) {
-//                            if (matchPath(visited, new LinkedList<TaintEdge>(newPath), nextEdge, true, false)) {
-//                                result = true;
-//                                break;
-//                            }
-//                        }
-//                    }
-//                    if (!result) {
-//                        if (propagationGraph.getIncidentEdges(current.getCallingNode()) != null) {
-//                            for (TaintEdge nextEdge : propagationGraph.getIncidentEdges(current.getCallingNode())) {
-//                                if (matchPath(visited, new LinkedList<TaintEdge>(newPath), nextEdge, true, false)) {
-//                                    result = true;
-//                                    break;
-//                                }
-//                            }
-//                        }
-//                    }
-//                } else {
-//                    return false;
-//                }
-//            }
-//
-//            return result;
-//        }
-
-//        private boolean matchPath(LinkedList<TaintEdge> path, EdgePropagationGraphPair propagationPair) {
-//            LinkedList<TaintEdge> toVisit = new LinkedList<TaintEdge>();
-//            toVisit.add(propagationPair.getEdge());
-//
-//            int pathPointer = 0;
-//            boolean pathMatched = false;
-//
-//            boolean matchStart = false;
-//            Graph<TaintNode, TaintEdge> propagationGraph = propagationPair.getPropagationGraph();
-//            HashSet<TaintEdge> visited = new HashSet<TaintEdge>();
-//            while (!toVisit.isEmpty()) {
-//                TaintEdge pathEdge = path.get(pathPointer);
-//                TaintEdge visiting = toVisit.removeFirst();
-//
-//                visited.add(visiting);
-//                if (!matchStart) {
-//                    if (visiting.getCallingNode().getName().equals(pathEdge.getCallingNode().getName()))
-//                        matchStart = true;
-//                }
-//                if (matchStart) {
-//                    if (visiting.getCallingNode().getName().equals(pathEdge.getCallingNode().getName()))
-//                        pathPointer++;
-//                }
-//
-//                for (TaintEdge nextEdge : propagationGraph.getIncidentEdges(visiting.getCallingNode())) {
-//                    if (!visited.contains(nextEdge))
-//                        toVisit.add(nextEdge);
-//                }
-//                for (TaintEdge nextEdge : propagationGraph.getIncidentEdges(visiting.getCalledNode())) {
-//                    if (!visited.contains(nextEdge))
-//                        toVisit.add(nextEdge);
-//                }
-//
-//                if (pathPointer >= path.size())
-//                    break;
-//            }
-//
-//
-//            return pathMatched;
-//        }
 
         private void forwardContextExpand(HashSet<TaintEdge> visited, HashSet<TaintEdge> foundEdges, TaintEdge current, Graph<TaintNode, TaintEdge> graph, boolean isForward, HashSet<String> targetTaintIDs) {
             // Looking for taint in high level object

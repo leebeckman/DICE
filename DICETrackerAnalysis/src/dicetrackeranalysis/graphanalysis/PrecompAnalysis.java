@@ -42,7 +42,7 @@ public class PrecompAnalysis {
 
         /*
          * Go through all edges (including ones which don't return taint, not displayed in graph)
-         * This loops mainly builds a call tree.
+         * This loop mainly builds a call tree.
          */
         
         for (TaintEdge edge : edges) {
@@ -161,8 +161,7 @@ public class PrecompAnalysis {
             // TODO: could add later code to do something better in this case, rather than just throwing away
 
             // Graph is expensive enough to be worth caching
-            // Disable this check for now
-            if (true || checkGraphCostExceeds(predictableSubGraphBuilder.getMultiGraph(), 1000)) {
+            if (checkGraphCostExceeds(predictableSubGraphBuilder.getMultiGraph(), 1000)) {
                 HashMap<GraphBuilder, LinkedList<TaintNode>> randomSideEffectSubGraphBuilders = new HashMap<GraphBuilder, LinkedList<TaintNode>>();
                 HashMap<GraphBuilder, LinkedList<TaintNode>> stableSideEffectSubGraphBuilders = new HashMap<GraphBuilder, LinkedList<TaintNode>>();
 
@@ -323,7 +322,6 @@ public class PrecompAnalysis {
                 TaintEdge callEdge = record.getCallEdge();
                 if (callEdge != null) {
                     TaintNode caller = callEdge.getCalledNode();
-    //                Collection<TaintEdge> outEdges = graph.getOutEdges(callEdge.getCallingNode());
                     caller.addCallRecord(record);
                 }
             }

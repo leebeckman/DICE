@@ -71,9 +71,6 @@ public class PrecomputationAnalysis {
                     calledRecord.setCallEdge(edge);
                     calledRecord.setParentCall(callerRecord);
                 }
-//                if (calledRecord.getName().endsWith("print")) {
-//                    System.out.println("FOUND: " + calledRecord.getName());
-//                }
                 callTree.add(callerRecord);
                 callerRecord.addSubCall(calledRecord);
             }
@@ -341,23 +338,6 @@ public class PrecomputationAnalysis {
             results.add(root);
 //            out.append("Adding " + root.getName() + "\n");
         }
-//        if (depth > 7)
-//            return;
-//        for (int i = 0; i < depth; i++) {
-//            out.append("---");
-//        }
-//        out.append(root.getName());
-//        TaintEdge callEdge = root.getCallEdge();
-//        if (callEdge != null) {
-//            Collection<TaintEdge> inEdges = graph.getInEdges(callEdge.getCallingNode());
-//            Collection<TaintEdge> outEdges = graph.getOutEdges(callEdge.getCallingNode());
-//            if ((inEdges != null && inEdges.size() > 0) ||
-//                    (outEdges != null && outEdges.size() > 0)) {
-//                out.append(" [TAINTED]");
-//            }
-//        }
-//
-//        out.append("\n");
         for (CallRecord child : root.getSubCalls()) {
             deepScan(child, depth + 1, results, test);
         }
@@ -387,12 +367,8 @@ public class PrecomputationAnalysis {
             TaintEdge callEdge = record.getCallEdge();
             if (callEdge != null) {
                 Collection<TaintEdge> inEdges = graph.getInEdges(callEdge.getCallingNode());
-//                Collection<TaintEdge> outEdges = graph.getOutEdges(callEdge.getCallingNode());
                 if ((inEdges != null && inEdges.size() > 0)) {
                     for (TaintEdge inEdge : inEdges) {
-//                        if (record.getName().contains("println")) {
-//                            out.append("Found println: " + record.getName() + " inEdge: " + inEdge.getType() + "\n");
-//                        }
                         if (inEdge.getType().equals("OUTPUT")) {
                             return true;
                         }
