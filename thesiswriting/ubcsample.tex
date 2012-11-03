@@ -815,7 +815,7 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 
 \begin{Program}
   \caption{\label{prog:code2} High level algorithm for caching analysis.}
-\begin{verbatim}
+\begin{alltt}
 function pruneToVariability(Variability):
 	OutputGraph = InputGraph.copy()
 	
@@ -823,7 +823,7 @@ function pruneToVariability(Variability):
 		foreach TaintRecord in Edge.getTaintRecords():
 			if (TaintRecord.getVariability() != Variability):
 				OutputGraph.removeEdge(Edge)
-				foreach NeighborEdge in TG.getNeighborEdges():
+				foreach NeighborEdge in TG.getNeighborEdges(Edge):
 					if (NeighborEdge.getContextID() == Edge.getContextID()):
 						OutputGraph.removeEdge(NeighborEdge)
 						
@@ -851,11 +851,20 @@ function getConnectedSubGraphs(InputGraph):
 		Outputs.add(SubGraph)
 	return Outputs
 				
-function checkOverCost(Graph, CallGraph, THRESHOLD):
-	#####
+function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
+	Use the CallGraph data to check the total execution time for the
+	TaintGraph edges, being careful to handle nested executions properly.
+	Return true if the time is over THRESHOLD.
 
 function getSideEffects(Graph, SideEffectGraph, CallGraph):
-	#####
+	SideEffectsEdges = {}
+	SideEffectGraphEdges = SideEffectGraph.getEdges()
+	
+	foreach Edge in Graph.getEdges():
+		DescendentEdges = CallGraph.getDescendentEdges()
+		SideEffectsEdges.add(SideDescendentEdges \cap SideEffectGraphEdges)
+	
+	return SideEffectEdges
 
 TG = taint trace graph, each node is a function or data source,
    each edge is an event where tainted data is passed between nodes.
@@ -880,7 +889,7 @@ foreach Predictable_CS in Predictable_connected_subgraphs:
        colorOutputs(Predictable_CS, TG)
        colorInputs(Predictable_CS, TG)
        showGraphToUser(Predictable_CS)
-\end{verbatim}
+\end{alltt}
 \end{Program}
 
 \subsubsection{Precomputation}
@@ -924,29 +933,55 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
   \caption{\label{prog:code3} High level algorithm for postcomputation analysis.}
 \begin{verbatim}
 function getRequestSubGraphs(InputGraph):
-	#####
+	Takes the InputGraph and splits it into multiple graphs
+	so that each new graph has Edges sharing a common RequestID		
 
 function getUserOutputEdges(InputGraph):
-	#####
+	Return any output type edges for methods known to 
+	write output to the user
 
 function getDBOutputEdges(InputGraph):
-	#####
+	Return any output type edges for methods known to
+	write data to a database
 
-function backwardsExpand(StartEdge):
-	#####
-
+function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
+	if (forwardSearch(CurrentEdge, Graph, UserOutputEdges)):
+		return
+	
+	FoundEdges.add(CurrentEdge)
+	
+	foreach PrevEdge in Graph.getPrevEdges(CurrentEdge):
+		if (Edge.getContextID() == PrevEdge.getContextID()):
+			backwardsExpand(FoundEdges, PrevEdge, UserOutputEdges, Graph)
+	
+function forwardSearch(Edge, Graph, TargetEdges):
+	if (Edge already visited):
+		return false
+	
+	if TargetEdges.contains(Edge)
+		 return true
+						
+	found = false;
+	foreach NextEdge in Graph.getNextEdges(Edge):
+		if (Edge.getContextID() == NextEdge.getContextID()):
+			if (forwardSearch(NextEdge, Graph, TargetEdges)):
+				found = true
+				break
+	
+	return found
 
 TG = taint trace graph, each node is a function or data source,
    each edge is an event where tainted data is passed between nodes
 
-Request_subgraphs = getRequestSubGraphs(TG)
+RequestSubGraphs = getRequestSubGraphs(TG)
 
-foreach request_SG in Request_subgraphs:
-    UserOutputs = getUserOutputEdges(Request_SG)
+foreach Request_SG in RequestSubGraphs:
+    UserOutputEdges = getUserOutputEdges(Request_SG)
     DBOutputs = getDBOutputEdges(Request_SG)
     
     foreach DBOutputEdge in DBOutputs:
-        PostCompGraph = backwardsExpand(DBOutputEdge)
+    	PostCompGraph = Empty Graph
+        backwardsExpand(PostCompGraph, DBOutputEdge, UserOutputEdges, Request_SG)
         if (PostCompGraph != {}):
             colorOutputs(PostCompGraph, request_SG)
             colorInputs(PostCompGraph, request_SG)
@@ -974,16 +1009,13 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code4} High level algorithm for application state analysis.}
 \begin{alltt}
-function getRequestSubGraphs(InputGraph):
-	#####
-
 TG = taint trace graph, each node is a function or data source,
    each edge is an event where tainted data is passed between nodes
 
 Request_subgraphs = getRequestSubGraphs(TG)
 
-ByRequestTaintIDs = []
-PersistentTaintIDs = []
+ByRequestTaintIDs = {}
+PersistentTaintIDs = {}
 foreach Request_SG in Request_subgraphs:
     ByRequestTaintIDs.add(getTaintIDSet(Request_SG))
     
@@ -1013,11 +1045,55 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code5} High level algorithm for user state analysis.}
 \begin{verbatim}
-findUserState(UserStateEdges, [], FlowGraph, OtherRequestIDsToEdgeMap):
-	#####
+function findUserState(UserStateEdges, Path, FlowGraph, OtherRequestIDsToEdgeMap):
+	if (Path.getLast() already visited):
+		return
+		
+	ExpandPath = false
 	
-getMasterMap(PersistentTaintIDs, RequestSubGraphs):
-	#####
+	foreach EdgeToFlowGraphMap in OtherRequestIDsToEdgeMap.values():
+		foreach Edge in EdgeToFlowGraphMap.keys():
+			MatchFlowGraph = EdgeToFlowGraphMap.get(Edge)
+			if (matchPath(Path, MatchFlowGraph)):
+				ExpandPath = true
+				if (Edge.getRequestAddress() != Path.getLast().getRequestAddress()):
+					return
+		
+	if (!ExpandPath)
+		return
+					
+	UserStateEdges.add(Path.getLast())
+	
+	foreach NextEdge in FlowGraph.getNextEdges(Edge):
+		NewPath = Path.copy()
+		NewPath.add(NextEdge)
+		findUserState(UserStateEdges, NewPath, FlowGraph, OtherRequestIDsToEdgeMap)
+				
+	
+/* Look for the same sequence of edges in Path in the TargetFlowGraph
+ */
+function matchPath(Path, TargetFlowGraph):
+	FirstEdge = Path.getFirst()
+	
+	Matched = false
+	foreach StartEdge in TargetFlowGraph.getEdges():
+		if (StartEdge.getStartNode.getName() == FirstEdge.getStartNode.getName() &&
+			StartEdge.getEndNode.getName() == FirstEdge.getEndNode.getName()):
+			PathPosition = 1
+			CheckEdge = StartEdge
+			NextCheckEdge = Path[PathPosition]
+			
+			while (PathPosition < Path.size()):
+				Found = false
+				foreach NextEdge in FlowGraph.getNeighborEdges(CheckEdge):
+					
+	
+/* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
+ * This map shows, for each persistent taint ID, which request graphs carry that taint,
+ * what are the earliest edges carrying that taint, and where does each bit of persistent
+ * taint flow from these points of origination.
+ */
+function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
 
 TG = taint trace graph, each node is a function or data source,
    each edge is an event where tainted data is passed between nodes
@@ -1028,8 +1104,8 @@ TT = taint ID tree, a tree which shows how tainted data is derived from
 
 RequestSubGraphs = getRequestSubGraphs(TG)
 
-ByRequestTaintIDs = []
-PersistentTaintIDs = []
+ByRequestTaintIDs = {}
+PersistentTaintIDs = {}
 foreach Request_SG in RequestSubGraphs:
     ByRequestTaintIDs.add(getTaintIDSet(Request_SG))
     
@@ -1039,18 +1115,13 @@ for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
 		SetB = ByRequestTaintIDs[j]
 	    PersistentTaintIDs.add(SetA \cap SetB)
 
-DerivedPersistentIDs = []
+DerivedPersistentIDs = {}
 foreach PersistentTaintID in PersistentTaintIDs:
 	DerivedPersistentIDs.add(TT.getAllChildrenOf(PersistentTaintID))
 
 PersistentTaintIDs.removeAll(DerivedPersistentIDs)
 
 MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
-	/* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
-	 * This map shows, for each persistent taint ID, which request graphs carry that taint,
-	 * what are the earliest edges carrying that taint, and where does each bit of persistent
-	 * taint flow from these points of origination.
-	 */
 	
 foreach PersistentTaintID in MasterMap.keys():
 	RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
@@ -1063,8 +1134,8 @@ foreach PersistentTaintID in MasterMap.keys():
 			OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
 			OtherRequestIDsToEdgeMap.remove(RequestID)
 			
-			UserStateEdges = []
-			findUserState(UserStateEdges, [StartEdge], FlowGraph, OtherRequestIDsToEdgeMap)
+			UserStateEdges = {}
+			findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherRequestIDsToEdgeMap)
 			
 			if (UserStateEdges != {}):
 				colorEdge(StartEdge)
@@ -1100,10 +1171,9 @@ function forwardSearch(Edge, TG, TargetTaintedObject):
 	found = false;
 	foreach NextEdge in TG.getNextEdges(Edge):
 		if (Edge.getContextID() == NextEdge.getContextID()):
-			if (NextEdge.getCounter() > Edge.getCounter()):
-				if (forwardSearch(NextEdge, TG, TargetTaintedObject)):
-					found = true
-					break
+			if (forwardSearch(NextEdge, TG, TargetTaintedObject)):
+				found = true
+				break
 	
 	return found
 

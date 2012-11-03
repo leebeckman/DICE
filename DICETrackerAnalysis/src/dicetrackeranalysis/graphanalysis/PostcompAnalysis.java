@@ -107,18 +107,10 @@ public class PostcompAnalysis {
             return;
         visited.add(current);
 
-        if (current.getCounter() == 358) {
-            System.out.println("Visiting target");
-        }
-
         if (forwardContextSearch(new HashSet<TaintEdge>(), current, graph, userOutputEdges))
             return;
 
         foundEdges.add(current);
-
-        if (current.getCounter() == 358) {
-            System.out.println("Added target");
-        }
 
         TaintNode nextNode = null;
         String context = null;
