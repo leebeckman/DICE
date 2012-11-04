@@ -420,7 +420,7 @@ The problem is straightforward; a team of developers will implement a system to 
 It is here that automation is useful. We want to help these developers by building tools which assist them in understanding their systems more quickly. We even want to automatically make suggestions about how to actually perform optimizations. Tools of this nature have naturally already been researched and developed, and ours represents further exploration into this area. The model of such systems is as follows:
 
 \begin{itemize}
-\item Automatically collect data about how applications works. This can be done statically, looking at the code, or dynamically, monitoring the runtime operation of the program.
+\item Automatically collect data about how applications work. This can be done statically, looking at the code, or dynamically, monitoring the runtime operation of the program.
 \item Use this data to build a representation of the application that can be analyzed. This is often a graph model where the application is thought of in terms of components (nodes) which are connected if the data shows a meaningful interaction between them (one component calls another, they exchange data, etc).
 \item Run algorithms over the representation (rather than the application itself), to discover properties of it or find ways to optimize it.
 \item Map these properties and optimizations back to the original applications, helping developers to better understand and improve them.
@@ -458,7 +458,7 @@ The analyses in question were inspired by works focusing on various forms of dat
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{figs/cap2.eps}
+    \includegraphics[width=0.6\textwidth]{figs/cap2-num.eps}
     \caption[Sample dataflow for web store.]{\label{fig:cap2} Sample dataflow for web store.}
   \end{center}
 \end{figure}
@@ -479,14 +479,14 @@ The analyses in question were inspired by works focusing on various forms of dat
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{figs/cap5.eps}
+    \includegraphics[width=0.6\textwidth]{figs/cap5-multi.eps}
     \caption[Simple dataflow indicating peristent state which is shared with only one user.]{\label{fig:cap5} Simple dataflow indicating peristent state which is shared with only one user.}
   \end{center}
 \end{figure}	
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{figs/cap7.eps}
+    \includegraphics[width=0.6\textwidth]{figs/cap7-data.eps}
     \caption[Example partitioning of application.]{\label{fig:cap7} Example partitioning of application.}
   \end{center}
 \end{figure}
@@ -495,7 +495,7 @@ To motivate the TaTAMi system and illustrate the natural fit of dataflow trackin
 
 \subsection{The System}
 
-Presented is a simple online shopping site, the basic architecture of which is given in Figure~\ref{fig:cap1}. The system has back-end data stores for shop inventory and user account info and the logic to access them. For interacting with the site, there are two front-end components: the browsing component which accepts requests from the user to fetch shop items for display, formatted by the page render component; and the Purchasing component, which allows users to maintain a 'shopping cart' list of items they wish to buy and ultimately bill an order to their account. 
+Presented is a simple online shopping site, the basic architecture of which is given in Figure~\ref{fig:cap1}. The system has back-end data stores for shop inventory and user account info and the logic to access them. For interacting with the site, there are two front-end components: the browsing component which accepts requests from the user to fetch shop items for display, formatted by the page render component; and the Purchasing component, which allows users to maintain a `shopping cart' list of items they wish to buy and ultimately bill an order to their account. 
 
 \subsection{The Problems}
 
@@ -503,26 +503,26 @@ Problem scenarios are as follows:
 
 \begin{itemize}
 \item More users begin using the site. The servers where the Browsing component resides are not fast enough and computations to render pages begin to get backed up.
-\item The development team has been asked to move the Purchasing component into the cloud, but the environment there only allows for stateless programs.
+\item The development team has been asked to move the Purchasing component into the cloud, but the environment there only allows for stateless programs. \footnote{Such is the case with the Google App Engine Platform. Stateful applications are restricted to support transparent load balancing and virtualization, and state which remains after requests have been served is easily lost when an application is `cycled out'.}
 \item The network link between the back and front-end components is carrying large amounts of data, and its maximum capacity may soon be reached.
 \end{itemize}
 
 \paragraph{}
-To start, developers should have an overall picture of how the system works, or at least the part of it they are working on. As stated, we believe that capturing the dataflow of this system will naturally support developers in this effort. Figure~\ref{fig:cap2} presents a possible dataflow graph for the system that our tool would obtain. This is very high level, the arrows indicating that data is communicated from component to component along them. The points to note here are the flow of shop item data from the Inventory database through the Browsing system to the user, and the flow of data from the back-end stores and user input into the 'Order State' shopping cart data. This view focuses immediately on how the application ferries and transforms data throughout its components, the key function of most web applications. It allows a developer to quickly answer the important question: "where did this output come from?"
+To start, developers should have an overall picture of how the system works, or at least the part of it they are working on. As stated, we believe that capturing the dataflow of this system will naturally support developers in this effort. Figure~\ref{fig:cap2} presents a possible dataflow graph for the system that our tool would obtain. This is very high level, the arrows indicating that data is communicated from component to component along them. The points to note here are the flow of shop item data from the Inventory database (point 1) through the Browsing system (point 2) to the user (point 3), and the flow of data from the back-end stores (point 4) and user input (point 5) into the `Order State' shopping cart data (point 6). This view focuses immediately on how the application ferries and transforms data throughout its components, the key function of most web applications. It allows a developer to quickly answer the important question: `where did this output come from?'
 
-\paragraph{}
-The first optimization to consider, given that the Browsing component is backed up with excessive computation, is precomputation and caching. Consider Figure~\ref{fig:cap3} and Figure~\ref{fig:cap4}, which outline two possible dataflow cases. The first shows how the dataflow could indicate that the data used to generate responses to user browse requests are entirely from predictable sources. Say that browsing involves simply displaying all of the item names, and the set of available items rarely changes, then the output browsing page would remain the same for long periods. The application could potentially be optimized by pregenerating the browsing page and serving it directly to the user, rather than going to the database and running the rendering code. 
+\subsubsection{Precomputation and Caching}
+The first optimization to consider, given that the Browsing component is backed up with excessive computation, is precomputation and caching. Consider Figure~\ref{fig:cap3} and Figure~\ref{fig:cap4}, which outline two possible dataflow cases. The first shows how the dataflow could indicate that the data used to generate responses to user browse requests are entirely from predictable sources. By this we mean that the input data not too random to predict - its possible values are from a small enough set to be amenable to such things as caching, which will depend on the resources one has available. Say that browsing involves simply displaying all of the item names, and the set of available items rarely changes, then the output browsing page would remain the same for long periods. The application could potentially be optimized by pregenerating the browsing page and serving it directly to the user, rather than going to the database and running the rendering code. 
 
 \paragraph{}
 Figure~\ref{fig:cap4} shows an alternate dataflow where taint tracking indicates that user input flows into the computation for the browsing page. Such could arise, say, if the user supplies some filters to search for items. The input may be very unpredictable, such as for a free text search, and thus the output browsing page may be unpredictable and a poor candidate for any kind of precomputation. On the other hand, if the user input occurs over some reasonably predictable range, such as if the items were being filtered over a set range of categories, the various output browsing pages may be good candidates for caching. An automated analysis could point this out, and a developer is aided in applying this performance improving optimization, knowing which data sources to use for cache keys (user input parameters) and which to check for cache invalidation (the Inventory database).
 
-\paragraph{}
+\subsubsection{State Identification}
 The next concern is moving the Purchasing component into the cloud, to make use of the abundant computational resources there. In this example, the cloud provider doesn't support applications which keep in-memory state. Such would be the case if hosted applications were shut down periodically to conserve memory. Looking to the flow of data around the Order State persistent store, another use of dataflow tracking emerges. Dataflow can pinpoint with accuracy various points in a program where persistent data is stored. By following data into the Order State area, and observing that it persists across multiple requests to the application, an automated analysis can determine that this data is used to communicate data beyond the scope of a single request. Identifying such data is useful as it marks the distinction between stateful and stateless components in a system.
 
-\paragraph{}
+\paragraph{User-State Identification}
 Taking this analysis further, Figure~\ref{fig:cap5} shows a dataflow tracking which reveals how certain data items only flow to and from certain users. For data constituting persistent state, this might be personal data which is not used to communicate between multiple users, such as one's own shopping cart. Once such state is identified by an analysis, one can make decisions like moving the state from the server into the client, making the application more robust. Such a suggestion would be valuable to the novice developer, indicating a way to get the state out of the Purchasing server-side components so that they could be safely moved to the cloud.
 
-\paragraph{}
+\subsubsection*{•} Cost Analysis}
 Finally, the back to front-end link capacity is a problem where analyzing dataflow is clearly useful. Partitioning is a kind of rearchitecting that might be performed on our web store. Figure~\ref{fig:cap7} demonstrates a such a scheme, where the two front end components are moved into independent environments, communicating with the back-end over the network when database data is needed. In this scenario, knowing if the network link could be a problem is vital. Application partitioning algorithms seek to identify ways to split application components to make efficient use of resources while carefully managing communication overhead between partitions. This involves profiling the application to determine component execution and intercomponent communication costs. Obtaining a more complete view of the dataflow provides deeper knowledge into the communication cost. Not only can one know when components share data, but can additionally find out where that data is eventually used. In some cases, the data may never be used at all, and thus the dataflow tracking can obtain more accurate bounds on the communication cost. In this example, the heavy load on the link may be due to data which is not actually used, and which does not need to be transmitted at all.
 	
 %-need to set up a motivating running example
@@ -534,7 +534,7 @@ Finally, the back to front-end link capacity is a problem where analyzing datafl
 
 \section{Statement of Thesis}
 	
-It is important to keep in mind that this work pursues a more general analysis approach, and that the form this thesis takes is of a more exploratory, completely qualitative nature. We do not explicitly seek to outperform other specific analysis efforts but rather to demonstrate the value of the DIFT technique for these kinds of analyses, something that we feel has not been significantly addressed in the literature. We hypothesized that due to the focus on data provided by DIFT and because web applications are often basically a means to allow users to access and share data, DIFT would naturally support analyses which could optimize web applications and help developers to understand important properties of them. We showed that several such analyses could be developed and then applied to DIFT traces of real-world web applications successfully, demonstrating both the viability of the analyses as well as the existence of the analysis targets in real applications.
+It is important to keep in mind that this work pursues a more general analysis approach, and that the form this thesis takes is of an exploratory, completely qualitative nature. We do not explicitly seek to outperform other specific analysis efforts but rather to demonstrate the value of the DIFT technique for these kinds of analyses, something that has not been significantly addressed in the literature. We hypothesized that due to the focus on data provided by DIFT and because web applications are often basically a means to allow users to access and share data, DIFT would naturally support analyses which could optimize web applications and help developers to understand important properties of them. We showed that several such analyses could be developed and then applied them to DIFT traces of real-world web applications successfully, demonstrating both the viability of the analyses as well as the existence of the analysis targets in real applications.
 	
 %- we taint at a high semantic level for simplicity and ease of getting info developers care about
 %- want to explore how many useful things we can discover with this kind of data
@@ -549,10 +549,10 @@ It is important to keep in mind that this work pursues a more general analysis a
 	
 The main contributions of this work are as follows: 
 \begin{itemize}
-\item A taint tracking tool for Java web applications, able to track tainted Strings and numerical values throughout a single program and report wherever they flow
-\item An analysis tool to both visualize taint tracking data and run analyses over it
-\item The identification and implementation of several analyses designed to operate over taint tracking data
-\item The demonstration that these analyses can be applied to real applications successfully
+%\item A taint tracking tool for Java web applications, able to track tainted Strings and numerical values throughout a single program and report wherever they flow
+%\item An analysis tool to both visualize taint tracking data and run analyses over it
+\item The identification and implementation of several analyses designed to operate over DIFT data
+\item The evaluation of these analyses over real web application DIFT traces, pointing out strengths and weaknesses of the techniques used
 \end{itemize}
 
 
@@ -572,15 +572,18 @@ String userName = getUserNameInput();
 // Any data from user input is tainted, so userName is marked as tainted.
 String formattedData = "USERNAME:" + userName; 
 // The value of formattedData is based on userName, 
-// so it formattedData is marked as tainted.
+// so formattedData is marked as tainted.
 \end{verbatim}
 \end{Program}	
 	
 \paragraph{}
-	The main stream of research contributing to this project is that of dynamic information flow tracking (DIFT). Introduced by Suh et al. in \cite{Suh2004}, DIFT refers to tagging (tainting) data used by an application at runtime so that its flow through the application can be tracked. One marks interesting sources - places in an application where input is received, such as by reading from a database or receiving input from a user - where data coming from a source in tainted. From the sources, DIFT systems employ some set of propagation rules which define how tainted data is spread through the system. As a simple case, when a variable is produced by using a tainted input value the taint tag should be copied from the input value to the new variable. This is shown in Program~\ref{prog:code1}. Finally, DIFT systems will establish a set of monitoring sink points in the application to check and report if any tainted data flows through there. These could range from the arguments to a certain function to specific memory locations, depending on the needs of the tool. Many DIFT systems do taint tracking at a fairly low level, down to the level of individual bytes of an application's memory, in order to support such security analyses as memory corruption detection. 
+	The main stream of research contributing to this project is that of dynamic information flow tracking (DIFT). Introduced by Suh et al. in \cite{Suh2004}, DIFT refers to tagging (tainting) data used by an application at runtime so that its flow through the application can be tracked. One marks interesting sources - places in an application where input is received, such as by reading from a database or receiving input from a user - where data coming from a source is tainted. From the sources, DIFT systems employ some set of propagation rules which define how tainted data is spread through the system. As a simple case, when a variable is produced by using a tainted input value the taint tag should be copied from the input value to the new variable. This is shown in Program~\ref{prog:code1}. Finally, DIFT systems will establish a set of monitoring sink points in the application to check and report if any tainted data flows through there. These could range from the arguments to a certain function to specific memory locations, depending on the needs of the tool. Many DIFT systems do taint tracking at a fairly low level, down to the level of individual bytes of an application's memory, in order to support such security analyses as memory corruption detection. 
 
 \paragraph{}	
-	Taint tracking has been used almost exclusively in the domain of security, and such systems include \cite{Suh2004} \cite{Newsome2005}, where it is to detect if bytes from untrusted input sources like user input ever end up tainting such sinks as jump target addresses or executable instructions; \cite{Hudgins2004}, where it is used to trace sensitive data like passwords throughout a system to see where and for how long sensitive data is potentially accessible; \cite{Dalton2007}, where the focus shifts to higher-level SQL injection and cross-site scripting attacks, checking if user input taints such sinks as database queries; and \cite{Al-Saleh2010} \cite{Al-Saleh2010a}, which identifies malware and network protocol analysis as uses. \cite{Al-Saleh2010} is also interesting in that it focuses on a taint propagation policy known as control flow dependence, where values are tainted if they are assigned values in the scope of a control flow statement (such as an if branch) predicated on tainted data. Such propagation is difficult as it often leads to an explosion of taint in the system, and must be very carefully managed, and our own system does not use it as an intentional design decision. \cite{Gupta2008} additionally identifies data lineage tracing as a use, which focuses on determining the inputs responsible for outputs in various scientific computations, which is similar to some of the analyses we do. \cite{Dalton2010}, \cite{Zavou2011}, and \cite{Kangkook2012} present more security-focused systems, as indeed the majority of taint tracking tools are. \cite{Haldar2005} and \cite{Chin2009} describe Java taint tracking systems which modify the Java runtime to track taint in Strings. By contrast, our system uses AspectJ to obviate the need for such modifications, and we additionally have limited support for tracking taint in numerical values, as described in the Implementation chapter. These systems are, like other efforts, focused on preventing untrusted data from propagating to secure locations.
+	Taint tracking has been used almost exclusively in the domain of security, and such systems include \cite{Suh2004} \cite{Newsome2005}, where it is to detect if bytes from untrusted input sources like user input ever end up tainting such sinks as jump target addresses or executable instructions; \cite{Hudgins2004}, where it is used to trace sensitive data like passwords throughout a system to see where and for how long sensitive data is potentially accessible; \cite{Dalton2007}, where the focus shifts to higher-level SQL injection and cross-site scripting attacks, checking if user input taints such sinks as database queries; and \cite{Al-Saleh2010} \cite{Al-Saleh2010a}, which identifies malware and network protocol analysis as uses. 
+
+\paragraph{}	
+	\cite{Al-Saleh2010} is also interesting in that it focuses on a taint propagation policy known as control flow dependence, where values are tainted if they are assigned values in the scope of a control flow statement (such as an if branch) predicated on tainted data. Such propagation is difficult as it often leads to an explosion of taint in the system, and must be very carefully managed, and our own system does not use it as an intentional design decision. \cite{Gupta2008} additionally identifies data lineage tracing as a use, which focuses on determining the inputs responsible for outputs in various scientific computations, which is similar to some of the analyses we do. \cite{Dalton2010}, \cite{Zavou2011}, and \cite{Kangkook2012} present more security-focused systems, as indeed the majority of taint tracking tools are. \cite{Haldar2005} and \cite{Chin2009} describe Java taint tracking systems which modify the Java runtime to track taint in Strings. By contrast, our system uses AspectJ to obviate the need for such modifications, and we additionally have limited support for tracking taint in numerical values, as described in the Implementation chapter. These systems are, like other efforts, focused on preventing untrusted data from propagating to secure locations.
 	
 \paragraph{}
 	\cite{Mysore2008} presents something different, and was one of the key pieces in developing our own system. Unlike the previous systems, which are security focused and generally only place sinks at critical points where tainted data is not supposed to reach, dataflow tomogrpahy as introduced in this work does a heavier form of tracking. In tomography, tainted data is reported as it flows through every function call (or even instruction) with the ultimate goal of providing a complete end-to-end picture of how data flows through a system. The goal of their system, like ours, was to help users understand a target application. Their work shares our attention to visualization, noting the difficulty of displaying what are often very large flow graph, as well as our qualitative evaluation strategy. They make the point that while most uses of DIFT are focused on policy enforcement, as with security, their own work is one which focuses on using the analysis for discovery. They do not, however, give any concrete uses for their analysis beyond general understanding. We take a tomographic analysis, and use its output to drive a set of real, varied analyses, demonstrating how the value of obtaining this data. We go further than general understanding, trying to develop tools which suggest specific ways to improve applications.
@@ -616,7 +619,7 @@ String formattedData = "USERNAME:" + userName;
 	Existing works generally use a very basic measure of communication between components, simply totaling the size of data sent in a communication event (such as a method call) \cite{Nahrstedt2003} \cite{Ou2007} \cite{Hajjat2010} \cite{Chun2010} \cite{Chun2011}. While not a partitioning tool, the dataflows that our system extracts can be used to locate unnecessary flows, where data is communicated but then subsequently never used. By finding such flows, we envision that our tool could obtain more accurate bounds on optimal communication costs in a partitioning scenario, allowing better distributions of components to be found by automated tools. Our system also goes beyond this research in that it uses the dataflow information for analyses for a variety of optimizations which would be useful whether or not one wants to partition.
 		
 \section{Aspect Oriented Programming}
-	Aspect Oriented Programming (AOP) \cite{Kiczales1997} is a technology that we rely heavily on to perform our taint tracking. AOP allows one to perform high-level instrumentation of existing programs, injecting code into them to add functionality. In order to augment a program with AOP, one writes pointcuts and advice. Pointcuts are descriptions of locations in a program where code should be added, such as "before every method call of classes within a specific package" or "whenever the value of a field on an object changes". Advice is the code which is injected into the program, and is associated with pointcuts to specify what code is added where. This naturally enables the rapid development of a high-level (and the level of methods and variables as opposed to instructions and bytes of memory) dataflow tomography tool, as one can create pointcuts targeting every location in a program where data is communicated and write advice which inspects the data communicated at those locations for taint.
+	Aspect Oriented Programming (AOP) \cite{Kiczales1997} is a technology that we rely heavily on to perform our taint tracking. AOP allows one to perform high-level instrumentation of existing programs, injecting code into them to add functionality. In order to augment a program with AOP, one writes pointcuts and advice. Pointcuts are descriptions of locations in a program where code should be added, such as `before every method call of classes within a specific package' or `whenever the value of a field on an object changes'. Advice is the code which is injected into the program, and is associated with pointcuts to specify what code is added where. This naturally enables the rapid development of a high-level (and the level of methods and variables as opposed to instructions and bytes of memory) dataflow tomography tool, as one can create pointcuts targeting every location in a program where data is communicated and write advice which inspects the data communicated at those locations for tainted data.
 
 
 % DONE WITH THESE, WORK TIME
@@ -682,7 +685,7 @@ String formattedData = "USERNAME:" + userName;
 \chapter{Implementation}
 
 \section{Overview}
-In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is compiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a 'trace', describing events where tainted data moves from one location to another, which when taken together describe 'flows' of tainted data through a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
+In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is compiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a `trace', describing events where tainted data moves from one location to another, which when taken together describe `flows' of tainted data through a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
 
 \section{Taint Tracking Tool}
 Implemented in 5.2K lines of Java entirely using AspectJ and ajc as the compiler and bytecode weaver. No additional libraries were used.
@@ -712,13 +715,13 @@ In order to boost performance futher, there are a series of pointcuts and advice
 This kind of bookkeeping is less important in traditional taint tracking, where checking if data is tainted occurs at fewer points, but becomes more useful when needing to check for taint very frequently as in tomography.
 
 \subsubsection{Tomography System} 
-This relies on AspectJ to intercept various events where tainted data flows from one location to another. This fulfills the main function of the TTT, building a complete picture of where data one is interested in goes. The basic events that tracked are method calls, method returns, Object instantiation, and field set/get; and at each of these points the Tomography System calls into the TRMS to check if the arguments/return values are tainted. If they are, the logging system is called to record these events. In the case of a method return, the system doesn't just check the return value for taint; in many cases values are 'returned' by modifying the arguments to the call, so the system keeps a record of what taint each argument carried before the method was invoked and checks to see if they carry any new taint when the method is returning. 
+This relies on AspectJ to intercept various events where tainted data flows from one location to another. This fulfills the main function of the TTT, building a complete picture of where data one is interested in goes. The basic events that tracked are method calls, method returns, Object instantiation, and field set/get; and at each of these points the Tomography System calls into the TRMS to check if the arguments/return values are tainted. If they are, the logging system is called to record these events. In the case of a method return, the system doesn't just check the return value for taint; in many cases values are `returned' by modifying the arguments to the call, so the system keeps a record of what taint each argument carried before the method was invoked and checks to see if they carry any new taint when the method is returning. 
 
 \paragraph{}
-In addition to tracking these basic events, the Tomography System advises every method on String, StringBuffer, and StringBuilder Objects which cause several important events. These are termed 'propagation' events, where tainted Strings influence the value of other Strings (example cases would be copying a String or appending it to a StringBuilder); 'modification' events, where tainted Strings are changed in some way (examples being appended to or having characters deleted from); and 'composition/association' events, where multiple tainted Strings are combined or used together (examples being appending or equality checks). Propagation events are particularly important, as such Strings derived from tainted Strings must be added to the TRMS so that they are tracked by the rest of the Tomography System. The modification/composition/association events are logged as they are of use in performing certain analyses in the Analysis Tool.
+In addition to tracking these basic events, the Tomography System advises every method on String, StringBuffer, and StringBuilder Objects which cause several important events. These are termed `propagation' events, where tainted Strings influence the value of other Strings (example cases would be copying a String or appending it to a StringBuilder); `modification' events, where tainted Strings are changed in some way (examples being appended to or having characters deleted from); and `composition/association' events, where multiple tainted Strings are combined or used together (examples being appending or equality checks). Propagation events are particularly important, as such Strings derived from tainted Strings must be added to the TRMS so that they are tracked by the rest of the Tomography System. The modification/composition/association events are logged as they are of use in performing certain analyses in the Analysis Tool.
 
 \paragraph{}
-Finally, the Tomography System employs some heuristics to attempt to track tainted Strings through methods which may 'lose' the taint. By 'lose' is meant that at a semantic level the method does pass tainted data from one location to another, but due to how it processes that data the kinds of checks allowed with AspectJ will not be able to properly track it. Real examples of this are cases where a String is processed and used to build a new String character-by-character, as was the case in some encoding methods encountered in tested applications. Properly tracking this kind of taint flow would require instrumentation at a lower level not possible in AspectJ, likely requiring one to taint individual bytes (as has been done in some taint tracking research). As such was not possible in the timeframe of this thesis, the issue was addressed using fuzzy String matching. A Levenshtein distance measure is used to check if non-tainted String outputs from a method execution match within some threshold any tainted inputs, and if so the taint is propagated from the matching inputs to the outputs. These events are separately logged, so that one can verify the correctness of the heuristic in each case, and in practice this worked well.
+Finally, the Tomography System employs some heuristics to attempt to track tainted Strings through methods which may `lose' the taint. By `lose' is meant that at a semantic level the method does pass tainted data from one location to another, but due to how it processes that data the kinds of checks allowed with AspectJ will not be able to properly track it. Real examples of this are cases where a String is processed and used to build a new String character-by-character, as was the case in some encoding methods encountered in tested applications. Properly tracking this kind of taint flow would require instrumentation at a lower level not possible in AspectJ, likely requiring one to taint individual bytes (as has been done in some taint tracking research). As such was not possible in the timeframe of this thesis, the issue was addressed using fuzzy String matching. A Levenshtein distance measure is used to check if non-tainted String outputs from a method execution match within some threshold any tainted inputs, and if so the taint is propagated from the matching inputs to the outputs. These events are separately logged, so that one can verify the correctness of the heuristic in each case, and in practice this worked well.
 
 \subsubsection{Basic Profiling}
 Code is included in the tool to gather supplementary data outside of taint tracking for the analyses. Such data could indeed be captured by other existing tools, but the implementation is provided here in order to keep the data collection process simple as well as because there would likely be problems when instrumenting a web application with multiple profilers at once. Currently there is logging to build control flow graphs and some simple profiling code to track method execution times.
@@ -772,11 +775,11 @@ This relies primarily on the JUNG framework to provide a more user-friendly mean
 The entire graph can be viewed all at once, but the traces are often so large that it is impossible to comprehend the output. To support a more controlled viewing, the Visualization System supplies several filters to look at subsets of the full graph. These are:
 
 \begin{itemize}
-\item TaintID Filter: Presented in the tool is a tree-style list of the taintIDs in the trace, as is shown in Figure X. At the top level of the list are original taintIDs assigned to data as it was read from tainted input sources. Expanding an item reveals taintIDs which are result of Propagation events from the parent taintID. Selecting an item will cause the graph to only show edges which carry taint which matches the selected ID. Selecting the 'Deep' checkbox extends this to show the selected taintID and any IDs which were propagated from it, giving a complete picture of where data with the selected taintID flowed.
+\item TaintID Filter: Presented in the tool is a tree-style list of the taintIDs in the trace, as is shown in Figure X. At the top level of the list are original taintIDs assigned to data as it was read from tainted input sources. Expanding an item reveals taintIDs which are result of Propagation events from the parent taintID. Selecting an item will cause the graph to only show edges which carry taint which matches the selected ID. Selecting the `Deep' checkbox extends this to show the selected taintID and any IDs which were propagated from it, giving a complete picture of where data with the selected taintID flowed.
 
 \item RequestID Filter: For traces taken over multiple requests to the application, this allows a user to view the data collected for a single request.
 
-\item Forward Graph Filter: This allows one to specify an edge, which is then expanded into a graph by following the flow of tainted data carried by that edge. It makes use of the caller/called ContextCounter information from the logs to only expand to edges which were actually 'caused' by the specified edge. 
+\item Forward Graph Filter: This allows one to specify an edge, which is then expanded into a graph by following the flow of tainted data carried by that edge. It makes use of the caller/called ContextCounter information from the logs to only expand to edges which were actually `caused' by the specified edge. 
 
 \item Manual Filter: For fine viewing control, this allows a user to view only selected nodes, and then expand to neigboring nodes to track the flow of tainted data step by step.
 
@@ -1133,6 +1136,11 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code5} High level algorithm for user state analysis.}
 \begin{verbatim}
+/* Given a path which starts with a single Edge representing a read from
+ * persistent data, this recursively attempts to grow the path, checking
+ * if it can be found in flow graphs for other requests. If there are path
+ * matches in other requests, but these requests serve data to other users,
+ * the path represents an non-single user access and is abandoned.
 function findUserState(UserStateEdges, Path, FlowGraph, OtherRequestIDsToEdgeMap):
 	if (Path.getLast() already visited):
 		return
@@ -1142,6 +1150,7 @@ function findUserState(UserStateEdges, Path, FlowGraph, OtherRequestIDsToEdgeMap
 	foreach EdgeToFlowGraphMap in OtherRequestIDsToEdgeMap.values():
 		foreach Edge in EdgeToFlowGraphMap.keys():
 			MatchFlowGraph = EdgeToFlowGraphMap.get(Edge)
+			/* Try to find the path in other flow graphs */
 			if (matchPath(Path, MatchFlowGraph)):
 				ExpandPath = true
 				if (Edge.getRequestAddress() != Path.getLast().getRequestAddress()):
@@ -1165,6 +1174,7 @@ function matchPath(Path, TargetFlowGraph):
 	
 	Matched = false
 	foreach StartEdge in TargetFlowGraph.getEdges():
+		/* Check if the edges share the same name for their start and end nodes */
 		if (StartEdge.getStartNode.getName() == FirstEdge.getStartNode.getName() &&
 			StartEdge.getEndNode.getName() == FirstEdge.getEndNode.getName()):
 			PathPosition = 1
@@ -1185,6 +1195,7 @@ function matchPath(Path, TargetFlowGraph):
 				else
 					break
 			
+			/* If we were able to get through the whole path, it exists in the TargetFlowGraph */
 			if (PathPosition == Path.size())
 				Match = true
 				break
@@ -1194,7 +1205,8 @@ function matchPath(Path, TargetFlowGraph):
 /* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
  * This map shows, for each persistent taint ID, which request graphs carry that taint,
  * what are the earliest edges carrying that taint, and where does each bit of persistent
- * taint flow from these points of origination.
+ * taint flow from these points of origination (using an algorithm similar to the
+ * forwardSearch functions shown in other algorithms).
  */
 function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
 
@@ -1209,6 +1221,10 @@ RequestSubGraphs = getRequestSubGraphs(TG)
 
 ByRequestTaintIDs = {}
 PersistentTaintIDs = {}
+
+/* These are the same steps as done in the simple state finding
+ * algorithm above.
+ */
 foreach RequestSG in RequestSubGraphs:
     ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
     
@@ -1218,6 +1234,10 @@ for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
 		SetB = ByRequestTaintIDs[j]
 	    PersistentTaintIDs.add(SetA \cap SetB)
 
+/* To save work, we remove any derived taint IDs. In tracing the
+ * path of tainted data from the original taint IDs, we will arrive 
+ * at the relevant derived taint IDs anyways.
+ */
 DerivedPersistentIDs = {}
 foreach PersistentTaintID in PersistentTaintIDs:
 	DerivedPersistentIDs.add(TT.getAllChildrenOf(PersistentTaintID))
@@ -1234,6 +1254,9 @@ foreach PersistentTaintID in MasterMap.keys():
 		
 		foreach StartEdge in StartEdgeToFlowGraphMap.keys():
 			FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
+			/* This map is needed to compare the flow of taint in one
+			 * request with the flow of the same taint in other requests.
+			 */
 			OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
 			OtherRequestIDsToEdgeMap.remove(RequestID)
 			
@@ -1256,7 +1279,20 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code5} High level algorithm for wasteful communication analysis.}
 \begin{verbatim}			
-function forwardSearch(Edge, TG, TargetTaintedObject):
+/* Given an edge to start from, Edge, work forwards through
+ * Graph (to edges which could be influenced by the Edge and
+ * so on, using the ContextID to ensure that edges are in the
+ * same thread of execution). Return true if the taint ID for
+ * TargetTaintedObject can be found at the top level for edges
+ * reached from the original Edge. By the top level, we mean 
+ * the actual arguments and return values as opposed to tainted
+ * objects which are merely reachable from them. Objects have 
+ * an isMarked flag to prevent redundant work. In the real
+ * algorithm used, there is more checking of this than is
+ * indicated here to aggressively avoid redundant graph
+ * traversals.
+ */	
+function forwardSearch(Edge, Graph, TargetTaintedObject):
 	if (Edge already visited):
 		return false
 	
@@ -1272,9 +1308,9 @@ function forwardSearch(Edge, TG, TargetTaintedObject):
 						return true
 						
 	found = false;
-	foreach NextEdge in TG.getNextEdges(Edge):
+	foreach NextEdge in Graph.getNextEdges(Edge):
 		if (Edge.getContextID() == NextEdge.getContextID()):
-			if (forwardSearch(NextEdge, TG, TargetTaintedObject)):
+			if (forwardSearch(NextEdge, Graph, TargetTaintedObject)):
 				found = true
 				break
 	
@@ -1282,7 +1318,13 @@ function forwardSearch(Edge, TG, TargetTaintedObject):
 
 TG = taint trace graph, each node is a function or data source,
    each edge is an event where tainted data is passed between nodes
-   
+
+/* Look at every SubTaintedObject. This means objects not directly passed as
+ * arguments or return values, but those which are reachable from such. The
+ * assumption is that if taint is passed in this form and subsequently never
+ * found to be passed directly at the level of an argument or return value, 
+ * it is never accessed and the user should be informed of this.
+ */   
 foreach Edge in TG.getSortedEdges():
 	foreach TaintedObject in Edge.getTaintedObjects():
 		foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
@@ -1344,10 +1386,10 @@ Architecturally, RUBiS is a very simple servlets application, relying on no exte
 jGossip was found by searching SourceForge for popular open-source Java web applications of greater complexity. It was briefly checked in the early stages of the research to see if it likely contained properties which would be amenable to interesting analyses, and along with several other applications was deemed promising. It was chosen from among these as web forums are a commonly used kind of application, and as such jGossip was a more representative example.
 
 \subsubsection{jGossip Details}
-jGossip is interesting in that it makes extensive use of libraries, such as the Apache Struts framework, JSP, and the JSP Standard Tag Library (JSTL). This is partially desirable as many applications make use these libraries, so jGossip serves as a more realistic example. However, the use of some libraries presents some difficulties for the kind of analysis performed here. In particular, JSP is somewhat problematic in that it allows application code to be created from HTML-like markup. JSP pages are compiled into Java code, and generally a developer never works with this generated code. JSTL compounds the 'problem' by providing a large set of JSP tags to perform various kinds of logic which would normally be written directly in Java. For applications which make extensive use of JSP, it may be that automated analysis results suggest making changes within generated code. Such may be less meaningful as the mapping from JSP to the generated code, and thus how to modify the generated code, may not be obvious. However, as JSP is a popular technology in Java web applications, attempting to analyze an application making use of it is a valuable exercise.
+jGossip is interesting in that it makes extensive use of libraries, such as the Apache Struts framework, JSP, and the JSP Standard Tag Library (JSTL). This is partially desirable as many applications make use these libraries, so jGossip serves as a more realistic example. However, the use of some libraries presents some difficulties for the kind of analysis performed here. In particular, JSP is somewhat problematic in that it allows application code to be created from HTML-like markup. JSP pages are compiled into Java code, and generally a developer never works with this generated code. JSTL compounds the `problem' by providing a large set of JSP tags to perform various kinds of logic which would normally be written directly in Java. For applications which make extensive use of JSP, it may be that automated analysis results suggest making changes within generated code. Such may be less meaningful as the mapping from JSP to the generated code, and thus how to modify the generated code, may not be obvious. However, as JSP is a popular technology in Java web applications, attempting to analyze an application making use of it is a valuable exercise.
 
 \paragraph{}
-Users log into jGossip to get a persistent session to interact with the forum. Whenever data is needed from the database, such as to get information about a user or display a forum, a data access object generally instantiates and fills in various 'bean' objects (serializable, with getters/setters to store properties) from the database data. These objects are then stored as session attributes to be loaded and reused later.
+Users log into jGossip to get a persistent session to interact with the forum. Whenever data is needed from the database, such as to get information about a user or display a forum, a data access object generally instantiates and fills in various `bean' objects (serializable, with getters/setters to store properties) from the database data. These objects are then stored as session attributes to be loaded and reused later.
 
 \section{Completeness of Tracker}
 One of the minor goals of the research was to develop the Java taint tracker itself. It is important that the tracker is complete, meaning that it is capable of tracing tainted data wherever it goes. If this were not the case, the analyses would be less reliable, having incomplete data to work with. The tracker presented here chiefly traces only data in Strings read from designated input sources, as manually specified numeric values. As this tracker does not consider taint propagation by control dependence, such as a tainted variable influencing the value of another through a control-flow statement, the completeness of the tracker can be evaluated somewhat simply.
@@ -1410,10 +1452,10 @@ Request: ShowForum:fid - variability: PREDICTABLE
 \end{figure}
 
 \subsection{Example Trace}
-In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. The format of the node label for these is: column accessed / followed by [catalog / table / column] for each column selected by the query.  A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each column accessed (the target column). The edges out of these nodes are labeled 'RIN' for 'Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the 'missing' edge numbers. From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. 
+In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. The format of the node label for these is: column accessed / followed by [catalog / table / column] for each column selected by the query.  A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each column accessed (the target column). The edges out of these nodes are labeled `RIN' for `Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the `missing' edge numbers. From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. 
 
 \paragraph{}
-This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders. After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds 'IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call. At point 5 is shown how the data is passed to an encode method which processes the data in a way which would have lost the data were it not for the fuzzy propagation methods described earlier. The 'FZZ' edge is present to indicate the use of this heuristic. Finally, the categories are written out to the response output stream, at point 6 depicted as an 'OUT' edge to a println method.
+This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders. After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds `IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call. At point 5 is shown how the data is passed to an encode method which processes the data in a way which would have lost the data were it not for the fuzzy propagation methods described earlier. The `FZZ' edge is present to indicate the use of this heuristic. Finally, the categories are written out to the response output stream, at point 6 depicted as an `OUT' edge to a println method.
 
 \subsection{Precomputation}
 \subsubsection{RUBiS}
@@ -1532,7 +1574,7 @@ Interpreting this, a developer can reasonably assume that for the request respon
 The analysis can be taken further in this case. The tracking code not only logs tainted output, but also creates logs for non-tainted output. Using these one can observe the mixing of tainted and non-tainted data as it is composed together in the output. Looking to Figure C1, generated in the analysis tool from the output logs, we can see that the only tainted output involved in the response web page is from the three hyperlinks identified in the precomputation analysis. The rest of the data is non-tainted, and for this application this equates to it being hardcoded. Given these analysis results a developer can decide to simply precompute the entire response for this category listing page, saving on database access and formatting computation. 
 
 \paragraph{}
-Going further, RUBiS was modified to display a chat box on every page, allowing anyone to post messages to the server for everyone to see. Whenever a message is submitted by a user, it is posted to a SubmitChat servlet which is responsible for adding the message to a list of messages. The important thing to note about this data is that it is very unpredictable. The list of messages can change at any time, with random data input to them, and as such any computations which work with this data are poor candidates for any kind of caching. Figure~\ref{fig:browsecategorieschat} shows a trace for the same page load as before, but including a post to the chat box. The left side of the graph in the figure is as before, the portion outlined in the red box shows the additional flow of the chat message data. This new portion of the graph actually spans two requests to the application - one to submit the chat message and another to display the list of categories along with the new message. The portion of the graph from labeled points 1 to 2 covers the submission of the message, starting with the source node showing the relative URI of the request and the name of the tainted parameter, 'chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, passed to the addChatMessage method of a ServletPrinter Object where it is concatenated with some formatting text, and finally appended to a LinkedList at point 2 by the addLast method. Note that the label for this addLast node ends in the name of a field, the 'chattyList' field of a ServletPrinter Object. This means that this field points to the LinkedList in question and indicates that by storing tainted data in the LinkedList it is effectively stored in that field. Such is useful for a developer to know when interpreting these graphs and mapping them back to the code responsible for them. Point 3 shows where the chat message data flows for the category list request, as a LinkedList is read from the chattyList along edge 18 in the getChatBox method. Following that an iterator over the LinkedList returned along edge 19, and the iterator is accessed along edge 20. The messages inside are concatenate with some formatting text before being passed along to point 4, being returned to the printHTMLHeader method of a ServletPrinter Object and written to the user response stream along with the list of categories.
+Going further, RUBiS was modified to display a chat box on every page, allowing anyone to post messages to the server for everyone to see. Whenever a message is submitted by a user, it is posted to a SubmitChat servlet which is responsible for adding the message to a list of messages. The important thing to note about this data is that it is very unpredictable. The list of messages can change at any time, with random data input to them, and as such any computations which work with this data are poor candidates for any kind of caching. Figure~\ref{fig:browsecategorieschat} shows a trace for the same page load as before, but including a post to the chat box. The left side of the graph in the figure is as before, the portion outlined in the red box shows the additional flow of the chat message data. This new portion of the graph actually spans two requests to the application - one to submit the chat message and another to display the list of categories along with the new message. The portion of the graph from labeled points 1 to 2 covers the submission of the message, starting with the source node showing the relative URI of the request and the name of the tainted parameter, `chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, passed to the addChatMessage method of a ServletPrinter Object where it is concatenated with some formatting text, and finally appended to a LinkedList at point 2 by the addLast method. Note that the label for this addLast node ends in the name of a field, the `chattyList' field of a ServletPrinter Object. This means that this field points to the LinkedList in question and indicates that by storing tainted data in the LinkedList it is effectively stored in that field. Such is useful for a developer to know when interpreting these graphs and mapping them back to the code responsible for them. Point 3 shows where the chat message data flows for the category list request, as a LinkedList is read from the chattyList along edge 18 in the getChatBox method. Following that an iterator over the LinkedList returned along edge 19, and the iterator is accessed along edge 20. The messages inside are concatenate with some formatting text before being passed along to point 4, being returned to the printHTMLHeader method of a ServletPrinter Object and written to the user response stream along with the list of categories.
 
 \paragraph{}
 Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the precomputation ends at the red PrintCategory node, no longer extending to the println nodes. This is because the println method on the same PrintWriter Object now also receives the random data of the chat messages, and thus one cannot replace calls to this method with precomputed data. Given the precomputation output in Figure C2b and the response output breakdown in Figure C2, a developer can determine that the page can be mostly precomputed, only needing to dynamically generate the portion tainted by the chatMessage data.
@@ -1552,7 +1594,7 @@ Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputat
 Loading the main page of the jGossip application, which presents users with a list of available forums, and running the precomputation analysis over the dataflow produces the graph shown in Figure~\ref{fig:mainpageprecomp}. This graph is filtered to show the flow of a particular data item, the title of a forum displayed on the page.
 
 \paragraph{}
-The analysis essentially indicates that the data is able to flow from the database all the way to output without any dependence on other inputs, in particular inputs with unpredictable values. Breaking this flow down, the data read from the database at point 1, and eventually stored in a field near point 2. This field is subsequently accessed by JSP generated code at point 2 (Method:invoke() indicates the use of reflection to get to the field), and the forum title passes through a series of internal methods from the JSTL tab library (the 'evaluate' nodes). It is ultimately used in the doStartTag() method at point 4, a method used by JSP tags to write data to the user response page.
+The analysis essentially indicates that the data is able to flow from the database all the way to output without any dependence on other inputs, in particular inputs with unpredictable values. Breaking this flow down, the data read from the database at point 1, and eventually stored in a field near point 2. This field is subsequently accessed by JSP generated code at point 2 (Method:invoke() indicates the use of reflection to get to the field), and the forum title passes through a series of internal methods from the JSTL tab library (the `evaluate' nodes). It is ultimately used in the doStartTag() method at point 4, a method used by JSP tags to write data to the user response page.
 
 \paragraph{}
 Using this result, along with others which show similar results for other flows of data on the main page, one can find large portions of the main page which can simply be precomputed and then updated should the input database tables ever change. The precomputed results could be added to the JSP pages, avoiding the entire computation which reads them from the database and invokes the JSTL library.
@@ -1602,7 +1644,7 @@ Using this result, along with others which show similar results for other flows 
 %END MAKE FIGURE
 
 \paragraph{}
-Figure~\ref{fig:browseregioncategories} shows a trace taken from viewing the same RUBiS categories list as previously shown with an additional constraint. For this trace, a user first submits a request to get a list of geographical regions. Once these are displayed, a user picks a region, which submits another request to obtain the category list. The region name selected in the first request is used to obtain a region id, which is included in the category hyperlinks output to the user in the second request. The important point to note is that this category list should not be outright precomputed, as the region id parameter varies based on user input. However, this region id is over a small enough range that it is reasonably predictable, and thus it seems that a cache could be implemented here. Breaking down Figure~\ref{fig:browseregioncategories}, point 1 shows the region name data being read from the database for the first request. Note that this trace has been filtered to hide string concatenation dataflow (removing StringBuilder nodes), make it more presentable. At point the region names are passed to the encode method during concatenation with formatting text, and then output to the user at point 3. A user clicks on a region, submitting its name as a parameter in the next request. This is shown at point 4, as the 'region' parameter. From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement Object to be used as a predicate in a database query. When the query is executed at point 7, note how the input node is labeled as being tainted by not only the id column from the regions table, but also by the region parameter that the query was predicated on. Point 5 receives the region id, and passes it to point 8, which receives category names and ids from point 9. The category data and region id are sent point 10, the 'printCategoryByRegion' method, which concatenates them with formatting text, encodes them, and writes them out to the user at point 3.
+Figure~\ref{fig:browseregioncategories} shows a trace taken from viewing the same RUBiS categories list as previously shown with an additional constraint. For this trace, a user first submits a request to get a list of geographical regions. Once these are displayed, a user picks a region, which submits another request to obtain the category list. The region name selected in the first request is used to obtain a region id, which is included in the category hyperlinks output to the user in the second request. The important point to note is that this category list should not be outright precomputed, as the region id parameter varies based on user input. However, this region id is over a small enough range that it is reasonably predictable, and thus it seems that a cache could be implemented here. Breaking down Figure~\ref{fig:browseregioncategories}, point 1 shows the region name data being read from the database for the first request. Note that this trace has been filtered to hide string concatenation dataflow (removing StringBuilder nodes), make it more presentable. At point the region names are passed to the encode method during concatenation with formatting text, and then output to the user at point 3. A user clicks on a region, submitting its name as a parameter in the next request. This is shown at point 4, as the `region' parameter. From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement Object to be used as a predicate in a database query. When the query is executed at point 7, note how the input node is labeled as being tainted by not only the id column from the regions table, but also by the region parameter that the query was predicated on. Point 5 receives the region id, and passes it to point 8, which receives category names and ids from point 9. The category data and region id are sent point 10, the `printCategoryByRegion' method, which concatenates them with formatting text, encodes them, and writes them out to the user at point 3.
 
 \paragraph{}
 Running the caching analysis over this graph and filtering the results to only show the dataflow for the second request, the result graph show in Figure~\ref{fig:browseregioncategoriescaching} is obtained. The first important point to note is that this graph was not eligible for precomputation, due to the influence of the user-supplied region parameter in every part of this graph except for the upper-left portion showing the flow of the category name/id data. However, since this parameter has been marked as being predictable (see Figure Ce [datasourceinfochart]), the analysis judges that a cache may be possible for the identified inputs. Interpreting this, a developer can start at the output node. Figure Cf shows the tainted data flowing here, and this can be compared to the response output breakdown shown in Figure Cg. Evidently the entire page it composed non-tainted (likely static) data and the cachable output. Looking at the inputs in the graph, the data responsible for the cachable output comes from database tables which have all been marked as stable, unlikely to change frequently, and the predictable region parameter. 
@@ -1684,7 +1726,7 @@ Figure~\ref{fig:deleteforumpostcomputation} shows a partial view of the results 
 \label{fig:browseitemsstate}
 \end{sidewaysfigure}
 
-Figure~\ref{fig:browseitemsstate} shows the location of persistent state when interacting with the RUBiS chat box, as previously described in section~\ref{sec:rubisprecomp}. Only the portion of the graph which deals with the persistent state is shown here. The red node shows where the persistent state is actually kept, in a variable called 'chattyList' on the ServletPrinter class. The orange nodes indicate any nodes which communicated the persistent data in question. As expected, these  orange nodes include a chatMessage parameter and its flow into the chattyList, as well as the output nodes which indicate the writing of the chat messages out to the user.
+Figure~\ref{fig:browseitemsstate} shows the location of persistent state when interacting with the RUBiS chat box, as previously described in section~\ref{sec:rubisprecomp}. Only the portion of the graph which deals with the persistent state is shown here. The red node shows where the persistent state is actually kept, in a variable called `chattyList' on the ServletPrinter class. The orange nodes indicate any nodes which communicated the persistent data in question. As expected, these  orange nodes include a chatMessage parameter and its flow into the chattyList, as well as the output nodes which indicate the writing of the chat messages out to the user.
 
 \paragraph{}
 Other instances of persistent state existed in the application, in static variables like this one. All of these were known prior to the automated analysis, which was able to identify them easily.
@@ -1758,7 +1800,7 @@ Heavier manual intervention was also needed for the jGossip post computation ana
 This brings us to the point of the difficulty of automating these kinds of analyses. Our results with the RUBiS application were very optimistic, as the graphs produced by the analysis tool were very easy to understand immediately in large part thanks to their small size. Additionally, since RUBiS uses no added libraries, every node in the graph is potentially relevant to the developer and amenable to change and optimization under the guidance of the analysis.
 
 \paragraph{}
-For a framework-heavy application like jGossip, and realistically many Java web applications make extensive use of large frameworks, the graphs are much larger. At their current stage, most of our analyses output results which are negatively affected by this complexity. They suffer from a "rats nest" effect, and require some manual filtering and searching through to find the parts which could be used to actually support a developer in optimizing the applicaiton. The results are still there, they are just surrounded in many nodes which are less relevant, and thus it helps at this point to actually know what you are looking for. Even knowing simply which piece of data may be involved in an optimizating can go a long way. For the jGossip caching analysis the output was greatly simplified by using the tool to focus on nodes which carried data which we suspected would be cachable.
+For a framework-heavy application like jGossip, and realistically many Java web applications make extensive use of large frameworks, the graphs are much larger. At their current stage, most of our analyses output results which are negatively affected by this complexity. They suffer from a `rats nest' effect, and require some manual filtering and searching through to find the parts which could be used to actually support a developer in optimizing the applicaiton. The results are still there, they are just surrounded in many nodes which are less relevant, and thus it helps at this point to actually know what you are looking for. Even knowing simply which piece of data may be involved in an optimizating can go a long way. For the jGossip caching analysis the output was greatly simplified by using the tool to focus on nodes which carried data which we suspected would be cachable.
 
 \paragraph{}
 A related problem, again most prevalent in the large jGossip graphs, is that of false positives. The analyses are written to be fairly general, so as to find their results in applications which were not written to be easily analyzed. Every pattern of dataflow cannot be reasonably anticipated, so the analyses were written to be permissive and present many possible results. From these one can find those which are truly useful. For example, in the caching analysis for jGossip it was possible for some some output to be affected by random data through control dependence, which our taint tracking technique does not consider.
@@ -2179,7 +2221,7 @@ Though there are many points of refinement to be made in our tools and additiona
 
 \chapter{Terms Used}
 \begin{itemize}
-\item Taint: Where this is used, such as when saying that a piece of data in an application is 'tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, refereed to as the 'taint source'. In this thesis is made a minor distinction between Objects which are directly tainted and those which are reachability tainted. Directly tainted Objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted Object is reachable through an Object's reference graph, such as by following a heirarchy of field references.
+\item Taint: Where this is used, such as when saying that a piece of data in an application is `tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, refereed to as the `taint source'. In this thesis is made a minor distinction between Objects which are directly tainted and those which are reachability tainted. Directly tainted Objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted Object is reachable through an Object's reference graph, such as by following a heirarchy of field references.
 \item Tomography: This refers to the nature of the taint tracking in question. Tomography-level taint tracking is a heavy form of the analysis where tainted data is not only tagged at a source and identified at predetermined monitoring points, but is rather tracked along its complete path, indiscriminantly through many monitoring points. The basic goal of tomography is to get a complete trace of where tainted data goes in a program. 
 \item Trace:
 \item Flow:
@@ -2202,7 +2244,7 @@ caller/called ContextCounter - these attributes supplement the caller/called Cla
 
 \item Xobject Tag \\ 
 Format: <Xobject type, objectID, value, taintID, taintRecord /> \\
-Various 'object' tags (sourceObject, taintedObject, etc) appear in log records to describe important Objects in taint flow events. The attributes of this tag are as follows: \\
+Various `object' tags (sourceObject, taintedObject, etc) appear in log records to describe important Objects in taint flow events. The attributes of this tag are as follows: \\
 type - the Java class name for this object \\
 objectID - a unique ID for the Object. We use the hashcode given by Java. \\
 value - if available, a String representation of the Object. \\
