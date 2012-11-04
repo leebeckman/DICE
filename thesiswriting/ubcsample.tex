@@ -684,6 +684,20 @@ String formattedData = "USERNAME:" + userName;
 
 \chapter{Implementation}
 
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{fig/arch.eps}
+    \caption[Architecture of the Taint Tracking Tool.]{\label{fig:arch} Architecture of the Taint Tracking Tool.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{fig/arch-2.eps}
+    \caption[.]{\label{fig:arch-2} Example partitioning of application.}
+  \end{center}
+\end{figure}
+
 \section{Overview}
 In order to test the hypothesis developed in the thesis, two major tools had to be developed. The first is the Taint Tracking Tool (TTT), which performs a tomography-level tracking of targetted data for Java web applications. This tool relies on the AspectJ framework supporting Aspect Oriented Programming, and is compiled into target Java web applications to collect data from them as they run. The product of this tool is a log file, or a `trace', describing events where tainted data moves from one location to another, which when taken together describe `flows' of tainted data through a program as it executes. This log file is consumed by the second tool, the Analysis Tool (AT). The AT is responsible for a variety of tasks including supporting visualization of the data and allowing one to manually inspect very large traces in a controlled manner. Most importantly, the AT supplies a series of automated analyses which use the traces to discover useful properties of the target web application.
 
@@ -691,7 +705,34 @@ In order to test the hypothesis developed in the thesis, two major tools had to 
 Implemented in 5.2K lines of Java entirely using AspectJ and ajc as the compiler and bytecode weaver. No additional libraries were used.
 
 \subsection{Tool Components}
-The main components of the tool are as follows:
+The main components of the tool are, as shown in Figure~\ref{fig:arch}, the following:
+\begin{itemize}
+\item{Taint I/O System}
+\item{Taint Reference Management System (TRMS)}
+\item{Tomography System}
+\item{Basic Profiling}
+\item{Logging}
+\item{User Control}
+\end{itemize}
+
+\begin{Program}
+  \caption{\label{prog:aspect} Simple Taint Tracking AOP Example.}
+\begin{verbatim}
+1:	aspect DatabaseTaint {
+2:		pointcut QueryParameterSet(): 
+3:			call(QueryClass.setParam(..));
+4:		pointcut ResponseWrite():
+5:			call(ResponseClass.write(..));
+6:
+7:		before(): QueryParameterSet() || ResponseWrite() {
+8:			args = Pointcut.getArgs();
+9:			if (checkTainted(args))
+10:				TaintLogger.log("Taint Output: " + args);
+11:		}
+12:
+13:	}
+\end{verbatim}
+\end{Program}
 
 \subsubsection{Taint I/O System} 
 This makes use of AspectJ, monitoring certain method invocations to intercept target data as it enters an application and is written out to interesting locations. The system captures information about the source of data which will be useful for developers, marks the data as tainted so that it is tracked by the rest of the system, and uses the logging system to record these input/output events. To catch a database read, for example, the system monitors certain calls in the mysql connector library to catch the returning of ResultSets from PreparedStatement objects and reads the metadata from the PreparedStatement to get table/column descriptions as the source of the data. It then calls into the Taint Reference Management System to tell it that data read from the ResultSet should be treated as tainted. As an example of taint output, there are pointcuts on methods which set parameters for database queries and on methods which write to ServletResponse output streams, with advice to log these events. Finally, for this system it is desired that if acquiring input takes as parameters any tainted data, that input is additionally tainted by the tainted parameters, as is shown in Figure X. This is managed by the Taint I/O System as well.
@@ -1334,7 +1375,6 @@ foreach Edge in TG.getSortedEdges():
 				colorEdge(Edge)
 				
 showGraphToUser(TG)	
-
 \end{verbatim}
 \end{Program}
 

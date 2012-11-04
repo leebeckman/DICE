@@ -1,0 +1,12 @@
+aspect DatabaseTaint {
+	pointcut QueryParameterSet(): 
+		call(QueryClass.setParam(..));
+	pointcut ResponseWrite():
+		call(ResponseClass.write(..));
+
+	before(): QueryParameterSet() || ResponseWrite() {
+		args = Pointcut.getArgs();
+		if (checkTainted(args))
+			TaintLogger.log("Taint Output: " + args);
+	}
+}

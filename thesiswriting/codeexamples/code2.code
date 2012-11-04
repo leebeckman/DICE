@@ -1,0 +1,108 @@
+/* This function takes a taint graph as input, then removes any
+ * edges with unmatching variability. The edges carry data which
+ * indicates where their tainted data came from, which can be checked
+ * against configuration files to determine the variability of the 
+ * data sources
+ */
+function pruneToVariability(InputGraph, Variability):
+	OutputGraph = InputGraph.copy()
+	
+	foreach Edge in OutputGraph:
+		foreach TaintRecord in Edge.getTaintRecords():
+			if (TaintRecord.getVariability() != Variability):
+				OutputGraph.removeEdge(Edge)
+				foreach NeighborEdge in TG.getNeighborEdges(Edge):
+					if (NeighborEdge.getContextID() == Edge.getContextID()):
+						OutputGraph.removeEdge(NeighborEdge)
+						
+	return OutputGraph
+	
+/* This function takes a fragmented taint graph as input (one can
+ * find nodes such that there is no path between them), and extracts
+ * every non-fragmented taint graph from it. It picks a node in the
+ * fragmented graph and expands to neighbors until there are none, then
+ * uses the set of expanded-to nodes and their edges to produce a graph.
+ * In continues until there are no unvisited nodes left in the fragmented
+ * graph.
+ */
+function getConnectedSubGraphs(InputGraph):
+	Outputs = {}
+	VisitedNodes = {}
+	foreach Node in InputGraph.getNodes():
+		if (VisitedNodes.contains(Node):
+			continue		
+		SubGraph = Empty Graph
+		ToVisitNodes = {}
+		ToVisitNodes.add(Node)
+		
+		while (ToVisitNodes != {}):
+			VisitingNode = ToVisitNodes.removeFirst()
+			if (VisitedNodes.contains(VisitingNode)):
+				continue
+			VisitedNodes.add(VisitingNode)
+			SubGraph.add(VisitingNode)
+			SubGraph.add(VisitingNode.getNeighborEdges())
+			ToVisitNodes.add(InputGraph.getNeighborNodes(VisitingNode))
+		
+		Outputs.add(SubGraph)
+	return Outputs
+
+/* Use the CallGraph data to check the total execution time for the
+ * TaintGraph edges, being careful to handle nested executions properly.
+ * Return true if the time is over THRESHOLD.				
+ * function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
+ */
+
+/* This uses the CallGraph to determine if the events indicated by
+ * edges in Graph cause, through their descendent method calls, any 
+ * events in the SideEffectGraph to occur. The CallGraph supplies a 
+ * method, getDescendentEdges(Edge), which returns and function call
+ * edges which were ultimately caused by the function call edge given
+ * as argument.
+ */
+function getSideEffects(Graph, SideEffectGraph, CallGraph):
+	SideEffectsEdges = {}
+	SideEffectGraphEdges = SideEffectGraph.getEdges()
+	
+	foreach Edge in Graph.getEdges():
+		DescendentEdges = CallGraph.getDescendentEdges(Edge)
+		SideEffectsEdges.add(SideDescendentEdges \cap SideEffectGraphEdges)
+	
+	return SideEffectEdges
+
+TG = taint trace graph, each node is a function or data source,
+   each edge is an event where tainted data is passed between nodes.
+CG = call graph, with all calls made during taint trace collection, even those
+   which did not exchange taint. Given a taint trace edge for a function call,
+   the call graph can be used to find descendant function calls. This graph
+   also contains method execution times.
+
+TGPredictable = pruneToVariability(TG, PREDICTABLE)
+TGRandom = pruneToVariability(TG, RANDOM)
+
+PredictableConnectedSubGraphs = getConnectedSubGraphs(TGPredictable)
+
+foreach PredictableCS in PredictableConnectedSubGraphs:
+	/* A check to see if the graph is expensive enough to be worth the
+	 * effort of trying to cache it
+	 */
+	if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
+		/* Check that the execution of this graph does not result in the
+		 * flow of non-deterministic data, as then we need to be much more
+		 * careful about using the cache and skipping execution.
+		 */
+		RandomSideEffects = getSideEffects(PredictableCS, TGRandom, CG)
+		/* If there are side effects, it may be that they are cheap enough
+		 * to execute even when fetching from the cache. If not, move on
+		 * to the next graph.
+		 */
+		if (checkOverCost(RandomSideEffects, CG, REJECT_THRESHOLD)):
+			continue
+		/* Present the graph to the user */
+		colorOutputs(PredictableCS, TG)
+		colorInputs(PredictableCS, TG)
+		showGraphToUser(PredictableCS)
+		/* Indicate the side effects, if any, for the user to decide
+		 * how to handle.
+		 */
+		showSideEffectsToUser(RandomSideEffects)

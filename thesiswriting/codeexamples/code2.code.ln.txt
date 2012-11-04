@@ -1,0 +1,108 @@
+1:	/* This function takes a taint graph as input, then removes any
+2:	 * edges with unmatching variability. The edges carry data which
+3:	 * indicates where their tainted data came from, which can be checked
+4:	 * against configuration files to determine the variability of the 
+5:	 * data sources
+6:	 */
+7:	function pruneToVariability(InputGraph, Variability):
+8:		OutputGraph = InputGraph.copy()
+9:		
+10:		foreach Edge in OutputGraph:
+11:			foreach TaintRecord in Edge.getTaintRecords():
+12:				if (TaintRecord.getVariability() != Variability):
+13:					OutputGraph.removeEdge(Edge)
+14:					foreach NeighborEdge in TG.getNeighborEdges(Edge):
+15:						if (NeighborEdge.getContextID() == Edge.getContextID()):
+16:							OutputGraph.removeEdge(NeighborEdge)
+17:							
+18:		return OutputGraph
+19:		
+20:	/* This function takes a fragmented taint graph as input (one can
+21:	 * find nodes such that there is no path between them), and extracts
+22:	 * every non-fragmented taint graph from it. It picks a node in the
+23:	 * fragmented graph and expands to neighbors until there are none, then
+24:	 * uses the set of expanded-to nodes and their edges to produce a graph.
+25:	 * In continues until there are no unvisited nodes left in the fragmented
+26:	 * graph.
+27:	 */
+28:	function getConnectedSubGraphs(InputGraph):
+29:		Outputs = {}
+30:		VisitedNodes = {}
+31:		foreach Node in InputGraph.getNodes():
+32:			if (VisitedNodes.contains(Node):
+33:				continue		
+34:			SubGraph = Empty Graph
+35:			ToVisitNodes = {}
+36:			ToVisitNodes.add(Node)
+37:			
+38:			while (ToVisitNodes != {}):
+39:				VisitingNode = ToVisitNodes.removeFirst()
+40:				if (VisitedNodes.contains(VisitingNode)):
+41:					continue
+42:				VisitedNodes.add(VisitingNode)
+43:				SubGraph.add(VisitingNode)
+44:				SubGraph.add(VisitingNode.getNeighborEdges())
+45:				ToVisitNodes.add(InputGraph.getNeighborNodes(VisitingNode))
+46:			
+47:			Outputs.add(SubGraph)
+48:		return Outputs
+49:	
+50:	/* Use the CallGraph data to check the total execution time for the
+51:	 * TaintGraph edges, being careful to handle nested executions properly.
+52:	 * Return true if the time is over THRESHOLD.				
+53:	 * function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
+54:	 */
+55:	
+56:	/* This uses the CallGraph to determine if the events indicated by
+57:	 * edges in Graph cause, through their descendent method calls, any 
+58:	 * events in the SideEffectGraph to occur. The CallGraph supplies a 
+59:	 * method, getDescendentEdges(Edge), which returns and function call
+60:	 * edges which were ultimately caused by the function call edge given
+61:	 * as argument.
+62:	 */
+63:	function getSideEffects(Graph, SideEffectGraph, CallGraph):
+64:		SideEffectsEdges = {}
+65:		SideEffectGraphEdges = SideEffectGraph.getEdges()
+66:		
+67:		foreach Edge in Graph.getEdges():
+68:			DescendentEdges = CallGraph.getDescendentEdges(Edge)
+69:			SideEffectsEdges.add(SideDescendentEdges \cap SideEffectGraphEdges)
+70:		
+71:		return SideEffectEdges
+72:	
+73:	TG = taint trace graph, each node is a function or data source,
+74:	   each edge is an event where tainted data is passed between nodes.
+75:	CG = call graph, with all calls made during taint trace collection, even those
+76:	   which did not exchange taint. Given a taint trace edge for a function call,
+77:	   the call graph can be used to find descendant function calls. This graph
+78:	   also contains method execution times.
+79:	
+80:	TGPredictable = pruneToVariability(TG, PREDICTABLE)
+81:	TGRandom = pruneToVariability(TG, RANDOM)
+82:	
+83:	PredictableConnectedSubGraphs = getConnectedSubGraphs(TGPredictable)
+84:	
+85:	foreach PredictableCS in PredictableConnectedSubGraphs:
+86:		/* A check to see if the graph is expensive enough to be worth the
+87:		 * effort of trying to cache it
+88:		 */
+89:		if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
+90:			/* Check that the execution of this graph does not result in the
+91:			 * flow of non-deterministic data, as then we need to be much more
+92:			 * careful about using the cache and skipping execution.
+93:			 */
+94:			RandomSideEffects = getSideEffects(PredictableCS, TGRandom, CG)
+95:			/* If there are side effects, it may be that they are cheap enough
+96:			 * to execute even when fetching from the cache. If not, move on
+97:			 * to the next graph.
+98:			 */
+99:			if (checkOverCost(RandomSideEffects, CG, REJECT_THRESHOLD)):
+100:				continue
+101:			/* Present the graph to the user */
+102:			colorOutputs(PredictableCS, TG)
+103:			colorInputs(PredictableCS, TG)
+104:			showGraphToUser(PredictableCS)
+105:			/* Indicate the side effects, if any, for the user to decide
+106:			 * how to handle.
+107:			 */
+108:			showSideEffectsToUser(RandomSideEffects)
