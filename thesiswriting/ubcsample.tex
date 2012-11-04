@@ -816,7 +816,13 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code2} High level algorithm for caching analysis.}
 \begin{alltt}
-function pruneToVariability(Variability):
+/* This function takes a taint graph as input, then removes any
+ * edges with unmatching variability. The edges carry data which
+ * indicates where their tainted data came from, which can be checked
+ * against configuration files to determine the variability of the 
+ * data sources
+ */
+function pruneToVariability(InputGraph, Variability):
 	OutputGraph = InputGraph.copy()
 	
 	foreach Edge in OutputGraph:
@@ -828,7 +834,15 @@ function pruneToVariability(Variability):
 						OutputGraph.removeEdge(NeighborEdge)
 						
 	return OutputGraph
-						
+	
+/* This function takes a fragmented taint graph as input (one can
+ * find nodes such that there is no path between them), and extracts
+ * every non-fragmented taint graph from it. It picks a node in the
+ * fragmented graph and expands to neighbors until there are none, then
+ * uses the set of expanded-to nodes and their edges to produce a graph.
+ * In continues until there are no unvisited nodes left in the fragmented
+ * graph.
+ */
 function getConnectedSubGraphs(InputGraph):
 	Outputs = {}
 	VisitedNodes = {}
@@ -850,18 +864,26 @@ function getConnectedSubGraphs(InputGraph):
 		
 		Outputs.add(SubGraph)
 	return Outputs
-				
-function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
-	Use the CallGraph data to check the total execution time for the
-	TaintGraph edges, being careful to handle nested executions properly.
-	Return true if the time is over THRESHOLD.
 
+/* Use the CallGraph data to check the total execution time for the
+ * TaintGraph edges, being careful to handle nested executions properly.
+ * Return true if the time is over THRESHOLD.				
+ * function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
+ */
+
+/* This uses the CallGraph to determine if the events indicated by
+ * edges in Graph cause, through their descendent method calls, any 
+ * events in the SideEffectGraph to occur. The CallGraph supplies a 
+ * method, getDescendentEdges(Edge), which returns and function call
+ * edges which were ultimately caused by the function call edge given
+ * as argument.
+ */
 function getSideEffects(Graph, SideEffectGraph, CallGraph):
 	SideEffectsEdges = {}
 	SideEffectGraphEdges = SideEffectGraph.getEdges()
 	
 	foreach Edge in Graph.getEdges():
-		DescendentEdges = CallGraph.getDescendentEdges()
+		DescendentEdges = CallGraph.getDescendentEdges(Edge)
 		SideEffectsEdges.add(SideDescendentEdges \cap SideEffectGraphEdges)
 	
 	return SideEffectEdges
@@ -872,23 +894,36 @@ CG = call graph, with all calls made during taint trace collection, even those
    which did not exchange taint. Given a taint trace edge for a function call,
    the call graph can be used to find descendant function calls. This graph
    also contains method execution times.
- 
-TG_stable = pruneToVariability(STABLE)
-TG_predictable = pruneToVariability(PREDICTABLE)
-TG_random = pruneToVariability(RANDOM)
 
-Stable_connected_subgraphs = getConnectedSubGraphs(TG_stable)
-Predictable_connected_subgraphs = getConnectedSubGraphs(TG_predictable)
-Random_connected_subgraphs = getConnectedSubGraphs(TG_random)
+TGPredictable = pruneToVariability(TG, PREDICTABLE)
+TGRandom = pruneToVariability(TG, RANDOM)
 
-foreach Predictable_CS in Predictable_connected_subgraphs:
-   if (checkOverCost(Predictable_CS, CG, ACCEPT_THRESHOLD)):
-       Random_SideEffects = getSideEffects(Predictable_CS, TG_random, CG)
-       if (checkOverCost(Random_SideEffects, CG, REJECT_THRESHOLD)):
-           continue
-       colorOutputs(Predictable_CS, TG)
-       colorInputs(Predictable_CS, TG)
-       showGraphToUser(Predictable_CS)
+PredictableConnectedSubGraphs = getConnectedSubGraphs(TGPredictable)
+
+foreach PredictableCS in PredictableConnectedSubGraphs:
+	/* A check to see if the graph is expensive enough to be worth the
+	 * effort of trying to cache it
+	 */
+	if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
+		/* Check that the execution of this graph does not result in the
+		 * flow of non-deterministic data, as then we need to be much more
+		 * careful about using the cache and skipping execution.
+		 */
+		RandomSideEffects = getSideEffects(PredictableCS, TGRandom, CG)
+		/* If there are side effects, it may be that they are cheap enough
+		 * to execute even when fetching from the cache. If not, move on
+		 * to the next graph.
+		 */
+		if (checkOverCost(RandomSideEffects, CG, REJECT_THRESHOLD)):
+			continue
+		/* Present the graph to the user */
+		colorOutputs(PredictableCS, TG)
+		colorInputs(PredictableCS, TG)
+		showGraphToUser(PredictableCS)
+		/* Indicate the side effects, if any, for the user to decide
+		 * how to handle.
+		 */
+		showSideEffectsToUser(RandomSideEffects)
 \end{alltt}
 \end{Program}
 
@@ -909,18 +944,24 @@ CG = call graph, with all calls made during taint trace collection, even those
    the call graph can be used to find descendant function calls. This graph
    also contains method execution times.
    
-TG_stable = pruneToVariability(STABLE)
-TG_predictable = pruneToVariability(PREDICTABLE)
-TG_random = pruneToVariability(RANDOM)
+TGStable = pruneToVariability(TG, STABLE)
+TGPredictable = pruneToVariability(TG, PREDICTABLE)
+TGRandom = pruneToVariability(TG, RANDOM)
 
-Stable_connected_subgraphs = getConnectedSubGraphs(TG_stable)
+StableConnectedSubGraphs = getConnectedSubGraphs(TGStable)
 
-foreach Stable_CS in Stable_connected_subgraphs:
-   if (getSideEffects(Stable_CS, TG_random, CG) == {}):
-       if (getSideEffects(Stable_CS, TG_predictable, CG) == {}):
-           colorOutputs(Stable_CS, TG)
-           colorInputs(Stable_CS, TG)
-           showGraphToUser(Stable_CS)
+foreach StableCS in StableConnectedSubGraphs:
+	/* Check that the execution of this graph does not result in the
+	 * flow of non-deterministic data or require any variable input,
+	 * however predictable, as then we need to be much more
+	 * careful about using precomputation and skipping execution.
+	 */
+	if (getSideEffects(StableCS, TGRandom, CG) == {}):
+		if (getSideEffects(StableCS, TGPredictable, CG) == {}):
+			/* Present the graph to the user */
+			colorOutputs(StableCS, TG)
+			colorInputs(StableCS, TG)
+			showGraphToUser(StableCS)
 \end{verbatim}
 \end{Program}
 
@@ -932,19 +973,31 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code3} High level algorithm for postcomputation analysis.}
 \begin{verbatim}
+/* Takes the InputGraph and splits it into multiple graphs
+ * so that each new graph has Edges sharing a common RequestID
+ */
 function getRequestSubGraphs(InputGraph):
-	Takes the InputGraph and splits it into multiple graphs
-	so that each new graph has Edges sharing a common RequestID		
 
+/* Return any output type edges for methods known to 
+ * write output to the user
+ */
 function getUserOutputEdges(InputGraph):
-	Return any output type edges for methods known to 
-	write output to the user
 
+/* Return any output type edges for methods known to
+ * write data to a database
+ */
 function getDBOutputEdges(InputGraph):
-	Return any output type edges for methods known to
-	write data to a database
 
+/* Given an edge to start from, CurrentEdge, work backwards
+ * through Graph (to edges which could have influenced the
+ * CurrentEdge and so on, using the ContextID to ensure that
+ * edges are in the same thread of execution).
+ */
 function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
+	/* If it is possible to flow forward in the Graph to UserOutputEdges
+	 * from the CurrentEdge, it means that delaying the execution of the
+	 * CurrentEdge may mean that users to not get output that they need.
+	 */
 	if (forwardSearch(CurrentEdge, Graph, UserOutputEdges)):
 		return
 	
@@ -953,7 +1006,13 @@ function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
 	foreach PrevEdge in Graph.getPrevEdges(CurrentEdge):
 		if (Edge.getContextID() == PrevEdge.getContextID()):
 			backwardsExpand(FoundEdges, PrevEdge, UserOutputEdges, Graph)
-	
+
+/* Given an edge to start from, Edge, work forwards through
+ * Graph (to edges which could be influenced by the Edge and
+ * so on, using the ContextID to ensure that edges are in the
+ * same thread of execution). Return true if any of the Target
+ * edges can be reached from the original edge.
+ */	
 function forwardSearch(Edge, Graph, TargetEdges):
 	if (Edge already visited):
 		return false
@@ -975,16 +1034,24 @@ TG = taint trace graph, each node is a function or data source,
 
 RequestSubGraphs = getRequestSubGraphs(TG)
 
-foreach Request_SG in RequestSubGraphs:
-    UserOutputEdges = getUserOutputEdges(Request_SG)
-    DBOutputs = getDBOutputEdges(Request_SG)
+foreach RequestSG in RequestSubGraphs:
+    UserOutputEdges = getUserOutputEdges(RequestSG)
+    DBOutputs = getDBOutputEdges(RequestSG)
     
     foreach DBOutputEdge in DBOutputs:
     	PostCompGraph = Empty Graph
-        backwardsExpand(PostCompGraph, DBOutputEdge, UserOutputEdges, Request_SG)
+    	/* Basically we start from an edge which outputs to the database, as
+    	 * these are good candidates for blocking computation that we might
+    	 * be able to defer until later. We work backwards from the database
+    	 * output to see how much computation influencing it can be deferred,
+    	 * going until we reach a point where the computation could influence
+    	 * output to the user.
+    	 */
+        backwardsExpand(PostCompGraph, DBOutputEdge, UserOutputEdges, RequestSG)
+        /* If we found anything, show it to the user */
         if (PostCompGraph != {}):
-            colorOutputs(PostCompGraph, request_SG)
-            colorInputs(PostCompGraph, request_SG)
+            colorOutputs(PostCompGraph, RequestSG)
+            colorInputs(PostCompGraph, RequestSG)
             showGraphToUser(PostCompGraph)
 \end{verbatim}
 \end{Program}
@@ -1009,28 +1076,49 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code4} High level algorithm for application state analysis.}
 \begin{alltt}
+/* Extracts from a taint graph the set of taint IDs present amongst
+ * its edges. If two graphs share any taint IDs, it means same tainted
+ * data flowed it both of them.
+ */
+function getTaintIDSet(Graph):
+
 TG = taint trace graph, each node is a function or data source,
    each edge is an event where tainted data is passed between nodes
 
-Request_subgraphs = getRequestSubGraphs(TG)
+RequestSubGraphs = getRequestSubGraphs(TG)
 
+/* This list will be filled with sets, such that each set represents
+ * the taint IDs encountered for a single request.
+ */
 ByRequestTaintIDs = {}
 PersistentTaintIDs = {}
-foreach Request_SG in Request_subgraphs:
-    ByRequestTaintIDs.add(getTaintIDSet(Request_SG))
+
+foreach RequestSG in RequestSubGraphs:
+    ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
     
+/* Find any taint IDs which where present in multiple Request Graphs.
+ * Such indicates tainted data which had a lifetime beyond a single
+ * request, and we call such taint IDs persistent.
+ */
 for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
 	for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
 		SetA = ByRequestTaintIDs[i]
 		SetB = ByRequestTaintIDs[j]
 	    PersistentTaintIDs.add(SetA \cap SetB)
 
+/* For each persistent taint ID, go through the the taint graph edges
+ * (sorted in the order they occured), coloring any edges which carry the
+ * persistent data, and looking for a point where the request ID changes.
+ * This point will indicate where multiple requests access the data from,
+ * the place where the persistent data is actually stored, and is colored
+ * differently.
+ */
 foreach PersistenTaintID in PersistentTaintIDs:
 	foreach Edge in TG.getSortedEdges():
         if (edge.getAllTaintIDs().contains(PersistentTaintID)):
-        	colorEdgeA(edge)
+        	colorEdgeRed(edge)
         	if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
-        	    colorEdgeB(edge)
+        	    colorEdgeGreen(edge)
         	LastRequestID = Edge.getRequestID()
         	
 showGraphToUser(TG)
@@ -1081,12 +1169,27 @@ function matchPath(Path, TargetFlowGraph):
 			StartEdge.getEndNode.getName() == FirstEdge.getEndNode.getName()):
 			PathPosition = 1
 			CheckEdge = StartEdge
-			NextCheckEdge = Path[PathPosition]
 			
 			while (PathPosition < Path.size()):
+				NextCheckEdge = Path[PathPosition]
 				Found = false
 				foreach NextEdge in FlowGraph.getNeighborEdges(CheckEdge):
-					
+					if (NextEdge.getStartNode.getName() == NextCheckEdge.getStartNode.getName() &&
+						NextEdge.getEndNode.getName() == NextCheckEdge.getStartNode.getName()):
+						Found = true
+						CheckEdge = NextEdge
+						break
+				
+				if (Found):
+					PathPosition++
+				else
+					break
+			
+			if (PathPosition == Path.size())
+				Match = true
+				break
+				
+	return Matched
 	
 /* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
  * This map shows, for each persistent taint ID, which request graphs carry that taint,
@@ -1106,8 +1209,8 @@ RequestSubGraphs = getRequestSubGraphs(TG)
 
 ByRequestTaintIDs = {}
 PersistentTaintIDs = {}
-foreach Request_SG in RequestSubGraphs:
-    ByRequestTaintIDs.add(getTaintIDSet(Request_SG))
+foreach RequestSG in RequestSubGraphs:
+    ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
     
 for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
 	for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
