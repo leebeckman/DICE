@@ -568,11 +568,11 @@ The remainder of this thesis is organized as follows: Chapter 2 discusses the bo
 \begin{Program}
   \caption{\label{prog:code1} Simple taint tracking example.}
 \begin{verbatim}
-String userName = getUserNameInput(); 
-// Any data from user input is tainted, so userName is marked as tainted.
-String formattedData = "USERNAME:" + userName; 
-// The value of formattedData is based on userName, 
-// so formattedData is marked as tainted.
+1:	String userName = getUserNameInput(); 
+2:	// Any data from user input is tainted, so userName is marked as tainted.
+3:	String formattedData = "USERNAME:" + userName; 
+4:	// The value of formattedData is based on userName, 
+5:	// so formattedData is marked as tainted.
 \end{verbatim}
 \end{Program}	
 	
@@ -686,15 +686,15 @@ String formattedData = "USERNAME:" + userName;
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{fig/arch.eps}
+    \includegraphics[width=0.6\textwidth]{figs/arch.eps}
     \caption[Architecture of the Taint Tracking Tool.]{\label{fig:arch} Architecture of the Taint Tracking Tool.}
   \end{center}
 \end{figure}
 
 \begin{figure}[ht]
   \begin{center}
-    \includegraphics[width=0.6\textwidth]{fig/arch-2.eps}
-    \caption[.]{\label{fig:arch-2} Example partitioning of application.}
+    \includegraphics[width=0.6\textwidth]{figs/arch-2.eps}
+    \caption[Architecture of entire TaTAMi System.]{\label{fig:arch-2} Architecture of entire TaTAMi System.}
   \end{center}
 \end{figure}
 
@@ -723,46 +723,54 @@ The main components of the tool are, as shown in Figure~\ref{fig:arch}, the foll
 3:			call(QueryClass.setParam(..));
 4:		pointcut ResponseWrite():
 5:			call(ResponseClass.write(..));
-6:
+6:	
 7:		before(): QueryParameterSet() || ResponseWrite() {
 8:			args = Pointcut.getArgs();
-9:			if (checkTainted(args))
+9:			if (TRMS.checkTainted(args))
 10:				TaintLogger.log("Taint Output: " + args);
 11:		}
-12:
-13:	}
+12:	}
 \end{verbatim}
 \end{Program}
 
 \subsubsection{Taint I/O System} 
-This makes use of AspectJ, monitoring certain method invocations to intercept target data as it enters an application and is written out to interesting locations. The system captures information about the source of data which will be useful for developers, marks the data as tainted so that it is tracked by the rest of the system, and uses the logging system to record these input/output events. To catch a database read, for example, the system monitors certain calls in the mysql connector library to catch the returning of ResultSets from PreparedStatement objects and reads the metadata from the PreparedStatement to get table/column descriptions as the source of the data. It then calls into the Taint Reference Management System to tell it that data read from the ResultSet should be treated as tainted. As an example of taint output, there are pointcuts on methods which set parameters for database queries and on methods which write to ServletResponse output streams, with advice to log these events. Finally, for this system it is desired that if acquiring input takes as parameters any tainted data, that input is additionally tainted by the tainted parameters, as is shown in Figure X. This is managed by the Taint I/O System as well.
+This makes use of AspectJ, monitoring certain method invocations to intercept target data as it enters an application and is written out to locations the application user or database. The system captures information about the source of data which will be useful for analysis, marks the data as tainted so that it is tracked by the rest of the system, and uses the logging system to record the input/output events. To catch a database read, for example, the system monitors certain calls in the mysql connector library to catch the returning of ResultSets from PreparedStatement objects and reads the metadata from the PreparedStatement to get table/column descriptions as the source of the data. It then calls into the Taint Reference Management System (TRMS) to tell it that the data read from the ResultSet should be treated as tainted. As an example of capturing taint output in AspectJ, consider the pseudocode in Program~\ref{prog:aspect}. Lines 2-4 declare two pointcuts, which together target any calls to setParam methods on QueryClass objects and to write methods on WebResponseClass objects, to capture output to the database and to a user respectively. Line 7 starts a declaration of advice, which will cause the contained code to run `before' the calls targeted by the pointcuts. Line 8 uses AspectJ to extract the arguments to the targeted method call, and line 10 asks the TRMS if any of the arguments are tainted. If so, they are logged for analysis. 
+
+%% REVISIONS: THIS BIT REVISED TO MORE CLEARLY TALK ABOUT INPUT TAINTED BY TAINTED PARAMETERS
+\paragraph{}
+One important point to note when marking input as tainted is how to handle cases where arguments to methods which acquire input are tainted themselves. For example, this is the case when a database query is constructed with some tainted parameters and is then subsequently used to access data. This case is handled by the Taint I/O system, which marks such accessed data with both its own taint identifiers and the identifiers of the tainted arguments.
 
 \subsubsection{Taint Reference Management System (TRMS)} 
-The TRMS is responsible for keeping track of which objects are tainted. Other parts of the tool will call into this system to ask if a given object carries taint, and if so, where the taint came from. At the basic level, the system only keeps track of tainted Strings, character arrays, and numerical values manually targetted by the user of the tool. It doesn't track taint through primitives such as booleans and chars due to limitations of AspectJ and the fact that it cannot uniquely identify them. The TRMS marks Strings as tainted by keeping weak references to them in a map, mapping them to information about the taint source. Weak references are used so that the Objects can still be garbage collected.
+The TRMS is responsible for keeping track of which objects are tainted. Other parts of the tool will call into this system to ask if a given object carries taint, and if so, where the taint came from. At the basic level, the system only keeps track of tainted Strings, character arrays, and numerical values manually targetted by the user of the tool. It doesn't track taint through primitives such as booleans and chars due to limitations of AspectJ, and future techniques could avoid this limitation. The TRMS marks Strings as tainted by keeping weak references to them in a map, mapping them to information about the taint source. Weak references are used so that the objects can still be garbage collected.
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/backtaint.eps}
+    \caption[Examples of backwards taint propagation.]{\label{fig:backtaint} Examples of backwards taint propagation.}
+  \end{center}
+\end{figure}
 
 \paragraph{}
-Tracking of numeric values, even though they are primitive, is enabled through the following method: When a numeric value is input from a source to be tracked, the TRMS replaces it with a randomly generated value which is likely to be unique. The TRMS then maps the random value to information about the source of the value, just as it does with tainted Strings. Whenever the replaced value is output somewhere, such as to the user or as a database query parameter, the TRMS replaces it with the original value. There are cases where this form of tracking would change the operation of the program, such as if the numerical value is used in a loop counter, but in practice it was found that numeric values in need of tracking did not exhibit this behaviour.
+The main function of the TRMS is the management of a backward reference map. In order to properly track the flow of tainted data, the system needs to know when a Java object is reachability tainted (see Chapter~\ref{cha:termsused}, 'Taint'). A naive strategy for determining whether an object is tainted as such is to simply deep scan the object using reflection, however this is a costly operation and in practice inflicts too great a performance penalty on target applications. A better stategy is to have a system where when taint is assigned to an object (by setting a field or adding to a collection, as caught by AspectJ), one can quickly mark the object as tainted as well as any parent objects (Objects from which the originally tainted object is reachable). Thus, the TRMS maintains a map of child-parent relationships which is updated whenever a field is set. When taint is removed from an object, one can similarly remove it from any parent objects by following the child-parent mappings. This kind of updating is useful for situations like the one depicted in Figure~\ref{fig:backtaint}. In pane 1 is shown an untainted object B. In pane 2, B is assigned to a field of the object A, and A is marked as a parent of B in the backward reference map. In pane 3, B becomes tainted, and using the map the TRMS locates its parent A and marks it as tainted as well. In pane 4, B is set as a field of object C, which is already itself a field of object D. In this case C is immediately tainted due to a tainted object being assigned to its field, and following that the TRMS uses the map to see that D is a parent of C, and must be tainted as well. For the reference graph depicted in pane 4, if B becomes untainted, all the other objects will as well, using again the backwards reference map.
 
 \paragraph{}
-The main function of the TRMS is the management of a backward reference tree. In order to properly track the flow of tainted data, the system needs to know when a Java Object is reachability tainted (see terms definition). A naive strategy for determining whether an object is tainted as such is to simply deep scan the object using reflection, however this is a costly operation and in practice inflicts too great a performance penalty on target applications. A better stategy is to have a system where when taint is assigned to an Object (by setting a field or adding to a collection, as caught by AspectJ), one can quickly mark the Object as tainted as well as any parent Objects (Objects from which the originally tainted Object is reachable). Thus, the TRMS maintains a map of child-parent relationships, which is updated whenever a field is set. When taint is removed from an Object, one can similarly remove it from any parent Objects by following the child-parent mappings. This kind of updating is useful for situations like the one depicted in Figure X.
+There are, however, several problems with this strategy, due to limitations of AspectJ which had to be overcome. Unfortunately, AspectJ does not support pointcuts for array element access, nor is one able to instrument any classes in the Java runtime. This means that wherever an array or an object from the Java runtime is used, AspectJ is blind to reference changes made inside of it. The solution to this used here is to track the reachability of arrays and Java runtime objects in the same way as tainted objects themselves. Whenever one wants to check if an object contains taint, also checked is if it contains such problematic objects. If so, the contents of these objects are scanned, recursively checking their contents for taint/problematic objects in the same way as the original object.
 
 \paragraph{}
-There are, however, several problems with this strategy, due to limitations of AspectJ which had to be overcome. Unfortunately, AspectJ does not support pointcuts for array element access, nor is one able to instrument any classes in the Java runtime. This means that wherever an array or an object from the Java runtime is used, AspectJ is blind to reference changes made inside of it. The solution to this used here is to track the reachability of arrays and Java runtime Objects in the same way as tainted Objects themselves. Whenever one wants to check if an Object contains taint, also checked is if it contains such problematic Objects. If so, the contents of these Objects are scanned, recursively checking their contents for taint/problematic Objects in the same way as the original Object.
-
-\paragraph{}
-In order to boost performance futher, there are a series of pointcuts and advice for catching modification operations on most Java Collections Objects. This serves the same function as field set pointcuts for keeping the backward reference tree up to date, but brings it to a set of Java runtime Objects which ordinarily would have needed to be deep scanned.
+In order to boost performance futher, there are a series of pointcuts and advice for catching modification operations on most Java Collections objects. This serves the same function as field set pointcuts for keeping the backward reference tree up to date, but brings it to a set of Java runtime objects which ordinarily would have needed to be deep scanned.
 
 \paragraph{}
 This kind of bookkeeping is less important in traditional taint tracking, where checking if data is tainted occurs at fewer points, but becomes more useful when needing to check for taint very frequently as in tomography.
 
 \subsubsection{Tomography System} 
-This relies on AspectJ to intercept various events where tainted data flows from one location to another. This fulfills the main function of the TTT, building a complete picture of where data one is interested in goes. The basic events that tracked are method calls, method returns, Object instantiation, and field set/get; and at each of these points the Tomography System calls into the TRMS to check if the arguments/return values are tainted. If they are, the logging system is called to record these events. In the case of a method return, the system doesn't just check the return value for taint; in many cases values are `returned' by modifying the arguments to the call, so the system keeps a record of what taint each argument carried before the method was invoked and checks to see if they carry any new taint when the method is returning. 
+\label{subsub:trms}
+This relies on AspectJ to intercept various events where tainted data flows from one location to another. This fulfills the main function of the TTT, building a complete picture of where data one is interested in goes. The basic events that are tracked are method calls, method returns, object instantiation, and field set/get; and at each of these points the Tomography System calls into the TRMS to check if the arguments/return values are tainted. If they are, the logging system is called to record these events. In the case of a method return, the system doesn't just check the return value for taint; in many cases values are `returned' by modifying the arguments to the call, so the system keeps a record of what taint each argument carried before the method was invoked and checks to see if they carry any new taint when the method is returning. 
 
 \paragraph{}
-In addition to tracking these basic events, the Tomography System advises every method on String, StringBuffer, and StringBuilder Objects which cause several important events. These are termed `propagation' events, where tainted Strings influence the value of other Strings (example cases would be copying a String or appending it to a StringBuilder); `modification' events, where tainted Strings are changed in some way (examples being appended to or having characters deleted from); and `composition/association' events, where multiple tainted Strings are combined or used together (examples being appending or equality checks). Propagation events are particularly important, as such Strings derived from tainted Strings must be added to the TRMS so that they are tracked by the rest of the Tomography System. The modification/composition/association events are logged as they are of use in performing certain analyses in the Analysis Tool.
+In addition to tracking these basic events, the Tomography System advises every method on String, StringBuffer, and StringBuilder objects which cause several important events. These are termed `propagation' events, where tainted Strings influence the value of other Strings (example cases would be copying a String or appending it to a StringBuilder); `modification' events, where tainted Strings are changed in some way (examples being appended to or having characters deleted from); and `composition/association' events, where multiple tainted Strings are combined or used together (examples being appending or equality checks). Propagation events are particularly important, as such Strings derived from tainted Strings must be added to the TRMS so that they are tracked by the rest of the Tomography System. The modification/composition/association events are logged as they are of use in performing certain analyses in the Analysis Tool.
 
 \paragraph{}
-Finally, the Tomography System employs some heuristics to attempt to track tainted Strings through methods which may `lose' the taint. By `lose' is meant that at a semantic level the method does pass tainted data from one location to another, but due to how it processes that data the kinds of checks allowed with AspectJ will not be able to properly track it. Real examples of this are cases where a String is processed and used to build a new String character-by-character, as was the case in some encoding methods encountered in tested applications. Properly tracking this kind of taint flow would require instrumentation at a lower level not possible in AspectJ, likely requiring one to taint individual bytes (as has been done in some taint tracking research). As such was not possible in the timeframe of this thesis, the issue was addressed using fuzzy String matching. A Levenshtein distance measure is used to check if non-tainted String outputs from a method execution match within some threshold any tainted inputs, and if so the taint is propagated from the matching inputs to the outputs. These events are separately logged, so that one can verify the correctness of the heuristic in each case, and in practice this worked well.
+Finally, the Tomography System employs some heuristics to attempt to track tainted Strings through methods which may `lose' the taint. By `lose' is meant that at a semantic level the method does pass tainted data from one location to another, but due to how it processes that data the kinds of checks allowed with AspectJ will not be able to properly track it. Real examples of this are cases where a String is processed and used to build a new String character-by-character, as was the case in some encoding methods encountered in tested applications. Properly tracking this kind of taint flow would require instrumentation at a lower level not possible in AspectJ, likely requiring one to taint individual bytes (as has been done in some taint tracking research). As this was not possible in the timeframe of this thesis, the issue was addressed using fuzzy String matching. A Levenshtein distance measure is used to check if non-tainted String outputs from a method execution match within some threshold any tainted inputs, and if so the taint is propagated from the matching inputs to the outputs. These events are separately logged, so that one can verify the correctness of the heuristic in each case, and in practice this worked well.
 
 \subsubsection{Basic Profiling}
 Code is included in the tool to gather supplementary data outside of taint tracking for the analyses. Such data could indeed be captured by other existing tools, but the implementation is provided here in order to keep the data collection process simple as well as because there would likely be problems when instrumenting a web application with multiple profilers at once. Currently there is logging to build control flow graphs and some simple profiling code to track method execution times.
@@ -810,30 +818,92 @@ Implemented in 5.7K lines of Java using the JUNG framework for visualizating and
 \subsection{Tool Components}
 The main components of the tool are as follows:
 
-\subsubsection{Visualization System} 
-This relies primarily on the JUNG framework to provide a more user-friendly means of working with the taint tracking data. To use the tool, a log file is specified which is then used to generate an internal JUNG graph representation. The presentation of taint traces in graph form is as depicted in Figure [NEED TO ADD FIGURE]. Nodes in the graph represent locations where tainted data has been detected; these are mostly method calls, where a node is identified by its class name, method name, argument types, and Object ID if the method is non-static; fields, with a class name, fieldname, and Object ID if needed; and input nodes, which provide information about where tainted data originated. The nodes are connected by directed edges describing each event where tainted data flows from one location to another, listing the type of event (Call, Return, Field Get/Set, etc) and an identifier. Using the identifier, the user can view the details of the tainted data flowing on a particular edge.
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/visexample.eps}
+    \caption[Example of Graph Visualization.]{\label{fig:visexample} Example of Graph Visualization.}
+  \end{center}
+\end{figure}
 
-The entire graph can be viewed all at once, but the traces are often so large that it is impossible to comprehend the output. To support a more controlled viewing, the Visualization System supplies several filters to look at subsets of the full graph. These are:
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/dbformat.eps}
+    \caption[Format of input nodes for database data.]{\label{fig:dbformat} Format of input nodes for database data.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/uriformat.eps}
+    \caption[Format of input nodes for user request data.]{\label{fig:uriformat} Format of input nodes for user request data.}
+  \end{center}
+\end{figure}
+
+\subsubsection{Visualization System} 
+\label{subsub:vissystem}
+This relies primarily on the JUNG framework to provide a more user-friendly means of working with the taint tracking data. To use the tool, a log file is specified which is then used to generate an internal JUNG graph representation. The presentation of taint traces in graph form is as depicted in Figure~\ref{fig:visexample}, and the points to note are as follows:
+
+\begin{table}[ht]
+  \begin{center}
+    \begin{tabular}{|l|l|}
+      \hline
+      CAL & Function call, directed towards the called function \\ \hline
+      RET & Function return, directed towards the calling function \\ \hline
+      PAT & Taint returned in modified arguments, directed towards the calling function \\ \hline
+      FST & Field set, directed towards the field \\ \hline
+      FGT & Field get, directed away from the field \\ \hline
+      FZZ & Fuzzy taint flow, these will be start and end on the same node, where fuzzy propagation was detected. See the last paragraph of Section~\ref{subsub:trms} \\ \hline
+      IMP & Implied taint flow, directed from the input method to the output method. See Section~\ref{subsub:impliededges} \\ \hline
+      RIN & Input edges, directed away from input nodes \\ \hline
+      OUT & Output edges, directed towards called functions responsible for output to database or user \\ \hline
+    \end{tabular}
+    \caption{
+      \label{tab:edgetypes}
+      Taint graph visualization edge types.}
+  \end{center}
+\end{table}
 
 \begin{itemize}
-\item TaintID Filter: Presented in the tool is a tree-style list of the taintIDs in the trace, as is shown in Figure X. At the top level of the list are original taintIDs assigned to data as it was read from tainted input sources. Expanding an item reveals taintIDs which are result of Propagation events from the parent taintID. Selecting an item will cause the graph to only show edges which carry taint which matches the selected ID. Selecting the `Deep' checkbox extends this to show the selected taintID and any IDs which were propagated from it, giving a complete picture of where data with the selected taintID flowed.
+\item Point 1: A node, or location where tainted data was detected. Most are method calls, like this one, listing the class name, method name (and argument types if necessary), and an object identifier if the call is on an instance.
+\item Point 2: A special type of node, the input node. These indicate and provide information about where tainted data enters an application. Figure~\ref{fig:dbformat} and Figure~\ref{fig:uriformat} outline how to interpret these nodes.
+\item Point 3: Directed edges describing each event where tainted data flows from one location to another, listing the type of event (Call, Return, Field Get/Set, etc) and an identifier. The identifier can be used to lookup more detailed information about the event. See Table~\ref{tab:edgetypes} for a breakdown of the possible edge types.
+\item Not shown: Nodes for fields of classes/objects where tainted data is stored. These list the class name and the field name, along with an object identifier if needed, much like the method call nodes.
+\end{itemize}
 
-\item RequestID Filter: For traces taken over multiple requests to the application, this allows a user to view the data collected for a single request.
+The entire graph can be viewed all at once, but the traces are often so large that it is impossible to comprehend the output. To support a more controlled viewing, it is possible to filter the graph in various ways:
 
-\item Forward Graph Filter: This allows one to specify an edge, which is then expanded into a graph by following the flow of tainted data carried by that edge. It makes use of the caller/called ContextCounter information from the logs to only expand to edges which were actually `caused' by the specified edge. 
-
-\item Manual Filter: For fine viewing control, this allows a user to view only selected nodes, and then expand to neigboring nodes to track the flow of tainted data step by step.
-
+\begin{itemize}
+\item Show only those edges for the flow of a particular piece of tainted data.
+\item Show the flow of tainted data for a single web request.
+\item Given an edge, show only the flow of tainted data which follows from that edge.
+\item Manually filter by allowing a user to traverse the graph node-by-node.
+%\item TaintID Filter: Presented in the tool is a tree-style list of the taintIDs in the trace, as is shown in Figure X. At the top level of the list are original taintIDs assigned to data as it was read from tainted input sources. Expanding an item reveals taintIDs which are result of Propagation events from the parent taintID. Selecting an item will cause the graph to only show edges which carry taint which matches the selected ID. Selecting the `Deep' checkbox extends this to show the selected taintID and any IDs which were propagated from it, giving a complete picture of where data with the selected taintID flowed.
+%\item RequestID Filter: For traces taken over multiple requests to the application, this allows a user to view the data collected for a single request.
+%\item Forward Graph Filter: This allows one to specify an edge, which is then expanded into a graph by following the flow of tainted data carried by that edge. It makes use of the caller/called ContextCounter information from the logs to only expand to edges which were actually `caused' by the specified edge. 
+%\item Manual Filter: For fine viewing control, this allows a user to view only selected nodes, and then expand to neigboring nodes to track the flow of tainted data step by step.
 \end{itemize}
 
 Having these tools for working with the graphs, while no substitute for the automated analyses, is nevertheless very important when a user needs to make use of the data. The results of analyses are themselves often presented in the same graph form, which can still be difficult to understand without some filtering.
 
+\begin{figure}[ht]
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/impflow.eps}
+    \caption[Example of an Implied taint flow edge.]{\label{fig:impflow} Example of an Implied taint flow edge.}
+  \end{center}
+\end{figure}
+
 \subsubsection{Graph Preprocessing}
-Before the graphs are displayed or analyzed, the Analysis Tool performs proprocessing steps on the data in order to better work with it. The first is the addition of implied edges. There are cases when tracking the flow of tainted data where representation of it requires some care. Consider for example the case in Figure X where a tainted String is used to construct a new StringBuilder; taint flows from the calling method to the StringBuilder constructor. If the StringBuilder's toString() method is then called, taint flows from the toString() method back to the calling method. As is shown in the figure, the taint is shown to flow out into one StringBuilder node, and then back from another one, with no connection between them even though intuitively tainted data flows from one to the other. Solutions to this could be to group the StringBuilder nodes somehow, or to have a node for each Object rather than each Object method, but these either don't support analysis well or lower its granularily. Instead, the graph is searched for such cases where taint flows into an Object through some method call and that same taint (or taint propagated from it) flows out of the Object through a different method returning. Implied edges are added between the nodes in question to reflect the flow of tainted data.
+\label{subsub:impliededges}
+Before the graphs are displayed or analyzed, the Analysis Tool performs preprocessing steps on the data in order to better work with it. The first is the addition of implied edges. There are cases when tracking the flow of tainted data where representation of it requires some care. Consider for example the case in Figure~\ref{fig:impflow} where a tainted String is used to construct a new StringBuilder (line 2) which is then printed (line 3); 
+\begin{itemize}
+\item Taint flows from the calling method at point 1 to the StringBuilder constructor at point 2.
+\item The StringBuilder's toString() method is then called, and taint flows from the toString() method at point 3 back to the calling method.
+\end{itemize}
+Depending on the level of abstraction and ability of the taint tracker to see the internal dataflow in certain objects (in this case a native Java object, StringBuilder, which AspectJ cannot instrument), there may be no logged taint flow event to show how the data gets from point 2 to point 3. Intuitively tainted data flows from one to the other. Solutions to this could be to group the StringBuilder nodes somehow, or to have a node for each object rather than each object method, but these either don't support analysis well or lower its granularily. Instead, the graph is searched for such cases where taint flows into an object through some method call and that same taint (or taint derived from it) flows out of the object through a different method returning. Implied edges are added between the nodes in question to reflect the flow of tainted data, as is shown at point 4 in the figure.
 
-The second preprocessing step finds unused flows of tainted data. These are cases where tainted data is communicated from one location to another, but is subsequently never used. This step examines reachability tainted Objects in graph edges to see if the directly tainted Objects they carry are ever accessed from them. This is done by scanning ahead in the graph, looking for flows carrying the directly tainted Objects themselves. If not, the directly tainted Objects are marked as unused for the edge and reachability tainted Object. This preprocessing step is useful for some of automated analyses which follow.
+The second preprocessing step finds unused flows of tainted data. These are cases where tainted data is communicated from one location to another, but is subsequently never used. This step examines reachability tainted objects in graph edges to see if the directly tainted objects they carry are ever accessed from them. This is done by scanning ahead in the graph, looking for flows carrying the directly tainted objects themselves. If not, the directly tainted objects are marked as unused for the edge and reachability tainted object. This preprocessing step is useful for some of automated analyses which follow.
 
-Notes: Additional preprocessing step where field reads are checked and matched against other nodes in the graph to show how taint flows into fields. Simply annotate other method nodes if the objects of those nodes are tainted fields elsewhere in the graph. Could also add implication edges, but this may make less sense.
+%Notes: Additional preprocessing step where field reads are checked and matched against other nodes in the graph to show how taint flows into fields. Simply annotate other method nodes if the objects of those nodes are tainted fields elsewhere in the graph. Could also add implication edges, but this may make less sense.
 
 % There is an argument to be made that beyond the automated analyses, what I'm really trying to do is show that these traces can support developer understanding of applications in useful ways, and so the viewing/filtering tools are useful in doing this.
 
@@ -842,7 +912,8 @@ Notes: Additional preprocessing step where field reads are checked and matched a
 % Probably want to talk about some graph preprocessing that we do
 
 \subsubsection{Input Description File}
-This is an XML file created by the user which supplies information needed by some of the analyses. Its format is given in Appendix X. It is read by the analysis tool and gives a measure of how stable various data sources (database columns and user parameters) are, from producing values which change rarely to completely unpredictable input.
+\label{sec:idf}
+This is an XML file created by the user which supplies information needed by some of the analyses. Its format is given in Appendix~\ref{cha:idf}, along with the data in the files used for the evaluated applications. It is read by the analysis tool and gives a measure of how stable various data sources (database columns and user web request parameters) are, ranging from sources with values which change rarely to random input.
 
 \subsubsection{Automated Analyses}
 The main purpose of the Analysis Tool is to provide easy to use automatic analyses over taint trace graphs. After loading a trace, a user need only select an analysis which runs without guidance until complete. For most analyses, the results will be presented as a series of graphs added to the viewing area with some supplementary text explaining the results.
@@ -853,121 +924,121 @@ The main purpose of the Analysis Tool is to provide easy to use automatic analys
 % Somewhere in this document I probably need to justify the analyses themselves a bit better. Why have I chosen these, why do they support migration, why are they a good idea and interesting. And why is the way that I do them supporting the key ideas of the analyses themselves?
 
 \subsubsection{Caching}
-The caching analysis seeks to find opportunities to save on computation/communication by suggesting locations where caches could be considered. By a cache we mean code and data storage mechanisms which take the results of computations over some inputs, and store the results - mapping the inputs to them. The next time the computations are invoked with the same inputs, we can return the stored results rather that redoing the computation. For a cache to work, we need to be aware of all inputs to the computation. If any inputs which affect the results are missed, when those inputs vary the cache may return invalid results from the store. What this analysis essentially does is look for regions of the graph which are only carrying taint from non-random inputs. By non-random we mean inputs with reasonably predictable values over a small enough range that the cache will be useful and not frequently missing. This analysis relies on the input description file described in Section X to determine whether or not given tainted data is random. The assumption is that if all of the inputs to a computation, represented in the graph by a network of nodes, are predictable enough, the computation is a good candidate for caching. The identified subgraph can then be presented to the user as an indication of the possibility of a cache as well as a guide for what parts of the application must be considered when doing so.
+The caching analysis seeks to find opportunities to save on computation/communication by suggesting locations where caches could be considered. By a cache we mean code and data storage mechanisms which take the results of computations over some inputs, and store the results - mapping the inputs to them. The next time the computations are invoked with the same inputs, we can return the stored results rather that redoing the computation. For a cache to work, we need to be aware of all inputs to the computation. If any inputs which affect the results are missed, when those inputs vary the cache may return invalid results from the store. What this analysis essentially does is look for regions of the graph which are only carrying taint from non-random inputs. By non-random we mean inputs with reasonably predictable values over a small enough range that the cache will be useful and not frequently missing. This analysis relies on the input description file described in Section~\ref{sec:idf} to determine whether or not given tainted data is random. The assumption is that if all of the inputs to a computation, represented in the graph by a network of nodes, are predictable enough, the computation is a good candidate for caching. The identified subgraph can then be presented to the user as an indication of the possibility of a cache as well as a guide for what parts of the application must be considered when doing so.
 
 The high-level algorithm for performing this analysis is given in Program~\ref{prog:code2}
 
 \begin{Program}
   \caption{\label{prog:code2} High level algorithm for caching analysis.}
 \begin{alltt}
-/* This function takes a taint graph as input, then removes any
- * edges with unmatching variability. The edges carry data which
- * indicates where their tainted data came from, which can be checked
- * against configuration files to determine the variability of the 
- * data sources
- */
-function pruneToVariability(InputGraph, Variability):
-	OutputGraph = InputGraph.copy()
-	
-	foreach Edge in OutputGraph:
-		foreach TaintRecord in Edge.getTaintRecords():
-			if (TaintRecord.getVariability() != Variability):
-				OutputGraph.removeEdge(Edge)
-				foreach NeighborEdge in TG.getNeighborEdges(Edge):
-					if (NeighborEdge.getContextID() == Edge.getContextID()):
-						OutputGraph.removeEdge(NeighborEdge)
-						
-	return OutputGraph
-	
-/* This function takes a fragmented taint graph as input (one can
- * find nodes such that there is no path between them), and extracts
- * every non-fragmented taint graph from it. It picks a node in the
- * fragmented graph and expands to neighbors until there are none, then
- * uses the set of expanded-to nodes and their edges to produce a graph.
- * In continues until there are no unvisited nodes left in the fragmented
- * graph.
- */
-function getConnectedSubGraphs(InputGraph):
-	Outputs = {}
-	VisitedNodes = {}
-	foreach Node in InputGraph.getNodes():
-		if (VisitedNodes.contains(Node):
-			continue		
-		SubGraph = Empty Graph
-		ToVisitNodes = {}
-		ToVisitNodes.add(Node)
-		
-		while (ToVisitNodes != {}):
-			VisitingNode = ToVisitNodes.removeFirst()
-			if (VisitedNodes.contains(VisitingNode)):
-				continue
-			VisitedNodes.add(VisitingNode)
-			SubGraph.add(VisitingNode)
-			SubGraph.add(VisitingNode.getNeighborEdges())
-			ToVisitNodes.add(InputGraph.getNeighborNodes(VisitingNode))
-		
-		Outputs.add(SubGraph)
-	return Outputs
-
-/* Use the CallGraph data to check the total execution time for the
- * TaintGraph edges, being careful to handle nested executions properly.
- * Return true if the time is over THRESHOLD.				
- * function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
- */
-
-/* This uses the CallGraph to determine if the events indicated by
- * edges in Graph cause, through their descendent method calls, any 
- * events in the SideEffectGraph to occur. The CallGraph supplies a 
- * method, getDescendentEdges(Edge), which returns and function call
- * edges which were ultimately caused by the function call edge given
- * as argument.
- */
-function getSideEffects(Graph, SideEffectGraph, CallGraph):
-	SideEffectsEdges = {}
-	SideEffectGraphEdges = SideEffectGraph.getEdges()
-	
-	foreach Edge in Graph.getEdges():
-		DescendentEdges = CallGraph.getDescendentEdges(Edge)
-		SideEffectsEdges.add(SideDescendentEdges \cap SideEffectGraphEdges)
-	
-	return SideEffectEdges
-
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes.
-CG = call graph, with all calls made during taint trace collection, even those
-   which did not exchange taint. Given a taint trace edge for a function call,
-   the call graph can be used to find descendant function calls. This graph
-   also contains method execution times.
-
-TGPredictable = pruneToVariability(TG, PREDICTABLE)
-TGRandom = pruneToVariability(TG, RANDOM)
-
-PredictableConnectedSubGraphs = getConnectedSubGraphs(TGPredictable)
-
-foreach PredictableCS in PredictableConnectedSubGraphs:
-	/* A check to see if the graph is expensive enough to be worth the
-	 * effort of trying to cache it
-	 */
-	if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
-		/* Check that the execution of this graph does not result in the
-		 * flow of non-deterministic data, as then we need to be much more
-		 * careful about using the cache and skipping execution.
-		 */
-		RandomSideEffects = getSideEffects(PredictableCS, TGRandom, CG)
-		/* If there are side effects, it may be that they are cheap enough
-		 * to execute even when fetching from the cache. If not, move on
-		 * to the next graph.
-		 */
-		if (checkOverCost(RandomSideEffects, CG, REJECT_THRESHOLD)):
-			continue
-		/* Present the graph to the user */
-		colorOutputs(PredictableCS, TG)
-		colorInputs(PredictableCS, TG)
-		showGraphToUser(PredictableCS)
-		/* Indicate the side effects, if any, for the user to decide
-		 * how to handle.
-		 */
-		showSideEffectsToUser(RandomSideEffects)
+1:	/* This function takes a taint graph as input, then removes any
+2:	 * edges with unmatching variability. The edges carry data which
+3:	 * indicates where their tainted data came from, which can be checked
+4:	 * against configuration files to determine the variability of the 
+5:	 * data sources
+6:	 */
+7:	function pruneToVariability(InputGraph, Variability):
+8:		OutputGraph = InputGraph.copy()
+9:		
+10:		foreach Edge in OutputGraph:
+11:			foreach TaintRecord in Edge.getTaintRecords():
+12:				if (TaintRecord.getVariability() != Variability):
+13:					OutputGraph.removeEdge(Edge)
+14:					foreach NeighborEdge in TG.getNeighborEdges(Edge):
+15:						if (NeighborEdge.getContextID() == Edge.getContextID()):
+16:							OutputGraph.removeEdge(NeighborEdge)
+17:							
+18:		return OutputGraph
+19:		
+20:	/* This function takes a fragmented taint graph as input (one can
+21:	 * find nodes such that there is no path between them), and extracts
+22:	 * every non-fragmented taint graph from it. It picks a node in the
+23:	 * fragmented graph and expands to neighbors until there are none, then
+24:	 * uses the set of expanded-to nodes and their edges to produce a graph.
+25:	 * In continues until there are no unvisited nodes left in the fragmented
+26:	 * graph.
+27:	 */
+28:	function getConnectedSubGraphs(InputGraph):
+29:		Outputs = {}
+30:		VisitedNodes = {}
+31:		foreach Node in InputGraph.getNodes():
+32:			if (VisitedNodes.contains(Node):
+33:				continue		
+34:			SubGraph = Empty Graph
+35:			ToVisitNodes = {}
+36:			ToVisitNodes.add(Node)
+37:			
+38:			while (ToVisitNodes != {}):
+39:				VisitingNode = ToVisitNodes.removeFirst()
+40:				if (VisitedNodes.contains(VisitingNode)):
+41:					continue
+42:				VisitedNodes.add(VisitingNode)
+43:				SubGraph.add(VisitingNode)
+44:				SubGraph.add(VisitingNode.getNeighborEdges())
+45:				ToVisitNodes.add(InputGraph.getNeighborNodes(VisitingNode))
+46:			
+47:			Outputs.add(SubGraph)
+48:		return Outputs
+49:	
+50:	/* Use the CallGraph data to check the total execution time for the
+51:	 * TaintGraph edges, being careful to handle nested executions properly.
+52:	 * Return true if the time is over THRESHOLD.				
+53:	 * function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
+54:	 */
+55:	
+56:	/* This uses the CallGraph to determine if the events indicated by
+57:	 * edges in Graph cause, through their descendent method calls, any 
+58:	 * events in the SideEffectGraph to occur. The CallGraph supplies a 
+59:	 * method, getDescendentEdges(Edge), which returns and function call
+60:	 * edges which were ultimately caused by the function call edge given
+61:	 * as argument.
+62:	 */
+63:	function getSideEffects(Graph, SideEffectGraph, CallGraph):
+64:		SideEffectsEdges = {}
+65:		SideEffectGraphEdges = SideEffectGraph.getEdges()
+66:		
+67:		foreach Edge in Graph.getEdges():
+68:			DescendentEdges = CallGraph.getDescendentEdges(Edge)
+69:			SideEffectsEdges.add(SideDescendentEdges \cap SideEffectGraphEdges)
+70:		
+71:		return SideEffectEdges
+72:	
+73:	TG = taint trace graph, each node is a function or data source,
+74:	   each edge is an event where tainted data is passed between nodes.
+75:	CG = call graph, with all calls made during taint trace collection, even those
+76:	   which did not exchange taint. Given a taint trace edge for a function call,
+77:	   the call graph can be used to find descendant function calls. This graph
+78:	   also contains method execution times.
+79:	
+80:	TGPredictable = pruneToVariability(TG, PREDICTABLE)
+81:	TGRandom = pruneToVariability(TG, RANDOM)
+82:	
+83:	PredictableConnectedSubGraphs = getConnectedSubGraphs(TGPredictable)
+84:	
+85:	foreach PredictableCS in PredictableConnectedSubGraphs:
+86:		/* A check to see if the graph is expensive enough to be worth the
+87:		 * effort of trying to cache it
+88:		 */
+89:		if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
+90:			/* Check that the execution of this graph does not result in the
+91:			 * flow of non-deterministic data, as then we need to be much more
+92:			 * careful about using the cache and skipping execution.
+93:			 */
+94:			RandomSideEffects = getSideEffects(PredictableCS, TGRandom, CG)
+95:			/* If there are side effects, it may be that they are cheap enough
+96:			 * to execute even when fetching from the cache. If not, move on
+97:			 * to the next graph.
+98:			 */
+99:			if (checkOverCost(RandomSideEffects, CG, REJECT_THRESHOLD)):
+100:				continue
+101:			/* Present the graph to the user */
+102:			colorOutputs(PredictableCS, TG)
+103:			colorInputs(PredictableCS, TG)
+104:			showGraphToUser(PredictableCS)
+105:			/* Indicate the side effects, if any, for the user to decide
+106:			 * how to handle.
+107:			 */
+108:			showSideEffectsToUser(RandomSideEffects)
 \end{alltt}
 \end{Program}
 
@@ -981,31 +1052,31 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code25} High level precomputation for caching analysis.}
 \begin{verbatim}
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes.
-CG = call graph, with all calls made during taint trace collection, even those
-   which did not exchange taint. Given a taint trace edge for a function call,
-   the call graph can be used to find descendant function calls. This graph
-   also contains method execution times.
-   
-TGStable = pruneToVariability(TG, STABLE)
-TGPredictable = pruneToVariability(TG, PREDICTABLE)
-TGRandom = pruneToVariability(TG, RANDOM)
-
-StableConnectedSubGraphs = getConnectedSubGraphs(TGStable)
-
-foreach StableCS in StableConnectedSubGraphs:
-	/* Check that the execution of this graph does not result in the
-	 * flow of non-deterministic data or require any variable input,
-	 * however predictable, as then we need to be much more
-	 * careful about using precomputation and skipping execution.
-	 */
-	if (getSideEffects(StableCS, TGRandom, CG) == {}):
-		if (getSideEffects(StableCS, TGPredictable, CG) == {}):
-			/* Present the graph to the user */
-			colorOutputs(StableCS, TG)
-			colorInputs(StableCS, TG)
-			showGraphToUser(StableCS)
+1:	TG = taint trace graph, each node is a function or data source,
+2:	   each edge is an event where tainted data is passed between nodes.
+3:	CG = call graph, with all calls made during taint trace collection, even those
+4:	   which did not exchange taint. Given a taint trace edge for a function call,
+5:	   the call graph can be used to find descendant function calls. This graph
+6:	   also contains method execution times.
+7:	   
+8:	TGStable = pruneToVariability(TG, STABLE)
+9:	TGPredictable = pruneToVariability(TG, PREDICTABLE)
+10:	TGRandom = pruneToVariability(TG, RANDOM)
+11:	
+12:	StableConnectedSubGraphs = getConnectedSubGraphs(TGStable)
+13:	
+14:	foreach StableCS in StableConnectedSubGraphs:
+15:		/* Check that the execution of this graph does not result in the
+16:		 * flow of non-deterministic data or require any variable input,
+17:		 * however predictable, as then we need to be much more
+18:		 * careful about using precomputation and skipping execution.
+19:		 */
+20:		if (getSideEffects(StableCS, TGRandom, CG) == {}):
+21:			if (getSideEffects(StableCS, TGPredictable, CG) == {}):
+22:				/* Present the graph to the user */
+23:				colorOutputs(StableCS, TG)
+24:				colorInputs(StableCS, TG)
+25:				showGraphToUser(StableCS)
 \end{verbatim}
 \end{Program}
 
@@ -1017,86 +1088,86 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code3} High level algorithm for postcomputation analysis.}
 \begin{verbatim}
-/* Takes the InputGraph and splits it into multiple graphs
- * so that each new graph has Edges sharing a common RequestID
- */
-function getRequestSubGraphs(InputGraph):
-
-/* Return any output type edges for methods known to 
- * write output to the user
- */
-function getUserOutputEdges(InputGraph):
-
-/* Return any output type edges for methods known to
- * write data to a database
- */
-function getDBOutputEdges(InputGraph):
-
-/* Given an edge to start from, CurrentEdge, work backwards
- * through Graph (to edges which could have influenced the
- * CurrentEdge and so on, using the ContextID to ensure that
- * edges are in the same thread of execution).
- */
-function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
-	/* If it is possible to flow forward in the Graph to UserOutputEdges
-	 * from the CurrentEdge, it means that delaying the execution of the
-	 * CurrentEdge may mean that users to not get output that they need.
-	 */
-	if (forwardSearch(CurrentEdge, Graph, UserOutputEdges)):
-		return
-	
-	FoundEdges.add(CurrentEdge)
-	
-	foreach PrevEdge in Graph.getPrevEdges(CurrentEdge):
-		if (Edge.getContextID() == PrevEdge.getContextID()):
-			backwardsExpand(FoundEdges, PrevEdge, UserOutputEdges, Graph)
-
-/* Given an edge to start from, Edge, work forwards through
- * Graph (to edges which could be influenced by the Edge and
- * so on, using the ContextID to ensure that edges are in the
- * same thread of execution). Return true if any of the Target
- * edges can be reached from the original edge.
- */	
-function forwardSearch(Edge, Graph, TargetEdges):
-	if (Edge already visited):
-		return false
-	
-	if TargetEdges.contains(Edge)
-		 return true
-						
-	found = false;
-	foreach NextEdge in Graph.getNextEdges(Edge):
-		if (Edge.getContextID() == NextEdge.getContextID()):
-			if (forwardSearch(NextEdge, Graph, TargetEdges)):
-				found = true
-				break
-	
-	return found
-
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes
-
-RequestSubGraphs = getRequestSubGraphs(TG)
-
-foreach RequestSG in RequestSubGraphs:
-    UserOutputEdges = getUserOutputEdges(RequestSG)
-    DBOutputs = getDBOutputEdges(RequestSG)
-    
-    foreach DBOutputEdge in DBOutputs:
-    	PostCompGraph = Empty Graph
-    	/* Basically we start from an edge which outputs to the database, as
-    	 * these are good candidates for blocking computation that we might
-    	 * be able to defer until later. We work backwards from the database
-    	 * output to see how much computation influencing it can be deferred,
-    	 * going until we reach a point where the computation could influence
-    	 * output to the user.
-    	 */
-        backwardsExpand(PostCompGraph, DBOutputEdge, UserOutputEdges, RequestSG)
-        /* If we found anything, show it to the user */
-        if (PostCompGraph != {}):
-            colorOutputs(PostCompGraph, RequestSG)
-            colorInputs(PostCompGraph, RequestSG)
-            showGraphToUser(PostCompGraph)
+1:	/* Takes the InputGraph and splits it into multiple graphs
+2:	 * so that each new graph has Edges sharing a common RequestID
+3:	 */
+4:	function getRequestSubGraphs(InputGraph):
+5:	
+6:	/* Return any output type edges for methods known to 
+7:	 * write output to the user
+8:	 */
+9:	function getUserOutputEdges(InputGraph):
+10:	
+11:	/* Return any output type edges for methods known to
+12:	 * write data to a database
+13:	 */
+14:	function getDBOutputEdges(InputGraph):
+15:	
+16:	/* Given an edge to start from, CurrentEdge, work backwards
+17:	 * through Graph (to edges which could have influenced the
+18:	 * CurrentEdge and so on, using the ContextID to ensure that
+19:	 * edges are in the same thread of execution).
+20:	 */
+21:	function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
+22:		/* If it is possible to flow forward in the Graph to UserOutputEdges
+23:		 * from the CurrentEdge, it means that delaying the execution of the
+24:		 * CurrentEdge may mean that users to not get output that they need.
+25:		 */
+26:		if (forwardSearch(CurrentEdge, Graph, UserOutputEdges)):
+27:			return
+28:		
+29:		FoundEdges.add(CurrentEdge)
+30:		
+31:		foreach PrevEdge in Graph.getPrevEdges(CurrentEdge):
+32:			if (Edge.getContextID() == PrevEdge.getContextID()):
+33:				backwardsExpand(FoundEdges, PrevEdge, UserOutputEdges, Graph)
+34:	
+35:	/* Given an edge to start from, Edge, work forwards through
+36:	 * Graph (to edges which could be influenced by the Edge and
+37:	 * so on, using the ContextID to ensure that edges are in the
+38:	 * same thread of execution). Return true if any of the Target
+39:	 * edges can be reached from the original edge.
+40:	 */	
+41:	function forwardSearch(Edge, Graph, TargetEdges):
+42:		if (Edge already visited):
+43:			return false
+44:		
+45:		if TargetEdges.contains(Edge)
+46:			 return true
+47:							
+48:		found = false;
+49:		foreach NextEdge in Graph.getNextEdges(Edge):
+50:			if (Edge.getContextID() == NextEdge.getContextID()):
+51:				if (forwardSearch(NextEdge, Graph, TargetEdges)):
+52:					found = true
+53:					break
+54:		
+55:		return found
+56:	
+57:	TG = taint trace graph, each node is a function or data source,
+58:	   each edge is an event where tainted data is passed between nodes
+59:	
+60:	RequestSubGraphs = getRequestSubGraphs(TG)
+61:	
+62:	foreach RequestSG in RequestSubGraphs:
+63:	    UserOutputEdges = getUserOutputEdges(RequestSG)
+64:	    DBOutputs = getDBOutputEdges(RequestSG)
+65:	    
+66:	    foreach DBOutputEdge in DBOutputs:
+67:	    	PostCompGraph = Empty Graph
+68:	    	/* Basically we start from an edge which outputs to the database, as
+69:	    	 * these are good candidates for blocking computation that we might
+70:	    	 * be able to defer until later. We work backwards from the database
+71:	    	 * output to see how much computation influencing it can be deferred,
+72:	    	 * going until we reach a point where the computation could influence
+73:	    	 * output to the user.
+74:	    	 */
+75:	        backwardsExpand(PostCompGraph, DBOutputEdge, UserOutputEdges, RequestSG)
+76:	        /* If we found anything, show it to the user */
+77:	        if (PostCompGraph != {}):
+78:	            colorOutputs(PostCompGraph, RequestSG)
+79:	            colorInputs(PostCompGraph, RequestSG)
+80:	            showGraphToUser(PostCompGraph)
 \end{verbatim}
 \end{Program}
 
@@ -1120,52 +1191,52 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code4} High level algorithm for application state analysis.}
 \begin{alltt}
-/* Extracts from a taint graph the set of taint IDs present amongst
- * its edges. If two graphs share any taint IDs, it means same tainted
- * data flowed it both of them.
- */
-function getTaintIDSet(Graph):
-
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes
-
-RequestSubGraphs = getRequestSubGraphs(TG)
-
-/* This list will be filled with sets, such that each set represents
- * the taint IDs encountered for a single request.
- */
-ByRequestTaintIDs = {}
-PersistentTaintIDs = {}
-
-foreach RequestSG in RequestSubGraphs:
-    ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
-    
-/* Find any taint IDs which where present in multiple Request Graphs.
- * Such indicates tainted data which had a lifetime beyond a single
- * request, and we call such taint IDs persistent.
- */
-for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
-	for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
-		SetA = ByRequestTaintIDs[i]
-		SetB = ByRequestTaintIDs[j]
-	    PersistentTaintIDs.add(SetA \cap SetB)
-
-/* For each persistent taint ID, go through the the taint graph edges
- * (sorted in the order they occured), coloring any edges which carry the
- * persistent data, and looking for a point where the request ID changes.
- * This point will indicate where multiple requests access the data from,
- * the place where the persistent data is actually stored, and is colored
- * differently.
- */
-foreach PersistenTaintID in PersistentTaintIDs:
-	foreach Edge in TG.getSortedEdges():
-        if (edge.getAllTaintIDs().contains(PersistentTaintID)):
-        	colorEdgeRed(edge)
-        	if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
-        	    colorEdgeGreen(edge)
-        	LastRequestID = Edge.getRequestID()
-        	
-showGraphToUser(TG)
+1:	/* Extracts from a taint graph the set of taint IDs present amongst
+2:	 * its edges. If two graphs share any taint IDs, it means same tainted
+3:	 * data flowed it both of them.
+4:	 */
+5:	function getTaintIDSet(Graph):
+6:	
+7:	TG = taint trace graph, each node is a function or data source,
+8:	   each edge is an event where tainted data is passed between nodes
+9:	
+10:	RequestSubGraphs = getRequestSubGraphs(TG)
+11:	
+12:	/* This list will be filled with sets, such that each set represents
+13:	 * the taint IDs encountered for a single request.
+14:	 */
+15:	ByRequestTaintIDs = {}
+16:	PersistentTaintIDs = {}
+17:	
+18:	foreach RequestSG in RequestSubGraphs:
+19:	    ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
+20:	    
+21:	/* Find any taint IDs which where present in multiple Request Graphs.
+22:	 * Such indicates tainted data which had a lifetime beyond a single
+23:	 * request, and we call such taint IDs persistent.
+24:	 */
+25:	for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
+26:		for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
+27:			SetA = ByRequestTaintIDs[i]
+28:			SetB = ByRequestTaintIDs[j]
+29:		    PersistentTaintIDs.add(SetA \cap SetB)
+30:	
+31:	/* For each persistent taint ID, go through the the taint graph edges
+32:	 * (sorted in the order they occured), coloring any edges which carry the
+33:	 * persistent data, and looking for a point where the request ID changes.
+34:	 * This point will indicate where multiple requests access the data from,
+35:	 * the place where the persistent data is actually stored, and is colored
+36:	 * differently.
+37:	 */
+38:	foreach PersistenTaintID in PersistentTaintIDs:
+39:		foreach Edge in TG.getSortedEdges():
+40:	        if (edge.getAllTaintIDs().contains(PersistentTaintID)):
+41:	        	colorEdgeRed(edge)
+42:	        	if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
+43:	        	    colorEdgeGreen(edge)
+44:	        	LastRequestID = Edge.getRequestID()
+45:	        	
+46:	showGraphToUser(TG)
 \end{alltt}
 \end{Program}
 
@@ -1177,136 +1248,136 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code5} High level algorithm for user state analysis.}
 \begin{verbatim}
-/* Given a path which starts with a single Edge representing a read from
- * persistent data, this recursively attempts to grow the path, checking
- * if it can be found in flow graphs for other requests. If there are path
- * matches in other requests, but these requests serve data to other users,
- * the path represents an non-single user access and is abandoned.
-function findUserState(UserStateEdges, Path, FlowGraph, OtherRequestIDsToEdgeMap):
-	if (Path.getLast() already visited):
-		return
-		
-	ExpandPath = false
-	
-	foreach EdgeToFlowGraphMap in OtherRequestIDsToEdgeMap.values():
-		foreach Edge in EdgeToFlowGraphMap.keys():
-			MatchFlowGraph = EdgeToFlowGraphMap.get(Edge)
-			/* Try to find the path in other flow graphs */
-			if (matchPath(Path, MatchFlowGraph)):
-				ExpandPath = true
-				if (Edge.getRequestAddress() != Path.getLast().getRequestAddress()):
-					return
-		
-	if (!ExpandPath)
-		return
-					
-	UserStateEdges.add(Path.getLast())
-	
-	foreach NextEdge in FlowGraph.getNextEdges(Edge):
-		NewPath = Path.copy()
-		NewPath.add(NextEdge)
-		findUserState(UserStateEdges, NewPath, FlowGraph, OtherRequestIDsToEdgeMap)
-				
-	
-/* Look for the same sequence of edges in Path in the TargetFlowGraph
- */
-function matchPath(Path, TargetFlowGraph):
-	FirstEdge = Path.getFirst()
-	
-	Matched = false
-	foreach StartEdge in TargetFlowGraph.getEdges():
-		/* Check if the edges share the same name for their start and end nodes */
-		if (StartEdge.getStartNode.getName() == FirstEdge.getStartNode.getName() &&
-			StartEdge.getEndNode.getName() == FirstEdge.getEndNode.getName()):
-			PathPosition = 1
-			CheckEdge = StartEdge
-			
-			while (PathPosition < Path.size()):
-				NextCheckEdge = Path[PathPosition]
-				Found = false
-				foreach NextEdge in FlowGraph.getNeighborEdges(CheckEdge):
-					if (NextEdge.getStartNode.getName() == NextCheckEdge.getStartNode.getName() &&
-						NextEdge.getEndNode.getName() == NextCheckEdge.getStartNode.getName()):
-						Found = true
-						CheckEdge = NextEdge
-						break
-				
-				if (Found):
-					PathPosition++
-				else
-					break
-			
-			/* If we were able to get through the whole path, it exists in the TargetFlowGraph */
-			if (PathPosition == Path.size())
-				Match = true
-				break
-				
-	return Matched
-	
-/* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
- * This map shows, for each persistent taint ID, which request graphs carry that taint,
- * what are the earliest edges carrying that taint, and where does each bit of persistent
- * taint flow from these points of origination (using an algorithm similar to the
- * forwardSearch functions shown in other algorithms).
- */
-function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
-
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes
-TT = taint ID tree, a tree which shows how tainted data is derived from
-   other tainted data. Taint IDs have as child nodes any taint IDs
-   which were immediately derived from them, such as a new tainted
-   string formed by concatenating with an already tainted string.
-
-RequestSubGraphs = getRequestSubGraphs(TG)
-
-ByRequestTaintIDs = {}
-PersistentTaintIDs = {}
-
-/* These are the same steps as done in the simple state finding
- * algorithm above.
- */
-foreach RequestSG in RequestSubGraphs:
-    ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
-    
-for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
-	for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
-		SetA = ByRequestTaintIDs[i]
-		SetB = ByRequestTaintIDs[j]
-	    PersistentTaintIDs.add(SetA \cap SetB)
-
-/* To save work, we remove any derived taint IDs. In tracing the
- * path of tainted data from the original taint IDs, we will arrive 
- * at the relevant derived taint IDs anyways.
- */
-DerivedPersistentIDs = {}
-foreach PersistentTaintID in PersistentTaintIDs:
-	DerivedPersistentIDs.add(TT.getAllChildrenOf(PersistentTaintID))
-
-PersistentTaintIDs.removeAll(DerivedPersistentIDs)
-
-MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
-	
-foreach PersistentTaintID in MasterMap.keys():
-	RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
-
-	foreach RequestID in RequestIDToEdgeMap.keys():
-		StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID)
-		
-		foreach StartEdge in StartEdgeToFlowGraphMap.keys():
-			FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
-			/* This map is needed to compare the flow of taint in one
-			 * request with the flow of the same taint in other requests.
-			 */
-			OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
-			OtherRequestIDsToEdgeMap.remove(RequestID)
-			
-			UserStateEdges = {}
-			findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherRequestIDsToEdgeMap)
-			
-			if (UserStateEdges != {}):
-				colorEdge(StartEdge)
-				showGraphToUser(createGraphFromEdges(UserStateEdges))		
+1:	/* Given a path which starts with a single Edge representing a read from
+2:	 * persistent data, this recursively attempts to grow the path, checking
+3:	 * if it can be found in flow graphs for other requests. If there are path
+4:	 * matches in other requests, but these requests serve data to other users,
+5:	 * the path represents an non-single user access and is abandoned.
+6:	function findUserState(UserStateEdges, Path, FlowGraph, OtherRequestIDsToEdgeMap):
+7:		if (Path.getLast() already visited):
+8:			return
+9:			
+10:		ExpandPath = false
+11:		
+12:		foreach EdgeToFlowGraphMap in OtherRequestIDsToEdgeMap.values():
+13:			foreach Edge in EdgeToFlowGraphMap.keys():
+14:				MatchFlowGraph = EdgeToFlowGraphMap.get(Edge)
+15:				/* Try to find the path in other flow graphs */
+16:				if (matchPath(Path, MatchFlowGraph)):
+17:					ExpandPath = true
+18:					if (Edge.getRequestAddress() != Path.getLast().getRequestAddress()):
+19:						return
+20:			
+21:		if (!ExpandPath)
+22:			return
+23:						
+24:		UserStateEdges.add(Path.getLast())
+25:		
+26:		foreach NextEdge in FlowGraph.getNextEdges(Edge):
+27:			NewPath = Path.copy()
+28:			NewPath.add(NextEdge)
+29:			findUserState(UserStateEdges, NewPath, FlowGraph, OtherRequestIDsToEdgeMap)
+30:					
+31:		
+32:	/* Look for the same sequence of edges in Path in the TargetFlowGraph
+33:	 */
+34:	function matchPath(Path, TargetFlowGraph):
+35:		FirstEdge = Path.getFirst()
+36:		
+37:		Matched = false
+38:		foreach StartEdge in TargetFlowGraph.getEdges():
+39:			/* Check if the edges share the same name for their start and end nodes */
+40:			if (StartEdge.getStartNode.getName() == FirstEdge.getStartNode.getName() &&
+41:				StartEdge.getEndNode.getName() == FirstEdge.getEndNode.getName()):
+42:				PathPosition = 1
+43:				CheckEdge = StartEdge
+44:				
+45:				while (PathPosition < Path.size()):
+46:					NextCheckEdge = Path[PathPosition]
+47:					Found = false
+48:					foreach NextEdge in FlowGraph.getNeighborEdges(CheckEdge):
+49:						if (NextEdge.getStartNode.getName() == NextCheckEdge.getStartNode.getName() &&
+50:							NextEdge.getEndNode.getName() == NextCheckEdge.getStartNode.getName()):
+51:							Found = true
+52:							CheckEdge = NextEdge
+53:							break
+54:					
+55:					if (Found):
+56:						PathPosition++
+57:					else
+58:						break
+59:				
+60:				/* If we were able to get through the whole path, it exists in the TargetFlowGraph */
+61:				if (PathPosition == Path.size())
+62:					Match = true
+63:					break
+64:					
+65:		return Matched
+66:		
+67:	/* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
+68:	 * This map shows, for each persistent taint ID, which request graphs carry that taint,
+69:	 * what are the earliest edges carrying that taint, and where does each bit of persistent
+70:	 * taint flow from these points of origination (using an algorithm similar to the
+71:	 * forwardSearch functions shown in other algorithms).
+72:	 */
+73:	function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
+74:	
+75:	TG = taint trace graph, each node is a function or data source,
+76:	   each edge is an event where tainted data is passed between nodes
+77:	TT = taint ID tree, a tree which shows how tainted data is derived from
+78:	   other tainted data. Taint IDs have as child nodes any taint IDs
+79:	   which were immediately derived from them, such as a new tainted
+80:	   string formed by concatenating with an already tainted string.
+81:	
+82:	RequestSubGraphs = getRequestSubGraphs(TG)
+83:	
+84:	ByRequestTaintIDs = {}
+85:	PersistentTaintIDs = {}
+86:	
+87:	/* These are the same steps as done in the simple state finding
+88:	 * algorithm above.
+89:	 */
+90:	foreach RequestSG in RequestSubGraphs:
+91:	    ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
+92:	    
+93:	for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
+94:		for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
+95:			SetA = ByRequestTaintIDs[i]
+96:			SetB = ByRequestTaintIDs[j]
+97:		    PersistentTaintIDs.add(SetA \cap SetB)
+98:	
+99:	/* To save work, we remove any derived taint IDs. In tracing the
+100:	 * path of tainted data from the original taint IDs, we will arrive 
+101:	 * at the relevant derived taint IDs anyways.
+102:	 */
+103:	DerivedPersistentIDs = {}
+104:	foreach PersistentTaintID in PersistentTaintIDs:
+105:		DerivedPersistentIDs.add(TT.getAllChildrenOf(PersistentTaintID))
+106:	
+107:	PersistentTaintIDs.removeAll(DerivedPersistentIDs)
+108:	
+109:	MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
+110:		
+111:	foreach PersistentTaintID in MasterMap.keys():
+112:		RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
+113:	
+114:		foreach RequestID in RequestIDToEdgeMap.keys():
+115:			StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID)
+116:			
+117:			foreach StartEdge in StartEdgeToFlowGraphMap.keys():
+118:				FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
+119:				/* This map is needed to compare the flow of taint in one
+120:				 * request with the flow of the same taint in other requests.
+121:				 */
+122:				OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
+123:				OtherRequestIDsToEdgeMap.remove(RequestID)
+124:				
+125:				UserStateEdges = {}
+126:				findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherRequestIDsToEdgeMap)
+127:				
+128:				if (UserStateEdges != {}):
+129:					colorEdge(StartEdge)
+130:					showGraphToUser(createGraphFromEdges(UserStateEdges))	
 \end{verbatim}
 \end{Program}
 
@@ -1315,68 +1386,73 @@ Section X describes a graph preprocessing step which the Analysis Tool performs 
 
 An obvious use for such an analysis is to help a developer potentially eliminate these communication. Such is especially useful if the application is to be partitioned and such communication would be crossing costly boundaries. Another use for this is also motivated by application partitioning, where the data can be used to improve the analyses used in that space. Application partitioning algorithms generally consider module execution costs and communication costs between them when determining an optimal way to group and separate modules. A simple strategy which monitors inter-module communication events (such as method calls), can report the cost of the communication as the total size of the data communicated. However, some of this data may never be used, and knowing this can allow for better communication cost estimates. Such could lead to more optimal partitionings, as long as there is a mechanism in place to avoid the wasted communication, such as by eliminating it altogether or employing a lazy communication method where the data is only communicated when it is actually needed.
 
-The high-level algorithm for performing this analysis is given in Program~\ref{prog:code5}
+The high-level algorithm for performing this analysis is given in Program~\ref{prog:code6}
 
 \begin{Program}
-  \caption{\label{prog:code5} High level algorithm for wasteful communication analysis.}
+  \caption{\label{prog:code6} High level algorithm for wasteful communication analysis.}
 \begin{verbatim}			
-/* Given an edge to start from, Edge, work forwards through
- * Graph (to edges which could be influenced by the Edge and
- * so on, using the ContextID to ensure that edges are in the
- * same thread of execution). Return true if the taint ID for
- * TargetTaintedObject can be found at the top level for edges
- * reached from the original Edge. By the top level, we mean 
- * the actual arguments and return values as opposed to tainted
- * objects which are merely reachable from them. Objects have 
- * an isMarked flag to prevent redundant work. In the real
- * algorithm used, there is more checking of this than is
- * indicated here to aggressively avoid redundant graph
- * traversals.
- */	
-function forwardSearch(Edge, Graph, TargetTaintedObject):
-	if (Edge already visited):
-		return false
-	
-	foreach TaintedObject in Edge.getTaintedObjects():
-		if (TaintedObject.getTaintID() == TargetTaintedObject.getTaintID())
-			return true
-		foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
-			if (SubTaintedObject.getTaintID() == TargetTaintedObject.getTaintID()):
-				if (SubTaintedObject.isMarked()):
-					if (SubTaintedObject.isUnused()):
-						return false
-					else
-						return true
-						
-	found = false;
-	foreach NextEdge in Graph.getNextEdges(Edge):
-		if (Edge.getContextID() == NextEdge.getContextID()):
-			if (forwardSearch(NextEdge, Graph, TargetTaintedObject)):
-				found = true
-				break
-	
-	return found
-
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes
-
-/* Look at every SubTaintedObject. This means objects not directly passed as
- * arguments or return values, but those which are reachable from such. The
- * assumption is that if taint is passed in this form and subsequently never
- * found to be passed directly at the level of an argument or return value, 
- * it is never accessed and the user should be informed of this.
- */   
-foreach Edge in TG.getSortedEdges():
-	foreach TaintedObject in Edge.getTaintedObjects():
-		foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
-			if (forwardSearch(Edge, TG, SubTaintedObject)):
-				SubTaintedObject.setUnused()
-				SubTaintedObject.setMarked()
-				colorEdge(Edge)
-				
-showGraphToUser(TG)	
+1:	/* Given an edge to start from, Edge, work forwards through
+2:	 * Graph (to edges which could be influenced by the Edge and
+3:	 * so on, using the ContextID to ensure that edges are in the
+4:	 * same thread of execution). Return true if the taint ID for
+5:	 * TargetTaintedObject can be found at the top level for edges
+6:	 * reached from the original Edge. By the top level, we mean 
+7:	 * the actual arguments and return values as opposed to tainted
+8:	 * objects which are merely reachable from them. objects have 
+9:	 * an isMarked flag to prevent redundant work. In the real
+10:	 * algorithm used, there is more checking of this than is
+11:	 * indicated here to aggressively avoid redundant graph
+12:	 * traversals.
+13:	 */	
+14:	function forwardSearch(Edge, Graph, TargetTaintedObject):
+15:		if (Edge already visited):
+16:			return false
+17:		
+18:		foreach TaintedObject in Edge.getTaintedObjects():
+19:			if (TaintedObject.getTaintID() == TargetTaintedObject.getTaintID())
+20:				return true
+21:			foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
+22:				if (SubTaintedObject.getTaintID() == TargetTaintedObject.getTaintID()):
+23:					if (SubTaintedObject.isMarked()):
+24:						if (SubTaintedObject.isUnused()):
+25:							return false
+26:						else
+27:							return true
+28:							
+29:		found = false;
+30:		foreach NextEdge in Graph.getNextEdges(Edge):
+31:			if (Edge.getContextID() == NextEdge.getContextID()):
+32:				if (forwardSearch(NextEdge, Graph, TargetTaintedObject)):
+33:					found = true
+34:					break
+35:		
+36:		return found
+37:	
+38:	TG = taint trace graph, each node is a function or data source,
+39:	   each edge is an event where tainted data is passed between nodes
+40:	
+41:	/* Look at every SubTaintedObject. This means objects not directly passed as
+42:	 * arguments or return values, but those which are reachable from such. The
+43:	 * assumption is that if taint is passed in this form and subsequently never
+44:	 * found to be passed directly at the level of an argument or return value, 
+45:	 * it is never accessed and the user should be informed of this.
+46:	 */   
+47:	foreach Edge in TG.getSortedEdges():
+48:		foreach TaintedObject in Edge.getTaintedObjects():
+49:			foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
+50:				if (forwardSearch(Edge, TG, SubTaintedObject)):
+51:					SubTaintedObject.setUnused()
+52:					SubTaintedObject.setMarked()
+53:					colorEdge(Edge)
+54:					
+55:	showGraphToUser(TG)	
 \end{verbatim}
 \end{Program}
+
+\section{Additional Details}
+
+\subsection{Numeric Value Tracking in TRMS}
+Tracking of numeric values, even though they are primitive, is enabled through the following method: When a numeric value is input from a source to be tracked, the TRMS replaces it with a randomly generated value which is likely to be unique. The TRMS then maps the random value to information about the source of the value, just as it does with tainted Strings. Whenever the replaced value is output somewhere, such as to the user or as a database query parameter, the TRMS replaces it with the original value. There are cases where this form of tracking would change the operation of the program, such as if the numerical value is used in a loop counter, but in practice it was found that numeric values in need of tracking did not exhibit this behaviour. Note that this is a temporary workaround to deal with limitations of AspectJ, and could be replaced by something more robust in future implementations.
 
 % Need to say something about the fact that we believe we are tracking enough data by just tainting our set of inputs. We don't care about String constants in the code, or data that arises elsewise.
 
@@ -1426,16 +1502,22 @@ Architecturally, RUBiS is a very simple servlets application, relying on no exte
 jGossip was found by searching SourceForge for popular open-source Java web applications of greater complexity. It was briefly checked in the early stages of the research to see if it likely contained properties which would be amenable to interesting analyses, and along with several other applications was deemed promising. It was chosen from among these as web forums are a commonly used kind of application, and as such jGossip was a more representative example.
 
 \subsubsection{jGossip Details}
-jGossip is interesting in that it makes extensive use of libraries, such as the Apache Struts framework, JSP, and the JSP Standard Tag Library (JSTL). This is partially desirable as many applications make use these libraries, so jGossip serves as a more realistic example. However, the use of some libraries presents some difficulties for the kind of analysis performed here. In particular, JSP is somewhat problematic in that it allows application code to be created from HTML-like markup. JSP pages are compiled into Java code, and generally a developer never works with this generated code. JSTL compounds the `problem' by providing a large set of JSP tags to perform various kinds of logic which would normally be written directly in Java. For applications which make extensive use of JSP, it may be that automated analysis results suggest making changes within generated code. Such may be less meaningful as the mapping from JSP to the generated code, and thus how to modify the generated code, may not be obvious. However, as JSP is a popular technology in Java web applications, attempting to analyze an application making use of it is a valuable exercise.
+jGossip is interesting in that it makes extensive use of libraries, such as the Apache Struts framework, JSP, and the JSP Standard Tag Library (JSTL). This is partially desirable as many applications make use these libraries, so jGossip serves as a more realistic example. However, the use of some libraries presents some difficulties for the kind of analysis performed here. In particular, JSP is somewhat problematic in that it allows application code to be created from HTML-like markup. JSP pages are compiled into Java code, and generally a developer never works with this generated code. JSTL compounds the problem by providing a large set of JSP tags to perform various kinds of logic which would normally be written directly in Java. For applications which make extensive use of JSP, it may be that automated analysis results suggest making changes within generated code. Such may be less meaningful as the mapping from JSP to the generated code, and thus how to modify the generated code, may not be obvious. However, as JSP is a popular technology in Java web applications, attempting to analyze an application making use of it is a valuable exercise.
 
 \paragraph{}
 Users log into jGossip to get a persistent session to interact with the forum. Whenever data is needed from the database, such as to get information about a user or display a forum, a data access object generally instantiates and fills in various `bean' objects (serializable, with getters/setters to store properties) from the database data. These objects are then stored as session attributes to be loaded and reused later.
 
 \section{Completeness of Tracker}
-One of the minor goals of the research was to develop the Java taint tracker itself. It is important that the tracker is complete, meaning that it is capable of tracing tainted data wherever it goes. If this were not the case, the analyses would be less reliable, having incomplete data to work with. The tracker presented here chiefly traces only data in Strings read from designated input sources, as manually specified numeric values. As this tracker does not consider taint propagation by control dependence, such as a tainted variable influencing the value of another through a control-flow statement, the completeness of the tracker can be evaluated somewhat simply.
+One of the minor goals of the research was to develop the Java taint tracker itself. It is important that the tracker is complete, meaning that it is capable of tracing tainted data wherever it goes. If this were not the case, the analyses would be less reliable, having incomplete data to work with. The tracker presented here traces data in Strings read from designated input sources, as well as primitive numeric inputs that the tracker is manually told to trace. As most data in a Java program is ultimately held in primitives and Strings, we only really miss data in booleans, chars, and bytes. Thus as a first effort, we feel that our tracked data types capture enough to support useful analyses. 
 
 \paragraph{}
-First, the tracker needs to intercept every operation which communicates data in a program. Using AspectJ, the tracker is able to inspect the data flowing on every method call, method return, and field set/get, which captures the flow of all program data (we do not consider data exchanged outside of the context of the application). The only issue here concerns code from the Java Runtime, which cannot be instrumented. It would be hypothetically possible, for example, for such non-instrumented code to take a tainted String, copy it, and store it somewhere. The copy would not be tainted as the call to the copy method would not have been intercepted due to lack of instrumentation. In practice, however, we found that such problems did not occur. To check that all data which should be tainted actually was, the test applications were supplied with input data which could be easily identified. By performing String matching on any communicated data, the presence of data derived from the input sources could be identified, and then the taint tracking system could be checked to ensure that it had properly marked the data as tainted and from the correct source. The test applications were manually driven through various operations, looking for any data which seemed as though it should be tainted but was not. Eventually, after sufficiently developing the tracker, no such data was present, and the tracker was judged as being reasonably complete.
+As this tracker does not consider taint propagation by control dependence, such as a tainted variable influencing the value of another through a control-flow statement, the completeness of the tracker can be evaluated somewhat simply.
+
+\paragraph{}
+First, the tracker needs to intercept every operation which communicates data in a program. Using AspectJ, the tracker is able to inspect the data flowing on every method call, method return, and field set/get, which captures the flow of all program data (we do not consider data exchanged outside of the context of the application). The only issue here concerns code from the Java Runtime, which cannot be instrumented. It is possible, for example, for such non-instrumented code to take a tainted String, copy it, and store it somewhere. The copy would not be tainted as the call to the copy method would not have been intercepted due to lack of instrumentation. In practice, however, we found that such problems did not occur. 
+
+\paragraph{}
+To check that all data which should be tainted actually was, the test applications were supplied with random input data which could be easily identified. The applications were then driven through the operations that we wanted to use in our evaluations, and the taint tracking system was told to scan any data (passed through method calls, returns, etc) for the occurence of the known random input data. If the data was encountered, it was checked whether or not the system had properly marked it as tainted. In all cases the data had been marked as such, and the tracker was judged as being reasonably complete.
 
 % Earlier in the thesis need to explain why I don't worry about control dependence
 
@@ -1444,55 +1526,8 @@ First, the tracker needs to intercept every operation which communicates data in
 
 \section{Application Results}
 
-\subsection{RUBiS Input Source Description File}
-
-\begin{figure}[ht]
-  \caption{\label{fig:inputrubis} RUBiS Input Description File.}
-\begin{verbatim}
-Database: rubis/categories/id - variability: STABLE
-Database: rubis/categories/name - variability: STABLE
-Database: rubis/regions/id - variability: STABLE
-Database: rubis/regions/name - variability: STABLE
-Database: rubis/users/id - variability: STABLE
-Request: /rubis_servlets/SubmitChat:chatMessage - variability: RANDOM
-Request: /rubis_servlets/BrowseCategories:region - variability: PREDICTABLE
-Request: /rubis_servlets/BrowseCategories:nickname - variability: PREDICTABLE
-Request: /rubis_servlets/BrowseCategories:password - variability: PREDICTABLE
-\end{verbatim}
-\end{figure}		
-
-\subsection{jGossip Input Source Description File}
-
-\begin{figure}[ht]
-  \caption{\label{fig:inputjgossip} jGossip Input Description File.}
-\begin{verbatim}
-Database: jgossip/forum/forumtitle - variability: STABLE
-Database: jgossip/forum/forumdesc - variability: STABLE
-Database: jgossip/forum/forumid - variability: STABLE
-Database: jgossip/forum/locked - variability: STABLE
-Database: jgossip/group/groupname - variability: STABLE
-Database: jgossip/group/groupid - variability: STABLE
-Database: jgossip/group/groupsort - variability: STABLE
-Database: jgossip/message/content - variability: RANDOM
-Database: jgossip/message/from - variability: RANDOM
-Database: jgossip/message/id - variability: RANDOM
-Database: jgossip/thread/timestamp - variability: PREDICTABLE
-Database: jgossip/thread/tid - variability: PREDICTABLE
-Database: jgossip/thread/sortby - variability: PREDICTABLE
-Database: jgossip/whois/id - variability: PREDICTABLE
-Database: jgossip/whois/ip - variability: RANDOM
-Database: jgossip/whois/sessionid - variability: RANDOM
-Database: jgossip/whois/username - variability: PREDICTABLE
-Database: jgossip/skinparams/paramname - variability: STABLE
-Database: jgossip/skinparams/paramvalue - variability: STABLE
-Database: jgossip/constants/name - variability: STABLE
-Database: jgossip/constants/value - variability: STABLE
-Request: ShowForum:fid - variability: PREDICTABLE
-\end{verbatim}
-\end{figure}
-
 \subsection{Example Trace}
-In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. The format of the node label for these is: column accessed / followed by [catalog / table / column] for each column selected by the query.  A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each column accessed (the target column). The edges out of these nodes are labeled `RIN' for `Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the `missing' edge numbers. From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. 
+In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. See Figure~\ref{fig:dbformat} for the format of this kind of node.  A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each target column accessed. The edges out of these nodes are labeled `RIN' for `Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the `missing' edge numbers. From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. 
 
 \paragraph{}
 This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders. After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds `IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call. At point 5 is shown how the data is passed to an encode method which processes the data in a way which would have lost the data were it not for the fuzzy propagation methods described earlier. The `FZZ' edge is present to indicate the use of this heuristic. Finally, the categories are written out to the response output stream, at point 6 depicted as an `OUT' edge to a println method.
@@ -1614,10 +1649,10 @@ Interpreting this, a developer can reasonably assume that for the request respon
 The analysis can be taken further in this case. The tracking code not only logs tainted output, but also creates logs for non-tainted output. Using these one can observe the mixing of tainted and non-tainted data as it is composed together in the output. Looking to Figure C1, generated in the analysis tool from the output logs, we can see that the only tainted output involved in the response web page is from the three hyperlinks identified in the precomputation analysis. The rest of the data is non-tainted, and for this application this equates to it being hardcoded. Given these analysis results a developer can decide to simply precompute the entire response for this category listing page, saving on database access and formatting computation. 
 
 \paragraph{}
-Going further, RUBiS was modified to display a chat box on every page, allowing anyone to post messages to the server for everyone to see. Whenever a message is submitted by a user, it is posted to a SubmitChat servlet which is responsible for adding the message to a list of messages. The important thing to note about this data is that it is very unpredictable. The list of messages can change at any time, with random data input to them, and as such any computations which work with this data are poor candidates for any kind of caching. Figure~\ref{fig:browsecategorieschat} shows a trace for the same page load as before, but including a post to the chat box. The left side of the graph in the figure is as before, the portion outlined in the red box shows the additional flow of the chat message data. This new portion of the graph actually spans two requests to the application - one to submit the chat message and another to display the list of categories along with the new message. The portion of the graph from labeled points 1 to 2 covers the submission of the message, starting with the source node showing the relative URI of the request and the name of the tainted parameter, `chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, passed to the addChatMessage method of a ServletPrinter Object where it is concatenated with some formatting text, and finally appended to a LinkedList at point 2 by the addLast method. Note that the label for this addLast node ends in the name of a field, the `chattyList' field of a ServletPrinter Object. This means that this field points to the LinkedList in question and indicates that by storing tainted data in the LinkedList it is effectively stored in that field. Such is useful for a developer to know when interpreting these graphs and mapping them back to the code responsible for them. Point 3 shows where the chat message data flows for the category list request, as a LinkedList is read from the chattyList along edge 18 in the getChatBox method. Following that an iterator over the LinkedList returned along edge 19, and the iterator is accessed along edge 20. The messages inside are concatenate with some formatting text before being passed along to point 4, being returned to the printHTMLHeader method of a ServletPrinter Object and written to the user response stream along with the list of categories.
+Going further, RUBiS was modified to display a chat box on every page, allowing anyone to post messages to the server for everyone to see. Whenever a message is submitted by a user, it is posted to a SubmitChat servlet which is responsible for adding the message to a list of messages. The important thing to note about this data is that it is very unpredictable. The list of messages can change at any time, with random data input to them, and as such any computations which work with this data are poor candidates for any kind of caching. Figure~\ref{fig:browsecategorieschat} shows a trace for the same page load as before, but including a post to the chat box. The left side of the graph in the figure is as before, the portion outlined in the red box shows the additional flow of the chat message data. This new portion of the graph actually spans two requests to the application - one to submit the chat message and another to display the list of categories along with the new message. The portion of the graph from labeled points 1 to 2 covers the submission of the message, starting with the source node showing the relative URI of the request and the name of the tainted parameter, `chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, passed to the addChatMessage method of a ServletPrinter object where it is concatenated with some formatting text, and finally appended to a LinkedList at point 2 by the addLast method. Note that the label for this addLast node ends in the name of a field, the `chattyList' field of a ServletPrinter object. This means that this field points to the LinkedList in question and indicates that by storing tainted data in the LinkedList it is effectively stored in that field. Such is useful for a developer to know when interpreting these graphs and mapping them back to the code responsible for them. Point 3 shows where the chat message data flows for the category list request, as a LinkedList is read from the chattyList along edge 18 in the getChatBox method. Following that an iterator over the LinkedList returned along edge 19, and the iterator is accessed along edge 20. The messages inside are concatenate with some formatting text before being passed along to point 4, being returned to the printHTMLHeader method of a ServletPrinter object and written to the user response stream along with the list of categories.
 
 \paragraph{}
-Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the precomputation ends at the red PrintCategory node, no longer extending to the println nodes. This is because the println method on the same PrintWriter Object now also receives the random data of the chat messages, and thus one cannot replace calls to this method with precomputed data. Given the precomputation output in Figure C2b and the response output breakdown in Figure C2, a developer can determine that the page can be mostly precomputed, only needing to dynamically generate the portion tainted by the chatMessage data.
+Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the precomputation ends at the red PrintCategory node, no longer extending to the println nodes. This is because the println method on the same PrintWriter object now also receives the random data of the chat messages, and thus one cannot replace calls to this method with precomputed data. Given the precomputation output in Figure C2b and the response output breakdown in Figure C2, a developer can determine that the page can be mostly precomputed, only needing to dynamically generate the portion tainted by the chatMessage data.
 
 % The traces for jgossip will not really be shown and described in detail (at least not the pre-analysis traces), will be more about showing the post analysis trace and describing the implications of it
 \subsubsection{jGossip} 
@@ -1684,7 +1719,7 @@ Using this result, along with others which show similar results for other flows 
 %END MAKE FIGURE
 
 \paragraph{}
-Figure~\ref{fig:browseregioncategories} shows a trace taken from viewing the same RUBiS categories list as previously shown with an additional constraint. For this trace, a user first submits a request to get a list of geographical regions. Once these are displayed, a user picks a region, which submits another request to obtain the category list. The region name selected in the first request is used to obtain a region id, which is included in the category hyperlinks output to the user in the second request. The important point to note is that this category list should not be outright precomputed, as the region id parameter varies based on user input. However, this region id is over a small enough range that it is reasonably predictable, and thus it seems that a cache could be implemented here. Breaking down Figure~\ref{fig:browseregioncategories}, point 1 shows the region name data being read from the database for the first request. Note that this trace has been filtered to hide string concatenation dataflow (removing StringBuilder nodes), make it more presentable. At point the region names are passed to the encode method during concatenation with formatting text, and then output to the user at point 3. A user clicks on a region, submitting its name as a parameter in the next request. This is shown at point 4, as the `region' parameter. From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement Object to be used as a predicate in a database query. When the query is executed at point 7, note how the input node is labeled as being tainted by not only the id column from the regions table, but also by the region parameter that the query was predicated on. Point 5 receives the region id, and passes it to point 8, which receives category names and ids from point 9. The category data and region id are sent point 10, the `printCategoryByRegion' method, which concatenates them with formatting text, encodes them, and writes them out to the user at point 3.
+Figure~\ref{fig:browseregioncategories} shows a trace taken from viewing the same RUBiS categories list as previously shown with an additional constraint. For this trace, a user first submits a request to get a list of geographical regions. Once these are displayed, a user picks a region, which submits another request to obtain the category list. The region name selected in the first request is used to obtain a region id, which is included in the category hyperlinks output to the user in the second request. The important point to note is that this category list should not be outright precomputed, as the region id parameter varies based on user input. However, this region id is over a small enough range that it is reasonably predictable, and thus it seems that a cache could be implemented here. Breaking down Figure~\ref{fig:browseregioncategories}, point 1 shows the region name data being read from the database for the first request. Note that this trace has been filtered to hide string concatenation dataflow (removing StringBuilder nodes), make it more presentable. At point the region names are passed to the encode method during concatenation with formatting text, and then output to the user at point 3. A user clicks on a region, submitting its name as a parameter in the next request. This is shown at point 4, as the `region' parameter. From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement object to be used as a predicate in a database query. When the query is executed at point 7, note how the input node is labeled as being tainted by not only the id column from the regions table, but also by the region parameter that the query was predicated on. Point 5 receives the region id, and passes it to point 8, which receives category names and ids from point 9. The category data and region id are sent point 10, the `printCategoryByRegion' method, which concatenates them with formatting text, encodes them, and writes them out to the user at point 3.
 
 \paragraph{}
 Running the caching analysis over this graph and filtering the results to only show the dataflow for the second request, the result graph show in Figure~\ref{fig:browseregioncategoriescaching} is obtained. The first important point to note is that this graph was not eligible for precomputation, due to the influence of the user-supplied region parameter in every part of this graph except for the upper-left portion showing the flow of the category name/id data. However, since this parameter has been marked as being predictable (see Figure Ce [datasourceinfochart]), the analysis judges that a cache may be possible for the identified inputs. Interpreting this, a developer can start at the output node. Figure Cf shows the tainted data flowing here, and this can be compared to the response output breakdown shown in Figure Cg. Evidently the entire page it composed non-tainted (likely static) data and the cachable output. Looking at the inputs in the graph, the data responsible for the cachable output comes from database tables which have all been marked as stable, unlikely to change frequently, and the predictable region parameter. 
@@ -2260,12 +2295,72 @@ Though there are many points of refinement to be made in our tools and additiona
 \appendix
 
 \chapter{Terms Used}
+\label{cha:termsused}
 \begin{itemize}
-\item Taint: Where this is used, such as when saying that a piece of data in an application is `tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, refereed to as the `taint source'. In this thesis is made a minor distinction between Objects which are directly tainted and those which are reachability tainted. Directly tainted Objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted Object is reachable through an Object's reference graph, such as by following a heirarchy of field references.
+\item Taint: Where this is used, such as when saying that a piece of data in an application is `tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, refereed to as the `taint source'. In this thesis is made a minor distinction between objects which are directly tainted and those which are reachability tainted. Directly tainted objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted object is reachable through an object's reference graph, such as by following a heirarchy of field references.
 \item Tomography: This refers to the nature of the taint tracking in question. Tomography-level taint tracking is a heavy form of the analysis where tainted data is not only tagged at a source and identified at predetermined monitoring points, but is rather tracked along its complete path, indiscriminantly through many monitoring points. The basic goal of tomography is to get a complete trace of where tainted data goes in a program. 
 \item Trace:
 \item Flow:
 \end{itemize}
+
+\chapter{Input Description Files}
+\label{cha:idf}
+
+\section{Input Source Description File Format}
+\begin{verbatim}
+<root>
+	<databasesourceinfo catalog="..." 
+						table="..." 
+						column="..." 
+						variability="STABLE|PREDICTABLE|RANDOM"
+						numtracking="true|false" />
+	<requestsourceinfo 	uri="..." 
+						parameter="..."
+						variability="STABLE|PREDICTABLE|RANDOM"
+						numtracking="true|false" />
+</root>
+\end{verbatim}
+
+As is shown here, the input source description file has two types of tags. databasesourceinfo tags describe inputs from database reads, and requestsourceinfo tags describe inputs from user web request parameters. For database inputs, one can specify the catalog (database name), table, and column names of data. For request parameters, one specifies the uri of the servlet
+
+\section{RUBiS Input Source Description File}
+\begin{verbatim}
+Database: rubis/categories/id - variability: STABLE
+Database: rubis/categories/name - variability: STABLE
+Database: rubis/regions/id - variability: STABLE
+Database: rubis/regions/name - variability: STABLE
+Database: rubis/users/id - variability: STABLE
+Request: /rubis_servlets/SubmitChat:chatMessage - variability: RANDOM
+Request: /rubis_servlets/BrowseCategories:region - variability: PREDICTABLE
+Request: /rubis_servlets/BrowseCategories:nickname - variability: PREDICTABLE
+Request: /rubis_servlets/BrowseCategories:password - variability: PREDICTABLE
+\end{verbatim}		
+
+\section{jGossip Input Source Description File}
+\begin{verbatim}
+Database: jgossip/forum/forumtitle - variability: STABLE
+Database: jgossip/forum/forumdesc - variability: STABLE
+Database: jgossip/forum/forumid - variability: STABLE
+Database: jgossip/forum/locked - variability: STABLE
+Database: jgossip/group/groupname - variability: STABLE
+Database: jgossip/group/groupid - variability: STABLE
+Database: jgossip/group/groupsort - variability: STABLE
+Database: jgossip/message/content - variability: RANDOM
+Database: jgossip/message/from - variability: RANDOM
+Database: jgossip/message/id - variability: RANDOM
+Database: jgossip/thread/timestamp - variability: PREDICTABLE
+Database: jgossip/thread/tid - variability: PREDICTABLE
+Database: jgossip/thread/sortby - variability: PREDICTABLE
+Database: jgossip/whois/id - variability: PREDICTABLE
+Database: jgossip/whois/ip - variability: RANDOM
+Database: jgossip/whois/sessionid - variability: RANDOM
+Database: jgossip/whois/username - variability: PREDICTABLE
+Database: jgossip/skinparams/paramname - variability: STABLE
+Database: jgossip/skinparams/paramvalue - variability: STABLE
+Database: jgossip/constants/name - variability: STABLE
+Database: jgossip/constants/value - variability: STABLE
+Request: ShowForum:fid - variability: PREDICTABLE
+\end{verbatim}
 
 \chapter{Taint Tracking Tool Logging Format}
 
@@ -2284,17 +2379,17 @@ caller/called ContextCounter - these attributes supplement the caller/called Cla
 
 \item Xobject Tag \\ 
 Format: <Xobject type, objectID, value, taintID, taintRecord /> \\
-Various `object' tags (sourceObject, taintedObject, etc) appear in log records to describe important Objects in taint flow events. The attributes of this tag are as follows: \\
+Various `object' tags (sourceObject, taintedObject, etc) appear in log records to describe important objects in taint flow events. The attributes of this tag are as follows: \\
 type - the Java class name for this object \\
-objectID - a unique ID for the Object. We use the hashcode given by Java. \\
-value - if available, a String representation of the Object. \\
-taintID - an unique identifier for the taint an Object carries. If taint is propagated from one Object to another, they will have similar taintIDs (differing only by an identifier for the Object). If an Object is tainted by multiple sources, the taintID will reflect this.\\
+objectID - a unique ID for the object. We use the hashcode given by Java. \\
+value - if available, a String representation of the object. \\
+taintID - an unique identifier for the taint an object carries. If taint is propagated from one object to another, they will have similar taintIDs (differing only by an identifier for the object). If an object is tainted by multiple sources, the taintID will reflect this.\\
 taintRecord - See below.
 
 \item taintRecord Attribute \\ 
 Format: TARGETCOLUMN: column CATALOG: catalog TABLE: table COLUMN: column... \\
 URI: uri PARAM: param \\
-This attribute, found in Xobject tags for Objects carrying taint, describes where the taint originally came from. In our implementation we taint reads from databases and from user web request parameters. For database reads we log the catalog, table, and column of every column involved in the selection query, and additionally specify the target column from which the data was actually taken. For request parameters we log the URI which received the request as well as the parameter name. 
+This attribute, found in Xobject tags for objects carrying taint, describes where the taint originally came from. In our implementation we taint reads from databases and from user web request parameters. For database reads we log the catalog, table, and column of every column involved in the selection query, and additionally specify the target column from which the data was actually taken. For request parameters we log the URI which received the request as well as the parameter name. 
 
 \item field Tag \\ 
 Format: <field targetClass, targetField, static> \\
@@ -2302,31 +2397,31 @@ These tags are used in field set/get records to identify, by class and field nam
 
 \item Propagation Log \\ 
 Format: <taintlog type="PROPAGATION"><location /><sourceObject /><destObject /></taintlog> \\
-Indicates that taint has spread from one Object to another. These logs mostly occur as a result of String operations, such as appending and copying, which produce new Strings from tainted ones. The sourceObject tag describes the Object which was originally tainted, and the destObject tag the one receiving taint from the sourceObject.
+Indicates that taint has spread from one object to another. These logs mostly occur as a result of String operations, such as appending and copying, which produce new Strings from tainted ones. The sourceObject tag describes the object which was originally tainted, and the destObject tag the one receiving taint from the sourceObject.
 
 \item Fuzzy Propagation Log \\ 
 Format: <taintlog type="FUZZY"><location /><sourceObject /><destObject /></taintlog> \\
-Indicates that an Object was marked as tainted heuristically by fuzzy propagation, as described earlier. The sourceObject tag describes the Object which was originally tainted and which satisfied the levenshtein distance match with the non-tainted destObject. The destObject now carries the taint of the sourceObject.
+Indicates that an object was marked as tainted heuristically by fuzzy propagation, as described earlier. The sourceObject tag describes the object which was originally tainted and which satisfied the levenshtein distance match with the non-tainted destObject. The destObject now carries the taint of the sourceObject.
 
 \item Modification Log \\
 Format: <taintlog type="MODIFICATION"><location /><targetObject /></taintlog> \\
-Indicates that some tainted Object has been modified. This usually means that a StringBuilder/Buffer Object was changed somehow, such as by an append. The targetObject tag describes this Object.
+Indicates that some tainted object has been modified. This usually means that a StringBuilder/Buffer object was changed somehow, such as by an append. The targetObject tag describes this object.
 
 \item Composition Log \\
 Format: <taintlog type="COMPOSITION"><location tag><composedObject><composingObject />...</composedObject></taintlog> \\
-Indicates that multiple tainted Objects have been combined into one Object which carries the combined taint. A composedObject tag describes the new Object, and nested inside it a series of composingObject tags describe the tainted Objects which were combined.
+Indicates that multiple tainted objects have been combined into one object which carries the combined taint. A composedObject tag describes the new object, and nested inside it a series of composingObject tags describe the tainted objects which were combined.
 
 \item Association Log \\
 Format: <taintlog type="ASSOCIATION"><location tag><associatingObjects><associatingObject />...</associatedObjects></taintlog> \\
-Indicates that multiple tainted Objects have associated through certain method calls but were not combined into a single Object (such as comparing one String to another). An associatingObjects tag wraps a series of associatingObject tags describing the tainted Objects which associated.
+Indicates that multiple tainted objects have associated through certain method calls but were not combined into a single object (such as comparing one String to another). An associatingObjects tag wraps a series of associatingObject tags describing the tainted objects which associated.
 
 \item Calling Log \\ 
 Format: <taintlog type="CALLING"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-Indicates that tainted Objects were passed in the arguments of a method call. For each argument which carries taint, a taintedObject tag describes the argument. If an argument is not directly tainted but from which taint is reachable, the taintedObject tag wraps a series of subTaintedObjects describing reachable directly tainted Objects. The caller/calledObject tags describe the Objects taking place in the method call.
+Indicates that tainted objects were passed in the arguments of a method call. For each argument which carries taint, a taintedObject tag describes the argument. If an argument is not directly tainted but from which taint is reachable, the taintedObject tag wraps a series of subTaintedObjects describing reachable directly tainted objects. The caller/calledObject tags describe the objects taking place in the method call.
 
 \item Returning Log \\ 
 Format: <taintlog type="RETURNING"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Calling Log, but indicates that a tainted Object has been returned from a method call.
+This is similar to the Calling Log, but indicates that a tainted object has been returned from a method call.
 
 \item Returning Args Log \\ 
 Format: <taintlog type="RETURNINGARGS"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
@@ -2334,7 +2429,7 @@ This is similar to the Calling Log, but comes when the method is returning and i
 
 \item Returning Input Log \\ 
 Format: <taintlog type="RETURNINGINPUT"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Returning Log, but is used for special cases to indicate that a return value is an original source of tainted data, such as a read operation from a database Object.
+This is similar to the Returning Log, but is used for special cases to indicate that a return value is an original source of tainted data, such as a read operation from a database object.
 
 \item Output Log \\ 
 Format: <taintlog type="OUTPUT"><location tag><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
@@ -2346,11 +2441,11 @@ This is similar to the Output Log, and is used in the same cases as it where the
 
 \item Field Set Log \\
 Format: <taintlog type="FIELDSET"><location tag><field /><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Calling Log, but indicates that a tainted Object has been assigned to an Object or static class field.
+This is similar to the Calling Log, but indicates that a tainted object has been assigned to an object or static class field.
 
 \item Field Get Log \\
 Format: <taintlog type="FIELDGET"><location tag><field /><taintedObject><subTaintedObject />...</taintedObject><callerObject /><calledObject /></taintlog> \\
-This is similar to the Returning Log, but indicates that a tainted Object has been read from an Object or static class field.
+This is similar to the Returning Log, but indicates that a tainted object has been read from an object or static class field.
 
 % This log type may not be needed if we replace it with FIELDSET records.
 %\item Static Field Store Log \\ t
