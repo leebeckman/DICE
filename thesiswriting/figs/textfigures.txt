@@ -1,0 +1,97 @@
+\begin{figure}[ht]
+  \caption{\label{fig:outputBrowseCat} RUBiS Browse Categories Tainted Output.}
+\begin{verbatim}
+<title>RUBiS available categories</title> [NONTAINTED]
+<form action="SubmitChat" method=POST> [NONTAINTED]
+<input type=text size=20 name=chatMessage /> [NONTAINTED]
+<input type=submit value="Post" /></form> [NONTAINTED]
+<h2>Currently available categories</h2><br> [NONTAINTED]
+<a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
+<a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
+<a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
+</body> [NONTAINTED]
+</html> [NONTAINTED]
+\end{verbatim}
+\end{figure}
+
+-------------------------------------------
+
+\begin{figure}[ht]
+  \caption{\label{fig:rubisPrecompDetails} RUBiS Precomputation Details.}
+\begin{verbatim}
+Output Data:
+Node: CoyoteWriter:println String:26517368
+	Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
+	Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
+	Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
+\end{verbatim}
+\end{figure}
+
+-------------------------------------------
+
+\begin{figure}[ht]
+  \caption{\label{fig:outputBrowseCatB} RUBiS Browse Categories With Chat Tainted Output.}
+\begin{verbatim}
+<title>RUBiS available categories</title> [NONTAINTED]
+<p>Popular Items</p> [NONTAINTED]
+<p>Chats</p><p>hello 1</p> [TAINTED]
+<form action="SubmitChat" method=POST> [NONTAINTED]
+<input type=text size=20 name=chatMessage /> [NONTAINTED]
+<input type=submit value="Post" /></form> [NONTAINTED]
+<h2>Currently available categories</h2><br> [NONTAINTED]
+<a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
+<a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
+<a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
+</body> [NONTAINTED]
+</html> [NONTAINTED]
+\end{verbatim}
+\end{figure}
+
+-------------------------------------------
+
+\begin{figure}[ht]
+  \caption{\label{fig:rubisPrecompDetailsB} RUBiS Not Sure Figure.}
+\begin{verbatim}
+Output Data:
+Node: ServletPrinter:printCategory String int:19112841
+	Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
+	Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
+	Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
+\end{verbatim}
+\end{figure}
+
+-------------------------------------------
+
+\begin{figure}[ht]
+  \caption{\label{fig:NAME} DESC.}
+\begin{verbatim}
+<title>RUBiS available categories</title> [NONTAINTED]
+<p>Popular Items</p> [NONTAINTED]
+<p>Chats</p> [NONTAINTED]
+<form action="SubmitChat" method=POST> [NONTAINTED]
+<input type=text size=20 name=chatMessage /> [NONTAINTED]
+<input type=submit value="Post" /></form> [NONTAINTED]
+<h2>Currently available categories</h2><br> [NONTAINTED]
+<a href="SearchItemsByRegion?category=1&categoryName=Antiques&region=1">Antiques</a><br> [TAINTED]
+<a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">Books</a><br> [TAINTED]
+<a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">Business</a><br> [TAINTED]
+</body> [NONTAINTED]
+</html> [NONTAINTED]
+\end{verbatim}
+\end{figure}
+
+-------------------------------------------
+
+\begin{figure}[ht]
+  \caption{\label{fig:rubisPrecompDetailsB} RUBiS Not Sure Figure.}
+\begin{verbatim}
+Output Data:
+Node: CoyoteWriter:println String:22693155
+	Data: <a href="BrowseCategories?region=AZ--Phoenix">AZ--Phoenix</a><br>
+	Data: <a href="BrowseCategories?region=CA--Los+Angeles">CA--Los Angeles</a><br>
+	Data: <a href="BrowseCategories?region=CA--Oakland">CA--Oakland</a><br>
+	Data: <a href="SearchItemsByRegion?category=1&categoryName=Antiques">Antiques</a><br>
+	Data: <a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">Books</a><br>
+	Data: <a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">Business</a><br>
+\end{verbatim}
+\end{figure}

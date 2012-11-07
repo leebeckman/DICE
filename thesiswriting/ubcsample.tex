@@ -1527,10 +1527,25 @@ To check that all data which should be tainted actually was, the test applicatio
 \section{Application Results}
 
 \subsection{Example Trace}
-In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. See Figure~\ref{fig:dbformat} for the format of this kind of node.  A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each target column accessed. The edges out of these nodes are labeled `RIN' for `Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the `missing' edge numbers. From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. 
+In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. 
+\begin{itemize}
+\item At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. See Figure~\ref{fig:dbformat} for the format of this kind of node, as well as Table~\ref{tab:edgetypes} for a summary of the edge types which follow.  A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each target column accessed. The edges out of these nodes are labeled `RIN' for `Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the `missing' edge numbers.
+\item From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. 
+\item This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders.
+\item After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds `IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call.
+\item At point 5 is shown how the data is passed to an encode method which processes the data in a way which would have lost the data were it not for the fuzzy propagation methods described earlier. The `FZZ' edge is present to indicate the use of this heuristic.
+\item Finally, the categories are written out to the response output stream, at point 6 depicted as an `OUT' edge to a println method.
+\end{itemize}   
 
-\paragraph{}
-This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders. After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds `IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call. At point 5 is shown how the data is passed to an encode method which processes the data in a way which would have lost the data were it not for the fuzzy propagation methods described earlier. The `FZZ' edge is present to indicate the use of this heuristic. Finally, the categories are written out to the response output stream, at point 6 depicted as an `OUT' edge to a println method.
+%The results in this section are too unstructured for someone to follow all the logic. I think all the right info is here, its just not organized. It needs to be broken down into pieces something like (just using nonsence to illustrate how things could be organized):
+
+%SECTIONS:
+%Experiment Setup, Inputs
+%Analysis Steps
+	% What the analysis does, how it selects its conclusion
+	% What it output
+%Developer Interpretation
+%Recommended Response 
 
 \subsection{Precomputation}
 \subsubsection{RUBiS}
@@ -1565,94 +1580,75 @@ This data is then passed to a printCategory method on a ServletPrinter object at
   \end{center}
 \end{figure}
 
-%\begin{figure}[ht]
-%  \caption{\label{fig:outputBrowseCat} RUBiS Browse Categories Tainted Output.}
-%\begin{verbatim}
-%
-%\end{verbatim}
-%\end{figure}
+\begin{figure}[ht]
+  \caption{\label{fig:outputBrowseCat} RUBiS Browse Categories Tainted Output.}
+\begin{verbatim}
+<title>RUBiS available categories</title> [NONTAINTED]
+<form action="SubmitChat" method=POST> [NONTAINTED]
+<input type=text size=20 name=chatMessage /> [NONTAINTED]
+<input type=submit value="Post" /></form> [NONTAINTED]
+<h2>Currently available categories</h2><br> [NONTAINTED]
+<a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
+<a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
+<a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
+</body> [NONTAINTED]
+</html> [NONTAINTED]
+\end{verbatim}
+\end{figure}
 
-%MAKE FIGURE:
-%REQ: 1 - /rubis_servlets/edu.rice.rubis.servlets.BrowseCategories
-%<title>RUBiS available categories</title> [NONTAINTED]
-%<div style="border:solid 1px black;"><p>Popular Items</p> [NONTAINTED]
-%<div style="border:solid 1px black;"><p>Chats</p></div><form action="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" method=POST> <input type=text size=20 name=chatMessage /> <input type=submit value="Post" /></form> [NONTAINTED]
-%<h2>Currently available categories</h2><br> [NONTAINTED]
-%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=1&categoryName=Antiques+%26+Art+">Antiques & Art </a><br> [TAINTED: 20090212:id:2,20090212:name:1 [15759798] - TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
-%START: class org.apache.catalina.connector.CoyoteWriter END [NONTAINTED]
-%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=2&categoryName=Books+">Books </a><br> [TAINTED: 20090212:id:4,20090212:name:3 [15134979] - TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
-%START: class org.apache.catalina.connector.CoyoteWriter END [NONTAINTED]
-%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=3&categoryName=Business%2C+Office+%26+Industrial+">Business, Office & Industrial </a><br> [TAINTED: 20090212:name:5,20090212:id:6 [5433945] - TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
-%START: class org.apache.catalina.connector.CoyoteWriter END [NONTAINTED]
-%<br><hr>RUBiS (C) Rice University/INRIA<br><i>Page generated by BrowseCategories in      8 seconds 518 milliseconds </i><br> [NONTAINTED]
-%</body> [NONTAINTED]
-%</html> [NONTAINTED]
-%END MAKE FIGURE
+\begin{figure}[ht]
+  \caption{\label{fig:rubisPrecompDetails} RUBiS Precomputation Details.}
+\begin{verbatim}
+Output Data:
+Node: CoyoteWriter:println String:26517368
+	Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
+	Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
+	Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
+\end{verbatim}
+\end{figure}
 
-%\begin{figure}[ht]
-%  \caption{\label{fig:rubisPrecompDetails} RUBiS Precomputation Details.}
-%\begin{verbatim}
-%
-%\end{verbatim}
-%\end{figure}
+\begin{figure}[ht]
+  \caption{\label{fig:outputBrowseCatB} RUBiS Browse Categories With Chat Tainted Output.}
+\begin{verbatim}
+<title>RUBiS available categories</title> [NONTAINTED]
+<p>Popular Items</p> [NONTAINTED]
+<p>Chats</p><p>hello 1</p> [TAINTED]
+<form action="SubmitChat" method=POST> [NONTAINTED]
+<input type=text size=20 name=chatMessage /> [NONTAINTED]
+<input type=submit value="Post" /></form> [NONTAINTED]
+<h2>Currently available categories</h2><br> [NONTAINTED]
+<a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
+<a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
+<a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
+</body> [NONTAINTED]
+</html> [NONTAINTED]
+\end{verbatim}
+\end{figure}
 
-%MAKE FIGURE
-%Output Data:
-%Node: org.apache.catalina.connector.CoyoteWriter:println String:26517368
-%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=1&categoryName=Antiques+%26+Art+">Antiques & Art </a><br>
-%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=2&categoryName=Books+">Books </a><br>
-%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=3&categoryName=Business%2C+Office+%26+Industrial+">Business, Office & Industrial </a><br>
-%END MAKE FIGURE
+\begin{figure}[ht]
+  \caption{\label{fig:rubisPrecompDetailsB} RUBiS Not Sure Figure.}
+\begin{verbatim}
+Output Data:
+Node: ServletPrinter:printCategory String int:19112841
+	Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
+	Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
+	Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
+\end{verbatim}
+\end{figure}
 
-%\begin{figure}[ht]
-%  \caption{\label{fig:outputBrowseCatB} RUBiS Browse Categories With Chat Tainted Output.}
-%\begin{verbatim}
-%
-%\end{verbatim}
-%\end{figure}
-
-%MAKE FIGURE:
-%REQ: 3 - /rubis_servlets/edu.rice.rubis.servlets.BrowseCategories
-%<title>RUBiS available categories</title> [NONTAINTED]
-%<div style="border:solid 1px black;"><p>Popular Items</p> [NONTAINTED]
-%<div style="border:solid 1px black;"><p>Chats</p><p>hello 1</p></div><form action="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" method=POST> <input type=text size=20 name=chatMessage /> <input type=submit value="Post" /></form> [TAINTED: 33440105:0 [12767107] - URI:/rubis_servlets/edu.rice.rubis.servlets.SubmitChat:chatMessage]
-%<h2>Currently available categories</h2><br> [NONTAINTED]
-%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=1&categoryName=Antiques+%26+Art+">Antiques & Art </a><br> [TAINTED: 24037827:id:3,24037827:name:2 [640451] - TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
-%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=2&categoryName=Books+">Books </a><br> [TAINTED: 24037827:id:5,24037827:name:4 [13477454] - TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
-%<a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=3&categoryName=Business%2C+Office+%26+Industrial+">Business, Office & Industrial </a><br> [TAINTED: 24037827:name:6,24037827:id:7 [5340732] - TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
-%<br><hr>RUBiS (C) Rice University/INRIA<br><i>Page generated by BrowseCategories in      3 seconds 772 milliseconds </i><br> [NONTAINTED]
-%</body> [NONTAINTED]
-%</html> [NONTAINTED]
-%END MAKE FIGURE
-
-%\begin{figure}[ht]
-%  \caption{\label{fig:rubisPrecompDetailsB} RUBiS Not Sure Figure.}
-%\begin{verbatim}
-%
-%\end{verbatim}
-%\end{figure}
-
-%MAKE FIGURE
-%Output Data:
-%Node: edu.rice.rubis.servlets.ServletPrinter:printCategory String int:19112841
-%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=1&categoryName=Antiques+%26+Art+">Antiques & Art </a><br>
-%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=2&categoryName=Books+">Books </a><br>
-%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByCategory?category=3&categoryName=Business%2C+Office+%26+Industrial+">Business, Office & Industrial </a><br>
-%END MAKE FIGURE
-
-Figure~\ref{fig:browsecategoriesprecomp} shows the results of running the precomputation analysis over the same trace depicted in Figure~\ref{fig:browsecategories}. The first thing to notice here is that it is the same graph. Such is not always the case for this analysis, but in this instance the input trace was simple enough that the  analysis identified the entire trace as being precomputable. Consider the request in question, which only needs to access the categories table to list the names and ids of the categories to the user. Both the name and id columns of this table have been manually marked as being stable. This means that one does not expect category names or ids to be unpredictable - the same values will be present in the table for extended periods of application use. Given this information about these values and the input trace, the precomputation analysis determined that the tainted data flowing in this graph was entirely stable data, and thus the output of the analysis is the entire graph with the inputs and outputs coloured orange and red respectively. Additional data is obtained by viewing the details of the analysis, which mainly shows tainted data sent to each output node in the output graph. For this graph, the output node's data shows the HTML for three hyperlinks as in Figure C1b, these being the categories presented to the user. 
+Figure~\ref{fig:browsecategoriesprecomp} shows the results of running the precomputation analysis over the same trace depicted in Figure~\ref{fig:browsecategories}. The first thing to notice here is that it is the same graph. Such is not always the case for this analysis, but in this instance the input trace was simple enough that the  analysis identified the entire trace as being precomputable. Consider the request in question, which only needs to access the categories table to list the names and ids of the categories to the user. Both the name and id columns of this table have been manually marked as being stable. This means that one does not expect category names or ids to be unpredictable - the same values will be present in the table for extended periods of application use. Given this information about these values and the input trace, the precomputation analysis determined that the tainted data flowing in this graph was entirely stable data, and thus the output of the analysis is the entire graph with the inputs and outputs coloured orange and red respectively. Additional data is obtained by viewing the details of the analysis, which mainly shows tainted data sent to each output node in the output graph. For this graph, the output node's data shows the HTML for three hyperlinks as in #####Figure C1b, these being the categories presented to the user. 
 
 \paragraph{}
 Interpreting this, a developer can reasonably assume that for the request responsible for this trace, the computation which reads category names and ids from the database and displays them to the user in this hyperlink form can be precomputed. At no point does this computation seemingly make use of any unpredictable data in generating the category hyperlinks, and so one could alter the application to essentially immediately output the hardcoded hyperlinks instead of fetching the data from the database and formatting it. If and when the category data does happen to change, one would then have to update the precomputed data, but it is assumed that this would happen very rarely.
 
 \paragraph{}
-The analysis can be taken further in this case. The tracking code not only logs tainted output, but also creates logs for non-tainted output. Using these one can observe the mixing of tainted and non-tainted data as it is composed together in the output. Looking to Figure C1, generated in the analysis tool from the output logs, we can see that the only tainted output involved in the response web page is from the three hyperlinks identified in the precomputation analysis. The rest of the data is non-tainted, and for this application this equates to it being hardcoded. Given these analysis results a developer can decide to simply precompute the entire response for this category listing page, saving on database access and formatting computation. 
+The analysis can be taken further in this case. The tracking code not only logs tainted output, but also creates logs for non-tainted output. Using these one can observe the mixing of tainted and non-tainted data as it is composed together in the output. Looking to #####Figure C1, generated in the analysis tool from the output logs, we can see that the only tainted output involved in the response web page is from the three hyperlinks identified in the precomputation analysis. The rest of the data is non-tainted, and for this application this equates to it being hardcoded. Given these analysis results a developer can decide to simply precompute the entire response for this category listing page, saving on database access and formatting computation. 
 
 \paragraph{}
 Going further, RUBiS was modified to display a chat box on every page, allowing anyone to post messages to the server for everyone to see. Whenever a message is submitted by a user, it is posted to a SubmitChat servlet which is responsible for adding the message to a list of messages. The important thing to note about this data is that it is very unpredictable. The list of messages can change at any time, with random data input to them, and as such any computations which work with this data are poor candidates for any kind of caching. Figure~\ref{fig:browsecategorieschat} shows a trace for the same page load as before, but including a post to the chat box. The left side of the graph in the figure is as before, the portion outlined in the red box shows the additional flow of the chat message data. This new portion of the graph actually spans two requests to the application - one to submit the chat message and another to display the list of categories along with the new message. The portion of the graph from labeled points 1 to 2 covers the submission of the message, starting with the source node showing the relative URI of the request and the name of the tainted parameter, `chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, passed to the addChatMessage method of a ServletPrinter object where it is concatenated with some formatting text, and finally appended to a LinkedList at point 2 by the addLast method. Note that the label for this addLast node ends in the name of a field, the `chattyList' field of a ServletPrinter object. This means that this field points to the LinkedList in question and indicates that by storing tainted data in the LinkedList it is effectively stored in that field. Such is useful for a developer to know when interpreting these graphs and mapping them back to the code responsible for them. Point 3 shows where the chat message data flows for the category list request, as a LinkedList is read from the chattyList along edge 18 in the getChatBox method. Following that an iterator over the LinkedList returned along edge 19, and the iterator is accessed along edge 20. The messages inside are concatenate with some formatting text before being passed along to point 4, being returned to the printHTMLHeader method of a ServletPrinter object and written to the user response stream along with the list of categories.
 
 \paragraph{}
-Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the precomputation ends at the red PrintCategory node, no longer extending to the println nodes. This is because the println method on the same PrintWriter object now also receives the random data of the chat messages, and thus one cannot replace calls to this method with precomputed data. Given the precomputation output in Figure C2b and the response output breakdown in Figure C2, a developer can determine that the page can be mostly precomputed, only needing to dynamically generate the portion tainted by the chatMessage data.
+Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the precomputation ends at the red PrintCategory node, no longer extending to the println nodes. This is because the println method on the same PrintWriter object now also receives the random data of the chat messages, and thus one cannot replace calls to this method with precomputed data. Given the precomputation output in #####Figure C2b and the response output breakdown in #####Figure C2, a developer can determine that the page can be mostly precomputed, only needing to dynamically generate the portion tainted by the chatMessage data.
 
 % The traces for jgossip will not really be shown and described in detail (at least not the pre-analysis traces), will be more about showing the post analysis trace and describing the implications of it
 \subsubsection{jGossip} 
@@ -1693,36 +1689,43 @@ Using this result, along with others which show similar results for other flows 
 \label{fig:browseregioncategoriescaching}
 \end{sidewaysfigure}
 
-%MAKE FIGURE
-%REQ: 3 - /rubis_servlets/edu.rice.rubis.servlets.BrowseCategories
-%<title>RUBiS available categories</title> [NONTAINTED]
-%<div style="border:solid 1px black;"><p>Popular Items</p> [NONTAINTED]
-%<div style="border:solid 1px black;"><p>Chats</p></div><form action="/rubis_servlets/edu.rice.rubis.servlets.SubmitChat" method=POST> <input type=text size=20 name=chatMessage /> <input type=submit value="Post" /></form> [NONTAINTED]
-%<h2>Currently available categories</h2><br> [NONTAINTED]
-%<a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=1&categoryName=Antiques+%26+Art+&region=1">Antiques & Art </a><br> [TAINTED: 30453968:id:6,3156700:name:8,3156700:id:9,23441609:4 [4724538] - TARGETCOLUMN: id CATALOG: rubis TABLE: regions COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#URI:/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories:region]
-%<a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=2&categoryName=Books+&region=1">Books </a><br> [TAINTED: 30453968:id:6,23441609:4,3156700:id:11,3156700:name:10 [575947] - TARGETCOLUMN: id CATALOG: rubis TABLE: regions COLUMN: id #RECSEP#URI:/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories:region#RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
-%<a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=3&categoryName=Business%2C+Office+%26+Industrial+&region=1">Business, Office & Industrial </a><br> [TAINTED: 30453968:id:6,23441609:4,3156700:name:12,3156700:id:13 [33336785] - TARGETCOLUMN: id CATALOG: rubis TABLE: regions COLUMN: id #RECSEP#URI:/rubis_servlets/edu.rice.rubis.servlets.BrowseCategories:region#RECSEP#TARGETCOLUMN: name CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id #RECSEP#TARGETCOLUMN: id CATALOG: rubis TABLE: categories COLUMN: name CATALOG: rubis TABLE: categories COLUMN: id ]
-%<br><hr>RUBiS (C) Rice University/INRIA<br><i>Page generated by BrowseCategories in      3 seconds 973 milliseconds </i><br> [NONTAINTED]
-%</body> [NONTAINTED]
-%</html> [NONTAINTED]
-%END MAKE FIGURE
+\begin{figure}[ht]
+  \caption{\label{fig:NAME} DESC.}
+\begin{verbatim}
+<title>RUBiS available categories</title> [NONTAINTED]
+<p>Popular Items</p> [NONTAINTED]
+<p>Chats</p> [NONTAINTED]
+<form action="SubmitChat" method=POST> [NONTAINTED]
+<input type=text size=20 name=chatMessage /> [NONTAINTED]
+<input type=submit value="Post" /></form> [NONTAINTED]
+<h2>Currently available categories</h2><br> [NONTAINTED]
+<a href="SearchItemsByRegion?category=1&categoryName=Antiques&region=1">Antiques</a><br> [TAINTED]
+<a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">Books</a><br> [TAINTED]
+<a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">Business</a><br> [TAINTED]
+</body> [NONTAINTED]
+</html> [NONTAINTED]
+\end{verbatim}
+\end{figure}
 
-%MAKE FIGURE
-%Output Data:
-%Node: org.apache.catalina.connector.CoyoteWriter:println String:22693155
-%	Data: <a href="edu.rice.rubis.servlets.BrowseCategories?region=AZ--Phoenix">AZ--Phoenix</a><br>
-%	Data: <a href="edu.rice.rubis.servlets.BrowseCategories?region=CA--Los+Angeles">CA--Los Angeles</a><br>
-%	Data: <a href="edu.rice.rubis.servlets.BrowseCategories?region=CA--Oakland">CA--Oakland</a><br>
-%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=1&categoryName=Antiques+%26+Art+&region=1">Antiques & Art </a><br>
-%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=2&categoryName=Books+&region=1">Books </a><br>
-%	Data: <a href="edu.rice.rubis.servlets.SearchItemsByRegion?category=3&categoryName=Business%2C+Office+%26+Industrial+&region=1">Business, Office & Industrial </a><br>
-%END MAKE FIGURE
+\begin{figure}[ht]
+  \caption{\label{fig:NAME} DESC.}
+\begin{verbatim}
+Output Data:
+Node: CoyoteWriter:println String:22693155
+	Data: <a href="BrowseCategories?region=AZ--Phoenix">AZ--Phoenix</a><br>
+	Data: <a href="BrowseCategories?region=CA--Los+Angeles">CA--Los Angeles</a><br>
+	Data: <a href="BrowseCategories?region=CA--Oakland">CA--Oakland</a><br>
+	Data: <a href="SearchItemsByRegion?category=1&categoryName=Antiques">Antiques</a><br>
+	Data: <a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">Books</a><br>
+	Data: <a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">Business</a><br>
+\end{verbatim}
+\end{figure}
 
 \paragraph{}
 Figure~\ref{fig:browseregioncategories} shows a trace taken from viewing the same RUBiS categories list as previously shown with an additional constraint. For this trace, a user first submits a request to get a list of geographical regions. Once these are displayed, a user picks a region, which submits another request to obtain the category list. The region name selected in the first request is used to obtain a region id, which is included in the category hyperlinks output to the user in the second request. The important point to note is that this category list should not be outright precomputed, as the region id parameter varies based on user input. However, this region id is over a small enough range that it is reasonably predictable, and thus it seems that a cache could be implemented here. Breaking down Figure~\ref{fig:browseregioncategories}, point 1 shows the region name data being read from the database for the first request. Note that this trace has been filtered to hide string concatenation dataflow (removing StringBuilder nodes), make it more presentable. At point the region names are passed to the encode method during concatenation with formatting text, and then output to the user at point 3. A user clicks on a region, submitting its name as a parameter in the next request. This is shown at point 4, as the `region' parameter. From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement object to be used as a predicate in a database query. When the query is executed at point 7, note how the input node is labeled as being tainted by not only the id column from the regions table, but also by the region parameter that the query was predicated on. Point 5 receives the region id, and passes it to point 8, which receives category names and ids from point 9. The category data and region id are sent point 10, the `printCategoryByRegion' method, which concatenates them with formatting text, encodes them, and writes them out to the user at point 3.
 
 \paragraph{}
-Running the caching analysis over this graph and filtering the results to only show the dataflow for the second request, the result graph show in Figure~\ref{fig:browseregioncategoriescaching} is obtained. The first important point to note is that this graph was not eligible for precomputation, due to the influence of the user-supplied region parameter in every part of this graph except for the upper-left portion showing the flow of the category name/id data. However, since this parameter has been marked as being predictable (see Figure Ce [datasourceinfochart]), the analysis judges that a cache may be possible for the identified inputs. Interpreting this, a developer can start at the output node. Figure Cf shows the tainted data flowing here, and this can be compared to the response output breakdown shown in Figure Cg. Evidently the entire page it composed non-tainted (likely static) data and the cachable output. Looking at the inputs in the graph, the data responsible for the cachable output comes from database tables which have all been marked as stable, unlikely to change frequently, and the predictable region parameter. 
+Running the caching analysis over this graph and filtering the results to only show the dataflow for the second request, the result graph show in Figure~\ref{fig:browseregioncategoriescaching} is obtained. The first important point to note is that this graph was not eligible for precomputation, due to the influence of the user-supplied region parameter in every part of this graph except for the upper-left portion showing the flow of the category name/id data. However, since this parameter has been marked as being predictable (see #####Figure Ce [datasourceinfochart]), the analysis judges that a cache may be possible for the identified inputs. Interpreting this, a developer can start at the output node. #####Figure Cf shows the tainted data flowing here, and this can be compared to the response output breakdown shown in #####Figure Cg. Evidently the entire page it composed non-tainted (likely static) data and the cachable output. Looking at the inputs in the graph, the data responsible for the cachable output comes from database tables which have all been marked as stable, unlikely to change frequently, and the predictable region parameter. 
 
 \paragraph{}
 Using the graph and some rudimentary knowledge of the application, a cache could be implemented as follows. First, consider the inputs. All of them, save for the region parameter, are stable, and thus the only parameter the cache need use to store and return results is that region parameter. For the other inputs, like those from the categories and regions tables, these data sources need only to be monitored to detect if they are modified. If so, the cached results are invalidated to be regenerated. As the doGet node is the first to receive the region parameter, the cache check could be performed there. If the cache hits for a given region, the output data (perhaps the entire response page or just the category hyperlinks) can be returned and written to the response stream. In the event of a cache miss, the computation can proceed as normal, and the results picked up in the printCategoryByRegion node to be placed in the cache for later.
@@ -2321,37 +2324,66 @@ Though there are many points of refinement to be made in our tools and additiona
 </root>
 \end{verbatim}
 
-As is shown here, the input source description file has two types of tags. databasesourceinfo tags describe inputs from database reads, and requestsourceinfo tags describe inputs from user web request parameters. For database inputs, one can specify the catalog (database name), table, and column names of data. For request parameters, one specifies the uri of the servlet
+As is shown here, the input source description file has two types of tags. databasesourceinfo tags describe inputs from database reads, and requestsourceinfo tags describe inputs from user web request parameters. For database inputs, one can specify the catalog (database name), table, and column names of data. For request parameters, one specifies the uri of the servlet which received the user data, as well as the name of the parameter associated with it. 
+
+\paragraph{}
+For both tags, one also specifies the variability as being either STABLE, PREDICTABLE, or RANDOM. These are used by the caching and precomputation analyses. Basically:
+\begin{itemize}
+\item STABLE sources have values which are not expected to change. When the application reads data from these, generally the same values should always be expected.
+\item PREDICTABLE sources have values over a reasonably predictable range. While one does not always know what a read from one of these sources will produce, one does have some confidence over the set of possible values.
+\item RANDOM sources have unpredictable values. They could produce a different value every time.
+\end{itemize}
+
+\paragraph{}
+Finally, one can optionally, for columns and parameters producing numeric values, indicate that the numeric values should be tracked by the taint tracker, using the numtracking flag. These values should not influence control statements in the program, due to how our system tracks numeric values, so numtracking is best suited for things like identifiers and values which are not predicated on in the application. If not specified, this defaults to false.
 
 \section{RUBiS Input Source Description File}
 \begin{verbatim}
-Database: rubis/categories/id - variability: STABLE
+The contents are specified in a non-XML, condensed format:
+<databasesourceinfo ... />:
+	Database: catalog/table/column - variability: ... - numtracking: ...
+<requestsourceinfo ... />:
+	Request: uri:parameter - variability: ... - numtracking: ...
+
+Database: rubis/categories/id - variability: STABLE - numtracking: true
 Database: rubis/categories/name - variability: STABLE
-Database: rubis/regions/id - variability: STABLE
+Database: rubis/regions/id - variability: STABLE - numtracking: true
 Database: rubis/regions/name - variability: STABLE
-Database: rubis/users/id - variability: STABLE
-Request: /rubis_servlets/SubmitChat:chatMessage - variability: RANDOM
-Request: /rubis_servlets/BrowseCategories:region - variability: PREDICTABLE
-Request: /rubis_servlets/BrowseCategories:nickname - variability: PREDICTABLE
-Request: /rubis_servlets/BrowseCategories:password - variability: PREDICTABLE
+Database: rubis/users/id - variability: STABLE - numtracking: true
+Request: SubmitChat:chatMessage - variability: RANDOM
+Request: BrowseCategories:region - variability: PREDICTABLE
+Request: BrowseCategories:nickname - variability: PREDICTABLE
+Request: BrowseCategories:password - variability: PREDICTABLE
+Request: RegisterItem:initialPrice - variability: RANDOM - numtracking: true
+Request: RegisterItem:reservePrice - variability: RANDOM - numtracking: true
+Request: RegisterItem:buyNow - variability: RANDOM - numtracking: true
+Request: RegisterItem:quantity - variability: RANDOM - numtracking: true
+Request: RegisterItem:userId - variability: PREDICTABLE - numtracking: true
+Request: RegisterItem:categoryId - variability: PREDICTABLE - numtracking: true
 \end{verbatim}		
 
 \section{jGossip Input Source Description File}
 \begin{verbatim}
+The contents are specified in a non-XML, condensed format:
+<databasesourceinfo ... />:
+	Database: catalog/table/column - variability: ... - numtracking: ...
+<requestsourceinfo ... />:
+	Request: uri:parameter - variability: ... - numtracking: ...
+	
 Database: jgossip/forum/forumtitle - variability: STABLE
 Database: jgossip/forum/forumdesc - variability: STABLE
-Database: jgossip/forum/forumid - variability: STABLE
+Database: jgossip/forum/forumid - variability: STABLE - numtracking: true
 Database: jgossip/forum/locked - variability: STABLE
 Database: jgossip/group/groupname - variability: STABLE
-Database: jgossip/group/groupid - variability: STABLE
+Database: jgossip/group/groupid - variability: STABLE - numtracking: true
 Database: jgossip/group/groupsort - variability: STABLE
 Database: jgossip/message/content - variability: RANDOM
 Database: jgossip/message/from - variability: RANDOM
-Database: jgossip/message/id - variability: RANDOM
+Database: jgossip/message/id - variability: RANDOM - numtracking: true
 Database: jgossip/thread/timestamp - variability: PREDICTABLE
-Database: jgossip/thread/tid - variability: PREDICTABLE
+Database: jgossip/thread/tid - variability: PREDICTABLE - numtracking: true
 Database: jgossip/thread/sortby - variability: PREDICTABLE
-Database: jgossip/whois/id - variability: PREDICTABLE
+Database: jgossip/whois/id - variability: PREDICTABLE - numtracking: true
 Database: jgossip/whois/ip - variability: RANDOM
 Database: jgossip/whois/sessionid - variability: RANDOM
 Database: jgossip/whois/username - variability: PREDICTABLE
@@ -2359,7 +2391,8 @@ Database: jgossip/skinparams/paramname - variability: STABLE
 Database: jgossip/skinparams/paramvalue - variability: STABLE
 Database: jgossip/constants/name - variability: STABLE
 Database: jgossip/constants/value - variability: STABLE
-Request: ShowForum:fid - variability: PREDICTABLE
+Request: DeleteForum:fid - variability: PREDICTABLE - numtracking: true
+Request: ShowForum:fid - variability: PREDICTABLE - numtracking: true
 \end{verbatim}
 
 \chapter{Taint Tracking Tool Logging Format}
