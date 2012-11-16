@@ -13,22 +13,36 @@
 \contentsline {figure}{\numberline {1.5}{\ignorespaces Simple dataflow indicating peristent state which is shared with only one user.}}{7}{figure.1.5}
 \contentsline {figure}{\numberline {1.6}{\ignorespaces Example partitioning of application.}}{8}{figure.1.6}
 \addvspace {10\p@ }
-\contentsline {figure}{\numberline {2.1}{\ignorespaces RUBiS Input Description File.}}{30}{figure.2.1}
-\contentsline {figure}{\numberline {2.2}{\ignorespaces jGossip Input Description File.}}{31}{figure.2.2}
-\contentsline {figure}{\numberline {2.3}{\ignorespaces RUBiS Browse Categories Trace}}{33}{figure.2.3}
-\contentsline {figure}{\numberline {2.4}{\ignorespaces RUBiS Browse Categories With Chat Trace}}{34}{figure.2.4}
-\contentsline {figure}{\numberline {2.5}{\ignorespaces RUBiS Browse Categories Precomputation Results}}{35}{figure.2.5}
-\contentsline {figure}{\numberline {2.6}{\ignorespaces RUBiS Browse Categories With Chat Precomputation Results}}{36}{figure.2.6}
-\contentsline {figure}{\numberline {2.7}{\ignorespaces jGossip Main Page Precomputation Analysis Results}}{38}{figure.2.7}
-\contentsline {figure}{\numberline {2.8}{\ignorespaces RUBiS Browse Categories By Region Trace}}{40}{figure.2.8}
-\contentsline {figure}{\numberline {2.9}{\ignorespaces RUBiS Browse Categories By Region Caching Results}}{41}{figure.2.9}
-\contentsline {figure}{\numberline {2.10}{\ignorespaces jGossip View Forums Caching Results}}{44}{figure.2.10}
-\contentsline {figure}{\numberline {2.11}{\ignorespaces RUBiS Sell Item Trace}}{45}{figure.2.11}
-\contentsline {figure}{\numberline {2.12}{\ignorespaces RUBiS Sell Item Postcomputation Analysis Results}}{46}{figure.2.12}
-\contentsline {figure}{\numberline {2.13}{\ignorespaces jGossip Delete Forum Postcomputation Analysis Results}}{48}{figure.2.13}
-\contentsline {figure}{\numberline {2.14}{\ignorespaces RUBiS Browse Items State Analysis Results}}{50}{figure.2.14}
-\contentsline {figure}{\numberline {2.15}{\ignorespaces jGossip Login User State Analysis Results}}{52}{figure.2.15}
-\contentsline {figure}{\numberline {2.16}{\ignorespaces jGossip Wasteful Communication Analysis Results}}{54}{figure.2.16}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {3.1}{\ignorespaces Architecture of the Taint Tracking Tool.}}{16}{figure.3.1}
+\contentsline {figure}{\numberline {3.2}{\ignorespaces Architecture of entire TaTAMi System.}}{16}{figure.3.2}
+\contentsline {figure}{\numberline {3.3}{\ignorespaces Examples of backwards taint propagation.}}{19}{figure.3.3}
+\contentsline {figure}{\numberline {3.4}{\ignorespaces Example of Graph Visualization.}}{24}{figure.3.4}
+\contentsline {figure}{\numberline {3.5}{\ignorespaces Format of input nodes for database data.}}{25}{figure.3.5}
+\contentsline {figure}{\numberline {3.6}{\ignorespaces Format of input nodes for user request data.}}{25}{figure.3.6}
+\contentsline {figure}{\numberline {3.7}{\ignorespaces Example of an Implied taint flow edge.}}{27}{figure.3.7}
+\addvspace {10\p@ }
+\contentsline {figure}{\numberline {4.1}{\ignorespaces RUBiS Browse Categories Trace}}{44}{figure.4.1}
+\contentsline {figure}{\numberline {4.2}{\ignorespaces RUBiS Browse Categories With Chat Trace}}{45}{figure.4.2}
+\contentsline {figure}{\numberline {4.3}{\ignorespaces RUBiS Browse Categories Precomputation Results}}{46}{figure.4.3}
+\contentsline {figure}{\numberline {4.4}{\ignorespaces RUBiS Browse Categories With Chat Precomputation Results}}{47}{figure.4.4}
+\contentsline {figure}{\numberline {4.5}{\ignorespaces RUBiS Browse Categories Tainted Output.}}{48}{figure.4.5}
+\contentsline {figure}{\numberline {4.6}{\ignorespaces RUBiS Precomputation Details.}}{48}{figure.4.6}
+\contentsline {figure}{\numberline {4.7}{\ignorespaces RUBiS Browse Categories With Chat Tainted Output.}}{49}{figure.4.7}
+\contentsline {figure}{\numberline {4.8}{\ignorespaces RUBiS Not Sure Figure.}}{49}{figure.4.8}
+\contentsline {figure}{\numberline {4.9}{\ignorespaces jGossip Main Page Precomputation Analysis Results}}{51}{figure.4.9}
+\contentsline {figure}{\numberline {4.10}{\ignorespaces RUBiS Browse Categories By Region Trace}}{53}{figure.4.10}
+\contentsline {figure}{\numberline {4.11}{\ignorespaces RUBiS Browse Categories By Region Caching Results}}{54}{figure.4.11}
+\contentsline {figure}{\numberline {4.12}{\ignorespaces DESC.}}{55}{figure.4.12}
+\contentsline {figure}{\numberline {4.13}{\ignorespaces DESC.}}{55}{figure.4.13}
+\contentsline {figure}{\numberline {4.14}{\ignorespaces jGossip View Forums Caching Results}}{57}{figure.4.14}
+\contentsline {figure}{\numberline {4.15}{\ignorespaces RUBiS Sell Item Trace}}{59}{figure.4.15}
+\contentsline {figure}{\numberline {4.16}{\ignorespaces RUBiS Sell Item Postcomputation Analysis Results}}{60}{figure.4.16}
+\contentsline {figure}{\numberline {4.17}{\ignorespaces jGossip Delete Forum Postcomputation Analysis Results}}{62}{figure.4.17}
+\contentsline {figure}{\numberline {4.18}{\ignorespaces RUBiS Browse Items State Analysis Results}}{64}{figure.4.18}
+\contentsline {figure}{\numberline {4.19}{\ignorespaces jGossip Login User State Analysis Results}}{66}{figure.4.19}
+\contentsline {figure}{\numberline {4.20}{\ignorespaces jGossip Wasteful Communication Analysis Results}}{68}{figure.4.20}
+\addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
