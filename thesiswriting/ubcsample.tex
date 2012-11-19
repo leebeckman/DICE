@@ -105,7 +105,7 @@
 \usepackage{rotating}
 
 %******** subfigure *****************************
-% The subfigure package allows you to include multiple figures and
+% The subfigure package allows you to include multiple figures and\dfrac{•}{•}
 % captions within a single figure environment.
 %\usepackage{subfigure}
 
@@ -504,7 +504,7 @@ Problem scenarios are as follows:
 To start, developers should have an overall picture of how the system works, or at least the part of it they are working on. As stated, we believe that capturing the dataflow of this system will naturally support developers in this effort. Figure~\ref{fig:cap2} presents a possible dataflow graph for the system that our tool would obtain. This is very high level, the arrows indicating that data is communicated from component to component along them. The points to note here are the flow of shop item data from the Inventory database (point 1) through the Browsing system (point 2) to the user (point 3), and the flow of data from the back-end stores (point 4) and user input (point 5) into the `Order State' shopping cart data (point 6). This view focuses immediately on how the application ferries and transforms data throughout its components, the key function of most web applications. It allows a developer to quickly answer the important question: `where did this output come from?'
 
 \subsubsection{Precomputation and Caching}
-The first optimization to consider, given that the Browsing component is backed up with excessive computation, is precomputation and caching. Consider Figure~\ref{fig:cap3} and Figure~\ref{fig:cap4}, which outline two possible dataflow cases. The first shows how the dataflow could indicate that the data used to generate responses to user browse requests are entirely from predictable sources. By this we mean that the input data not too random to predict - its possible values are from a small enough set to be amenable to such things as caching, which will depend on the resources one has available. Say that browsing involves simply displaying all of the item names, and the set of available items rarely changes, then the output browsing page would remain the same for long periods. The application could potentially be optimized by pregenerating the browsing page and serving it directly to the user, rather than going to the database and running the rendering code.\\
+The first optimization to consider, given that the Browsing component is backed up with excessive computation, is precomputation and caching. Consider Figure~\ref{fig:cap3} and Figure~\ref{fig:cap4}, which outline two possible dataflow cases. The first shows how the dataflow could indicate that the data used to generate responses to user browse requests are entirely from predictable sources. By this we mean that the input data is not too random to predict - its possible values are from a small enough set to be amenable to such things as caching, which will depend on the resources one has available. Say that browsing involves simply displaying all of the item names, and the set of available items rarely changes, then the output browsing page would remain the same for long periods. The application could potentially be optimized by pregenerating the browsing page and serving it directly to the user, rather than going to the database and running the rendering code.\\
 
 Figure~\ref{fig:cap4} shows an alternate dataflow where taint tracking indicates that user input flows into the computation for the browsing page. Such could arise, say, if the user supplies some filters to search for items. The input may be very unpredictable, such as for a free text search, and thus the output browsing page may be unpredictable and a poor candidate for any kind of precomputation. On the other hand, if the user input occurs over some reasonably predictable range, such as if the items were being filtered over a set range of categories, the various output browsing pages may be good candidates for caching. An automated analysis could point this out, and a developer is aided in applying this performance improving optimization, knowing which data sources to use for cache keys (user input parameters) and which to check for cache invalidation (the Inventory database).
 
@@ -884,7 +884,7 @@ The second preprocessing step finds unused flows of tainted data. These are case
 
 % Probably want to talk about some graph preprocessing that we do
 
-\subsubsection{Input Description File}
+\subsubsection{Input Description File (IDF)}
 \label{sec:idf}
 This is an XML file created by the user which supplies information needed by some of the analyses. Its format is given in Appendix~\ref{cha:idf}, along with the data in the files used for the evaluated applications. It is read by the analysis tool and gives a measure of how stable various data sources (database columns and user web request parameters) are, ranging from sources with values which change rarely to random input.
 
@@ -897,7 +897,7 @@ The main purpose of the Analysis Tool is to provide easy to use automatic analys
 % Somewhere in this document I probably need to justify the analyses themselves a bit better. Why have I chosen these, why do they support migration, why are they a good idea and interesting. And why is the way that I do them supporting the key ideas of the analyses themselves?
 
 \subsubsection{Caching}
-The caching analysis seeks to find opportunities to save on computation/communication by suggesting locations where caches could be considered. By a cache we mean code and data storage mechanisms which take the results of computations over some inputs, and store the results - mapping the inputs to them. The next time the computations are invoked with the same inputs, we can return the stored results rather that redoing the computation. For a cache to work, we need to be aware of all inputs to the computation. If any inputs which affect the results are missed, when those inputs vary the cache may return invalid results from the store. What this analysis essentially does is look for regions of the graph which are only carrying taint from non-random inputs. By non-random we mean inputs with reasonably predictable values over a small enough range that the cache will be useful and not frequently missing. This analysis relies on the input description file described in Section~\ref{sec:idf} to determine whether or not given tainted data is random. The assumption is that if all of the inputs to a computation, represented in the graph by a network of nodes, are predictable enough, the computation is a good candidate for caching. The identified subgraph can then be presented to the user as an indication of the possibility of a cache as well as a guide for what parts of the application must be considered when doing so.\\
+The caching analysis seeks to find opportunities to save on computation/communication by suggesting locations where caches could be considered. By a cache we mean code and data storage mechanisms which take the results of computations over some inputs, and store the results - mapping the inputs to them. The next time the computations are invoked with the same inputs, we can return the stored results rather that redoing the computation. For a cache to work, we need to be aware of all inputs to the computation. If any inputs which affect the results are missed, when those inputs vary the cache may return invalid results from the store. What this analysis essentially does is look for regions of the graph which are only carrying taint from non-random inputs. By non-random we mean inputs with reasonably predictable values over a small enough range that the cache will be useful and not frequently missing. This analysis relies on the input description file (IDF) described in Section~\ref{sec:idf} to determine whether or not given tainted data is random. The assumption is that if all of the inputs to a computation, represented in the graph by a network of nodes, are predictable enough, the computation is a good candidate for caching. The identified subgraph can then be presented to the user as an indication of the possibility of a cache as well as a guide for what parts of the application must be considered when doing so.\\
 
 The high-level algorithm for performing this analysis is given in Program~\ref{prog:code2}
 
@@ -1559,16 +1559,16 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 \begin{figure}[ht]
   \caption{\label{fig:outputBrowseCat} RUBiS Browse Categories Tainted Output.}
 \begin{verbatim}
-<title>RUBiS available categories</title> [NONTAINTED]
-<form action="SubmitChat" method=POST> [NONTAINTED]
-<input type=text size=20 name=chatMessage /> [NONTAINTED]
-<input type=submit value="Post" /></form> [NONTAINTED]
-<h2>Currently available categories</h2><br> [NONTAINTED]
-<a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
-<a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
-<a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
-</body> [NONTAINTED]
-</html> [NONTAINTED]
+1: <title>RUBiS available categories</title> [NONTAINTED]
+2: <form action="SubmitChat" method=POST> [NONTAINTED]
+3: <input type=text size=20 name=chatMessage /> [NONTAINTED]
+4: <input type=submit value="Post" /></form> [NONTAINTED]
+5: <h2>Currently available categories</h2><br> [NONTAINTED]
+6: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
+7: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
+8: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
+9: </body> [NONTAINTED]
+10:</html> [NONTAINTED]
 \end{verbatim}
 \end{figure}
 
@@ -1586,18 +1586,17 @@ Node: CoyoteWriter:println String:26517368
 \begin{figure}[ht]
   \caption{\label{fig:outputBrowseCatB} RUBiS Browse Categories With Chat Tainted Output.}
 \begin{verbatim}
-<title>RUBiS available categories</title> [NONTAINTED]
-<p>Popular Items</p> [NONTAINTED]
-<p>Chats</p><p>hello 1</p> [TAINTED]
-<form action="SubmitChat" method=POST> [NONTAINTED]
-<input type=text size=20 name=chatMessage /> [NONTAINTED]
-<input type=submit value="Post" /></form> [NONTAINTED]
-<h2>Currently available categories</h2><br> [NONTAINTED]
-<a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
-<a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
-<a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
-</body> [NONTAINTED]
-</html> [NONTAINTED]
+1: <title>RUBiS available categories</title> [NONTAINTED]
+2: <p>Chats</p><p>hello 1</p> [TAINTED]
+3: <form action="SubmitChat" method=POST> [NONTAINTED]
+4: <input type=text size=20 name=chatMessage /> [NONTAINTED]
+5: <input type=submit value="Post" /></form> [NONTAINTED]
+6: <h2>Currently available categories</h2><br> [NONTAINTED]
+7: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
+8: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
+9: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
+10:</body> [NONTAINTED]
+11:</html> [NONTAINTED]
 \end{verbatim}
 \end{figure}
 
@@ -1613,7 +1612,7 @@ Node: ServletPrinter:printCategory String int:19112841
 \end{figure}
 
 \paragraph{Experimental Setup}
-First, a page which displays a list of item categories is requested in RUBiS while performing taint tracking, producing a log file. RUBiS fetches the item categories from a database table and uses them to generate the output HTML (which can be seen in Figure~\ref{fig:outputBrowseCat}). Following this the same page is requested, and a message is entered into a form field and submitted to display the input on the page. The output HTML is shown in Figure~\ref{fig:outputBrowseCatB}. These tests were chosen as this page would likely be accessed frequently (a user must pick a category for most actions on the site, such as viewing and creating auctions), and it was known to make use of database data which changed very varely. The form field we added to the application ourselves, under the pretense of providing a simple means for users to post messages to each other and more importantly to introduce a flow of unpredictable data to the page.
+First, a page which displays a list of item categories is requested in RUBiS while performing taint tracking, producing a log file. RUBiS fetches the item categories from a database table and uses them to generate the output HTML (which can be seen in Figure~\ref{fig:outputBrowseCat}). Following this the same page is requested, and a message is entered into a form field and submitted to display the input on the page (which causes 2 requests - one to submit the message and another to display the modified page). The output HTML is shown in Figure~\ref{fig:outputBrowseCatB}. These tests were chosen as this page would likely be accessed frequently (a user must pick a category for most actions on the site, such as viewing and creating auctions), and it was known to make use of database data which changed very varely. The form field we added to the application ourselves, under the pretense of providing a simple means for users to post messages to each other and more importantly to introduce a flow of unpredictable data to the page.
 
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
@@ -1621,32 +1620,34 @@ The log for the first request generates the taint graph shown in Figure~\ref{fig
 
 For the second request involving the user input field, the taint graph shown in Figure~\ref{fig:browsecategorieschat} is obtained. The important thing to note is that this graph contains the flow of unpredictable data - the list of messages can change at any time, with random data input to them, and as such any computations which rely on message data are poor candidates for caching.\\
 
-Breaking this graph down, the left side of the graph in the figure is in Figure~\ref{fig:browsecategories}, while the portion outlined in the red box shows the additional flow of the message data. 
+Breaking this flow down, the left side of the graph in the figure is the same as in Figure~\ref{fig:browsecategories}, while the portion outlined in the red box shows the additional flow of the message data. This new portion of the graph actually spans two requests to the application - one to submit the  message and another to display the list of categories along with the new message.
 \begin{itemize}
-\item
-\item
-\item
-\item
+\item The portion of the graph from labeled points 1 to 2 covers the request which submits the message. 
+\item Point 1 shows the source node with the relative URI of the request and the name of the tainted parameter, `chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, and passed to the addChatMessage method of a ServletPrinter object where it is concatenated with some formatting text.
+\item At Point 2 the message is appended to a LinkedList by the addLast method. Note that the label for this addLast method call node ends in the name of a field, the `chattyList' field of a `ServletPrinter' object. This means that the chattyList field points to the LinkedList being appended to and indicates that by storing tainted data in the LinkedList it is stored in the chattyList field.
+\item Point 3 shows where the message data flows for the second request, which displays the category list request along with the messages. Starting with edge `18 FGT', the value of the chattyList field is read, which we know is a LinkedList. Edge `19 RET' shows an iterator over this LinkedList being returned from the LinkedList, and edge `20 RET' shows just one of the calls to the next() method of the iterator, which return the messages.
+\item The getChatBox() method combines these messages with some formatting text and returns the result to the printHTMLheader() method, which writes them out for the user to see at point 4.
 \end{itemize}
-This new portion of the graph actually spans two requests to the application - one to submit the chat message and another to display the list of categories along with the new message. The portion of the graph from labeled points 1 to 2 covers the submission of the message, starting with the source node showing the relative URI of the request and the name of the tainted parameter, `chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, passed to the addChatMessage method of a ServletPrinter object where it is concatenated with some formatting text, and finally appended to a LinkedList at point 2 by the addLast method. Note that the label for this addLast node ends in the name of a field, the `chattyList' field of a ServletPrinter object. This means that this field points to the LinkedList in question and indicates that by storing tainted data in the LinkedList it is effectively stored in that field. Such is useful for a developer to know when interpreting these graphs and mapping them back to the code responsible for them. Point 3 shows where the chat message data flows for the category list request, as a LinkedList is read from the chattyList along edge 18 in the getChatBox method. Following that an iterator over the LinkedList returned along edge 19, and the iterator is accessed along edge 20. The messages inside are concatenate with some formatting text before being passed along to point 4, being returned to the printHTMLHeader method of a ServletPrinter object and written to the user response stream along with the list of categories.\\
-
+ 
 \subparagraph{Analysis Results Breakdown}
-The taint graph, along with the input description file given in Appendix~\ref{idf:rubis}, are then input to the precomputation analysis, which runs automatically without intervention over the data. The graph presented in Figure~\ref{fig:browsecategories} is among the results of the analysis. \\
+The taint graphs, along with the IDF given in Appendix~\ref{idf:rubis}, are then input to the precomputation analysis, which runs automatically without intervention over the data. The graph presented in Figure~\ref{fig:browsecategoriesprecomp} is obtained from the flow for the first request (no message data). \\
 
-The first thing to notice here is that it is the same graph. Such is not always the case for this analysis, but in this instance the input trace was simple enough that the  analysis identified the entire trace as being precomputable. Consider the request in question, which only needs to access the categories table to list the names and ids of the categories to the user. Both the name and id columns of this table have been manually marked as being stable. This means that one does not expect category names or ids to be unpredictable - the same values will be present in the table for extended periods of application use. Given this information about these values and the input trace, the precomputation analysis determined that the tainted data flowing in this graph was entirely stable data, and thus the output of the analysis is the entire graph with the inputs and outputs coloured orange and red respectively. Additional data is obtained by viewing the details of the analysis, which mainly shows tainted data sent to each output node in the output graph. For this graph, the output node's data shows the HTML for three hyperlinks as in FFFFFFigure C1b, these being the categories presented to the user. \\
+The first thing to notice here is that it is the same graph as the input taint graph. Such is not always the case for this analysis, but in this instance the analysis identified the entire flow as being precomputable. Consider the request in question, which only needs to access the categories table to list the names and ids of the categories to the user. Both the name and id columns of this table have been marked as being stable in the IDF. This means that one does not expect category names or ids to be unpredictable - the same values will be present in the table for extended periods of application use. Given this information about these values and the input trace, the precomputation analysis determined that the tainted data flowing in this graph was entirely stable data, and thus the output of the analysis is the entire graph with the inputs and outputs coloured orange and red respectively.\\
 
-Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the precomputation ends at the red PrintCategory node, no longer extending to the println nodes. This is because the println method on the same PrintWriter object now also receives the random data of the chat messages, and thus one cannot replace calls to this method with precomputed data. Given the precomputation output in FFFFFFigure C2b and the response output breakdown in FFFFFFigure C2, a developer can determine that the page can be mostly precomputed, only needing to dynamically generate the portion tainted by the chatMessage data.
+For more detailed results, one can view what precomputable tainted data was sent to the output nodes in the graph. Figure~\ref{fig:rubisPrecompDetails} shows the HTML data for 3 category selection hyperlinks. Compare this to Figure~\ref{fig:outputBrowseCat}, also obtained from our tool, which shows all data written to user along with whether or not pieces of it are tainted. Only 3 lines are marked as tainted, the same three which are shown to be precomputable in Figure~\ref{fig:rubisPrecompDetails}. The rest of lines are marked nontainted, and thus are likely from static data. \\
 
-The analysis can be taken further in this case. The tracking code not only logs tainted output, but also creates logs for non-tainted output. Using these one can observe the mixing of tainted and non-tainted data as it is composed together in the output. Looking to FFFFFFigure C1, generated in the analysis tool from the output logs, we can see that the only tainted output involved in the response web page is from the three hyperlinks identified in the precomputation analysis. The rest of the data is non-tainted, and for this application this equates to it being hardcoded. 
+Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the graph ends at the red PrintCategory node, no longer extending to the println method call nodes. Furthermore, it obviously does not have any of the nodes carrying message data. This is because those nodes and the println nodes have message data flowing through them, which has been marked in the IDF as being random. The precomputation analysis will not return any nodes relaying random data, as if the computation that those nodes represented were replaced by precomputed data, the results would be inconsistent when the inputs changed. The part of the graph shown in Figure~\ref{fig:browsecategorieschatprecomp} only relies on stable data as inputs.
+
+Looking to more detailed results, Figure~\ref{fig:rubisPrecompDetailsB} shows the precomputable data which flows into the `ServletPrinter:printCategory' node. As before, compare this to the tainted/nontainted data written to the user in Figure~\ref{fig:outputBrowseCatB}. Again there are 3 lines which match in these figures, these being precomputable, but in Figure~\ref{fig:outputBrowseCatB} line 2 is also tainted and not precomputable.
 
 \paragraph{Developer Interpretation and Response}
 
-Interpreting this, a developer can reasonably assume that for the request responsible for this trace, the computation which reads category names and ids from the database and displays them to the user in this hyperlink form can be precomputed. At no point does this computation seemingly make use of any unpredictable data in generating the category hyperlinks, and so one could alter the application to essentially immediately output the hardcoded hyperlinks instead of fetching the data from the database and formatting it. If and when the category data does happen to change, one would then have to update the precomputed data, but it is assumed that this would happen very rarely.\\
+Interpreting the results for the first request, a developer can reasonably assume that the computations which produce the output page can all be precomputed. At no point do these computations make use of any unpredictable data - the only tainted data is from sources which rarely change, and the rest of the output isn't tainted which means it is also likely static. One could alter the application to immediately output an entire pregenerated page instead of fetching the data from the database and formatting it. If and when the category data does happen to change, one would then have to update the precomputed data, but it is assumed that this would happen very rarely.\\
 
-SECOND ONE
-Given these analysis results a developer can decide to simply precompute the entire response for this category listing page, saving on database access and formatting computation. \\
+For the request dealing with the message data, a developer can still mostly precompute the output. Figure~\ref{fig:outputBrowseCatB} shows that only line 2 depends on random data. The application could be modified to only dynamically generate this small portion, while using pregenerated data for the rest of it.\\
 
-% The traces for jgossip will not really be shown and described in detail (at least not the pre-analysis traces), will be more about showing the post analysis trace and describing the implications of it
+In both cases computation can be saved, and the application will be better able to serve higher loads. One could even have more freedom in the type of server this page is served from. With less computation needed, less processor power is required.
+
 \subsubsection{jGossip} 
 
 \begin{sidewaysfigure}
@@ -1658,16 +1659,28 @@ Given these analysis results a developer can decide to simply precompute the ent
 \end{sidewaysfigure}
 
 \paragraph{Experimental Setup}
+For this test the main page of the jGossip application is loaded while performing taint tracking. This page presents the user with a list of forums to view as well as some other information about forum activity. The main page will likely be viewed quite frequently, being the primary point from which the rest of the forum is accessed, and is thus a good candidate for optimization.
+
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
+We skip a breakdown of the taint flow here due to its size and complexity. It is not possible to even view the graph all at once, much less make sense of it. It is much more helpful to simply run the analysis and use the results to understand the flow of data in the application, as well as how to improve it.
+
 \subparagraph{Analysis Results Breakdown}
+Running the precomputation analysis over the taint graph, providing the IDF given in Appendix~\ref{idf:jgossip}, produces the graph shown in Figure~\ref{fig:mainpageprecomp}. This graph is filtered to show the flow of a particular data item, the title of a forum displayed on the page.\\
+
+The analysis essentially indicates that the data is able to flow from the database all the way to output without any dependence on inputs with unpredictable values. Breaking this flow down:
+
+\begin{itemize}
+\item The data is read from the database at point 1. Simply note that the input node starts with `forumtitle', identifying the database column from which the data is read.
+\item The forum title data is eventually stored in the Forum:title field at point 2. Continuing along the flow, this field is subsequently accessed by JSP generated code (Method:invoke() indicates the use of reflection to get to the field). 
+\item From there to point 4, the data passes through a series of internal methods from JSP and the JSTL tab library.
+\item The forum title is ultimately used in the doStartTag() method at point 4, a method used by JSP tag objects to write data to the user.
+\end{itemize}
+
+There are similar graphs for other pieces of precomputable data on the main page. By comparing these with output summaries for this page similar to what is shown in Figure~\ref{fig:outputBrowseCatB}, one can find large portions of the page which are precomputable.
+ 
 \paragraph{Developer Interpretation and Response}
-
-Loading the main page of the jGossip application, which presents users with a list of available forums, and running the precomputation analysis over the dataflow produces the graph shown in Figure~\ref{fig:mainpageprecomp}. This graph is filtered to show the flow of a particular data item, the title of a forum displayed on the page.\\
-
-The analysis essentially indicates that the data is able to flow from the database all the way to output without any dependence on other inputs, in particular inputs with unpredictable values. Breaking this flow down, the data read from the database at point 1, and eventually stored in a field near point 2. This field is subsequently accessed by JSP generated code at point 2 (Method:invoke() indicates the use of reflection to get to the field), and the forum title passes through a series of internal methods from the JSTL tab library (the `evaluate' nodes). It is ultimately used in the doStartTag() method at point 4, a method used by JSP tags to write data to the user response page.\\
-
-Using this result, along with others which show similar results for other flows of data on the main page, one can find large portions of the main page which can simply be precomputed and then updated should the input database tables ever change. The precomputed results could be added to the JSP pages, avoiding the entire computation which reads them from the database and invokes the JSTL library.
+Having the dataflows for various elements of the main page being identified as precomputable all the way from database to user output means the following: These elements can be easily precomputed - one could even simply hardcode them in the JSP files to save on executing all the JSP/JSTL machinery, along with any user output which was identified as simply nontainted. Furthermore, for the user output which was identified as being tainted by random sources, those flows are independent of those identified by the precomputation analysis, and so can be handled separately from them.
 
 \subsection{Caching}
 \subsubsection{RUBiS}
@@ -1721,15 +1734,45 @@ Node: CoyoteWriter:println String:22693155
 \end{figure}
 
 \paragraph{Experimental Setup}
+For a data flow for be cachable but not precomputable, it must depend on some predictable data, but not at any random data. By predictable data we mean data which we do not know the exact value for, but which can only take on a small enough range of values so as to be amenable to caching. To create such a scenario in RUBiS, we start with a page which lists various geographical regions. Such pages are common in RUBiS, and serve to help users limit the scope of their trading to a region they care about. From this page a region is selected from among those available, which requests the next page which contains the list of categories from the previous precomputation examples. This list varies, however, in that it has been influenced by the user input provided by selecting a region.
+
 \paragraph{Analysis}
+%\subparagraph{Taint Flow Breakdown}
+%The log for the first request generates the taint graph shown in Figure~\ref{fig:browsecategories}. A walkthrough of the flow of taint is already given in Section~\ref{sec:example}.\\
+%
+%For the second request involving the user input field, the taint graph shown in Figure~\ref{fig:browsecategorieschat} is obtained. The important thing to note is that this graph contains the flow of unpredictable data - the list of messages can change at any time, with random data input to them, and as such any computations which rely on message data are poor candidates for caching.\\
+%
+%Breaking this flow down, the left side of the graph in the figure is the same as in Figure~\ref{fig:browsecategories}, while the portion outlined in the red box shows the additional flow of the message data. This new portion of the graph actually spans two requests to the application - one to submit the  message and another to display the list of categories along with the new message.
+%\begin{itemize}
+%\item The portion of the graph from labeled points 1 to 2 covers the request which submits the message. 
+%\item Point 1 shows the source node with the relative URI of the request and the name of the tainted parameter, `chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, and passed to the addChatMessage method of a ServletPrinter object where it is concatenated with some formatting text.
+%\item At Point 2 the message is appended to a LinkedList by the addLast method. Note that the label for this addLast method call node ends in the name of a field, the `chattyList' field of a `ServletPrinter' object. This means that the chattyList field points to the LinkedList being appended to and indicates that by storing tainted data in the LinkedList it is stored in the chattyList field.
+%\item Point 3 shows where the message data flows for the second request, which displays the category list request along with the messages. Starting with edge `18 FGT', the value of the chattyList field is read, which we know is a LinkedList. Edge `19 RET' shows an iterator over this LinkedList being returned from the LinkedList, and edge `20 RET' shows just one of the calls to the next() method of the iterator, which return the messages.
+%\item The getChatBox() method combines these messages with some formatting text and returns the result to the printHTMLheader() method, which writes them out for the user to see at point 4.
+%\end{itemize}
+
 \subparagraph{Taint Flow Breakdown}
+The log file from the experiment requests produces the taint flow graph shown in Figure~\ref{fig:browseregioncategories}. Remember that this graph spans 2 requests - one to display a list of geographical regions and another to display a list of categories. 
+
+\begin{itemize}
+\item
+\item
+\item
+\item
+\item
+\item
+\item
+\item
+\item
+\item
+\end{itemize}
+
+point 1 shows the region name data being read from the database for the first request. Note that this trace has been filtered to hide string concatenation dataflow (removing StringBuilder nodes), make it more presentable. At point the region names are passed to the encode method during concatenation with formatting text, and then output to the user at point 3. A user clicks on a region, submitting its name as a parameter in the next request. This is shown at point 4, as the `region' parameter. From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement object to be used as a predicate in a database query. When the query is executed at point 7, note how the input node is labeled as being tainted by not only the id column from the regions table, but also by the region parameter that the query was predicated on. Point 5 receives the region id, and passes it to point 8, which receives category names and ids from point 9. The category data and region id are sent point 10, the `printCategoryByRegion' method, which concatenates them with formatting text, encodes them, and writes them out to the user at point 3.
+
 \subparagraph{Analysis Results Breakdown}
+Running the caching analysis over this graph and filtering the results to only show the dataflow for the second request, the result graph show in Figure~\ref{fig:browseregioncategoriescaching} is obtained. The first important point to note is that this graph was not eligible for precomputation, due to the influence of the user-supplied region parameter in every part of this graph except for the upper-left portion showing the flow of the category name/id data. However, since this parameter has been marked as being predictable (see FFFFFFigure Ce [datasourceinfochart]), the analysis judges that a cache may be possible for the identified inputs. Interpreting this, a developer can start at the output node. FFFFFFigure Cf shows the tainted data flowing here, and this can be compared to the response output breakdown shown in FFFFFFigure Cg. Evidently the entire page it composed non-tainted (likely static) data and the cachable output. Looking at the inputs in the graph, the data responsible for the cachable output comes from database tables which have all been marked as stable, unlikely to change frequently, and the predictable region parameter. 
+
 \paragraph{Developer Interpretation and Response}
-
-Figure~\ref{fig:browseregioncategories} shows a trace taken from viewing the same RUBiS categories list as previously shown with an additional constraint. For this trace, a user first submits a request to get a list of geographical regions. Once these are displayed, a user picks a region, which submits another request to obtain the category list. The region name selected in the first request is used to obtain a region id, which is included in the category hyperlinks output to the user in the second request. The important point to note is that this category list should not be outright precomputed, as the region id parameter varies based on user input. However, this region id is over a small enough range that it is reasonably predictable, and thus it seems that a cache could be implemented here. Breaking down Figure~\ref{fig:browseregioncategories}, point 1 shows the region name data being read from the database for the first request. Note that this trace has been filtered to hide string concatenation dataflow (removing StringBuilder nodes), make it more presentable. At point the region names are passed to the encode method during concatenation with formatting text, and then output to the user at point 3. A user clicks on a region, submitting its name as a parameter in the next request. This is shown at point 4, as the `region' parameter. From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement object to be used as a predicate in a database query. When the query is executed at point 7, note how the input node is labeled as being tainted by not only the id column from the regions table, but also by the region parameter that the query was predicated on. Point 5 receives the region id, and passes it to point 8, which receives category names and ids from point 9. The category data and region id are sent point 10, the `printCategoryByRegion' method, which concatenates them with formatting text, encodes them, and writes them out to the user at point 3.\\
-
-Running the caching analysis over this graph and filtering the results to only show the dataflow for the second request, the result graph show in Figure~\ref{fig:browseregioncategoriescaching} is obtained. The first important point to note is that this graph was not eligible for precomputation, due to the influence of the user-supplied region parameter in every part of this graph except for the upper-left portion showing the flow of the category name/id data. However, since this parameter has been marked as being predictable (see FFFFFFigure Ce [datasourceinfochart]), the analysis judges that a cache may be possible for the identified inputs. Interpreting this, a developer can start at the output node. FFFFFFigure Cf shows the tainted data flowing here, and this can be compared to the response output breakdown shown in FFFFFFigure Cg. Evidently the entire page it composed non-tainted (likely static) data and the cachable output. Looking at the inputs in the graph, the data responsible for the cachable output comes from database tables which have all been marked as stable, unlikely to change frequently, and the predictable region parameter. \\
-
 Using the graph and some rudimentary knowledge of the application, a cache could be implemented as follows. First, consider the inputs. All of them, save for the region parameter, are stable, and thus the only parameter the cache need use to store and return results is that region parameter. For the other inputs, like those from the categories and regions tables, these data sources need only to be monitored to detect if they are modified. If so, the cached results are invalidated to be regenerated. As the doGet node is the first to receive the region parameter, the cache check could be performed there. If the cache hits for a given region, the output data (perhaps the entire response page or just the category hyperlinks) can be returned and written to the response stream. In the event of a cache miss, the computation can proceed as normal, and the results picked up in the printCategoryByRegion node to be placed in the cache for later.
 
 \subsubsection{jGossip} 
@@ -1747,6 +1790,8 @@ Using the graph and some rudimentary knowledge of the application, a cache could
 \subparagraph{Taint Flow Breakdown}
 \subparagraph{Analysis Results Breakdown}
 \paragraph{Developer Interpretation and Response}
+
+A caching analysis for jGossip was significantly more difficult due to the greater complexity of the traces produced. This was largely due to the use of such external libraries as JSTL which jGossip relies on to format its output, producing traces of over 40K communication events for simple application actions vs around 300 for RUBiS. Nevertheless, the analysis tool was successfully used to capture the existence of a caching opportunity in jGossip.
 
 The caching analysis for jGossip is significantly more difficult due to the much larger traces produced by the application. This is caused by libraries, like JSTL, used by jGossip, and typically the traces were around 40K communication events for handling a single request (whereas RUBiS had around 400). This presented some very large, complex graphs, which would not be amenable to a manual analysis, and which were still challenging to assess automatically. Nevertheless, Figure~\ref{fig:viewforumscaching} shows a graph obtained from the analysis tool which indicates the existence of a possible cache.\\
 
@@ -1792,8 +1837,6 @@ Figure~\ref{fig:sellitempostcomputation} shows the results of the postcomputatio
 \subparagraph{Taint Flow Breakdown}
 \subparagraph{Analysis Results Breakdown}
 \paragraph{Developer Interpretation and Response}
-
-A caching analysis for jGossip was significantly more difficult due to the greater complexity of the traces produced. This was largely due to the use of such external libraries as JSTL which jGossip relies on to format its output, producing traces of over 40K communication events for simple application actions vs around 300 for RUBiS. Nevertheless, the analysis tool was successfully used to capture the existence of a caching opportunity in jGossip.
 
 \begin{sidewaysfigure}
 \centering
@@ -1928,7 +1971,7 @@ A related problem, again most prevalent in the large jGossip graphs, is that of 
 
 A final problem, unrelated to the analysis results, is that of the speed of applications during taint tracking. Slowdowns of roughly two orders of magnitude were observed, especially in the more complex jGossip application. This is mainly because of the use of AspectJ, which introduced inefficiencies inherent in its own design as well as forced us to perform some wasteful workarounds to properly track tainted data. This reality, along with the fact that the log files could be very massive for even small amounts of application activity (10s of thousands of lines per request in jGossip), meant that we generally did not perform analyses over exhaustive taint traces. By this we mean that we did not attempt to work the application through all or even a majority of its possible execution paths. There are issues of coverage here, with the possibility of some analysis being invalidated by additional data. For example, exploring more requests for the user state analysis may have revealed that the persistent data identified was actually shared among multiple users in some cases.\\
 
-Even with these shortcomings, the project was still successful given the aims of the thesis. The analyses were able to identify their targets using only the taint tracking data and in some cases light user input. Such input could additionally be automated, such as by monitoring an application's use of data to categorize the variability of its inputs as in the input description files. As the analyses found valid results, it shows both that given optimization opportunities it is possible for a taint tracking based automated analysis to target them; and also shows that the types of optimizations we sought to locate with our analyses actually exist in real web applications. Furthermore, though manual intervention is currently required to produce some of the results, the automation that was observed was promising. Our analyses are relatively simple, being composed from scratch based on rough descriptions from literature, and still they were in many cases able to produce very clean results, especially for the simpler RUBiS application. In such cases, an inexperienced developer should be able to make use of even this early stage version of our tools.\\
+Even with these shortcomings, the project was still successful given the aims of the thesis. The analyses were able to identify their targets using only the taint tracking data and in some cases light user input. Such input could additionally be automated, such as by monitoring an application's use of data to categorize the variability of its inputs as in the IDFs. As the analyses found valid results, it shows both that given optimization opportunities it is possible for a taint tracking based automated analysis to target them; and also shows that the types of optimizations we sought to locate with our analyses actually exist in real web applications. Furthermore, though manual intervention is currently required to produce some of the results, the automation that was observed was promising. Our analyses are relatively simple, being composed from scratch based on rough descriptions from literature, and still they were in many cases able to produce very clean results, especially for the simpler RUBiS application. In such cases, an inexperienced developer should be able to make use of even this early stage version of our tools.\\
 
 Finally, one of the side goals of this thesis was to find uses for the taint tracing data that we did not initially anticipate when planning our set of analyses to perform. The wasteful communication analysis was almost discovered by accident when seeking a way to reduce the complexity of graphs for other analyses. Having studied application partitioning systems in the early stages of the project, we later recognized the potential of knowing whether communicated data was actually used for analyses in that space and others. This was particularly exciting, as the data very easily supported an analysis that we had not originally intended, and thus had not designed for.
 
