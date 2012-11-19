@@ -1503,9 +1503,9 @@ To check that all data which should be tainted actually was, the test applicatio
 
 \subsection{Example Trace}
 \label{sec:example}
-In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category id as a parameter. 
+In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category ID as a parameter. 
 \begin{itemize}
-\item At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. See Figure~\ref{fig:dbformat} for the format of this kind of node, as well as Table~\ref{tab:edgetypes} for a summary of the edge types which follow.  A ResultSet which includes the id and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each target column accessed. The edges out of these nodes are labeled `RIN' for `Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the `missing' edge numbers.
+\item At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. See Figure~\ref{fig:dbformat} for the format of this kind of node, as well as Table~\ref{tab:edgetypes} for a summary of the edge types which follow.  A ResultSet which includes the ID and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each target column accessed. The edges out of these nodes are labeled `RIN' for `Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the `missing' edge numbers.
 \item From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. 
 \item This data is then passed to a printCategory method on a ServletPrinter object at point 3. This is where the data is formatted for display to the user. Notice the three similar groups projecting from this point, two of which are labeled at point 4. These show how the data is formatted by concatenating it with other Strings, which is performed by appending to StringBuilders.
 \item After appending, the toString method is called on each StringBuilder to get the concatenated String, and the preprocessing described earlier adds `IMP' (implied) edges to show how the data sent to the append methods is coming back on the toString call.
@@ -1573,13 +1573,13 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 \end{figure}
 
 \begin{figure}[ht]
-  \caption{\label{fig:rubisPrecompDetails} RUBiS Precomputation Details.}
+  \caption{\label{fig:rubisPrecompDetails} RUBiS Browse Categories Precomputation Details.}
 \begin{verbatim}
 Output Data:
 Node: CoyoteWriter:println String:26517368
-	Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
-	Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
-	Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
+   Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
+   Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
+   Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
 \end{verbatim}
 \end{figure}
 
@@ -1601,13 +1601,13 @@ Node: CoyoteWriter:println String:26517368
 \end{figure}
 
 \begin{figure}[ht]
-  \caption{\label{fig:rubisPrecompDetailsB} RUBiS Not Sure Figure.}
+  \caption{\label{fig:rubisPrecompDetailsB} RUBiS Browse Categories With Chat Precomputation Details.}
 \begin{verbatim}
 Output Data:
 Node: ServletPrinter:printCategory String int:19112841
-	Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
-	Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
-	Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
+   Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
+   Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
+   Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
 \end{verbatim}
 \end{figure}
 
@@ -1632,7 +1632,7 @@ Breaking this flow down, the left side of the graph in the figure is the same as
 \subparagraph{Analysis Results Breakdown}
 The taint graphs, along with the IDF given in Appendix~\ref{idf:rubis}, are then input to the precomputation analysis, which runs automatically without intervention over the data. The graph presented in Figure~\ref{fig:browsecategoriesprecomp} is obtained from the flow for the first request (no message data). \\
 
-The first thing to notice here is that it is the same graph as the input taint graph. Such is not always the case for this analysis, but in this instance the analysis identified the entire flow as being precomputable. Consider the request in question, which only needs to access the categories table to list the names and ids of the categories to the user. Both the name and id columns of this table have been marked as being stable in the IDF. This means that one does not expect category names or ids to be unpredictable - the same values will be present in the table for extended periods of application use. Given this information about these values and the input trace, the precomputation analysis determined that the tainted data flowing in this graph was entirely stable data, and thus the output of the analysis is the entire graph with the inputs and outputs coloured orange and red respectively.\\
+The first thing to notice here is that it is the same graph as the input taint graph. Such is not always the case for this analysis, but in this instance the analysis identified the entire flow as being precomputable. Consider the request in question, which only needs to access the categories table to list the names and ids of the categories to the user. Both the name and ID columns of this table have been marked as being stable in the IDF. This means that one does not expect category names or ids to be unpredictable - the same values will be present in the table for extended periods of application use. Given this information about these values and the input trace, the precomputation analysis determined that the tainted data flowing in this graph was entirely stable data, and thus the output of the analysis is the entire graph with the inputs and outputs coloured orange and red respectively.\\
 
 For more detailed results, one can view what precomputable tainted data was sent to the output nodes in the graph. Figure~\ref{fig:rubisPrecompDetails} shows the HTML data for 3 category selection hyperlinks. Compare this to Figure~\ref{fig:outputBrowseCat}, also obtained from our tool, which shows all data written to user along with whether or not pieces of it are tainted. Only 3 lines are marked as tainted, the same three which are shown to be precomputable in Figure~\ref{fig:rubisPrecompDetails}. The rest of lines are marked nontainted, and thus are likely from static data. \\
 
@@ -1702,7 +1702,7 @@ Having the dataflows for various elements of the main page being identified as p
 \end{sidewaysfigure}
 
 \begin{figure}[ht]
-  \caption{\label{fig:NAME} DESC.}
+  \caption{\label{fig:browseregioncategoriesto} RUBiS Browse Region Categories Tainted Output.}
 \begin{verbatim}
 <title>RUBiS available categories</title> [NONTAINTED]
 <p>Popular Items</p> [NONTAINTED]
@@ -1720,16 +1720,16 @@ Having the dataflows for various elements of the main page being identified as p
 \end{figure}
 
 \begin{figure}[ht]
-  \caption{\label{fig:NAME} DESC.}
+  \caption{\label{fig:browseregioncategoriescd} RUBiS Browse Region Categories Caching Details.}
 \begin{verbatim}
-Output Data:
-Node: CoyoteWriter:println String:22693155
-	Data: <a href="BrowseCategories?region=AZ--Phoenix">AZ--Phoenix</a><br>
-	Data: <a href="BrowseCategories?region=CA--Los+Angeles">CA--Los Angeles</a><br>
-	Data: <a href="BrowseCategories?region=CA--Oakland">CA--Oakland</a><br>
-	Data: <a href="SearchItemsByRegion?category=1&categoryName=Antiques">Antiques</a><br>
-	Data: <a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">Books</a><br>
-	Data: <a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">Business</a><br>
+1: Output Data:
+2: Node: CoyoteWriter:println String:22693155
+3:    Data: <a href="BrowseCategories?region=AZ--Phoenix">AZ--Phoenix</a><br>
+4:    Data: <a href="BrowseCategories?region=CA--Los+Angeles">CA--Los Angeles</a><br>
+5:    Data: <a href="BrowseCategories?region=CA--Oakland">CA--Oakland</a><br>
+6:    Data: <a href="SearchItemsByRegion?category=1&categoryName=Antiques&region=1">Antiques</a><br>
+7:    Data: <a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">Books</a><br>
+8:    Data: <a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">Business</a><br>
 \end{verbatim}
 \end{figure}
 
@@ -1752,27 +1752,27 @@ For a data flow for be cachable but not precomputable, it must depend on some pr
 %\end{itemize}
 
 \subparagraph{Taint Flow Breakdown}
-The log file from the experiment requests produces the taint flow graph shown in Figure~\ref{fig:browseregioncategories}. Remember that this graph spans 2 requests - one to display a list of geographical regions and another to display a list of categories. 
+The log file from the experiment requests produces the taint flow graph shown in Figure~\ref{fig:browseregioncategories}. Remember that this graph spans 2 requests - one to display a list of geographical regions and another to display a list of categories. Also, note that this graph has had any StringBuilder method nodes removed to make it more presentable, as these are not necessary for grasping the important points of the analysis. Breaking this flow down:
 
 \begin{itemize}
-\item
-\item
-\item
-\item
-\item
-\item
-\item
-\item
-\item
-\item
+\item Point 1 shows the region name data being read from the database for the first request.
+\item At point 2 the region names are passed to an encode() which copies the data in a way which necessitates fuzzy propagation (see Section~\ref{subsub:trms}).
+\item The regions are output (along with any formatting text added to them) to the user at point 3, concluding the tracing for the first request.
+\item For the next request, a user clicks on a region, submitting its name as a request parameter. This is shown at point 4, as the `region' parameter handled by the `BrowseCategories' servlet.
+\item From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement object to be used as a predicate in a database query.
+\item When the query is executed at point 7, note how the input source node is labeled as being tainted by not only the ID column from the regions table, but also by the region parameter that the query was predicated on (tainting from multiple sources indicated here with the `&&' separator).
+\item The query returns region IDs, which are returned to point 5 and passed into the categoryList() method at point 8.
+\item The categoryList() method also gets a list of category names and IDs from the database, which flow from point 9 (accessed in the same way as they are in the precomputation example).
+\item The category data and region IDs are sent point 10, the `printCategoryByRegion' method, which combines them with formatting text and passes them to the encode() method.
+\item The data is written out to the user, finishing the request.
 \end{itemize}
 
-point 1 shows the region name data being read from the database for the first request. Note that this trace has been filtered to hide string concatenation dataflow (removing StringBuilder nodes), make it more presentable. At point the region names are passed to the encode method during concatenation with formatting text, and then output to the user at point 3. A user clicks on a region, submitting its name as a parameter in the next request. This is shown at point 4, as the `region' parameter. From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement object to be used as a predicate in a database query. When the query is executed at point 7, note how the input node is labeled as being tainted by not only the id column from the regions table, but also by the region parameter that the query was predicated on. Point 5 receives the region id, and passes it to point 8, which receives category names and ids from point 9. The category data and region id are sent point 10, the `printCategoryByRegion' method, which concatenates them with formatting text, encodes them, and writes them out to the user at point 3.
-
 \subparagraph{Analysis Results Breakdown}
-Running the caching analysis over this graph and filtering the results to only show the dataflow for the second request, the result graph show in Figure~\ref{fig:browseregioncategoriescaching} is obtained. The first important point to note is that this graph was not eligible for precomputation, due to the influence of the user-supplied region parameter in every part of this graph except for the upper-left portion showing the flow of the category name/id data. However, since this parameter has been marked as being predictable (see FFFFFFigure Ce [datasourceinfochart]), the analysis judges that a cache may be possible for the identified inputs. Interpreting this, a developer can start at the output node. FFFFFFigure Cf shows the tainted data flowing here, and this can be compared to the response output breakdown shown in FFFFFFigure Cg. Evidently the entire page it composed non-tainted (likely static) data and the cachable output. Looking at the inputs in the graph, the data responsible for the cachable output comes from database tables which have all been marked as stable, unlikely to change frequently, and the predictable region parameter. 
+The caching analysis is run over this graph, provided the IDF given in Appendix~\ref{idf:rubis} and producing the result graph show in Figure~\ref{fig:browseregioncategoriescaching}. First, note that this graph only has nodes from the second request - the first request could simply be precomputed and was ignored for the caching analysis. The graph shown was not eligible for precomputation due to the influence of the user-supplied region parameter, the value of which will vary. However, since this parameter has been marked as being predictable and the other inputs are stable, the analysis judges that a cache may be possible for this graph. 
 
 \paragraph{Developer Interpretation and Response}
+Interpreting this, a developer can start at the red output node. Figure~\ref{browseregioncategoriescd} shows the tainted data flowing here. Lines 3-5 are for the first request, and can be ignored. Lines 6-7 show the list of categories. Note how the link `href' contains a region parameter with a region ID. Compare these lines to the user output breakdown shown in Figure~\ref{fig:browseregioncategoriesto}. The entire response is composed of nontainted (likely static) data and the cachable output. Looking at the inputs in the graph, the data responsible for the cachable output comes from database tables which have all been marked as stable, unlikely to change frequently, and the predictable region parameter. \\
+
 Using the graph and some rudimentary knowledge of the application, a cache could be implemented as follows. First, consider the inputs. All of them, save for the region parameter, are stable, and thus the only parameter the cache need use to store and return results is that region parameter. For the other inputs, like those from the categories and regions tables, these data sources need only to be monitored to detect if they are modified. If so, the cached results are invalidated to be regenerated. As the doGet node is the first to receive the region parameter, the cache check could be performed there. If the cache hits for a given region, the output data (perhaps the entire response page or just the category hyperlinks) can be returned and written to the response stream. In the event of a cache miss, the computation can proceed as normal, and the results picked up in the printCategoryByRegion node to be placed in the cache for later.
 
 \subsubsection{jGossip} 
@@ -1795,7 +1795,7 @@ A caching analysis for jGossip was significantly more difficult due to the great
 
 The caching analysis for jGossip is significantly more difficult due to the much larger traces produced by the application. This is caused by libraries, like JSTL, used by jGossip, and typically the traces were around 40K communication events for handling a single request (whereas RUBiS had around 400). This presented some very large, complex graphs, which would not be amenable to a manual analysis, and which were still challenging to assess automatically. Nevertheless, Figure~\ref{fig:viewforumscaching} shows a graph obtained from the analysis tool which indicates the existence of a possible cache.\\
 
-This was obtained by tracing the application while selecting a forum from the application's main menu, which then displayed a page giving some information about the forum including a message from it. The trace shows how the forum id (fid) supplied by the user when selecting a forum (point 1) acts as the sole input to a database query which fetches a message heading from the database (point 2). This heading is then passed through a series of methods, ultimately being output to the response page at point 3. The fact that this path was identified by the analysis means that the data which flows along the path is not influenced by random input. We can see how given a fid value, of which there are a limited set, and knowing whether or not the messages in that forum have been updated, we can either return a cached message heading or generate one to fill the cache.\\
+This was obtained by tracing the application while selecting a forum from the application's main menu, which then displayed a page giving some information about the forum including a message from it. The trace shows how the forum ID (fid) supplied by the user when selecting a forum (point 1) acts as the sole input to a database query which fetches a message heading from the database (point 2). This heading is then passed through a series of methods, ultimately being output to the response page at point 3. The fact that this path was identified by the analysis means that the data which flows along the path is not influenced by random input. We can see how given a fid value, of which there are a limited set, and knowing whether or not the messages in that forum have been updated, we can either return a cached message heading or generate one to fill the cache.\\
 
 Given this graph, it is up to the developer to investigate the feasibility of this cache. The analysis data can additionally provide stack traces to identify the control flow responsible for each communication event, to help in choosing where to implement any changes.
 
