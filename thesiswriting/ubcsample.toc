@@ -40,7 +40,7 @@
 \contentsline {subsection}{\numberline {3.3.1}{Tool Components}}{23}{subsection.3.3.1}
 \contentsline {subsubsection}{\numberline {3.3.1.1}{Visualization System}}{23}{subsubsection.3.3.1.1}
 \contentsline {subsubsection}{\numberline {3.3.1.2}{Graph Preprocessing}}{25}{subsubsection.3.3.1.2}
-\contentsline {subsubsection}{\numberline {3.3.1.3}{Input Description File}}{27}{subsubsection.3.3.1.3}
+\contentsline {subsubsection}{\numberline {3.3.1.3}{Input Description File (IDF)}}{27}{subsubsection.3.3.1.3}
 \contentsline {subsubsection}{\numberline {3.3.1.4}{Automated Analyses}}{27}{subsubsection.3.3.1.4}
 \contentsline {subsection}{\numberline {3.3.2}{Available Analyses}}{28}{subsection.3.3.2}
 \contentsline {subsubsection}{\numberline {3.3.2.1}{Caching}}{28}{subsubsection.3.3.2.1}
@@ -61,80 +61,80 @@
 \contentsline {section}{\numberline {4.3}{Completeness of Tracker}}{40}{section.4.3}
 \contentsline {section}{\numberline {4.4}{Application Results}}{41}{section.4.4}
 \contentsline {subsection}{\numberline {4.4.1}{Example Trace}}{41}{subsection.4.4.1}
-\contentsline {subsection}{\numberline {4.4.2}{Evaluation Summary}}{42}{subsection.4.4.2}
-\contentsline {subsection}{\numberline {4.4.3}{Precomputation}}{43}{subsection.4.4.3}
-\contentsline {subsubsection}{\numberline {4.4.3.1}{RUBiS}}{43}{subsubsection.4.4.3.1}
-\contentsline {paragraph}{\numberline {4.4.3.1.1}{Experimental Setup}}{43}{paragraph.4.4.3.1.1}
-\contentsline {paragraph}{\numberline {4.4.3.1.2}{Analysis Process}}{43}{paragraph.4.4.3.1.2}
-\contentsline {subparagraph}{\numberline {4.4.3.1.2.1}{Output Generation}}{43}{subparagraph.4.4.3.1.2.1}
-\contentsline {subparagraph}{\numberline {4.4.3.1.2.2}{Output Breakdown}}{43}{subparagraph.4.4.3.1.2.2}
-\contentsline {paragraph}{\numberline {4.4.3.1.3}{Developer Interpretation and Response}}{43}{paragraph.4.4.3.1.3}
-\contentsline {subsubsection}{\numberline {4.4.3.2}{jGossip}}{50}{subsubsection.4.4.3.2}
-\contentsline {paragraph}{\numberline {4.4.3.2.1}{Experimental Setup}}{50}{paragraph.4.4.3.2.1}
-\contentsline {paragraph}{\numberline {4.4.3.2.2}{Analysis Process}}{50}{paragraph.4.4.3.2.2}
-\contentsline {subparagraph}{\numberline {4.4.3.2.2.1}{Output Generation}}{50}{subparagraph.4.4.3.2.2.1}
-\contentsline {subparagraph}{\numberline {4.4.3.2.2.2}{Output Breakdown}}{50}{subparagraph.4.4.3.2.2.2}
-\contentsline {paragraph}{\numberline {4.4.3.2.3}{Developer Interpretation and Response}}{50}{paragraph.4.4.3.2.3}
-\contentsline {subsection}{\numberline {4.4.4}{Caching}}{52}{subsection.4.4.4}
-\contentsline {subsubsection}{\numberline {4.4.4.1}{RUBiS}}{52}{subsubsection.4.4.4.1}
-\contentsline {paragraph}{\numberline {4.4.4.1.1}{Experimental Setup}}{52}{paragraph.4.4.4.1.1}
-\contentsline {paragraph}{\numberline {4.4.4.1.2}{Analysis Process}}{52}{paragraph.4.4.4.1.2}
-\contentsline {subparagraph}{\numberline {4.4.4.1.2.1}{Output Generation}}{52}{subparagraph.4.4.4.1.2.1}
-\contentsline {subparagraph}{\numberline {4.4.4.1.2.2}{Output Breakdown}}{52}{subparagraph.4.4.4.1.2.2}
-\contentsline {paragraph}{\numberline {4.4.4.1.3}{Developer Interpretation and Response}}{52}{paragraph.4.4.4.1.3}
-\contentsline {subsubsection}{\numberline {4.4.4.2}{jGossip}}{56}{subsubsection.4.4.4.2}
-\contentsline {paragraph}{\numberline {4.4.4.2.1}{Experimental Setup}}{56}{paragraph.4.4.4.2.1}
-\contentsline {paragraph}{\numberline {4.4.4.2.2}{Analysis Process}}{56}{paragraph.4.4.4.2.2}
-\contentsline {subparagraph}{\numberline {4.4.4.2.2.1}{Output Generation}}{56}{subparagraph.4.4.4.2.2.1}
-\contentsline {subparagraph}{\numberline {4.4.4.2.2.2}{Output Breakdown}}{56}{subparagraph.4.4.4.2.2.2}
-\contentsline {paragraph}{\numberline {4.4.4.2.3}{Developer Interpretation and Response}}{56}{paragraph.4.4.4.2.3}
-\contentsline {subsection}{\numberline {4.4.5}{Postcomputation}}{58}{subsection.4.4.5}
-\contentsline {subsubsection}{\numberline {4.4.5.1}{RUBiS}}{58}{subsubsection.4.4.5.1}
-\contentsline {paragraph}{\numberline {4.4.5.1.1}{Experimental Setup}}{58}{paragraph.4.4.5.1.1}
-\contentsline {paragraph}{\numberline {4.4.5.1.2}{Analysis Process}}{58}{paragraph.4.4.5.1.2}
-\contentsline {subparagraph}{\numberline {4.4.5.1.2.1}{Output Generation}}{58}{subparagraph.4.4.5.1.2.1}
-\contentsline {subparagraph}{\numberline {4.4.5.1.2.2}{Output Breakdown}}{58}{subparagraph.4.4.5.1.2.2}
-\contentsline {paragraph}{\numberline {4.4.5.1.3}{Developer Interpretation and Response}}{58}{paragraph.4.4.5.1.3}
-\contentsline {subsubsection}{\numberline {4.4.5.2}{jGossip}}{61}{subsubsection.4.4.5.2}
-\contentsline {paragraph}{\numberline {4.4.5.2.1}{Experimental Setup}}{61}{paragraph.4.4.5.2.1}
-\contentsline {paragraph}{\numberline {4.4.5.2.2}{Analysis Process}}{61}{paragraph.4.4.5.2.2}
-\contentsline {subparagraph}{\numberline {4.4.5.2.2.1}{Output Generation}}{61}{subparagraph.4.4.5.2.2.1}
-\contentsline {subparagraph}{\numberline {4.4.5.2.2.2}{Output Breakdown}}{61}{subparagraph.4.4.5.2.2.2}
-\contentsline {paragraph}{\numberline {4.4.5.2.3}{Developer Interpretation and Response}}{61}{paragraph.4.4.5.2.3}
-\contentsline {subsection}{\numberline {4.4.6}{Persistent State}}{63}{subsection.4.4.6}
-\contentsline {subsubsection}{\numberline {4.4.6.1}{RUBiS}}{63}{subsubsection.4.4.6.1}
-\contentsline {paragraph}{\numberline {4.4.6.1.1}{Experimental Setup}}{63}{paragraph.4.4.6.1.1}
-\contentsline {paragraph}{\numberline {4.4.6.1.2}{Analysis Process}}{63}{paragraph.4.4.6.1.2}
-\contentsline {subparagraph}{\numberline {4.4.6.1.2.1}{Output Generation}}{63}{subparagraph.4.4.6.1.2.1}
-\contentsline {subparagraph}{\numberline {4.4.6.1.2.2}{Output Breakdown}}{63}{subparagraph.4.4.6.1.2.2}
-\contentsline {paragraph}{\numberline {4.4.6.1.3}{Developer Interpretation and Response}}{63}{paragraph.4.4.6.1.3}
-\contentsline {subsubsection}{\numberline {4.4.6.2}{jGossip}}{65}{subsubsection.4.4.6.2}
-\contentsline {subsection}{\numberline {4.4.7}{User State}}{65}{subsection.4.4.7}
-\contentsline {subsubsection}{\numberline {4.4.7.1}{RUBiS}}{65}{subsubsection.4.4.7.1}
-\contentsline {subsubsection}{\numberline {4.4.7.2}{jGossip}}{65}{subsubsection.4.4.7.2}
-\contentsline {paragraph}{\numberline {4.4.7.2.1}{Experimental Setup}}{65}{paragraph.4.4.7.2.1}
-\contentsline {paragraph}{\numberline {4.4.7.2.2}{Analysis Process}}{65}{paragraph.4.4.7.2.2}
-\contentsline {subparagraph}{\numberline {4.4.7.2.2.1}{Output Generation}}{65}{subparagraph.4.4.7.2.2.1}
-\contentsline {subparagraph}{\numberline {4.4.7.2.2.2}{Output Breakdown}}{65}{subparagraph.4.4.7.2.2.2}
-\contentsline {paragraph}{\numberline {4.4.7.2.3}{Developer Interpretation and Response}}{65}{paragraph.4.4.7.2.3}
-\contentsline {subsection}{\numberline {4.4.8}{Wasteful Communication}}{67}{subsection.4.4.8}
-\contentsline {subsubsection}{\numberline {4.4.8.1}{RUBiS}}{67}{subsubsection.4.4.8.1}
-\contentsline {subsubsection}{\numberline {4.4.8.2}{jGossip}}{67}{subsubsection.4.4.8.2}
-\contentsline {paragraph}{\numberline {4.4.8.2.1}{Experimental Setup}}{67}{paragraph.4.4.8.2.1}
-\contentsline {paragraph}{\numberline {4.4.8.2.2}{Analysis Process}}{67}{paragraph.4.4.8.2.2}
-\contentsline {subparagraph}{\numberline {4.4.8.2.2.1}{Output Generation}}{67}{subparagraph.4.4.8.2.2.1}
-\contentsline {subparagraph}{\numberline {4.4.8.2.2.2}{Output Breakdown}}{67}{subparagraph.4.4.8.2.2.2}
-\contentsline {paragraph}{\numberline {4.4.8.2.3}{Developer Interpretation and Response}}{67}{paragraph.4.4.8.2.3}
-\contentsline {chapter}{\numberline {5}{Conclusions}}{70}{chapter.5}
-\contentsline {section}{\numberline {5.1}{Discussion of Results}}{70}{section.5.1}
-\contentsline {section}{\numberline {5.2}{Future Work}}{73}{section.5.2}
-\contentsline {section}{\numberline {5.3}{Final Words}}{75}{section.5.3}
-\contentsline {chapter}{{Bibliography}}{76}{chapter*.8}
+\contentsline {subsection}{\numberline {4.4.2}{Precomputation}}{43}{subsection.4.4.2}
+\contentsline {subsubsection}{\numberline {4.4.2.1}{RUBiS}}{43}{subsubsection.4.4.2.1}
+\contentsline {paragraph}{\numberline {4.4.2.1.1}{Experimental Setup}}{43}{paragraph.4.4.2.1.1}
+\contentsline {paragraph}{\numberline {4.4.2.1.2}{Analysis}}{44}{paragraph.4.4.2.1.2}
+\contentsline {subparagraph}{\numberline {4.4.2.1.2.1}{Taint Flow Breakdown}}{44}{subparagraph.4.4.2.1.2.1}
+\contentsline {subparagraph}{\numberline {4.4.2.1.2.2}{Analysis Results Breakdown}}{48}{subparagraph.4.4.2.1.2.2}
+\contentsline {paragraph}{\numberline {4.4.2.1.3}{Developer Interpretation and Response}}{49}{paragraph.4.4.2.1.3}
+\contentsline {subsubsection}{\numberline {4.4.2.2}{jGossip}}{50}{subsubsection.4.4.2.2}
+\contentsline {paragraph}{\numberline {4.4.2.2.1}{Experimental Setup}}{50}{paragraph.4.4.2.2.1}
+\contentsline {paragraph}{\numberline {4.4.2.2.2}{Analysis}}{50}{paragraph.4.4.2.2.2}
+\contentsline {subparagraph}{\numberline {4.4.2.2.2.1}{Taint Flow Breakdown}}{50}{subparagraph.4.4.2.2.2.1}
+\contentsline {subparagraph}{\numberline {4.4.2.2.2.2}{Analysis Results Breakdown}}{50}{subparagraph.4.4.2.2.2.2}
+\contentsline {paragraph}{\numberline {4.4.2.2.3}{Developer Interpretation and Response}}{52}{paragraph.4.4.2.2.3}
+\contentsline {subsection}{\numberline {4.4.3}{Caching}}{52}{subsection.4.4.3}
+\contentsline {subsubsection}{\numberline {4.4.3.1}{RUBiS}}{52}{subsubsection.4.4.3.1}
+\contentsline {paragraph}{\numberline {4.4.3.1.1}{Experimental Setup}}{52}{paragraph.4.4.3.1.1}
+\contentsline {paragraph}{\numberline {4.4.3.1.2}{Analysis}}{55}{paragraph.4.4.3.1.2}
+\contentsline {subparagraph}{\numberline {4.4.3.1.2.1}{Taint Flow Breakdown}}{55}{subparagraph.4.4.3.1.2.1}
+\contentsline {subparagraph}{\numberline {4.4.3.1.2.2}{Analysis Results Breakdown}}{56}{subparagraph.4.4.3.1.2.2}
+\contentsline {paragraph}{\numberline {4.4.3.1.3}{Developer Interpretation and Response}}{57}{paragraph.4.4.3.1.3}
+\contentsline {subsubsection}{\numberline {4.4.3.2}{jGossip}}{57}{subsubsection.4.4.3.2}
+\contentsline {paragraph}{\numberline {4.4.3.2.1}{Experimental Setup}}{57}{paragraph.4.4.3.2.1}
+\contentsline {paragraph}{\numberline {4.4.3.2.2}{Analysis}}{57}{paragraph.4.4.3.2.2}
+\contentsline {subparagraph}{\numberline {4.4.3.2.2.1}{Taint Flow Breakdown}}{57}{subparagraph.4.4.3.2.2.1}
+\contentsline {subparagraph}{\numberline {4.4.3.2.2.2}{Analysis Results Breakdown}}{59}{subparagraph.4.4.3.2.2.2}
+\contentsline {paragraph}{\numberline {4.4.3.2.3}{Developer Interpretation and Response}}{59}{paragraph.4.4.3.2.3}
+\contentsline {subsection}{\numberline {4.4.4}{Postcomputation}}{60}{subsection.4.4.4}
+\contentsline {subsubsection}{\numberline {4.4.4.1}{RUBiS}}{60}{subsubsection.4.4.4.1}
+\contentsline {paragraph}{\numberline {4.4.4.1.1}{Experimental Setup}}{60}{paragraph.4.4.4.1.1}
+\contentsline {paragraph}{\numberline {4.4.4.1.2}{Analysis}}{60}{paragraph.4.4.4.1.2}
+\contentsline {subparagraph}{\numberline {4.4.4.1.2.1}{Taint Flow Breakdown}}{60}{subparagraph.4.4.4.1.2.1}
+\contentsline {subparagraph}{\numberline {4.4.4.1.2.2}{Analysis Results Breakdown}}{60}{subparagraph.4.4.4.1.2.2}
+\contentsline {paragraph}{\numberline {4.4.4.1.3}{Developer Interpretation and Response}}{60}{paragraph.4.4.4.1.3}
+\contentsline {subsubsection}{\numberline {4.4.4.2}{jGossip}}{63}{subsubsection.4.4.4.2}
+\contentsline {paragraph}{\numberline {4.4.4.2.1}{Experimental Setup}}{63}{paragraph.4.4.4.2.1}
+\contentsline {paragraph}{\numberline {4.4.4.2.2}{Analysis}}{63}{paragraph.4.4.4.2.2}
+\contentsline {subparagraph}{\numberline {4.4.4.2.2.1}{Taint Flow Breakdown}}{63}{subparagraph.4.4.4.2.2.1}
+\contentsline {subparagraph}{\numberline {4.4.4.2.2.2}{Analysis Results Breakdown}}{63}{subparagraph.4.4.4.2.2.2}
+\contentsline {paragraph}{\numberline {4.4.4.2.3}{Developer Interpretation and Response}}{63}{figure.4.17}
+\contentsline {subsection}{\numberline {4.4.5}{Persistent State}}{63}{subsection.4.4.5}
+\contentsline {subsubsection}{\numberline {4.4.5.1}{RUBiS}}{63}{subsubsection.4.4.5.1}
+\contentsline {paragraph}{\numberline {4.4.5.1.1}{Experimental Setup}}{63}{paragraph.4.4.5.1.1}
+\contentsline {paragraph}{\numberline {4.4.5.1.2}{Analysis}}{63}{paragraph.4.4.5.1.2}
+\contentsline {subparagraph}{\numberline {4.4.5.1.2.1}{Taint Flow Breakdown}}{63}{subparagraph.4.4.5.1.2.1}
+\contentsline {subparagraph}{\numberline {4.4.5.1.2.2}{Analysis Results Breakdown}}{66}{subparagraph.4.4.5.1.2.2}
+\contentsline {paragraph}{\numberline {4.4.5.1.3}{Developer Interpretation and Response}}{66}{paragraph.4.4.5.1.3}
+\contentsline {subsubsection}{\numberline {4.4.5.2}{jGossip}}{66}{subsubsection.4.4.5.2}
+\contentsline {subsection}{\numberline {4.4.6}{User State}}{66}{subsection.4.4.6}
+\contentsline {subsubsection}{\numberline {4.4.6.1}{RUBiS}}{66}{subsubsection.4.4.6.1}
+\contentsline {subsubsection}{\numberline {4.4.6.2}{jGossip}}{66}{subsubsection.4.4.6.2}
+\contentsline {paragraph}{\numberline {4.4.6.2.1}{Experimental Setup}}{66}{paragraph.4.4.6.2.1}
+\contentsline {paragraph}{\numberline {4.4.6.2.2}{Analysis}}{66}{paragraph.4.4.6.2.2}
+\contentsline {subparagraph}{\numberline {4.4.6.2.2.1}{Taint Flow Breakdown}}{66}{subparagraph.4.4.6.2.2.1}
+\contentsline {subparagraph}{\numberline {4.4.6.2.2.2}{Analysis Results Breakdown}}{68}{subparagraph.4.4.6.2.2.2}
+\contentsline {paragraph}{\numberline {4.4.6.2.3}{Developer Interpretation and Response}}{68}{paragraph.4.4.6.2.3}
+\contentsline {subsection}{\numberline {4.4.7}{Wasteful Communication}}{68}{subsection.4.4.7}
+\contentsline {subsubsection}{\numberline {4.4.7.1}{RUBiS}}{68}{subsubsection.4.4.7.1}
+\contentsline {subsubsection}{\numberline {4.4.7.2}{jGossip}}{68}{subsubsection.4.4.7.2}
+\contentsline {paragraph}{\numberline {4.4.7.2.1}{Experimental Setup}}{68}{paragraph.4.4.7.2.1}
+\contentsline {paragraph}{\numberline {4.4.7.2.2}{Analysis}}{68}{paragraph.4.4.7.2.2}
+\contentsline {subparagraph}{\numberline {4.4.7.2.2.1}{Taint Flow Breakdown}}{70}{subparagraph.4.4.7.2.2.1}
+\contentsline {subparagraph}{\numberline {4.4.7.2.2.2}{Analysis Results Breakdown}}{70}{subparagraph.4.4.7.2.2.2}
+\contentsline {paragraph}{\numberline {4.4.7.2.3}{Developer Interpretation and Response}}{70}{paragraph.4.4.7.2.3}
+\contentsline {subsection}{\numberline {4.4.8}{Evaluation Summary}}{70}{subsection.4.4.8}
+\contentsline {chapter}{\numberline {5}{Conclusions}}{71}{chapter.5}
+\contentsline {section}{\numberline {5.1}{Discussion of Results}}{71}{section.5.1}
+\contentsline {section}{\numberline {5.2}{Future Work}}{74}{section.5.2}
+\contentsline {section}{\numberline {5.3}{Final Words}}{76}{section.5.3}
+\contentsline {chapter}{{Bibliography}}{77}{chapter*.8}
 \contentsline {part}{{Appendices}}{}{}
-\contentsline {chapter}{\numberline {A}{Terms Used}}{79}{appendix.A}
-\contentsline {chapter}{\numberline {B}{Input Description Files}}{80}{appendix.B}
-\contentsline {section}{\numberline {B.1}{Input Source Description File Format}}{80}{section.B.1}
-\contentsline {section}{\numberline {B.2}{RUBiS Input Source Description File}}{81}{section.B.2}
-\contentsline {section}{\numberline {B.3}{jGossip Input Source Description File}}{81}{section.B.3}
-\contentsline {chapter}{\numberline {C}{Taint Tracking Tool Logging Format}}{83}{appendix.C}
-\contentsline {chapter}{\numberline {D}{Second Appendix}}{88}{appendix.D}
+\contentsline {chapter}{\numberline {A}{Terms Used}}{80}{appendix.A}
+\contentsline {chapter}{\numberline {B}{Input Description Files}}{81}{appendix.B}
+\contentsline {section}{\numberline {B.1}{Input Source Description File Format}}{81}{section.B.1}
+\contentsline {section}{\numberline {B.2}{RUBiS Input Source Description File}}{82}{section.B.2}
+\contentsline {section}{\numberline {B.3}{jGossip Input Source Description File}}{82}{section.B.3}
+\contentsline {chapter}{\numberline {C}{Taint Tracking Tool Logging Format}}{84}{appendix.C}
+\contentsline {chapter}{\numberline {D}{Second Appendix}}{89}{appendix.D}

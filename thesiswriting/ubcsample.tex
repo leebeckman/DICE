@@ -1425,6 +1425,7 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \section{Additional Details}
 
 \subsection{Numeric Value Tracking in TRMS}
+\label{sec:numtrack}
 Tracking of numeric values, even though they are primitive, is enabled through the following method: When a numeric value is input from a source to be tracked, the TRMS replaces it with a randomly generated value which is likely to be unique. The TRMS then maps the random value to information about the source of the value, just as it does with tainted Strings. Whenever the replaced value is output somewhere, such as to the user or as a database query parameter, the TRMS replaces it with the original value. There are cases where this form of tracking would change the operation of the program, such as if the numerical value is used in a loop counter, but in practice it was found that numeric values in need of tracking did not exhibit this behaviour. Note that this is a temporary workaround to deal with limitations of AspectJ, and could be replaced by something more robust in future implementations.
 
 % Need to say something about the fact that we believe we are tracking enough data by just tainting our set of inputs. We don't care about String constants in the code, or data that arises elsewise.
@@ -1737,20 +1738,6 @@ Having the dataflows for various elements of the main page being identified as p
 For a data flow for be cachable but not precomputable, it must depend on some predictable data, but not at any random data. By predictable data we mean data which we do not know the exact value for, but which can only take on a small enough range of values so as to be amenable to caching. To create such a scenario in RUBiS, we start with a page which lists various geographical regions. Such pages are common in RUBiS, and serve to help users limit the scope of their trading to a region they care about. From this page a region is selected from among those available, which requests the next page which contains the list of categories from the previous precomputation examples. This list varies, however, in that it has been influenced by the user input provided by selecting a region.
 
 \paragraph{Analysis}
-%\subparagraph{Taint Flow Breakdown}
-%The log for the first request generates the taint graph shown in Figure~\ref{fig:browsecategories}. A walkthrough of the flow of taint is already given in Section~\ref{sec:example}.\\
-%
-%For the second request involving the user input field, the taint graph shown in Figure~\ref{fig:browsecategorieschat} is obtained. The important thing to note is that this graph contains the flow of unpredictable data - the list of messages can change at any time, with random data input to them, and as such any computations which rely on message data are poor candidates for caching.\\
-%
-%Breaking this flow down, the left side of the graph in the figure is the same as in Figure~\ref{fig:browsecategories}, while the portion outlined in the red box shows the additional flow of the message data. This new portion of the graph actually spans two requests to the application - one to submit the  message and another to display the list of categories along with the new message.
-%\begin{itemize}
-%\item The portion of the graph from labeled points 1 to 2 covers the request which submits the message. 
-%\item Point 1 shows the source node with the relative URI of the request and the name of the tainted parameter, `chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, and passed to the addChatMessage method of a ServletPrinter object where it is concatenated with some formatting text.
-%\item At Point 2 the message is appended to a LinkedList by the addLast method. Note that the label for this addLast method call node ends in the name of a field, the `chattyList' field of a `ServletPrinter' object. This means that the chattyList field points to the LinkedList being appended to and indicates that by storing tainted data in the LinkedList it is stored in the chattyList field.
-%\item Point 3 shows where the message data flows for the second request, which displays the category list request along with the messages. Starting with edge `18 FGT', the value of the chattyList field is read, which we know is a LinkedList. Edge `19 RET' shows an iterator over this LinkedList being returned from the LinkedList, and edge `20 RET' shows just one of the calls to the next() method of the iterator, which return the messages.
-%\item The getChatBox() method combines these messages with some formatting text and returns the result to the printHTMLheader() method, which writes them out for the user to see at point 4.
-%\end{itemize}
-
 \subparagraph{Taint Flow Breakdown}
 The log file from the experiment requests produces the taint flow graph shown in Figure~\ref{fig:browseregioncategories}. Remember that this graph spans 2 requests - one to display a list of geographical regions and another to display a list of categories. Also, note that this graph has had any StringBuilder method nodes removed to make it more presentable, as these are not necessary for grasping the important points of the analysis. Breaking this flow down:
 
@@ -1760,7 +1747,7 @@ The log file from the experiment requests produces the taint flow graph shown in
 \item The regions are output (along with any formatting text added to them) to the user at point 3, concluding the tracing for the first request.
 \item For the next request, a user clicks on a region, submitting its name as a request parameter. This is shown at point 4, as the `region' parameter handled by the `BrowseCategories' servlet.
 \item From point 5 along to point 6 and continuing, the region name is set as a parameter on a PreparedStatement object to be used as a predicate in a database query.
-\item When the query is executed at point 7, note how the input source node is labeled as being tainted by not only the ID column from the regions table, but also by the region parameter that the query was predicated on (tainting from multiple sources indicated here with the `&&' separator).
+\item When the query is executed at point 7, note how the input source node is labeled as being tainted by not only the ID column from the regions table, but also by the region parameter that the query was predicated on (tainting from multiple sources indicated here with the `\&\&' separator).
 \item The query returns region IDs, which are returned to point 5 and passed into the categoryList() method at point 8.
 \item The categoryList() method also gets a list of category names and IDs from the database, which flow from point 9 (accessed in the same way as they are in the precomputation example).
 \item The category data and region IDs are sent point 10, the `printCategoryByRegion' method, which combines them with formatting text and passes them to the encode() method.
@@ -1771,9 +1758,9 @@ The log file from the experiment requests produces the taint flow graph shown in
 The caching analysis is run over this graph, provided the IDF given in Appendix~\ref{idf:rubis} and producing the result graph show in Figure~\ref{fig:browseregioncategoriescaching}. First, note that this graph only has nodes from the second request - the first request could simply be precomputed and was ignored for the caching analysis. The graph shown was not eligible for precomputation due to the influence of the user-supplied region parameter, the value of which will vary. However, since this parameter has been marked as being predictable and the other inputs are stable, the analysis judges that a cache may be possible for this graph. 
 
 \paragraph{Developer Interpretation and Response}
-Interpreting this, a developer can start at the red output node. Figure~\ref{browseregioncategoriescd} shows the tainted data flowing here. Lines 3-5 are for the first request, and can be ignored. Lines 6-7 show the list of categories. Note how the link `href' contains a region parameter with a region ID. Compare these lines to the user output breakdown shown in Figure~\ref{fig:browseregioncategoriesto}. The entire response is composed of nontainted (likely static) data and the cachable output. Looking at the inputs in the graph, the data responsible for the cachable output comes from database tables which have all been marked as stable, unlikely to change frequently, and the predictable region parameter. \\
+Interpreting this, a developer can start at the red output node. Figure~\ref{browseregioncategoriescd} shows the tainted data flowing here. Lines 3-5 are for the first request, and can be ignored. Lines 6-7 show the list of categories. Note how the link `href' contains a region parameter with a region ID. Compare these lines to the user output breakdown shown in Figure~\ref{fig:browseregioncategoriesto}. The entire response is composed of nontainted (likely static) data and the cachable output. Looking at the input (yellow) nodes in Figure~\ref{fig:browseregioncategoriescaching}, the source data responsible for the cachable output comes from database tables which have all been marked as stable (see the IDF), unlikely to change frequently, and the predictable region parameter. \\
 
-Using the graph and some rudimentary knowledge of the application, a cache could be implemented as follows. First, consider the inputs. All of them, save for the region parameter, are stable, and thus the only parameter the cache need use to store and return results is that region parameter. For the other inputs, like those from the categories and regions tables, these data sources need only to be monitored to detect if they are modified. If so, the cached results are invalidated to be regenerated. As the doGet node is the first to receive the region parameter, the cache check could be performed there. If the cache hits for a given region, the output data (perhaps the entire response page or just the category hyperlinks) can be returned and written to the response stream. In the event of a cache miss, the computation can proceed as normal, and the results picked up in the printCategoryByRegion node to be placed in the cache for later.
+Using the graph a cache could be implemented as follows: First, consider the inputs. All of them, save for the region parameter, are stable, and thus the only parameter the cache need use to store and return results (the cache key) is the region parameter. The other inputs from the categories and regions tables need only be monitored to detect if they are modified. If so, the cached results are invalidated to be regenerated. As the doGet node is the first to receive the region parameter, the cache check could be performed there. If the cache hits for a given region, the output data (perhaps the entire response page) can be returned and written to the response stream. In the event of a cache miss, the computation can proceed as normal, and the results picked up in the printCategoryByRegion node to be placed in the cache for later.
 
 \subsubsection{jGossip} 
 
@@ -1786,18 +1773,26 @@ Using the graph and some rudimentary knowledge of the application, a cache could
 \end{sidewaysfigure}
 
 \paragraph{Experimental Setup}
+The application was traced while selecting a forum from the application's main menu, which then displayed a page giving some information about the forum including a message from it. We assumed that a selection from among the list of available forums could be considered predictable data, since the set of forums it not likely to change rapidly. Furthermore, this action is likely to occur frequently as users must choose their desired forums to interact with them.
+
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
+We skip a breakdown of the taint flow here due to its size and complexity. It is not possible to even view the graph all at once, much less make sense of it. It is much more helpful to simply run the analysis and use the results to understand the flow of data in the application, as well as how to improve it.
+
 \subparagraph{Analysis Results Breakdown}
+The caching analysis for jGossip is significantly more difficult than with RUBiS due to the much larger traces produced by the application. This is caused by libraries, like JSTL, used by jGossip, and typically the traces were around 40K communication events for handling a single request (whereas RUBiS had around 400). This presented some very large, complex graphs, which would not be amenable to any manual analysis and which were still challenging to analyze automatically. Nevertheless, Figure~\ref{fig:viewforumscaching} shows a graph obtained from the analysis tool which indicates the existence of a possible cache.\\
+
+The trace shows the following:
+\begin{itemize}
+\item A forum ID (fid) is supplied by the user when selecting a forum at point 1.
+\item The forum ID is used as the only parameter in a database query which fetches a message heading at point 2. These headings are among various descriptive data for a forum.
+\item The heading is then passed through a series of methods, ultimately being output to the response page at point 3.
+\end{itemize}
+
+The fact that this path was identified by the analysis means that the data which flows along the path is not influenced by random input. We can see how given a fid value, of which there are a limited set, and knowing whether or not the heading for a forum has been updated, we can either return a cached heading or generate one to fill the cache.\\
+
 \paragraph{Developer Interpretation and Response}
-
-A caching analysis for jGossip was significantly more difficult due to the greater complexity of the traces produced. This was largely due to the use of such external libraries as JSTL which jGossip relies on to format its output, producing traces of over 40K communication events for simple application actions vs around 300 for RUBiS. Nevertheless, the analysis tool was successfully used to capture the existence of a caching opportunity in jGossip.
-
-The caching analysis for jGossip is significantly more difficult due to the much larger traces produced by the application. This is caused by libraries, like JSTL, used by jGossip, and typically the traces were around 40K communication events for handling a single request (whereas RUBiS had around 400). This presented some very large, complex graphs, which would not be amenable to a manual analysis, and which were still challenging to assess automatically. Nevertheless, Figure~\ref{fig:viewforumscaching} shows a graph obtained from the analysis tool which indicates the existence of a possible cache.\\
-
-This was obtained by tracing the application while selecting a forum from the application's main menu, which then displayed a page giving some information about the forum including a message from it. The trace shows how the forum ID (fid) supplied by the user when selecting a forum (point 1) acts as the sole input to a database query which fetches a message heading from the database (point 2). This heading is then passed through a series of methods, ultimately being output to the response page at point 3. The fact that this path was identified by the analysis means that the data which flows along the path is not influenced by random input. We can see how given a fid value, of which there are a limited set, and knowing whether or not the messages in that forum have been updated, we can either return a cached message heading or generate one to fill the cache.\\
-
-Given this graph, it is up to the developer to investigate the feasibility of this cache. The analysis data can additionally provide stack traces to identify the control flow responsible for each communication event, to help in choosing where to implement any changes.
+Given this graph, it is up to the developer to investigate the feasibility of this cache. The only inputs to it, as shown by the analysis, are the fid and the forum heading. Assuming the headings are stable (and the IDF given in Appendix~\ref{idf:jgossip} does specify this), the fid could be used as a cache key while the headings could be monitored for changes for cache invalidation. The developer would need to investigate the traces further, along with the application code, to determine a good place to implement such a cache. The fact that much of the logic is buried in JSP auto-generated code will make this more difficult than in the case of RUBiS.
 
 \subsection{Postcomputation}
 \subsubsection{RUBiS}
@@ -1819,24 +1814,40 @@ Given this graph, it is up to the developer to investigate the feasibility of th
 \end{sidewaysfigure}
 
 \paragraph{Experimental Setup}
+For the postcomputation analysis, we sell an item on the RUBiS Store. This simply involves filling out a web form describing various details of the item (name, price, etc), and submitting this to a RegisterItem servlet. The item is added to the database, and after that is done the item details are displayed back to the user when the request returns. This procedure importantly involves a write to a database, which are likely targets for postcomputation. \\
+
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
+The log file produces the graph given in Figure~\ref{fig:sellitemtrace}. Breaking this down:
+\begin{itemize}
+\item At point 1 the various request parameters describing the item are read.
+\item Some of these parameters are converted to numeric values at point 2. The IDF in Appendix~\ref{idf:rubis} specifies that these values should be tracked by the numeric tracking system (see Section~\ref{sec:numtrack}).
+\item These values are passed along to point 3, where they are used to construct a PreparedStatement object which will be used to perform a database update.
+\item At point 4 the executeUpdate() method on the PreparedStatement is called, which causes the item data to be written out to the database.
+\item Following this, some of the parameters are used at point 5 to query the database, checking if the item was successfully inserted.
+\item At point 6 the parameters are written back along with formatting text to the response page, showing the user the details of the item they submitted to sell.
+\end{itemize}
+
+%\subparagraph{Analysis Results Breakdown}
+%The caching analysis is run over this graph, provided the IDF given in Appendix~\ref{idf:rubis} and producing the result graph show in Figure~\ref{fig:browseregioncategoriescaching}. First, note that this graph only has nodes from the second request - the first request could simply be precomputed and was ignored for the caching analysis. The graph shown was not eligible for precomputation due to the influence of the user-supplied region parameter, the value of which will vary. However, since this parameter has been marked as being predictable and the other inputs are stable, the analysis judges that a cache may be possible for this graph. 
+%
+%\paragraph{Developer Interpretation and Response}
+%Interpreting this, a developer can start at the red output node. Figure~\ref{browseregioncategoriescd} shows the tainted data flowing here. Lines 3-5 are for the first request, and can be ignored. Lines 6-7 show the list of categories. Note how the link `href' contains a region parameter with a region ID. Compare these lines to the user output breakdown shown in Figure~\ref{fig:browseregioncategoriesto}. The entire response is composed of nontainted (likely static) data and the cachable output. Looking at the input (yellow) nodes in Figure~\ref{fig:browseregioncategoriescaching}, the source data responsible for the cachable output comes from database tables which have all been marked as stable (see the IDF), unlikely to change frequently, and the predictable region parameter. \\
+%
+%Using the graph a cache could be implemented as follows: First, consider the inputs. All of them, save for the region parameter, are stable, and thus the only parameter the cache need use to store and return results (the cache key) is the region parameter. The other inputs from the categories and regions tables need only be monitored to detect if they are modified. If so, the cached results are invalidated to be regenerated. As the doGet node is the first to receive the region parameter, the cache check could be performed there. If the cache hits for a given region, the output data (perhaps the entire response page) can be returned and written to the response stream. In the event of a cache miss, the computation can proceed as normal, and the results picked up in the printCategoryByRegion node to be placed in the cache for later.
+
+
 \subparagraph{Analysis Results Breakdown}
+Figure~\ref{fig:sellitempostcomputation} shows the results of running the postcomputation analysis over the taint flow graph. What this result graph shows are parts of the taint flow graph which could potentially be delayed until later without breaking the functioning of the application.\\
+
+The figure shows that the database update and query flows at points 3, 4, and 5 from Figure~\ref{fig:sellitemtrace} could be deferred. None of the queries return data which is used to generate the response page. Missing from the result graph is the reading of the item properties and writing them to the response page. This is because if these flows were deferred until later the output that the user sees would be incomplete.
+
 \paragraph{Developer Interpretation and Response}
+It is now up to the developer to determine if the semantics of the application can tolerate deferring these computations. It is possible that it does not make sense to display the response page without knowing for certain whether or not the database update was successful. However, if this is okay, the analysis suggests that these queries could be done asynchronously, returning back to the user without waiting for their completion. The application could be altered to support this, and users would see response pages faster. \\
 
-For the postcomputation analysis, we sell an item on the RUBiS Store. This simply involves filling out a web form describing various details of the item (name, price, etc), and submitting this to a RegisterItem servlet. The item is added to the database and the item details are displayed back to the user. \\
-
-The dataflow for this is given in Figure~\ref{fig:sellitemtrace}. At point 1 the various parameters describing the item are read, and some of them are converted to numeric values at point 2 (and hence tracked by the numeric tracking system). The RegisterItem:doGet() method then uses these parameters to construct a PreparedStatement at point 3, which is to execute a database update at point 4. This is the update which inserts the item into the database. Following this, some of the parameters are used at point 5 to query the database checking if the item was inserted. Finally, at point 6, the parameters are written back to the response page.\\
-
-Figure~\ref{fig:sellitempostcomputation} shows the results of the postcomputation analysis over this graph. What this indicates is parts of the dataflow which could be delayed until later, namely the database update/query flows at points 3, 4, and 5 from Figure~\ref{fig:sellitemtrace}. Missing from this graph is the reading of the item properties and writing them to the response page. This is because if these flows were deferred until later the output that the user sees would be incomplete. The analysis reveals that the database queries return no data which goes to the user response, and thus the analysis suggests that these queries could be done asynchronously, returning back to the user without waiting for their completion.
+Additionally, such modifications tend to free up web servers which allocate threads to handle individual requests. The database update request can be queued in a DBMS, while the webserver is free to complete the request and free up a thread.
 
 \subsubsection{jGossip} 
-
-\paragraph{Experimental Setup}
-\paragraph{Analysis}
-\subparagraph{Taint Flow Breakdown}
-\subparagraph{Analysis Results Breakdown}
-\paragraph{Developer Interpretation and Response}
 
 \begin{sidewaysfigure}
 \centering
@@ -1846,9 +1857,30 @@ Figure~\ref{fig:sellitempostcomputation} shows the results of the postcomputatio
 \label{fig:deleteforumpostcomputation}
 \end{sidewaysfigure}
 
-To test the postcomputation analysis for jGossip, we use a trace taken while deleting a forum. We anticipated that this action would involve computation and updates to the database which could potentially be deferred, being separate from any computation responsible for displaying output to the user.\\
+\paragraph{Experimental Setup}
+To test the postcomputation analysis for jGossip, we use a trace taken while submitting a delete forum request. This request sends a forum ID parameter to the server, which is used to locate the forum to delete. We anticipated that this action would involve computation and updates to the database which could potentially be deferred. It is true that this operation would likely not occur very often, but the results are still useful as a minor optimization. \\
 
-Figure~\ref{fig:deleteforumpostcomputation} shows a partial view of the results of the analysis. At point 1 an object containing data to service the request, such as the ID of the forum to delete, is passed into an Action object (Actions basically provide the entry point functionality in an Apache struts application, like the servlets used in RUBiS). Point 2 shows the accessing of the forum ID from the data object. This ID is passed to the highlighted deleteForum() method, which in turn uses it in a query which deletes the forum from the database. Finally, at point 4 we see that not only can the process which deletes the forum be deferred, but also a logging action. The analysis is showing that the path of data presented in Figure~\ref{fig:deleteforumpostcomputation} likely does not reach any output necessary to generate the user response page. At this point it is up to the developer to inspect this path and determine if they wish to make elements of it occur asynchronously to speed the response to the user.
+\paragraph{Analysis}
+\subparagraph{Taint Flow Breakdown}
+We skip a breakdown of the taint flow here due to its size and complexity. It is not possible to even view the graph all at once, much less make sense of it. It is much more helpful to simply run the analysis and use the results to understand the flow of data in the application, as well as how to improve it.
+
+\subparagraph{Analysis Results Breakdown}
+To obtain the result, the postcomputation analysis was run over the taint flow graph. The output was still quite complex, so we filtered the result graph down to locate nodes which communicated the forum ID used to specify the forum for deletion. Following this we looked for nodes which were from the actual jGossip code (not from framework classes), and found the section of the result presented in Figure~\ref{fig:deleteforumpostcomputation}. This graph shows a flow which could potentially be deferred to allow the user to receive a response faster. Breaking it down:
+
+\begin{itemize}
+\item At point 1 an object containing data from the request (user provided parameters like the forum ID) is passed into an Action object (Actions basically provide the entry point functionality in an Apache struts application, like the servlets do in RUBiS).
+\item Point 2 shows the accessing of the forum ID from the data object.
+\item At point 3 the ID is first passed from the deleteForum() method into a setInt() method which sets the ID as a parameter in a query.
+\item This query is then executed by the executeQuery() method call, which uses the forum ID to delete a forum from the database.
+\item Finally, at point 4 we see that not only can the flow which deletes the forum be deferred, but also a logging action.
+\end{itemize}
+
+The analysis is showing that the computation and flow of data presented in Figure~\ref{fig:deleteforumpostcomputation} does not influence the production of output necessary to generate the user response page.
+
+\paragraph{Developer Interpretation and Response}
+At this point it is up to the developer to inspect this graph and determine the feasibility of deferring some of the computations it represents. At a high level, one could modify the application to, having received  the forum ID from the user, enqueue asynchronous computations to perform the forum deletion and logging. The request handler could then immediately return to the user, letting them know that their request had been received and was being processed.
+
+As to the details of how exactly to implement this change, that would require a deeper investigation into the application's architecture. This will be made more challenging by the fact that jGossip uses a lot of generated code. Still, the analysis is useful in that it points out the possibility of this optimization, allowing one to recognize it and focus on how to realize it.
 
 \subsection{Persistent State}
 \subsubsection{RUBiS}
@@ -2446,27 +2478,30 @@ The contents are specified in a non-XML, condensed format:
 <requestsourceinfo ... />:
 	Request: uri:parameter - variability: ... - numtracking: ...
 	
-Database: jgossip/forum/forumtitle - variability: STABLE
-Database: jgossip/forum/forumdesc - variability: STABLE
-Database: jgossip/forum/forumid - variability: STABLE - numtracking: true
-Database: jgossip/forum/locked - variability: STABLE
-Database: jgossip/group/groupname - variability: STABLE
-Database: jgossip/group/groupid - variability: STABLE - numtracking: true
-Database: jgossip/group/groupsort - variability: STABLE
-Database: jgossip/message/content - variability: RANDOM
-Database: jgossip/message/from - variability: RANDOM
-Database: jgossip/message/id - variability: RANDOM - numtracking: true
-Database: jgossip/thread/timestamp - variability: PREDICTABLE
-Database: jgossip/thread/tid - variability: PREDICTABLE - numtracking: true
-Database: jgossip/thread/sortby - variability: PREDICTABLE
-Database: jgossip/whois/id - variability: PREDICTABLE - numtracking: true
-Database: jgossip/whois/ip - variability: RANDOM
-Database: jgossip/whois/sessionid - variability: RANDOM
-Database: jgossip/whois/username - variability: PREDICTABLE
-Database: jgossip/skinparams/paramname - variability: STABLE
-Database: jgossip/skinparams/paramvalue - variability: STABLE
-Database: jgossip/constants/name - variability: STABLE
-Database: jgossip/constants/value - variability: STABLE
+Some names have also been 
+	
+Database: forum_db/jrf_forum/forumtitle - variability: STABLE
+Database: forum_db/jrf_forum/forumdesc - variability: STABLE
+Database: forum_db/jrf_forum/forumid - variability: STABLE - numtracking: true
+Database: forum_db/jrf_forum/locked - variability: STABLE
+Database: forum_db/jrf_group/groupname - variability: STABLE
+Database: forum_db/jrf_group/groupid - variability: STABLE - numtracking: true
+Database: forum_db/jrf_group/groupsort - variability: STABLE
+Database: forum_db/jrf_message/content - variability: RANDOM
+Database: forum_db/jrf_message/from - variability: RANDOM
+Database: forum_db/jrf_message/heading - variability: STABLE
+Database: forum_db/jrf_message/id - variability: RANDOM - numtracking: true
+Database: forum_db/jrf_thread/timestamp - variability: PREDICTABLE
+Database: forum_db/jrf_thread/tid - variability: PREDICTABLE - numtracking: true
+Database: forum_db/jrf_thread/sortby - variability: PREDICTABLE
+Database: forum_db/jrf_whois/id - variability: PREDICTABLE - numtracking: true
+Database: forum_db/jrf_whois/ip - variability: RANDOM
+Database: forum_db/jrf_whois/sessionid - variability: RANDOM
+Database: forum_db/jrf_whois/username - variability: PREDICTABLE
+Database: forum_db/jrf_skinparams/paramname - variability: STABLE
+Database: forum_db/jrf_skinparams/paramvalue - variability: STABLE
+Database: forum_db/jrf_constants/name - variability: STABLE
+Database: forum_db/jrf_constants/value - variability: STABLE
 Request: DeleteForum:fid - variability: PREDICTABLE - numtracking: true
 Request: ShowForum:fid - variability: PREDICTABLE - numtracking: true
 \end{verbatim}
