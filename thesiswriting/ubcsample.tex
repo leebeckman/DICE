@@ -1505,6 +1505,7 @@ To check that all data which should be tainted actually was, the test applicatio
 \subsection{Example Trace}
 \label{sec:example}
 In order to understand the evaluation which follows, consider Figure~\ref{fig:browsecategories}, which shows a visualized taint trace taken from loading a page in the RUBiS application. The page loaded contains a list of item categories, showing the category name to the user in a hyperlink which includes the category ID as a parameter. 
+
 \begin{itemize}
 \item At the labeled point 1 in Figure~\ref{fig:browsecategories} are two input nodes for database data used in displaying the page. See Figure~\ref{fig:dbformat} for the format of this kind of node, as well as Table~\ref{tab:edgetypes} for a summary of the edge types which follow.  A ResultSet which includes the ID and name columns from the categories table in the rubis catalog is used, and a seperate node is present for each target column accessed. The edges out of these nodes are labeled `RIN' for `Returning Input', marking them as points where tainted data originates. Edges are labeled with numbers to indicate the ordering of events. The full graph actually contains more edges than is shown, but for presentation multiple edges of the same type between the same nodes have been reduced to a single edge, explaining the `missing' edge numbers.
 \item From labeled point 1 to 2 is shown the return path of the category names and ids through the getString and getInt methods to the categoryList method on the BrowseCategories servlet. 
@@ -1613,15 +1614,18 @@ Node: ServletPrinter:printCategory String int:19112841
 \end{figure}
 
 \paragraph{Experimental Setup}
+\label{sec:rubisprecompsetup}
 First, a page which displays a list of item categories is requested in RUBiS while performing taint tracking, producing a log file. RUBiS fetches the item categories from a database table and uses them to generate the output HTML (which can be seen in Figure~\ref{fig:outputBrowseCat}). Following this the same page is requested, and a message is entered into a form field and submitted to display the input on the page (which causes 2 requests - one to submit the message and another to display the modified page). The output HTML is shown in Figure~\ref{fig:outputBrowseCatB}. These tests were chosen as this page would likely be accessed frequently (a user must pick a category for most actions on the site, such as viewing and creating auctions), and it was known to make use of database data which changed very varely. The form field we added to the application ourselves, under the pretense of providing a simple means for users to post messages to each other and more importantly to introduce a flow of unpredictable data to the page.
 
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
+\label{sec:rubisprecompflow}
 The log for the first request generates the taint graph shown in Figure~\ref{fig:browsecategories}. A walkthrough of the flow of taint is already given in Section~\ref{sec:example}.\\
 
 For the second request involving the user input field, the taint graph shown in Figure~\ref{fig:browsecategorieschat} is obtained. The important thing to note is that this graph contains the flow of unpredictable data - the list of messages can change at any time, with random data input to them, and as such any computations which rely on message data are poor candidates for caching.\\
 
 Breaking this flow down, the left side of the graph in the figure is the same as in Figure~\ref{fig:browsecategories}, while the portion outlined in the red box shows the additional flow of the message data. This new portion of the graph actually spans two requests to the application - one to submit the  message and another to display the list of categories along with the new message.
+
 \begin{itemize}
 \item The portion of the graph from labeled points 1 to 2 covers the request which submits the message. 
 \item Point 1 shows the source node with the relative URI of the request and the name of the tainted parameter, `chatMessage'. This parameter is accessed by the doGet method of the SubmitChat servlet, and passed to the addChatMessage method of a ServletPrinter object where it is concatenated with some formatting text.
@@ -1637,7 +1641,7 @@ The first thing to notice here is that it is the same graph as the input taint g
 
 For more detailed results, one can view what precomputable tainted data was sent to the output nodes in the graph. Figure~\ref{fig:rubisPrecompDetails} shows the HTML data for 3 category selection hyperlinks. Compare this to Figure~\ref{fig:outputBrowseCat}, also obtained from our tool, which shows all data written to user along with whether or not pieces of it are tainted. Only 3 lines are marked as tainted, the same three which are shown to be precomputable in Figure~\ref{fig:rubisPrecompDetails}. The rest of lines are marked nontainted, and thus are likely from static data. \\
 
-Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the graph ends at the red PrintCategory node, no longer extending to the println method call nodes. Furthermore, it obviously does not have any of the nodes carrying message data. This is because those nodes and the println nodes have message data flowing through them, which has been marked in the IDF as being random. The precomputation analysis will not return any nodes relaying random data, as if the computation that those nodes represented were replaced by precomputed data, the results would be inconsistent when the inputs changed. The part of the graph shown in Figure~\ref{fig:browsecategorieschatprecomp} only relies on stable data as inputs.
+Figure~\ref{fig:browsecategorieschatprecomp} shows the result of the precomputation analysis on the trace from Figure~\ref{fig:browsecategorieschat}. It is exactly like the analysis results from Figure~\ref{fig:browsecategoriesprecomp} except that the graph ends at the red PrintCategory node, no longer extending to the println method call nodes. Furthermore, it obviously does not have any of the nodes carrying message data. This is because those nodes and the println nodes have message data flowing through them, which has been marked in the IDF as being random. The precomputation analysis will not return any nodes relaying random data, as if the computation that those nodes represented were replaced by precomputed data, the results would be inconsistent when the inputs changed. The part of the graph shown in Figure~\ref{fig:browsecategorieschatprecomp} only relies on stable data as inputs.\\
 
 Looking to more detailed results, Figure~\ref{fig:rubisPrecompDetailsB} shows the precomputable data which flows into the `ServletPrinter:printCategory' node. As before, compare this to the tainted/nontainted data written to the user in Figure~\ref{fig:outputBrowseCatB}. Again there are 3 lines which match in these figures, these being precomputable, but in Figure~\ref{fig:outputBrowseCatB} line 2 is also tainted and not precomputable.
 
@@ -1789,7 +1793,7 @@ The trace shows the following:
 \item The heading is then passed through a series of methods, ultimately being output to the response page at point 3.
 \end{itemize}
 
-The fact that this path was identified by the analysis means that the data which flows along the path is not influenced by random input. We can see how given a fid value, of which there are a limited set, and knowing whether or not the heading for a forum has been updated, we can either return a cached heading or generate one to fill the cache.\\
+The fact that this path was identified by the analysis means that the data which flows along the path is not influenced by random input. We can see how given a fid value, of which there are a limited set, and knowing whether or not the heading for a forum has been updated, we can either return a cached heading or generate one to fill the cache.
 
 \paragraph{Developer Interpretation and Response}
 Given this graph, it is up to the developer to investigate the feasibility of this cache. The only inputs to it, as shown by the analysis, are the fid and the forum heading. Assuming the headings are stable (and the IDF given in Appendix~\ref{idf:jgossip} does specify this), the fid could be used as a cache key while the headings could be monitored for changes for cache invalidation. The developer would need to investigate the traces further, along with the application code, to determine a good place to implement such a cache. The fact that much of the logic is buried in JSP auto-generated code will make this more difficult than in the case of RUBiS.
@@ -1814,7 +1818,7 @@ Given this graph, it is up to the developer to investigate the feasibility of th
 \end{sidewaysfigure}
 
 \paragraph{Experimental Setup}
-For the postcomputation analysis, we sell an item on the RUBiS Store. This simply involves filling out a web form describing various details of the item (name, price, etc), and submitting this to a RegisterItem servlet. The item is added to the database, and after that is done the item details are displayed back to the user when the request returns. This procedure importantly involves a write to a database, which are likely targets for postcomputation. \\
+For the postcomputation analysis, we sell an item on the RUBiS Store. This simply involves filling out a web form describing various details of the item (name, price, etc), and submitting this to a RegisterItem servlet. The item is added to the database, and after that is done the item details are displayed back to the user when the request returns. This procedure importantly involves a write to a database, which are likely targets for postcomputation.
 
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
@@ -1878,7 +1882,7 @@ To obtain the result, the postcomputation analysis was run over the taint flow g
 The analysis is showing that the computation and flow of data presented in Figure~\ref{fig:deleteforumpostcomputation} does not influence the production of output necessary to generate the user response page.
 
 \paragraph{Developer Interpretation and Response}
-At this point it is up to the developer to inspect this graph and determine the feasibility of deferring some of the computations it represents. At a high level, one could modify the application to, having received  the forum ID from the user, enqueue asynchronous computations to perform the forum deletion and logging. The request handler could then immediately return to the user, letting them know that their request had been received and was being processed.
+At this point it is up to the developer to inspect this graph and determine the feasibility of deferring some of the computations it represents. At a high level, one could modify the application to, having received  the forum ID from the user, enqueue asynchronous computations to perform the forum deletion and logging. The request handler could then immediately return to the user, letting them know that their request had been received and was being processed. \\
 
 As to the details of how exactly to implement this change, that would require a deeper investigation into the application's architecture. This will be made more challenging by the fact that jGossip uses a lot of generated code. Still, the analysis is useful in that it points out the possibility of this optimization, allowing one to recognize it and focus on how to realize it.
 
@@ -1894,14 +1898,19 @@ As to the details of how exactly to implement this change, that would require a 
 \end{sidewaysfigure}
 
 \paragraph{Experimental Setup}
+The setup is the same as for the second request in Section~\ref{sec:rubisprecompsetup}.
+
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
+The taint flow for this setup has already been discussed in Section~\ref{sec:rubisprecompflow}.
+
 \subparagraph{Analysis Results Breakdown}
+The analysis searches the graph for any data which can be found in multiple requests. This is assumed to be persistent data, used for keeping state which lives beyond the scope of a single request. Figure~\ref{fig:browseitemsstate} shows the location of persistent state when interacting with the RUBiS messaging system. Only the portion of the graph which deals with the persistent state is shown here. The red node shows where the persistent state is actually kept, in a variable called `chattyList' on the ServletPrinter class. The orange nodes are those which communicated the persistent data in question. As expected, these  orange nodes include a chatMessage parameter and its flow into the chattyList, as well as the output nodes which encompass the writing of the chat messages out to the user.\\
+
 \paragraph{Developer Interpretation and Response}
+Knowing where persistent data is kept is not in itself an optimization. The knowledge of it is useful in general. Earlier we mentioned cases where an application may be in an environment where persistent state is not allowed or unsafe. If such were the case, these analysis results could be used to target such state for removal, either by changing the logic of the application completely or moving the state into an acceptable store. The `chattyList' data could simply be put into a database table.\\
 
-Figure~\ref{fig:browseitemsstate} shows the location of persistent state when interacting with the RUBiS chat box, as previously described in section~\ref{sec:rubisprecomp}. Only the portion of the graph which deals with the persistent state is shown here. The red node shows where the persistent state is actually kept, in a variable called `chattyList' on the ServletPrinter class. The orange nodes indicate any nodes which communicated the persistent data in question. As expected, these  orange nodes include a chatMessage parameter and its flow into the chattyList, as well as the output nodes which indicate the writing of the chat messages out to the user.\\
-
-Other instances of persistent state existed in the application, in static variables like this one. All of these were known prior to the automated analysis, which was able to identify them easily.
+Another use for this analysis would be to gauge how much of the logic relies on this kind of stateful data when performing replication. When deploying the RUBiS site across multiple servers to handle greater load, this analysis shows us what execution relies on data which must be shared and kept consistent across the servers. The `chattyList' data could be a bottleneck for the computation encompassed by the orange nodes.
 
 \subsubsection{jGossip} 
 
@@ -1923,15 +1932,26 @@ The RUBiS application did not contain any persistent state which was not shared 
 \end{sidewaysfigure}
 
 \paragraph{Experimental Setup}
+For this analysis we traced jGossip while logging in with two different users, each coming from a different IP address. This was done in order to generate persistent state data for both users, believing that some of this data would be only ever be communicated with a single user.
+
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
+We skip a breakdown of the taint flow here due to its size and complexity. It is not possible to even view the graph all at once, much less make sense of it. It is much more helpful to simply run the analysis and use the results to understand the flow of data in the application, as well as how to improve it.
+
 \subparagraph{Analysis Results Breakdown}
+We ran the automated user state analysis over the taint flow graph, which identified the flow show in Figure~\ref{fig:loginstate}. 
+
+Though it is not shown in the figure, the analysis tool tells us that the tainted data in this flow is a username used to populate a username field which appears on every page of the forum.\\
+
+The fact that the analysis identified this flow indicates that this username data has been used over multiple requests, but that each instance of this data is only ever shared with a single user (different users will understandably have their own unique usernames). Breaking down the figure: 
+###########################
+\begin{itemize}
+\item
+\item
+\end{itemize}
+At point 1 in the figure we can see where the data is stored, in a Java Map object, which is the underlying implementation for the Session objects on which getAttribute is called as one follows the flow. The data proceeds through a series of evaluate methods, which are a result of using JSP and JSTL, before being output at point 2.
+
 \paragraph{Developer Interpretation and Response}
-
-For this analysis we traced jGossip while logging in with two different users, each coming from a different IP address. This was done in order to generate persistent state data which potentially would be only shared with a single user. We ran the automated user state analysis, and identified the flow show in Figure~\ref{fig:loginstate}. Though it is not readily apparent in the figure, the analysis tool additionally mapped the tainted data in the flow to user response output, revealing that this data is a user name used to populate a username field which appears on every page.\\
-
-The fact that the analysis identified this flow indicates that this username data has been used over multiple requests, but is only ever shared with a single user. At point 1 in the figure we can see where the data is stored, in a Java Map object, which is the underlying implementation for the Session objects on which getAttribute is called as one follows the flow. The data proceeds through a series of evaluate methods, which are a result of using JSP and JSTL, before being output at point 2.\\
-
 Knowing that this data is only shared with a single user, one could potentially remove this logic from the server-side code and allow the client to store their own username. The flow shown gives a developer some clues about what the implications of this would be, in that they may need to emulate some of the operations that the JSTL code performed in order to properly display the data to the user. This amounts to relocating the path shown in the figure from the server to the client, starting with moving the data (point 1), then the computation, and finally outputting it to the user (point 2).
 
 \subsection{Wasteful Communication}
