@@ -1,3 +1,5 @@
+// EXECUTION START
+
 TG = taint trace graph, each node is a function or data source,
    each edge is an event where tainted data is passed between nodes.
 CG = call graph, with all calls made during taint trace collection, even those
@@ -12,14 +14,14 @@ TGRandom = pruneToVariability(TG, RANDOM)
 StableConnectedSubGraphs = getConnectedSubGraphs(TGStable)
 
 foreach StableCS in StableConnectedSubGraphs:
-	/* Check that the execution of this graph does not result in the
-	 * flow of non-deterministic data or require any variable input,
-	 * however predictable, as then we need to be much more
-	 * careful about using precomputation and skipping execution.
-	 */
-	if (getSideEffects(StableCS, TGRandom, CG) == {}):
-		if (getSideEffects(StableCS, TGPredictable, CG) == {}):
-			/* Present the graph to the user */
-			colorOutputs(StableCS, TG)
-			colorInputs(StableCS, TG)
-			showGraphToUser(StableCS)
+    /* Check that the execution of this graph does not result in the
+     * flow of non-deterministic data or require any variable input,
+     * however predictable, as then we need to be much more
+     * careful about using precomputation and skipping execution.
+     */
+    if (getSideEffects(StableCS, TGRandom, CG) == {}):
+        if (getSideEffects(StableCS, TGPredictable, CG) == {}):
+            /* Present the graph to the user */
+            colorOutputs(StableCS, TG)
+            colorInputs(StableCS, TG)
+            showGraphToUser(StableCS)

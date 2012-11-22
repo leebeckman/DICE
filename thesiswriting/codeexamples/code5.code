@@ -1,69 +1,71 @@
+// HELPER METHODS
+
 /* Given a path which starts with a single Edge representing a read from
  * persistent data, this recursively attempts to grow the path, checking
  * if it can be found in flow graphs for other requests. If there are path
  * matches in other requests, but these requests serve data to other users,
  * the path represents an non-single user access and is abandoned.
 function findUserState(UserStateEdges, Path, FlowGraph, OtherRequestIDsToEdgeMap):
-	if (Path.getLast() already visited):
-		return
-		
-	ExpandPath = false
-	
-	foreach EdgeToFlowGraphMap in OtherRequestIDsToEdgeMap.values():
-		foreach Edge in EdgeToFlowGraphMap.keys():
-			MatchFlowGraph = EdgeToFlowGraphMap.get(Edge)
-			/* Try to find the path in other flow graphs */
-			if (matchPath(Path, MatchFlowGraph)):
-				ExpandPath = true
-				if (Edge.getRequestAddress() != Path.getLast().getRequestAddress()):
-					return
-		
-	if (!ExpandPath)
-		return
-					
-	UserStateEdges.add(Path.getLast())
-	
-	foreach NextEdge in FlowGraph.getNextEdges(Edge):
-		NewPath = Path.copy()
-		NewPath.add(NextEdge)
-		findUserState(UserStateEdges, NewPath, FlowGraph, OtherRequestIDsToEdgeMap)
-				
-	
+    if (Path.getLast() already visited):
+        return
+        
+    ExpandPath = false
+    
+    foreach EdgeToFlowGraphMap in OtherRequestIDsToEdgeMap.values():
+        foreach Edge in EdgeToFlowGraphMap.keys():
+            MatchFlowGraph = EdgeToFlowGraphMap.get(Edge)
+            /* Try to find the path in other flow graphs */
+            if (matchPath(Path, MatchFlowGraph)):
+                ExpandPath = true
+                if (Edge.getRequestAddress() != Path.getLast().getRequestAddress()):
+                    return
+        
+    if (!ExpandPath)
+        return
+                    
+    UserStateEdges.add(Path.getLast())
+    
+    foreach NextEdge in FlowGraph.getNextEdges(Edge):
+        NewPath = Path.copy()
+        NewPath.add(NextEdge)
+        findUserState(UserStateEdges, NewPath, FlowGraph, OtherRequestIDsToEdgeMap)
+                
+    
 /* Look for the same sequence of edges in Path in the TargetFlowGraph
  */
 function matchPath(Path, TargetFlowGraph):
-	FirstEdge = Path.getFirst()
-	
-	Matched = false
-	foreach StartEdge in TargetFlowGraph.getEdges():
-		/* Check if the edges share the same name for their start and end nodes */
-		if (StartEdge.getStartNode.getName() == FirstEdge.getStartNode.getName() &&
-			StartEdge.getEndNode.getName() == FirstEdge.getEndNode.getName()):
-			PathPosition = 1
-			CheckEdge = StartEdge
-			
-			while (PathPosition < Path.size()):
-				NextCheckEdge = Path[PathPosition]
-				Found = false
-				foreach NextEdge in FlowGraph.getNeighborEdges(CheckEdge):
-					if (NextEdge.getStartNode.getName() == NextCheckEdge.getStartNode.getName() &&
-						NextEdge.getEndNode.getName() == NextCheckEdge.getStartNode.getName()):
-						Found = true
-						CheckEdge = NextEdge
-						break
-				
-				if (Found):
-					PathPosition++
-				else
-					break
-			
-			/* If we were able to get through the whole path, it exists in the TargetFlowGraph */
-			if (PathPosition == Path.size())
-				Match = true
-				break
-				
-	return Matched
-	
+    FirstEdge = Path.getFirst()
+    
+    Matched = false
+    foreach StartEdge in TargetFlowGraph.getEdges():
+        /* Check if the edges share the same name for their start and end nodes */
+        if (StartEdge.getStartNode.getName() == FirstEdge.getStartNode.getName() &&
+            StartEdge.getEndNode.getName() == FirstEdge.getEndNode.getName()):
+            PathPosition = 1
+            CheckEdge = StartEdge
+            
+            while (PathPosition < Path.size()):
+                NextCheckEdge = Path[PathPosition]
+                Found = false
+                foreach NextEdge in FlowGraph.getNeighborEdges(CheckEdge):
+                    if (NextEdge.getStartNode.getName() == NextCheckEdge.getStartNode.getName() &&
+                        NextEdge.getEndNode.getName() == NextCheckEdge.getStartNode.getName()):
+                        Found = true
+                        CheckEdge = NextEdge
+                        break
+                
+                if (Found):
+                    PathPosition++
+                else
+                    break
+            
+            /* If we were able to get through the whole path, it exists in the TargetFlowGraph */
+            if (PathPosition == Path.size())
+                Match = true
+                break
+                
+    return Matched
+    
 /* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
  * This map shows, for each persistent taint ID, which request graphs carry that taint,
  * what are the earliest edges carrying that taint, and where does each bit of persistent
@@ -71,6 +73,8 @@ function matchPath(Path, TargetFlowGraph):
  * forwardSearch functions shown in other algorithms).
  */
 function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
+
+// EXECUTION START
 
 TG = taint trace graph, each node is a function or data source,
    each edge is an event where tainted data is passed between nodes
@@ -91,10 +95,10 @@ foreach RequestSG in RequestSubGraphs:
     ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
     
 for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
-	for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
-		SetA = ByRequestTaintIDs[i]
-		SetB = ByRequestTaintIDs[j]
-	    PersistentTaintIDs.add(SetA \cap SetB)
+    for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
+        SetA = ByRequestTaintIDs[i]
+        SetB = ByRequestTaintIDs[j]
+        PersistentTaintIDs.add(SetA \cap SetB)
 
 /* To save work, we remove any derived taint IDs. In tracing the
  * path of tainted data from the original taint IDs, we will arrive 
@@ -102,29 +106,29 @@ for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
  */
 DerivedPersistentIDs = {}
 foreach PersistentTaintID in PersistentTaintIDs:
-	DerivedPersistentIDs.add(TT.getAllChildrenOf(PersistentTaintID))
+    DerivedPersistentIDs.add(TT.getAllChildrenOf(PersistentTaintID))
 
 PersistentTaintIDs.removeAll(DerivedPersistentIDs)
 
 MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
-	
+    
 foreach PersistentTaintID in MasterMap.keys():
-	RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
+    RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
 
-	foreach RequestID in RequestIDToEdgeMap.keys():
-		StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID)
-		
-		foreach StartEdge in StartEdgeToFlowGraphMap.keys():
-			FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
-			/* This map is needed to compare the flow of taint in one
-			 * request with the flow of the same taint in other requests.
-			 */
-			OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
-			OtherRequestIDsToEdgeMap.remove(RequestID)
-			
-			UserStateEdges = {}
-			findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherRequestIDsToEdgeMap)
-			
-			if (UserStateEdges != {}):
-				colorEdge(StartEdge)
-				showGraphToUser(createGraphFromEdges(UserStateEdges))	
+    foreach RequestID in RequestIDToEdgeMap.keys():
+        StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID)
+        
+        foreach StartEdge in StartEdgeToFlowGraphMap.keys():
+            FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
+            /* This map is needed to compare the flow of taint in one
+             * request with the flow of the same taint in other requests.
+             */
+            OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
+            OtherRequestIDsToEdgeMap.remove(RequestID)
+            
+            UserStateEdges = {}
+            findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherRequestIDsToEdgeMap)
+            
+            if (UserStateEdges != {}):
+                colorEdge(StartEdge)
+                showGraphToUser(createGraphFromEdges(UserStateEdges))    

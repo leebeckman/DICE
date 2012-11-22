@@ -292,11 +292,11 @@
 \begin{abstract}                %% Mandatory -  maximum 350 words
 	In this thesis we addressed the question of whether taint tracking could be used to help developers make better application migration decisions. We wanted to determine if detailed dynamic dataflow traces from web applications could support automated analyses, the results of which would help one to better understand applications and guide one in optimizing them.\\
 	
-	To investigate this problem, we had to build our own taint tracker for Java as none existed which would perform an extensive enough tracing. We then identified a set of useful analyses from a search of the literature and from our own experience with web applications. These analyses were developed to run automatically over taint tracking data, producing output which should be immediately useful to non-expert users.\\
+	To investigate this problem identified a set of useful analyses from a search of the literature and from our own experience with web applications. These analyses were developed to run automatically over taint tracking data, producing output which should be immediately useful to non-expert users.\\
 	
 	Two real applications were chosen and the analyses applied to them in other to determine two important things. First, that we could write our analyses to automatically identify their targets and produce comprehensible results. Second, that the analysis targets actually existed in real applications.\\
 	
-	In the end our analyses were mostly successful, in many cases producing clean results which consisely described non-trivial properties of the applications and possible optmizations to them.  By focusing on how data moves through a system, we found a natural fit for understanding its workings. The biggest difficulties manifested as a need for further automation, to take complicated analysis results and simplify them. Even with many challenges, we believe that our techniques are valuable for helping developers, and should be more thoroughly studied.
+	In the end our analyses were mostly successful, in many cases producing clean results which concisely described non-trivial properties of the applications and possible optimizations to them.  By focusing on how data moves through a system, we found a natural fit for understanding its workings. The biggest difficulties manifested as a need for further automation, to take complicated analysis results and simplify them. Even with many challenges, we believe that our techniques are valuable for helping developers, and should be more thoroughly studied.
 	
 	% Believe in the important of data flow, knowing where each pieces of input goes and where output comes from. This is central.
 	
@@ -402,15 +402,20 @@ Dedicate this thesis to my wife.
 
 \chapter{Introduction} % DIFFICULT
 
+#####
+NOTE: Based on some comments about how everything I do should apply to moving applications into the cloud, that perspective could be a bit limiting. Obviously many of my analyses are useful for optimizations in general (optimizations which Fluxo at least considers valuable), which may not even necessarily imply a migration. Granted, I am coming at this from the angle of migration, so I will drive things things from there. However, migration does not have to be into the cloud. It could be to a new in-house server deployment or whatever. I don't think I need to be so focused on the cloud itself, since I'm not concerned with all the deep costing issues like Nima is which allow him to target the cloud specifically.
+#####
+
 Maintaining any sufficiently large application is a difficult task for programmers, especially those who did not write it. In this thesis we focus on web applications, and are concerned with the times in a system's life which require it to change. This is a common event, as has been shown in the history of any popular application which has been around for long enough.\\
 
-The problem is straightforward; a team of developers will implement a system to meet the needs of their users at the current point in time. As we experiment with it later, let us say this system is the RUBiS online auctioning site (think a very simple version of eBay). Eventually, as RUBiS becomes more popular and users want more features (shopping carts, and they're complaining that pages take too long to load), the demand on the application increases. Eventually the original design is insufficient to serve the needs of its users, and some form of migration must happen. New resources are made available for RUBiS to use, such as more servers, but how best to use them? By this time, new developers are on the project, but those who originally designed the system are mostly unavailable to provide support. For these non-experts, making wise decisions about how keep RUBiS up to date is a frustrating and time-consuming process, wrought with many problems:\\
+The problem is straightforward; a team of developers will implement a system to meet the needs of their users at the current point in time. Since we experiment with it later, let us say this system is the RUBiS online auctioning site (which is like a very simple version of eBay). Eventually, as RUBiS becomes more popular and users want more features (shopping carts, and they're complaining that pages take too long to load), the demand on the application increases. Eventually the original design is insufficient to serve the needs of its users, and some form of migration must happen. New resources are made available for RUBiS to use, such as more servers, but how best to use them? By this time, new developers are on the project, but those who originally designed the system are mostly unavailable to provide support. For these non-experts, making wise decisions about how keep RUBiS up to date is a frustrating and time-consuming process, wrought with many problems:\\
 
+### REWRITE THESE TO BE BASICALLY PROBLEMS MY ANALYSES DIRECTLY SOLVE
+# CACHING, PRECOMP, POSTCOMP, STATE, USELESS COMM
 \begin{itemize}
-\item Time is often short
-\item Changing application code without being aware of all of its side effects can break it in unexpected ways
-\item Real applications are often written poorly, and may not conform to expected patterns
-\item The path of data from where it is stored until it gets to users can be long, complex, and very difficult to piece together manually. Knowing these paths are critical to understanding web applications.
+\item Time is often short, so systems are needed to provide insight into the application quickly.
+\item Changing application code without being aware of all of its side effects can break it in unexpected ways. Knowledge of how the operation of one component affects others down the line is needed.
+\item Real applications are often written poorly, and may not conform to expected patterns, so analysis tactics need to be general and robust.
 \end{itemize}
 
 It is here that automation is useful. We want to help these developers by building tools which assist them in understanding their systems more quickly. We even want to automatically make suggestions about how to actually perform optimizations. Tools of this nature have naturally already been researched and developed, and ours represents further exploration into this area. The model of such systems is as follows:\\
@@ -421,6 +426,8 @@ It is here that automation is useful. We want to help these developers by buildi
 \item Run algorithms over the representation (rather than the application itself), to discover properties of it or find ways to optimize it.
 \item Map these properties and optimizations back to the original applications, helping developers to better understand and improve them.
 \end{itemize}
+
+We believe that our particular approach to this model addresses the aforementioned problems well; saving users time, being well-adjusted to tracking side-effects, and potentially able to support a wide variety of analyses on unconstrained applications.
 
 %- problem statement is going to introduce the problem of migrating an existing application, understanding it, having developers work with it.
 %- we believe that taint tracking / dynamic information flow tracking / dataflow tomography can be used to support this process. The interesting thing is that we believe it can support a variety of analyses
@@ -501,7 +508,7 @@ Problem scenarios are as follows:
 \item The network link between the back and front-end components is carrying large amounts of data, and its maximum capacity may soon be reached.
 \end{itemize}
 
-To start, developers should have an overall picture of how the system works, or at least the part of it they are working on. As stated, we believe that capturing the dataflow of this system will naturally support developers in this effort. Figure~\ref{fig:cap2} presents a possible dataflow graph for the system that our tool would obtain. This is very high level, the arrows indicating that data is communicated from component to component along them. The points to note here are the flow of shop item data from the Inventory database (point 1) through the Browsing system (point 2) to the user (point 3), and the flow of data from the back-end stores (point 4) and user input (point 5) into the `Order State' shopping cart data (point 6). This view focuses immediately on how the application ferries and transforms data throughout its components, the key function of most web applications. It allows a developer to quickly answer the important question: `where did this output come from?'
+To start, developers should have an overall picture of how the system works, or at least the part of it they are working on. As stated, we believe that capturing the dataflow of this system will naturally support developers in this effort. Figure~\ref{fig:cap2} presents a possible dataflow graph for the system that our tool would obtain. This is very high level, the arrows indicating that data is communicated from component to component along them. The points to note here are the flow of shop item data from the Inventory database (point 1) through the Browsing system (point 2) to the user (point 3), and the flow of data from the back-end stores (point 4) and user input (point 5) into the `Order State' shopping cart data (point 6). This view focuses immediately on how the application ferries and transforms data throughout its components, the key function of most web applications. It allows a developer to quickly answer the important question: `where did this output come from?'. Knowing such is valuable as it quickly targets and organizes the key mechanisms by which many web applications operate. The majority of web applications are engines which take data as input, run it through various computations, and ultimately write the results to a web page for a user to consume. Being able to take a particular piece of output and trace it back through the steps which produced it, back to the data used in these steps, gives a focused summary of how the applications works for that piece of data. A developer can manually consume this information to gain understanding, but then we can go beyond this to support automated analyses.
 
 \subsubsection{Precomputation and Caching}
 The first optimization to consider, given that the Browsing component is backed up with excessive computation, is precomputation and caching. Consider Figure~\ref{fig:cap3} and Figure~\ref{fig:cap4}, which outline two possible dataflow cases. The first shows how the dataflow could indicate that the data used to generate responses to user browse requests are entirely from predictable sources. By this we mean that the input data is not too random to predict - its possible values are from a small enough set to be amenable to such things as caching, which will depend on the resources one has available. Say that browsing involves simply displaying all of the item names, and the set of available items rarely changes, then the output browsing page would remain the same for long periods. The application could potentially be optimized by pregenerating the browsing page and serving it directly to the user, rather than going to the database and running the rendering code.\\
@@ -526,7 +533,7 @@ Finally, the back to front-end link capacity is a problem where analyzing datafl
 
 \section{Statement of Thesis}
 	
-It is important to keep in mind that this work pursues a more general analysis approach, and that the form this thesis takes is of an exploratory, completely qualitative nature. We do not explicitly seek to outperform other specific analysis efforts but rather to demonstrate the value of the DIFT technique for these kinds of analyses, something that has not been significantly addressed in the literature. We hypothesized that due to the focus on data provided by DIFT and because web applications are often basically a means to allow users to access and share data, DIFT would naturally support analyses which could optimize web applications and help developers to understand important properties of them. We showed that several such analyses could be developed and then applied them to DIFT traces of real-world web applications successfully, demonstrating both the viability of the analyses as well as the existence of the analysis targets in real applications.
+This thesis is of an exploratory, qualitative nature. We do not explicitly seek to outperform other specific analysis efforts but rather to demonstrate the value of the DIFT technique. We hypothesized that due to the focus on data provided by DIFT, it would naturally help developers in understanding the functioning of web applications, and more importantly it would support a series of valuable automatic analyses to optimize web applications and support other application optimization tools. Specifically, DIFT will support analyses to optimize the flow of data and computation over it, speeding up applications by finding ways to avoid redundant computation or delay it; DIFT will easily identify an application's persistent state and how that state is used, something which is valuable to understand in cloud deployments or where replication of computation occurs; and DIFT will provide data which will be useful to a more targeted analysis tool valuable for migration to the cloud - the application partitioner.
 	
 %- we taint at a high semantic level for simplicity and ease of getting info developers care about
 %- want to explore how many useful things we can discover with this kind of data
@@ -1525,12 +1532,7 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 	% Refer to figure, how to interpret it in (break down list form)
 % Developer Interpretation / Response
 % ...
-% Summary
-% Analysis Type:
-% RUBiS Success:
-% jGossip Success:
-% Output Captured (high level graph summary):
-% Further Developer Effort Required:
+
 
 \subsection{Precomputation}
 \subsubsection{RUBiS}
@@ -1777,6 +1779,7 @@ Using the graph a cache could be implemented as follows: First, consider the inp
 \end{sidewaysfigure}
 
 \paragraph{Experimental Setup}
+\label{jgossip:caching}
 The application was traced while selecting a forum from the application's main menu, which then displayed a page giving some information about the forum including a message from it. We assumed that a selection from among the list of available forums could be considered predictable data, since the set of forums it not likely to change rapidly. Furthermore, this action is likely to occur frequently as users must choose their desired forums to interact with them.
 
 \paragraph{Analysis}
@@ -1831,15 +1834,6 @@ The log file produces the graph given in Figure~\ref{fig:sellitemtrace}. Breakin
 \item Following this, some of the parameters are used at point 5 to query the database, checking if the item was successfully inserted.
 \item At point 6 the parameters are written back along with formatting text to the response page, showing the user the details of the item they submitted to sell.
 \end{itemize}
-
-%\subparagraph{Analysis Results Breakdown}
-%The caching analysis is run over this graph, provided the IDF given in Appendix~\ref{idf:rubis} and producing the result graph show in Figure~\ref{fig:browseregioncategoriescaching}. First, note that this graph only has nodes from the second request - the first request could simply be precomputed and was ignored for the caching analysis. The graph shown was not eligible for precomputation due to the influence of the user-supplied region parameter, the value of which will vary. However, since this parameter has been marked as being predictable and the other inputs are stable, the analysis judges that a cache may be possible for this graph. 
-%
-%\paragraph{Developer Interpretation and Response}
-%Interpreting this, a developer can start at the red output node. Figure~\ref{browseregioncategoriescd} shows the tainted data flowing here. Lines 3-5 are for the first request, and can be ignored. Lines 6-7 show the list of categories. Note how the link `href' contains a region parameter with a region ID. Compare these lines to the user output breakdown shown in Figure~\ref{fig:browseregioncategoriesto}. The entire response is composed of nontainted (likely static) data and the cachable output. Looking at the input (yellow) nodes in Figure~\ref{fig:browseregioncategoriescaching}, the source data responsible for the cachable output comes from database tables which have all been marked as stable (see the IDF), unlikely to change frequently, and the predictable region parameter. \\
-%
-%Using the graph a cache could be implemented as follows: First, consider the inputs. All of them, save for the region parameter, are stable, and thus the only parameter the cache need use to store and return results (the cache key) is the region parameter. The other inputs from the categories and regions tables need only be monitored to detect if they are modified. If so, the cached results are invalidated to be regenerated. As the doGet node is the first to receive the region parameter, the cache check could be performed there. If the cache hits for a given region, the output data (perhaps the entire response page) can be returned and written to the response stream. In the event of a cache miss, the computation can proceed as normal, and the results picked up in the printCategoryByRegion node to be placed in the cache for later.
-
 
 \subparagraph{Analysis Results Breakdown}
 Figure~\ref{fig:sellitempostcomputation} shows the results of running the postcomputation analysis over the taint flow graph. What this result graph shows are parts of the taint flow graph which could potentially be delayed until later without breaking the functioning of the application.\\
@@ -1944,15 +1938,14 @@ We ran the automated user state analysis over the taint flow graph, which identi
 Though it is not shown in the figure, the analysis tool tells us that the tainted data in this flow is a username used to populate a username field which appears on every page of the forum.\\
 
 The fact that the analysis identified this flow indicates that this username data has been used over multiple requests, but that each instance of this data is only ever shared with a single user (different users will understandably have their own unique usernames). Breaking down the figure: 
-###########################
+
 \begin{itemize}
-\item
-\item
+\item At point 1 in the figure we can see where the data is stored, in a Java Map object. The Java Map is the underlying store for the system which stores user session data in this application, and following the data from this node we see calls to the getAttribute() method which is an API call used to get session data.
+\item The data is passed through a series of internal, auto-generated JSP/JSTL code and is eventually written out to the user at point 2.
 \end{itemize}
-At point 1 in the figure we can see where the data is stored, in a Java Map object, which is the underlying implementation for the Session objects on which getAttribute is called as one follows the flow. The data proceeds through a series of evaluate methods, which are a result of using JSP and JSTL, before being output at point 2.
 
 \paragraph{Developer Interpretation and Response}
-Knowing that this data is only shared with a single user, one could potentially remove this logic from the server-side code and allow the client to store their own username. The flow shown gives a developer some clues about what the implications of this would be, in that they may need to emulate some of the operations that the JSTL code performed in order to properly display the data to the user. This amounts to relocating the path shown in the figure from the server to the client, starting with moving the data (point 1), then the computation, and finally outputting it to the user (point 2).
+Knowing that this data is only shared with a single user, one could potentially remove this logic from the server-side code and allow the client to store their own username. The flow shown gives a developer some clues about what the implications of this would be, in that they may need to emulate some of the operations that the JSP/JSTL code performed in order to properly display the data to the user. This amounts to relocating the path shown in the figure from the server to the client, starting with moving the data (point 1), then the computation, and finally outputting it to the user (point 2).
 
 \subsection{Wasteful Communication}
 \subsubsection{RUBiS}
@@ -1970,34 +1963,44 @@ The RUBiS application did not exhibit significant wasteful communication, due to
 \end{sidewaysfigure}
 
 \paragraph{Experimental Setup}
+The setup is the same as in Section~\ref{jgossip:caching}.
+
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
+Understanding the taint flow is not necessary for the goals of this experiment.
+
 \subparagraph{Analysis Results Breakdown}
+This analysis was a very simple one, and serves to hint at the potential for this technique. The wasteful communication analysis was run over the taint flow graph obtained for the jGossip caching analysis, removing any edges which carried tainted data which was never subsequently accessed. Figure~\ref{fig:showforumcomm} shows a before and after view. On the left is shown the unprocessed trace. On the right is the graph with the removed edges. Really, the figure is merely a visual representation of the fact that only 5921 of the original 14693 edges remained. This does not mean that these removed edges carried no useful data, only that some of the data they carried was never used. In jGossip this is largely due to the use of JSP, which passes around objects containing references to all the data needed to render a page, whether or not they are needed in a particular function. The figure serves to show that such an occurence can be quite prevalent in certain applications, and that our analysis tool is capable of detecting it.
+
 \paragraph{Developer Interpretation and Response}
+At this point we envision this analysis being mainly useful as an input to more specific analysis tools. In particular, knowing whether or not data is used after it is communicated would be useful in getting better communication cost estimates for application partitioning algorithms. If an application is partitioned, sharing data between partitions incurs an additional cost, and thus only communicating data when it is actually needed (used) will provide savings. Wasteful communication should be avoided in a partitioning scenario, and so the algorithms which attempt to discover optimal partitionings of an application based on its dataflow should be aware of which dataflows are used and which aren't.\\
 
-This analysis was a very simple one, and serves to hint at the potential for this technique. Figure~\ref{fig:showforumcomm} shows views of the same trace. On the left is shown every instance where tainted data is communicated when the users requests to view a forum (the same trace used in the caching analysis). On the right we have removed every edge which carries tainted data which is never actually used, resulting in a significantly smaller graph (5921 of the original 14693 edges remained).\\
+It is also possible that this analysis could be used to help a developer locate wasteful communication for the purpose of modifying the application to remove it, saving resources. This would be of particular use if the communication was occurring across some expensive link, such as over a network.
 
-In jGossip this is largely due to the use of JSP, which passes around objects containing references to all the data needed to render a page, whether or not they are needed in a particular function. The figure serves to show that such an occurence can be quite prevalent in certain applications, and that our analysis tool is capable of detecting it.
+
+% Summary
+% Analysis Type:
+% Analysis Summary:
+% jGossip Success:
+% Output Captured (high level graph summary):
+% Further Developer Effort Required:
 
 \subsection{Evaluation Summary}
-MODIFY THIS TABLE, CURRENTLY IT IS AAAAALLL WRONG
 \begin{table}[ht]
   \begin{center}
-    \begin{tabular}{|l|l|}
+    \begin{tabular}{|l|l|l|}
       \hline
-      CAL & Function call, directed towards the called function \\ \hline
-      RET & Function return, directed towards the calling function \\ \hline
-      PAT & Taint returned in modified arguments, directed towards the calling function \\ \hline
-      FST & Field set, directed towards the field \\ \hline
-      FGT & Field get, directed away from the field \\ \hline
-      FZZ & Fuzzy taint flow, these will be start and end on the same node, where fuzzy propagation was detected. See the last paragraph of Section~\ref{subsub:trms} \\ \hline
-      IMP & Implied taint flow, directed from the input method to the output method. See Section~\ref{subsub:impliededges} \\ \hline
-      RIN & Input edges, directed away from input nodes \\ \hline
-      OUT & Output edges, directed towards called functions responsible for output to database or user \\ \hline
+      \specialcell[t]{Analysis\\Type} & \specialcell[t]{Analysis\\Summary} & \specialcell[t]{Developer\\Response} \\ \hline\hline
+      Precomputation & \specialcell[t]{RUBiS: Identified a critical page which could be entirely pregenerated.\\ jGossip: Identified large sections of a critical page which could be pregenerated.} & \specialcell[t]{RUBiS: Precompute the page and serve instead of generating it from the database data.\\ jGossip: Identify the sections where are actually precomputable by going through results,\\precompute those and mix them with the dynamic content.} \\ \hline
+      Caching & \specialcell[t]{RUBiS: Idenfied a critical page which could be entirely cached.\\ jGossip: Identified portions of a page which could be cached.} & \specialcell[t]{RUBiS: Identify the cache keys and invalidating data sources,\\ implement a cache to return the entire page given a key.\\ jGossip: Investigate the result trace to determine how feasible the cache is \\ given the complexity of jGossip's architecture and dependence \\on autogenerated code. Potentially create a cache\\ for a small portion of the page, and explore the results to see if more of the response page can be cached.} \\ \hline
+      Postcomputation & \specialcell[t]{RUBiS: Identified a database update and subsequent update verification which could be deferred\\ for a commonly performed request.\\ jGossip: Identified a database update and logging action which could be deferred\\for an infrequently performed request.} & \specialcell[t]{In both cases, modify the applications to perform the identified\\ computations asynchronously and assess the correct operation of the site.} \\ \hline
+      Persistent State & \specialcell[t]{RUBiS: Identified all in-memory persistent state in the application. \\ jGossip: N/A} & \specialcell[t]{RUBiS: If necessary, modify the application to store this state in a database.\\ Use the knowledge of which application components communicate persistent data to assess\\the viability of replicating the computation those components do.\\ jGossip: N/A} \\ \hline
+      User State & \specialcell[t]{RUBiS: N/A\\ jGossip: Identified persistent session data and the \\sequence of components responsible for communicating it to the user.\\ Determined that this data was only shared with a single user.} & \specialcell[t]{RUBiS: N/A\\ jGossip: Potentially move the persistent data out of the server-side and into code the client runs.\\ Use the trace to determine what logic the client needs to properly work with the data.} \\ \hline
+      Wasteful Communication & \specialcell[t]{RUBiS: N/A\\ jGossip: Identified almost 60\% of edges as carrying unnecessary data in a trace of a\\commonly accessed page.} & \specialcell[t]{RUBiS: N/A\\ jGossip: Use these results to obtain better communication cost bounds in an application partitioning algorithm.\\ Use the results to identify potential application modifications to reduce wasteful inter-component communication.} \\ \hline
     \end{tabular}
     \caption{
-      \label{tab:edgetypes}
-      Taint graph visualization edge types.}
+      \label{tab:evalsumm}
+      Evaluation Summary.}
   \end{center}
 \end{table}
 
@@ -2005,9 +2008,9 @@ MODIFY THIS TABLE, CURRENTLY IT IS AAAAALLL WRONG
 
 \section{Discussion of Results}
 
-Having run most of the analyses over both applications, identifying the analysis targets from the taint trace data using the automated tool, the experiments were largely successful. In particular, the results for the precomputation analysis on both applications were impressive. In both cases the analysis was able to proceed with minimal user intervention to produce the graphs presented here. All that was needed was the initial input source descriptions files, as well as some manual filtering out of nodes for some of the jGossip graphs for presentation purposes.\\
+Having run most of the analyses over both applications, identifying the analysis targets from the taint trace data using the automated tool, the experiments were largely successful. The results for the precomputation analysis on both applications were particularly successful. In both cases the analysis was able to proceed with minimal user intervention to produce the graphs presented here. All that was needed was the initial input source descriptions files, as well as some manual filtering out of nodes for some of the jGossip graphs for presentation purposes.\\
 
-The caching analysis, especially on the RUBiS application, was able to not only identify the existence of cachable output, but also show in a clean manner all the inputs to consider for the cache. For RUBiS, one can easily see how the various inputs from both the user and database come together to determine the result, and thus a developer should be able easily use this in implementing a cache for the data in question. It is useful to see the path of all the relevant data, quickly indicating the computations responsible for transforming it to what the user sees. Additionally, the small graph sizes for RUBiS means that the analysis results are easy for one to grasp immediately once presented by the tool. \\
+The caching analysis, especially on the RUBiS application, was able to not only identify the existence of cachable output, but also show in a clean manner all the inputs to consider for the cache. For RUBiS, one can easily see how the various inputs from both the user and database come together to determine the result, and thus a developer should be able to easily use this in implementing a cache for the data in question. It is useful to see the path of all the relevant data, quickly indicating the computations responsible for transforming it to what the user sees. Additionally, the small graph sizes for RUBiS means that the analysis results are easy for one to grasp immediately once presented by the tool. \\
 
 Also impressive was the user state analysis for jGossip. Looking for dataflow paths present in multiple requests but not shared with more than one user produced some very clean graphs, like the one shown. It was easy to identify the location of the persistent data, and then subsequently the sequence of communications and computations needed to take the data to its destination. However, not all of the graphs produced by the analyses were so clean.\\
 
@@ -2017,9 +2020,9 @@ Heavier manual intervention was also needed for the jGossip post computation ana
 
 This brings us to the point of the difficulty of automating these kinds of analyses. Our results with the RUBiS application were very optimistic, as the graphs produced by the analysis tool were very easy to understand immediately in large part thanks to their small size. Additionally, since RUBiS uses no added libraries, every node in the graph is potentially relevant to the developer and amenable to change and optimization under the guidance of the analysis.\\
 
-For a framework-heavy application like jGossip, and realistically many Java web applications make extensive use of large frameworks, the graphs are much larger. At their current stage, most of our analyses output results which are negatively affected by this complexity. They suffer from a `rats nest' effect, and require some manual filtering and searching through to find the parts which could be used to actually support a developer in optimizing the applicaiton. The results are still there, they are just surrounded in many nodes which are less relevant, and thus it helps at this point to actually know what you are looking for. Even knowing simply which piece of data may be involved in an optimizating can go a long way. For the jGossip caching analysis the output was greatly simplified by using the tool to focus on nodes which carried data which we suspected would be cachable.\\
+For a framework-heavy application like jGossip, and realistically many Java web applications make extensive use of large frameworks, the graphs are much larger. At their current stage, most of our analysis results are negatively affected by this complexity. They suffer from a `rats nest' effect, and require some manual filtering and searching through to find the parts which could be used to actually support a developer in optimizing the applicaiton. In the future the analysis tool could be improved with IDE integration to link results more closely with source code. Such could allow a developer to focus on analysis flows which relate to specific parts of their code, making it easier for developers to navigate through the analysis results.\\
 
-A related problem, again most prevalent in the large jGossip graphs, is that of false positives. The analyses are written to be fairly general, so as to find their results in applications which were not written to be easily analyzed. Every pattern of dataflow cannot be reasonably anticipated, so the analyses were written to be permissive and present many possible results. From these one can find those which are truly useful. For example, in the caching analysis for jGossip it was possible for some some output to be affected by random data through control dependence, which our taint tracking technique does not consider.\\
+A related problem, again most prevalent in the large jGossip graphs, is that of false positives. The analyses are written to be fairly general, so as to find their results in applications which were not written to be easily analyzed. These permissive analyses may tend to present many possible results, and from these one can find those which are truly useful. For example, in the caching analysis for jGossip there were results where it was possible for some flows to be affected by random data through control dependence. Such could make the results poor candidates for caching, but since our taint tracking technique does not consider control-flow propagation of taint, these results were allowed.\\
 
 A final problem, unrelated to the analysis results, is that of the speed of applications during taint tracking. Slowdowns of roughly two orders of magnitude were observed, especially in the more complex jGossip application. This is mainly because of the use of AspectJ, which introduced inefficiencies inherent in its own design as well as forced us to perform some wasteful workarounds to properly track tainted data. This reality, along with the fact that the log files could be very massive for even small amounts of application activity (10s of thousands of lines per request in jGossip), meant that we generally did not perform analyses over exhaustive taint traces. By this we mean that we did not attempt to work the application through all or even a majority of its possible execution paths. There are issues of coverage here, with the possibility of some analysis being invalidated by additional data. For example, exploring more requests for the user state analysis may have revealed that the persistent data identified was actually shared among multiple users in some cases.\\
 
@@ -2430,8 +2433,6 @@ Though there are many points of refinement to be made in our tools and additiona
 \begin{itemize}
 \item Taint: Where this is used, such as when saying that a piece of data in an application is `tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, refereed to as the `taint source'. In this thesis is made a minor distinction between objects which are directly tainted and those which are reachability tainted. Directly tainted objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted object is reachable through an object's reference graph, such as by following a heirarchy of field references.
 \item Tomography: This refers to the nature of the taint tracking in question. Tomography-level taint tracking is a heavy form of the analysis where tainted data is not only tagged at a source and identified at predetermined monitoring points, but is rather tracked along its complete path, indiscriminantly through many monitoring points. The basic goal of tomography is to get a complete trace of where tainted data goes in a program. 
-\item Trace:
-\item Flow:
 \end{itemize}
 
 \chapter{Input Description Files}
@@ -2620,9 +2621,6 @@ This is similar to the Returning Log, but indicates that a tainted object has be
 %\verb|\renewcommand{\appendicesname}{Appendix}| before calling
 %\verb|\appendix| to display the singular ``Appendix'' rather than the
 %default plural ``Appendices''.
-
-\chapter{Second Appendix}
-Here is the second appendix.
 
 %% This changes the headings and chapter titles (no numbers for
 %% example).

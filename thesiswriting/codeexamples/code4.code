@@ -1,8 +1,12 @@
+// HELPER METHODS
+
 /* Extracts from a taint graph the set of taint IDs present amongst
  * its edges. If two graphs share any taint IDs, it means same tainted
  * data flowed it both of them.
  */
 function getTaintIDSet(Graph):
+
+// EXECUTION START
 
 TG = taint trace graph, each node is a function or data source,
    each edge is an event where tainted data is passed between nodes
@@ -23,10 +27,10 @@ foreach RequestSG in RequestSubGraphs:
  * request, and we call such taint IDs persistent.
  */
 for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
-	for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
-		SetA = ByRequestTaintIDs[i]
-		SetB = ByRequestTaintIDs[j]
-	    PersistentTaintIDs.add(SetA \cap SetB)
+    for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
+        SetA = ByRequestTaintIDs[i]
+        SetB = ByRequestTaintIDs[j]
+        PersistentTaintIDs.add(SetA \cap SetB)
 
 /* For each persistent taint ID, go through the the taint graph edges
  * (sorted in the order they occured), coloring any edges which carry the
@@ -36,11 +40,11 @@ for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
  * differently.
  */
 foreach PersistenTaintID in PersistentTaintIDs:
-	foreach Edge in TG.getSortedEdges():
+    foreach Edge in TG.getSortedEdges():
         if (edge.getAllTaintIDs().contains(PersistentTaintID)):
-        	colorEdgeRed(edge)
-        	if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
-        	    colorEdgeGreen(edge)
-        	LastRequestID = Edge.getRequestID()
-        	
+            colorEdgeRed(edge)
+            if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
+                colorEdgeGreen(edge)
+            LastRequestID = Edge.getRequestID()
+            
 showGraphToUser(TG)
