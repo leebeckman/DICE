@@ -1,5 +1,4 @@
 // HELPER METHODS
-
 /* Given an edge to start from, Edge, work forwards through
  * Graph (to edges which could be influenced by the Edge and
  * so on, using the ContextID to ensure that edges are in the
@@ -8,52 +7,25 @@
  * reached from the original Edge. By the top level, we mean 
  * the actual arguments and return values as opposed to tainted
  * objects which are merely reachable from them. Objects have 
- * an isMarked flag to prevent redundant work. In the real
+ * a flag to prevent redundant work. In the real
  * algorithm used, there is more checking of this than is
  * indicated here to aggressively avoid redundant graph
- * traversals.
- */    
+ * traversals. */    
 function forwardSearch(Edge, Graph, TargetTaintedObject):
-    if (Edge already visited):
-        return false
-    
-    foreach TaintedObject in Edge.getTaintedObjects():
-        if (TaintedObject.getTaintID() == TargetTaintedObject.getTaintID())
-            return true
-        foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
-            if (SubTaintedObject.getTaintID() == TargetTaintedObject.getTaintID()):
-                if (SubTaintedObject.isMarked()):
-                    if (SubTaintedObject.isUnused()):
-                        return false
-                    else
-                        return true
-                        
-    found = false;
-    foreach NextEdge in Graph.getNextEdges(Edge):
-        if (Edge.getContextID() == NextEdge.getContextID()):
-            if (forwardSearch(NextEdge, Graph, TargetTaintedObject)):
-                found = true
-                break
-    
-    return found
 
 // EXECUTION START
-	
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes
+TG = taint trace graph
 
 /* Look at every SubTaintedObject. This means objects not directly passed as
  * arguments or return values, but those which are reachable from such. The
  * assumption is that if taint is passed in this form and subsequently never
  * found to be passed directly at the level of an argument or return value, 
- * it is never accessed and the user should be informed of this.
- */   
+ * it is never accessed and the user should be informed of this. */   
 foreach Edge in TG.getSortedEdges():
     foreach TaintedObject in Edge.getTaintedObjects():
         foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
             if (forwardSearch(Edge, TG, SubTaintedObject)):
                 SubTaintedObject.setUnused()
-                SubTaintedObject.setMarked()
                 colorEdge(Edge)
                 
-showGraphToUser(TG)    
+showGraphToUser(TG)

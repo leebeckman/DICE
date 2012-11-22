@@ -1,46 +1,28 @@
 // HELPER METHODS
-
+/* Copy the InputGraph, but remove any edges carrying data which doesn't
+ * have the input Variability. */
 function pruneToVariability(InputGraph, Variability):
-    Copy the InputGraph
-    Go through every edge of the Copy:
-		Check every piece of tainted data the edge carries:
-			If any tainted data has variability which does not
-			match Variability, remove the edge from the Copy.
-			If an edge is removed, also remove any neighboring
-			edges which occured in the same call context.
-	Return the Copy
     
 /* This function takes a fragmented taint graph as input (one can
  * find nodes such that there is no path between them), and extracts
- * every non-fragmented taint graph from it.
- */
+ * every non-fragmented taint graph from it. */
 function getConnectedSubGraphs(InputGraph):
 
-/* Use the CallGraph data to check the total execution time for the
- * TaintGraph edges, being careful to handle nested executions properly.
- * Return true if the time is over THRESHOLD.   
- */ 
+/* Use the CallGraph data to check the overall execution time for the
+ * TaintGraph edges. Return true if the time is over THRESHOLD. */
 function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
 
 /* This uses the CallGraph to determine if the events indicated by
  * edges in Graph cause, through their descendent method calls, any 
- * events in the SideEffectGraph to occur. The CallGraph supplies a 
- * method, getDescendentEdges(Edge), which returns the function call
- * edges which were ultimately caused by the function call edge given
- * as argument.
- */
+ * events in the SideEffectGraph to occur. */
 function getSideEffects(Graph, SideEffectGraph, CallGraph):
     Return any edges in SideEffectGraph which were caused by edges
 	in Graph.
 
 // EXECUTION START
-	
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes.
-CG = call graph, with all calls made during taint trace collection, even those
-   which did not exchange taint. Given a taint trace edge for a function call,
-   the call graph can be used to find descendant function calls. This graph
-   also contains method execution times.
+TG = taint trace graph
+CG = call graph, with all calls made during taint trace collection and
+    their execution time
 
 TGPredictable = pruneToVariability(TG, PREDICTABLE)
 TGRandom = pruneToVariability(TG, RANDOM)
@@ -48,26 +30,17 @@ TGRandom = pruneToVariability(TG, RANDOM)
 PredictableConnectedSubGraphs = getConnectedSubGraphs(TGPredictable)
 
 foreach PredictableCS in PredictableConnectedSubGraphs:
-    /* A check to see if the graph is expensive enough to be worth the
-     * effort of trying to cache it
-     */
     if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
         /* Check that the execution of this graph does not result in the
-         * flow of non-deterministic data, as then we need to be much more
-         * careful about using the cache and skipping execution.
-         */
+         * flow of non-deterministic data */
         RandomSideEffects = getSideEffects(PredictableCS, TGRandom, CG)
         /* If there are side effects, it may be that they are cheap enough
-         * to execute even when fetching from the cache. If not, move on
-         * to the next graph.
-         */
+         * to execute even when fetching from the cache. */
         if (checkOverCost(RandomSideEffects, CG, REJECT_THRESHOLD)):
             continue
         /* Present the graph to the user */
-        colorOutputs(PredictableCS, TG)
-        colorInputs(PredictableCS, TG)
+        colorOutputs(PredictableCS)
+        colorInputs(PredictableCS)
         showGraphToUser(PredictableCS)
-        /* Indicate the side effects, if any, for the user to decide
-         * how to handle.
-         */
+        /* Indicate the side effects, if any, for the user to handle. */
         showSideEffectsToUser(RandomSideEffects)

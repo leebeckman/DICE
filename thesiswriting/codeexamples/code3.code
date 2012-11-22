@@ -1,38 +1,21 @@
 // HELPER METHODS
-
 /* Takes the InputGraph and splits it into multiple graphs
- * so that each new graph has Edges sharing a common RequestID
- */
+ * so that each new graph has Edges from a single web request. */
 function getRequestSubGraphs(InputGraph):
 
 /* Return any output type edges for methods known to 
- * write output to the user
- */
+ * write output to the user */
 function getUserOutputEdges(InputGraph):
 
 /* Return any output type edges for methods known to
- * write data to a database
- */
+ * write data to a database */
 function getDBOutputEdges(InputGraph):
 
 /* Given an edge to start from, CurrentEdge, work backwards
  * through Graph (to edges which could have influenced the
  * CurrentEdge and so on, using the ContextID to ensure that
- * edges are in the same thread of execution).
- */
+ * edges are in the same thread of execution). */
 function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
-    /* If it is possible to flow forward in the Graph to UserOutputEdges
-     * from the CurrentEdge, it means that delaying the execution of the
-     * CurrentEdge may mean that users to not get output that they need.
-     */
-    if (forwardSearch(CurrentEdge, Graph, UserOutputEdges)):
-        return
-    
-    FoundEdges.add(CurrentEdge)
-    
-    foreach PrevEdge in Graph.getPrevEdges(CurrentEdge):
-        if (Edge.getContextID() == PrevEdge.getContextID()):
-            backwardsExpand(FoundEdges, PrevEdge, UserOutputEdges, Graph)
 
 /* Given an edge to start from, Edge, work forwards through
  * Graph (to edges which could be influenced by the Edge and
@@ -41,25 +24,9 @@ function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
  * edges can be reached from the original edge.
  */    
 function forwardSearch(Edge, Graph, TargetEdges):
-    if (Edge already visited):
-        return false
-    
-    if TargetEdges.contains(Edge)
-         return true
-                        
-    found = false;
-    foreach NextEdge in Graph.getNextEdges(Edge):
-        if (Edge.getContextID() == NextEdge.getContextID()):
-            if (forwardSearch(NextEdge, Graph, TargetEdges)):
-                found = true
-                break
-    
-    return found
 
 // EXECUTION START
-	
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes
+TG = taint trace graph
 
 RequestSubGraphs = getRequestSubGraphs(TG)
 
@@ -74,11 +41,8 @@ foreach RequestSG in RequestSubGraphs:
          * be able to defer until later. We work backwards from the database
          * output to see how much computation influencing it can be deferred,
          * going until we reach a point where the computation could influence
-         * output to the user.
-         */
+         * output to the user.  */
         backwardsExpand(PostCompGraph, DBOutputEdge, UserOutputEdges, RequestSG)
         /* If we found anything, show it to the user */
         if (PostCompGraph != {}):
-            colorOutputs(PostCompGraph, RequestSG)
-            colorInputs(PostCompGraph, RequestSG)
             showGraphToUser(PostCompGraph)

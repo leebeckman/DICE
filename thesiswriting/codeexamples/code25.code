@@ -1,11 +1,7 @@
 // EXECUTION START
-
-TG = taint trace graph, each node is a function or data source,
-   each edge is an event where tainted data is passed between nodes.
-CG = call graph, with all calls made during taint trace collection, even those
-   which did not exchange taint. Given a taint trace edge for a function call,
-   the call graph can be used to find descendant function calls. This graph
-   also contains method execution times.
+TG = taint trace graph
+CG = call graph, with all calls made during taint trace collection and
+    their execution time
    
 TGStable = pruneToVariability(TG, STABLE)
 TGPredictable = pruneToVariability(TG, PREDICTABLE)
@@ -17,11 +13,10 @@ foreach StableCS in StableConnectedSubGraphs:
     /* Check that the execution of this graph does not result in the
      * flow of non-deterministic data or require any variable input,
      * however predictable, as then we need to be much more
-     * careful about using precomputation and skipping execution.
-     */
+     * careful about using precomputation and skipping execution. */
     if (getSideEffects(StableCS, TGRandom, CG) == {}):
         if (getSideEffects(StableCS, TGPredictable, CG) == {}):
             /* Present the graph to the user */
-            colorOutputs(StableCS, TG)
-            colorInputs(StableCS, TG)
+            colorOutputs(StableCS)
+            colorInputs(StableCS)
             showGraphToUser(StableCS)
