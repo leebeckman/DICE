@@ -1,45 +1,45 @@
-1:	// HELPER METHODS
-2:	/* Extracts from a taint graph the set of taint IDs present amongst
-3:	 * its edges. If two graphs share any taint IDs, it means same tainted
-4:	 * data flowed it both of them. */
-5:	function getTaintIDSet(Graph):
-6:	
-7:	/* See earlier psuedocode example */
-8:	RequestSubGraphs = getRequestSubGraphs(TG)
-9:	
-10:	// EXECUTION START
-11:	TG = taint trace graph
-12:	
-13:	/* This list will be filled with sets, such that each set contains
-14:	 * the taint IDs encountered for a single request. */
-15:	ByRequestTaintIDs = {}
-16:	
-17:	PersistentTaintIDs = {}
-18:	
-19:	foreach RequestSG in RequestSubGraphs:
-20:	    ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
-21:	    
-22:	/* Find any taint IDs which where present in multiple Request Graphs.
-23:	 * Such indicates tainted data which had a lifetime beyond a single
-24:	 * request, and we call such taint IDs persistent. */
-25:	for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
-26:	    for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
-27:	        SetA = ByRequestTaintIDs[i]
-28:	        SetB = ByRequestTaintIDs[j]
-29:	        PersistentTaintIDs.add(SetA intersect SetB)
-30:	
-31:	/* For each persistent taint ID, go through the the taint graph edges
-32:	 * (sorted in the order they occured), coloring any edges which carry the
-33:	 * persistent data, and looking for a point where the request ID changes.
-34:	 * This point will indicate where multiple requests access the data from,
-35:	 * the place where the persistent data is actually stored, and is colored
-36:	 * differently. */
-37:	foreach PersistenTaintID in PersistentTaintIDs:
-38:	    foreach Edge in TG.getSortedEdges():
-39:	        if (edge.getAllTaintIDs().contains(PersistentTaintID)):
-40:	            colorEdgeRed(edge)
-41:	            if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
-42:	                colorEdgeGreen(edge)
-43:	            LastRequestID = Edge.getRequestID()
-44:	            
-45:	showGraphToUser(TG)
+1:    // HELPER METHODS
+2:    /* Extracts from a taint graph the set of taint IDs present amongst
+3:     * its edges. If two graphs share any taint IDs, it means same tainted
+4:     * data flowed it both of them. */
+5:    function getTaintIDSet(Graph):
+6:    
+7:    /* See earlier psuedocode example */
+8:    RequestSubGraphs = getRequestSubGraphs(TG)
+9:    
+10:    // EXECUTION START
+11:    TG = taint trace graph
+12:    
+13:    /* This list will be filled with sets, such that each set contains
+14:     * the taint IDs encountered for a single request. */
+15:    ByRequestTaintIDs = {}
+16:    
+17:    PersistentTaintIDs = {}
+18:    
+19:    foreach RequestSG in RequestSubGraphs:
+20:        ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
+21:        
+22:    /* Find any taint IDs which where present in multiple Request Graphs.
+23:     * Such indicates tainted data which had a lifetime beyond a single
+24:     * request, and we call such taint IDs persistent. */
+25:    for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
+26:        for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
+27:            SetA = ByRequestTaintIDs[i]
+28:            SetB = ByRequestTaintIDs[j]
+29:            PersistentTaintIDs.add(SetA intersect SetB)
+30:    
+31:    /* For each persistent taint ID, go through the the taint graph edges
+32:     * (sorted in the order they occured), coloring any edges which carry the
+33:     * persistent data, and looking for a point where the request ID changes.
+34:     * This point will indicate where multiple requests access the data from,
+35:     * the place where the persistent data is actually stored, and is colored
+36:     * differently. */
+37:    foreach PersistenTaintID in PersistentTaintIDs:
+38:        foreach Edge in TG.getSortedEdges():
+39:            if (edge.getAllTaintIDs().contains(PersistentTaintID)):
+40:                colorEdgeRed(edge)
+41:                if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
+42:                    colorEdgeGreen(edge)
+43:                LastRequestID = Edge.getRequestID()
+44:                
+45:    showGraphToUser(TG)
