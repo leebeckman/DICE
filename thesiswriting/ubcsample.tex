@@ -410,8 +410,6 @@ Maintaining any sufficiently large application is a difficult task for programme
 
 The problem is straightforward; a team of developers will implement a system to meet the needs of their users at the current point in time. Since we experiment with it later, let us say this system is the RUBiS online auctioning site (which is like a very simple version of eBay). Eventually, as RUBiS becomes more popular and users want more features (shopping carts, and they're complaining that pages take too long to load), the demand on the application increases. Eventually the original design is insufficient to serve the needs of its users, and some form of migration must happen. New resources are made available for RUBiS to use, such as more servers, but how best to use them? By this time, new developers are on the project, but those who originally designed the system are mostly unavailable to provide support. For these non-experts, making wise decisions about how keep RUBiS up to date is a frustrating and time-consuming process, wrought with many problems:\\
 
-### REWRITE THESE TO BE BASICALLY PROBLEMS MY ANALYSES DIRECTLY SOLVE
-# CACHING, PRECOMP, POSTCOMP, STATE, USELESS COMM
 \begin{itemize}
 \item Time is often short, so systems are needed to provide insight into the application quickly.
 \item Changing application code without being aware of all of its side effects can break it in unexpected ways. Knowledge of how the operation of one component affects others down the line is needed.
