@@ -1,29 +1,28 @@
 // HELPER METHODS
-/* Given a path which starts with a single Edge representing a read from
- * persistent data, this recursively attempts to grow the path using FlowGraph.
- * If the path can be found in the flow graphs for other requests (accessible in
- * OtherRequestIDsToEdgeMap), it initially passes, but if these requests serve
- * data to other users, the path represents data shared by multiple users
- * and is abandoned. */
-function findUserState(UserStateEdges, Path, FlowGraph, OtherRequestIDsToEdgeMap):
+/* Given a path which starts with a single Edge representing a read 
+ * from persistent data, this recursively attempts to grow the path
+ * using FlowGraph. If the path can be found in the flow graphs for
+ * other requests (accessible in OtherRequestIDsToEdgeMap), it initially 
+ * passes, but if these requests serve data to other users, the path
+ * represents data shared by multiple users and is abandoned. */
+function findUserState(UserStateEdges, Path, FlowGraph, OtherFlows):
 
-/* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
- * This map shows, for each persistent taint ID, which request graphs carry that taint,
- * what are the earliest edges carrying that taint, and where does each bit of persistent
- * taint flow from these points of origination. */
+/* Construct a map: 
+ * {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
+ * This map shows, for each persistent taint ID, which request graphs 
+ * carry that taint, what are the earliest edges carrying that taint,
+ * and where does each bit of persistent taint flows from these points 
+ * of origination. */
 function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
 
 // EXECUTION START
 TG = taint trace graph
-TT = taint ID tree, a tree which shows how tainted data is derived from
-   other tainted data. Taint IDs have as child nodes any taint IDs
-   which were immediately derived from them.
 
 RequestSubGraphs = getRequestSubGraphs(TG)
 PersistentTaintIDs = As in earlier pseudocode
 
-Use the TT to remove from PersistentTaintIDs any IDs which were derived from others.
-This saves work later.
+Remove from PersistentTaintIDs any IDs which were derived
+from others. This saves work later.
 
 MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
 
@@ -35,11 +34,11 @@ foreach PersistentTaintID in MasterMap.keys():
             FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
             /* This map is needed to compare the flow of taint in one
              * request with the flow of the same taint in other requests. */
-            OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
-            OtherRequestIDsToEdgeMap.remove(RequestID)
+            OtherFlows = RequestIDToEdgeMap.copy()
+            OtherFlows.remove(RequestID)
             
             UserStateEdges = {}
-            findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherRequestIDsToEdgeMap)
+            findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherFlows)
             
             if (UserStateEdges != {}):
                 colorEdge(StartEdge)

@@ -1,46 +1,45 @@
-1:    // HELPER METHODS
-2:    /* Given a path which starts with a single Edge representing a read from
-3:     * persistent data, this recursively attempts to grow the path using FlowGraph.
-4:     * If the path can be found in the flow graphs for other requests (accessible in
-5:     * OtherRequestIDsToEdgeMap), it initially passes, but if these requests serve
-6:     * data to other users, the path represents data shared by multiple users
-7:     * and is abandoned. */
-8:    function findUserState(UserStateEdges, Path, FlowGraph, OtherRequestIDsToEdgeMap):
-9:    
-10:    /* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
-11:     * This map shows, for each persistent taint ID, which request graphs carry that taint,
-12:     * what are the earliest edges carrying that taint, and where does each bit of persistent
-13:     * taint flow from these points of origination. */
-14:    function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
-15:    
-16:    // EXECUTION START
-17:    TG = taint trace graph
-18:    TT = taint ID tree, a tree which shows how tainted data is derived from
-19:       other tainted data. Taint IDs have as child nodes any taint IDs
-20:       which were immediately derived from them.
-21:    
-22:    RequestSubGraphs = getRequestSubGraphs(TG)
-23:    PersistentTaintIDs = As in earlier pseudocode
-24:    
-25:    Use the TT to remove from PersistentTaintIDs any IDs which were derived from others.
-26:    This saves work later.
-27:    
-28:    MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
-29:    
-30:    foreach PersistentTaintID in MasterMap.keys():
-31:        RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
-32:        foreach RequestID in RequestIDToEdgeMap.keys():
-33:            StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID) 
-34:            foreach StartEdge in StartEdgeToFlowGraphMap.keys():
-35:                FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
-36:                /* This map is needed to compare the flow of taint in one
-37:                 * request with the flow of the same taint in other requests. */
-38:                OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
-39:                OtherRequestIDsToEdgeMap.remove(RequestID)
-40:                
-41:                UserStateEdges = {}
-42:                findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherRequestIDsToEdgeMap)
-43:                
-44:                if (UserStateEdges != {}):
-45:                    colorEdge(StartEdge)
-46:                    showGraphToUser(createGraphFromEdges(UserStateEdges))    
+1:	// HELPER METHODS
+2:	/* Given a path which starts with a single Edge representing a read 
+3:	 * from persistent data, this recursively attempts to grow the path
+4:	 * using FlowGraph. If the path can be found in the flow graphs for
+5:	 * other requests (accessible in OtherRequestIDsToEdgeMap), it initially 
+6:	 * passes, but if these requests serve data to other users, the path
+7:	 * represents data shared by multiple users and is abandoned. */
+8:	function findUserState(UserStateEdges, Path, FlowGraph, OtherFlows):
+9:	
+10:	/* Construct a map: 
+11:	 * {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
+12:	 * This map shows, for each persistent taint ID, which request graphs 
+13:	 * carry that taint, what are the earliest edges carrying that taint,
+14:	 * and where does each bit of persistent taint flows from these points 
+15:	 * of origination. */
+16:	function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
+17:	
+18:	// EXECUTION START
+19:	TG = taint trace graph
+20:	
+21:	RequestSubGraphs = getRequestSubGraphs(TG)
+22:	PersistentTaintIDs = As in earlier pseudocode
+23:	
+24:	Remove from PersistentTaintIDs any IDs which were derived
+25:	from others. This saves work later.
+26:	
+27:	MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
+28:	
+29:	foreach PersistentTaintID in MasterMap.keys():
+30:	    RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
+31:	    foreach RequestID in RequestIDToEdgeMap.keys():
+32:	        StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID) 
+33:	        foreach StartEdge in StartEdgeToFlowGraphMap.keys():
+34:	            FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
+35:	            /* This map is needed to compare the flow of taint in one
+36:	             * request with the flow of the same taint in other requests. */
+37:	            OtherFlows = RequestIDToEdgeMap.copy()
+38:	            OtherFlows.remove(RequestID)
+39:	            
+40:	            UserStateEdges = {}
+41:	            findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherFlows)
+42:	            
+43:	            if (UserStateEdges != {}):
+44:	                colorEdge(StartEdge)
+45:	                showGraphToUser(createGraphFromEdges(UserStateEdges))    

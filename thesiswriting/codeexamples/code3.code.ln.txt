@@ -1,48 +1,48 @@
-1:    // HELPER METHODS
-2:    /* Takes the InputGraph and splits it into multiple graphs
-3:     * so that each new graph has Edges from a single web request. */
-4:    function getRequestSubGraphs(InputGraph):
-5:    
-6:    /* Return any output type edges for methods known to 
-7:     * write output to the user */
-8:    function getUserOutputEdges(InputGraph):
-9:    
-10:    /* Return any output type edges for methods known to
-11:     * write data to a database */
-12:    function getDBOutputEdges(InputGraph):
-13:    
-14:    /* Given an edge to start from, CurrentEdge, work backwards
-15:     * through Graph (to edges which could have influenced the
-16:     * CurrentEdge and so on, using the ContextID to ensure that
-17:     * edges are in the same thread of execution). */
-18:    function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
-19:    
-20:    /* Given an edge to start from, Edge, work forwards through
-21:     * Graph (to edges which could be influenced by the Edge and
-22:     * so on, using the ContextID to ensure that edges are in the
-23:     * same thread of execution). Return true if any of the Target
-24:     * edges can be reached from the original edge.
-25:     */    
-26:    function forwardSearch(Edge, Graph, TargetEdges):
-27:    
-28:    // EXECUTION START
-29:    TG = taint trace graph
-30:    
-31:    RequestSubGraphs = getRequestSubGraphs(TG)
-32:    
-33:    foreach RequestSG in RequestSubGraphs:
-34:        UserOutputEdges = getUserOutputEdges(RequestSG)
-35:        DBOutputs = getDBOutputEdges(RequestSG)
-36:        
-37:        foreach DBOutputEdge in DBOutputs:
-38:            PostCompGraph = Empty Graph
-39:            /* Basically we start from an edge which outputs to the database, as
-40:             * these are good candidates for blocking computation that we might
-41:             * be able to defer until later. We work backwards from the database
-42:             * output to see how much computation influencing it can be deferred,
-43:             * going until we reach a point where the computation could influence
-44:             * output to the user.  */
-45:            backwardsExpand(PostCompGraph, DBOutputEdge, UserOutputEdges, RequestSG)
-46:            /* If we found anything, show it to the user */
-47:            if (PostCompGraph != {}):
-48:                showGraphToUser(PostCompGraph)
+1:	// HELPER METHODS
+2:	/* Takes the InputGraph and splits it into multiple graphs
+3:	 * so that each new graph has Edges from a single web request. */
+4:	function getRequestSubGraphs(InputGraph):
+5:	
+6:	/* Return any output type edges for methods known to 
+7:	 * write output to the user */
+8:	function getUserOutputEdges(InputGraph):
+9:	
+10:	/* Return any output type edges for methods known to
+11:	 * write data to a database */
+12:	function getDBOutputEdges(InputGraph):
+13:	
+14:	/* Given an edge to start from, CurrentEdge, work backwards
+15:	 * through Graph (to edges which could have influenced the
+16:	 * CurrentEdge and so on, using the ContextID to ensure that
+17:	 * edges are in the same thread of execution). */
+18:	function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
+19:	
+20:	/* Given an edge to start from, Edge, work forwards through
+21:	 * Graph (to edges which could be influenced by the Edge and
+22:	 * so on, using the ContextID to ensure that edges are in the
+23:	 * same thread of execution). Return true if any of the Target
+24:	 * edges can be reached from the original edge.
+25:	 */    
+26:	function forwardSearch(Edge, Graph, TargetEdges):
+27:	
+28:	// EXECUTION START
+29:	TG = taint trace graph
+30:	
+31:	RequestSubGraphs = getRequestSubGraphs(TG)
+32:	
+33:	foreach RequestSG in RequestSubGraphs:
+34:	    UserOutputEdges = getUserOutputEdges(RequestSG)
+35:	    DBOutputs = getDBOutputEdges(RequestSG)
+36:	    
+37:	    foreach DBOutputEdge in DBOutputs:
+38:	        PostCompGraph = Empty Graph
+39:	        /* Basically we start from an edge which outputs to the database, as
+40:	         * these are good candidates for blocking computation that we might
+41:	         * be able to defer until later. We work backwards from the database
+42:	         * output to see how much computation influencing it can be deferred,
+43:	         * going until we reach a point where the computation could influence
+44:	         * output to the user.  */
+45:	        backwardsExpand(PostCompGraph, DBOutputEdge, UserOutputEdges, RequestSG)
+46:	        /* If we found anything, show it to the user */
+47:	        if (PostCompGraph != {}):
+48:	            showGraphToUser(PostCompGraph)

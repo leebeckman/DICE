@@ -7,16 +7,15 @@
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {Program}{\numberline {2.1}{\ignorespaces Simple taint tracking example.}}{10}{Program.2.1}
+\contentsline {Program}{\numberline {2.1}{\ignorespaces Simple taint tracking example.}}{11}{Program.2.1}
 \addvspace {10\p@ }
-\contentsline {Program}{\numberline {3.1}{\ignorespaces Simple Taint Tracking AOP Example.}}{18}{Program.3.1}
-\contentsline {Program}{\numberline {3.2}{\ignorespaces High level algorithm for caching analysis.}}{29}{Program.3.2}
-\contentsline {Program}{\numberline {3.3}{\ignorespaces High level precomputation for caching analysis.}}{30}{Program.3.3}
-\contentsline {Program}{\numberline {3.4}{\ignorespaces High level algorithm for postcomputation analysis.}}{32}{Program.3.4}
-\contentsline {Program}{\numberline {3.5}{\ignorespaces High level algorithm for application state analysis.}}{33}{Program.3.5}
-\contentsline {Program}{\numberline {3.6}{\ignorespaces High level algorithm for user state analysis.}}{35}{Program.3.6}
-\contentsline {Program}{\numberline {3.7}{\ignorespaces High level algorithm for wasteful communication analysis.}}{37}{Program.3.7}
-\addvspace {10\p@ }
+\contentsline {Program}{\numberline {3.1}{\ignorespaces Simple Taint Tracking AOP Example.}}{19}{Program.3.1}
+\contentsline {Program}{\numberline {3.2}{\ignorespaces High level algorithm for caching analysis.}}{31}{Program.3.2}
+\contentsline {Program}{\numberline {3.3}{\ignorespaces High level precomputation for caching analysis.}}{32}{Program.3.3}
+\contentsline {Program}{\numberline {3.4}{\ignorespaces High level algorithm for postcomputation analysis.}}{34}{Program.3.4}
+\contentsline {Program}{\numberline {3.5}{\ignorespaces High level algorithm for application state analysis.}}{35}{Program.3.5}
+\contentsline {Program}{\numberline {3.6}{\ignorespaces High level algorithm for user state analysis.}}{37}{Program.3.6}
+\contentsline {Program}{\numberline {3.7}{\ignorespaces High level algorithm for wasteful communication analysis.}}{39}{Program.3.7}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }

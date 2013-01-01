@@ -1,31 +1,31 @@
-1:    // HELPER METHODS
-2:    /* Given an edge to start from, Edge, work forwards through
-3:     * Graph (to edges which could be influenced by the Edge and
-4:     * so on, using the ContextID to ensure that edges are in the
-5:     * same thread of execution). Return true if the taint ID for
-6:     * TargetTaintedObject can be found at the top level for edges
-7:     * reached from the original Edge. By the top level, we mean 
-8:     * the actual arguments and return values as opposed to tainted
-9:     * objects which are merely reachable from them. Objects have 
-10:     * a flag to prevent redundant work. In the real
-11:     * algorithm used, there is more checking of this than is
-12:     * indicated here to aggressively avoid redundant graph
-13:     * traversals. */    
-14:    function forwardSearch(Edge, Graph, TargetTaintedObject):
-15:    
-16:    // EXECUTION START
-17:    TG = taint trace graph
-18:    
-19:    /* Look at every SubTaintedObject. This means objects not directly passed as
-20:     * arguments or return values, but those which are reachable from such. The
-21:     * assumption is that if taint is passed in this form and subsequently never
-22:     * found to be passed directly at the level of an argument or return value, 
-23:     * it is never accessed and the user should be informed of this. */   
-24:    foreach Edge in TG.getSortedEdges():
-25:        foreach TaintedObject in Edge.getTaintedObjects():
-26:            foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
-27:                if (forwardSearch(Edge, TG, SubTaintedObject)):
-28:                    SubTaintedObject.setUnused()
-29:                    colorEdge(Edge)
-30:                    
-31:    showGraphToUser(TG)
+1:	// HELPER METHODS
+2:	/* Given an edge to start from, Edge, work forwards through
+3:	 * Graph (to edges which could be influenced by the Edge and
+4:	 * so on, using the ContextID to ensure that edges are in the
+5:	 * same thread of execution). Return true if the taint ID for
+6:	 * TargetTaintedObject can be found at the top level for edges
+7:	 * reached from the original Edge. By the top level, we mean 
+8:	 * the actual arguments and return values as opposed to tainted
+9:	 * objects which are merely reachable from them. Objects have 
+10:	 * a flag to prevent redundant work. In the real
+11:	 * algorithm used, there is more checking of this than is
+12:	 * indicated here to aggressively avoid redundant graph
+13:	 * traversals. */    
+14:	function forwardSearch(Edge, Graph, TargetTaintedObject):
+15:	
+16:	// EXECUTION START
+17:	TG = taint trace graph
+18:	
+19:	/* Look at every SubTaintedObject. This means objects not directly passed as
+20:	 * arguments or return values, but those which are reachable from such. The
+21:	 * assumption is that if taint is passed in this form and subsequently never
+22:	 * found to be passed directly at the level of an argument or return value, 
+23:	 * it is never accessed and the user should be informed of this. */   
+24:	foreach Edge in TG.getSortedEdges():
+25:	    foreach TaintedObject in Edge.getTaintedObjects():
+26:	        foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
+27:	            if (forwardSearch(Edge, TG, SubTaintedObject)):
+28:	                SubTaintedObject.setUnused()
+29:	                colorEdge(Edge)
+30:	                
+31:	showGraphToUser(TG)

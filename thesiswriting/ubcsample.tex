@@ -1040,14 +1040,14 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 27:    
 28:    // EXECUTION START
 29:    TG = taint trace graph
-30:    
+30:
 31:    RequestSubGraphs = getRequestSubGraphs(TG)
 32:    
 33:    foreach RequestSG in RequestSubGraphs:
-34:        UserOutputEdges = getUserOutputEdges(RequestSG)
+34:        UserOutEdges = getUserOutputEdges(RequestSG)
 35:        DBOutputs = getDBOutputEdges(RequestSG)
 36:        
-37:        foreach DBOutputEdge in DBOutputs:
+37:        foreach DBOutEdge in DBOutputs:
 38:            PostCompGraph = Empty Graph
 39:            /* Basically we start from an edge which outputs to the database, as
 40:             * these are good candidates for blocking computation that we might
@@ -1055,7 +1055,7 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 42:             * output to see how much computation influencing it can be deferred,
 43:             * going until we reach a point where the computation could influence
 44:             * output to the user.  */
-45:            backwardsExpand(PostCompGraph, DBOutputEdge, UserOutputEdges, RequestSG)
+45:            backwardsExpand(PostCompGraph, DBOutEdge, UserOutEdges, RequestSG)
 46:            /* If we found anything, show it to the user */
 47:            if (PostCompGraph != {}):
 48:                showGraphToUser(PostCompGraph)
@@ -1138,57 +1138,56 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code5} High level algorithm for user state analysis.}
 \begin{verbatim}
-1:    // HELPER METHODS
-2:    /* Given a path which starts with a single Edge representing a read from
-3:     * persistent data, this recursively attempts to grow the path using FlowGraph.
-4:     * If the path can be found in the flow graphs for other requests (accessible in
-5:     * OtherRequestIDsToEdgeMap), it initially passes, but if these requests serve
-6:     * data to other users, the path represents data shared by multiple users
-7:     * and is abandoned. */
-8:    function findUserState(UserStateEdges, Path, FlowGraph, OtherRequestIDsToEdgeMap):
-9:    
-10:    /* Construct a map: {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
-11:     * This map shows, for each persistent taint ID, which request graphs carry that taint,
-12:     * what are the earliest edges carrying that taint, and where does each bit of persistent
-13:     * taint flow from these points of origination. */
-14:    function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
-15:    
-16:    // EXECUTION START
-17:    TG = taint trace graph
-18:    TT = taint ID tree, a tree which shows how tainted data is derived from
-19:       other tainted data. Taint IDs have as child nodes any taint IDs
-20:       which were immediately derived from them.
-21:    
-22:    RequestSubGraphs = getRequestSubGraphs(TG)
-23:    PersistentTaintIDs = As in earlier pseudocode
-24:    
-25:    Use the TT to remove from PersistentTaintIDs any IDs which were derived from others.
-26:    This saves work later.
-27:    
-28:    MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
-29:    
-30:    foreach PersistentTaintID in MasterMap.keys():
-31:        RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
-32:        foreach RequestID in RequestIDToEdgeMap.keys():
-33:            StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID) 
-34:            foreach StartEdge in StartEdgeToFlowGraphMap.keys():
-35:                FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
-36:                /* This map is needed to compare the flow of taint in one
-37:                 * request with the flow of the same taint in other requests. */
-38:                OtherRequestIDsToEdgeMap = RequestIDToEdgeMap.copy()
-39:                OtherRequestIDsToEdgeMap.remove(RequestID)
-40:                
-41:                UserStateEdges = {}
-42:                findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherRequestIDsToEdgeMap)
-43:                
-44:                if (UserStateEdges != {}):
-45:                    colorEdge(StartEdge)
-46:                    showGraphToUser(createGraphFromEdges(UserStateEdges))    
+1:	// HELPER METHODS
+2:	/* Given a path which starts with a single Edge representing a read 
+3:	 * from persistent data, this recursively attempts to grow the path
+4:	 * using FlowGraph. If the path can be found in the flow graphs for
+5:	 * other requests (accessible in OtherRequestIDsToEdgeMap), it initially 
+6:	 * passes, but if these requests serve data to other users, the path
+7:	 * represents data shared by multiple users and is abandoned. */
+8:	function findUserState(UserStateEdges, Path, FlowGraph, OtherFlows):
+9:	
+10:	/* Construct a map: 
+11:	 * {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
+12:	 * This map shows, for each persistent taint ID, which request graphs 
+13:	 * carry that taint, what are the earliest edges carrying that taint,
+14:	 * and where does each bit of persistent taint flows from these points 
+15:	 * of origination. */
+16:	function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
+17:	
+18:	// EXECUTION START
+19:	TG = taint trace graph
+20:	
+21:	RequestSubGraphs = getRequestSubGraphs(TG)
+22:	PersistentTaintIDs = As in earlier pseudocode
+23:	
+24:	Remove from PersistentTaintIDs any IDs which were derived
+25:	from others. This saves work later.
+26:	
+27:	MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
+28:	
+29:	foreach PersistentTaintID in MasterMap.keys():
+30:	    RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
+31:	    foreach RequestID in RequestIDToEdgeMap.keys():
+32:	        StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID) 
+33:	        foreach StartEdge in StartEdgeToFlowGraphMap.keys():
+34:	            FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
+35:	            /* This map is needed to compare the flow of taint in one
+36:	             * request with the flow of the same taint in other requests. */
+37:	            OtherFlows = RequestIDToEdgeMap.copy()
+38:	            OtherFlows.remove(RequestID)
+39:	            
+40:	            UserStateEdges = {}
+41:	            findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherFlows)
+42:	            
+43:	            if (UserStateEdges != {}):
+44:	                colorEdge(StartEdge)
+45:	                showGraphToUser(createGraphFromEdges(UserStateEdges))      
 \end{verbatim}
 \end{Program}
 
 \subsubsection{Wasteful Communication}
-Section X describes a graph preprocessing step which the Analysis Tool performs to identify instances where tainted data is communicated between locations but subsequently never used. Given this step, this analysis is easy to perform, and merely needs to compile a report of where data is communicated wastefully by checking the edges in the graph for taint marked as such. \\
+Section~\ref{subsub:impliededges} describes a graph preprocessing step which the Analysis Tool performs to identify instances where tainted data is communicated between locations but subsequently never used. Given this step, this analysis is easy to perform, and merely needs to compile a report of where data is communicated wastefully by checking the edges in the graph for taint marked as such. \\
 
 An obvious use for such an analysis is to help a developer potentially eliminate these communication. Such is especially useful if the application is to be partitioned and such communication would be crossing costly boundaries. Another use for this is also motivated by application partitioning, where the data can be used to improve the analyses used in that space. Application partitioning algorithms generally consider module execution costs and communication costs between them when determining an optimal way to group and separate modules. A simple strategy which monitors inter-module communication events (such as method calls), can report the cost of the communication as the total size of the data communicated. However, some of this data may never be used, and knowing this can allow for better communication cost estimates. Such could lead to more optimal partitionings, as long as there is a mechanism in place to avoid the wasted communication, such as by eliminating it altogether or employing a lazy communication method where the data is only communicated when it is actually needed.\\
 
@@ -1370,9 +1369,12 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 3: <input type=text size=20 name=chatMessage /> [NONTAINTED]
 4: <input type=submit value="Post" /></form> [NONTAINTED]
 5: <h2>Currently available categories</h2><br> [NONTAINTED]
-6: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
-7: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
-8: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
+6: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">
+    Antiques</a><br> [TAINTED]
+7: <a href="SearchItemsByCategory?category=2&categoryName=Books">
+    Books</a><br> [TAINTED]
+8: <a href="SearchItemsByCategory?category=3&categoryName=Business">
+    Business</a><br> [TAINTED]
 9: </body> [NONTAINTED]
 10:</html> [NONTAINTED]
 \end{verbatim}
@@ -1383,9 +1385,15 @@ In order to understand the evaluation which follows, consider Figure~\ref{fig:br
 \begin{verbatim}
 Output Data:
 Node: CoyoteWriter:println String:26517368
-   Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
-   Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
-   Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
+   Data: 
+    <a href="SearchItemsByCategory?category=1&categoryName=Antiques">
+        Antiques</a><br>
+   Data: 
+    <a href="SearchItemsByCategory?category=2&categoryName=Books">
+        Books</a><br>
+   Data: 
+    <a href="SearchItemsByCategory?category=3&categoryName=Business">
+        Business</a><br>
 \end{verbatim}
 \end{figure}
 
@@ -1398,9 +1406,12 @@ Node: CoyoteWriter:println String:26517368
 4: <input type=text size=20 name=chatMessage /> [NONTAINTED]
 5: <input type=submit value="Post" /></form> [NONTAINTED]
 6: <h2>Currently available categories</h2><br> [NONTAINTED]
-7: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br> [TAINTED]
-8: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br> [TAINTED]
-9: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br> [TAINTED]
+7: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">
+    Antiques</a><br> [TAINTED]
+8: <a href="SearchItemsByCategory?category=2&categoryName=Books">
+    Books</a><br> [TAINTED]
+9: <a href="SearchItemsByCategory?category=3&categoryName=Business">
+    Business</a><br> [TAINTED]
 10:</body> [NONTAINTED]
 11:</html> [NONTAINTED]
 \end{verbatim}
@@ -1411,9 +1422,15 @@ Node: CoyoteWriter:println String:26517368
 \begin{verbatim}
 Output Data:
 Node: ServletPrinter:printCategory String int:19112841
-   Data: <a href="SearchItemsByCategory?category=1&categoryName=Antiques">Antiques</a><br>
-   Data: <a href="SearchItemsByCategory?category=2&categoryName=Books">Books</a><br>
-   Data: <a href="SearchItemsByCategory?category=3&categoryName=Business">Business</a><br>
+   Data: 
+    <a href="SearchItemsByCategory?category=1&categoryName=Antiques">
+        Antiques</a><br>
+   Data: 
+    <a href="SearchItemsByCategory?category=2&categoryName=Books">
+        Books</a><br>
+   Data: 
+    <a href="SearchItemsByCategory?category=3&categoryName=Business">
+        Business</a><br>
 \end{verbatim}
 \end{figure}
 
@@ -1520,9 +1537,12 @@ Having the dataflows for various elements of the main page being identified as p
 <input type=text size=20 name=chatMessage /> [NONTAINTED]
 <input type=submit value="Post" /></form> [NONTAINTED]
 <h2>Currently available categories</h2><br> [NONTAINTED]
-<a href="SearchItemsByRegion?category=1&categoryName=Antiques&region=1">Antiques</a><br> [TAINTED]
-<a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">Books</a><br> [TAINTED]
-<a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">Business</a><br> [TAINTED]
+<a href="SearchItemsByRegion?category=1&categoryName=Antiques&region=1">
+    Antiques</a><br> [TAINTED]
+<a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">
+    Books</a><br> [TAINTED]
+<a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">
+    Business</a><br> [TAINTED]
 </body> [NONTAINTED]
 </html> [NONTAINTED]
 \end{verbatim}
@@ -1533,12 +1553,21 @@ Having the dataflows for various elements of the main page being identified as p
 \begin{verbatim}
 1: Output Data:
 2: Node: CoyoteWriter:println String:22693155
-3:    Data: <a href="BrowseCategories?region=AZ--Phoenix">AZ--Phoenix</a><br>
-4:    Data: <a href="BrowseCategories?region=CA--Los+Angeles">CA--Los Angeles</a><br>
-5:    Data: <a href="BrowseCategories?region=CA--Oakland">CA--Oakland</a><br>
-6:    Data: <a href="SearchItemsByRegion?category=1&categoryName=Antiques&region=1">Antiques</a><br>
-7:    Data: <a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">Books</a><br>
-8:    Data: <a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">Business</a><br>
+3:    Data: <a href="BrowseCategories?region=AZ--Phoenix">
+                AZ--Phoenix</a><br>
+4:    Data: <a href="BrowseCategories?region=CA--Los+Angeles">
+                CA--Los Angeles</a><br>
+5:    Data: <a href="BrowseCategories?region=CA--Oakland">
+                CA--Oakland</a><br>
+6:    Data: 
+  <a href="SearchItemsByRegion?category=1&categoryName=Antiques&region=1">
+      Antiques</a><br>
+7:    Data: 
+  <a href="SearchItemsByRegion?category=2&categoryName=Books&region=1">
+      Books</a><br>
+8:    Data: 
+  <a href="SearchItemsByRegion?category=3&categoryName=Business&region=1">
+      Business</a><br>
 \end{verbatim}
 \end{figure}
 
@@ -1788,23 +1817,18 @@ It is also possible that this analysis could be used to help a developer locate 
 % Further Developer Effort Required:
 
 \subsection{Evaluation Summary}
-\begin{table}[ht]
-  \begin{center}
-    \begin{tabular}{|l|l|l|}
+\begin{longtable}{|l|l|}
       \hline
-      \specialcell[t]{Analysis\\Type} & \specialcell[t]{Analysis\\Summary} & \specialcell[t]{Developer\\Response} \\ \hline\hline
-      Precomputation & \specialcell[t]{RUBiS: Identified a critical page which could be entirely pregenerated.\\ jGossip: Identified large sections of a critical page which could be pregenerated.} & \specialcell[t]{RUBiS: Precompute the page and serve instead of generating it from the database data.\\ jGossip: Identify the sections where are actually precomputable by going through results,\\precompute those and mix them with the dynamic content.} \\ \hline
-      Caching & \specialcell[t]{RUBiS: Idenfied a critical page which could be entirely cached.\\ jGossip: Identified portions of a page which could be cached.} & \specialcell[t]{RUBiS: Identify the cache keys and invalidating data sources,\\ implement a cache to return the entire page given a key.\\ jGossip: Investigate the result trace to determine how feasible the cache is \\ given the complexity of jGossip's architecture and dependence \\on autogenerated code. Potentially create a cache\\ for a small portion of the page, and explore the results to see if more of the response page can be cached.} \\ \hline
-      Postcomputation & \specialcell[t]{RUBiS: Identified a database update and subsequent update verification which could be deferred\\ for a commonly performed request.\\ jGossip: Identified a database update and logging action which could be deferred\\for an infrequently performed request.} & \specialcell[t]{In both cases, modify the applications to perform the identified\\ computations asynchronously and assess the correct operation of the site.} \\ \hline
-      Persistent State & \specialcell[t]{RUBiS: Identified all in-memory persistent state in the application. \\ jGossip: N/A} & \specialcell[t]{RUBiS: If necessary, modify the application to store this state in a database.\\ Use the knowledge of which application components communicate persistent data to assess\\the viability of replicating the computation those components do.\\ jGossip: N/A} \\ \hline
-      User State & \specialcell[t]{RUBiS: N/A\\ jGossip: Identified persistent session data and the \\sequence of components responsible for communicating it to the user.\\ Determined that this data was only shared with a single user.} & \specialcell[t]{RUBiS: N/A\\ jGossip: Potentially move the persistent data out of the server-side and into code the client runs.\\ Use the trace to determine what logic the client needs to properly work with the data.} \\ \hline
-      Wasteful Communication & \specialcell[t]{RUBiS: N/A\\ jGossip: Identified almost 60\% of edges as carrying unnecessary data in a trace of a\\commonly accessed page.} & \specialcell[t]{RUBiS: N/A\\ jGossip: Use these results to obtain better communication cost bounds in an application partitioning algorithm.\\ Use the results to identify potential application modifications to reduce wasteful inter-component communication.} \\ \hline
-    \end{tabular}
+      \specialcell[t]{Analysis\\Type} & \specialcell[t]{Analysis Summary\\---\\Developer Response} \\ \hline\hline
+      Precomputation & \specialcell[t]{RUBiS: Identified a critical page which could be entirely \\pregenerated.\\ jGossip: Identified large sections of a critical page which could \\be pregenerated. \\---\\RUBiS: Precompute the page and serve instead of generating it\\ from the database data.\\ jGossip: Identify the sections where are actually precomputable\\ by going through results, precompute those and mix them with \\the dynamic content.} \\ \hline
+      Caching & \specialcell[t]{RUBiS: Idenfied a critical page which could be entirely cached.\\ jGossip: Identified portions of a page which could be cached. \\---\\RUBiS: Identify the cache keys and invalidating data sources,\\ implement a cache to return the entire page given a key.\\ jGossip: Investigate the result trace to determine how feasible\\ the cache is given the complexity of jGossip's architecture and \\dependence on autogenerated code. Potentially create a cache\\ for a small portion of the page, and explore the results to see\\ if more of the response page can be cached.} \\ \hline
+      Postcomputation & \specialcell[t]{RUBiS: Identified a database update and subsequent update\\ verification which could be deferred for a commonly\\ performed request.\\ jGossip: Identified a database update and logging action which\\ could be deferred for an infrequently performed request. \\---\\In both cases, modify the applications to perform the identified\\ computations asynchronously and assess the correct \\operation of the site.} \\ \hline
+      Persistent State & \specialcell[t]{RUBiS: Identified all in-memory persistent state in the application. \\---\\RUBiS: If necessary, modify the application to store this state in\\ a database. Use the knowledge of which application\\ components communicate persistent data to assess the \\viability of replicating the computation those components do.} \\ \hline
+      User State & \specialcell[t]{jGossip: Identified persistent session data and the \\sequence of components responsible for communicating it to the user.\\ Determined that this data was only shared with a single user. \\---\\jGossip: Potentially move the persistent data out of the server-side\\ and into code the client runs. Use the trace to determine what\\ logic the client needs to properly work with the data.} \\ \hline
+      \specialcell[t]{Wasteful\\Communication} & \specialcell[t]{jGossip: Identified almost 60\% of edges as carrying unnecessary\\ data in a trace of a commonly accessed page. \\---\\jGossip: Use these results to obtain better communication \\cost bounds in an application partitioning algorithm.\\ Use the results to identify potential application modifications to\\reduce wasteful inter-component communication.} \\ \hline
     \caption{
-      \label{tab:evalsumm}
       Evaluation Summary.}
-  \end{center}
-\end{table}
+\end{longtable}
 
 \chapter{Conclusions} % DIFFICULT
 
@@ -2243,15 +2267,15 @@ Though there are many points of refinement to be made in our tools and additiona
 \section{Input Source Description File Format}
 \begin{verbatim}
 <root>
-	<databasesourceinfo catalog="..." 
-						table="..." 
-						column="..." 
-						variability="STABLE|PREDICTABLE|RANDOM"
-						numtracking="true|false" />
-	<requestsourceinfo 	uri="..." 
-						parameter="..."
-						variability="STABLE|PREDICTABLE|RANDOM"
-						numtracking="true|false" />
+  <databasesourceinfo catalog="..." 
+            table="..." 
+            column="..." 
+            variability="STABLE|PREDICTABLE|RANDOM"
+            numtracking="true|false" />
+  <requestsourceinfo   uri="..." 
+            parameter="..."
+            variability="STABLE|PREDICTABLE|RANDOM"
+            numtracking="true|false" />
 </root>
 \end{verbatim}
 
