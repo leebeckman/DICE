@@ -1,5 +1,6 @@
 String userName = getUserNameInput(); 
-// Any data from user input is tainted, so userName is marked as tainted.
+/* Any data from user input is tainted, 
+ * so userName is marked as tainted. */
 String formattedData = "USERNAME:" + userName; 
-// The value of formattedData is based on userName, 
-// so formattedData is marked as tainted.
+/* The value of formattedData is based on userName, 
+ * so formattedData is marked as tainted. */

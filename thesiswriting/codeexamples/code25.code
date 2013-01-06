@@ -1,7 +1,7 @@
 // EXECUTION START
 TG = taint trace graph
-CG = call graph, with all calls made during taint trace collection and
-    their execution time
+CG = call graph taken during taint trace, 
+      with method call execution times
    
 TGStable = pruneToVariability(TG, STABLE)
 TGPredictable = pruneToVariability(TG, PREDICTABLE)
@@ -10,13 +10,12 @@ TGRandom = pruneToVariability(TG, RANDOM)
 StableConnectedSubGraphs = getConnectedSubGraphs(TGStable)
 
 foreach StableCS in StableConnectedSubGraphs:
-    /* Check that the execution of this graph does not result in the
-     * flow of non-deterministic data or require any variable input,
-     * however predictable, as then we need to be much more
-     * careful about using precomputation and skipping execution. */
-    if (getSideEffects(StableCS, TGRandom, CG) == {}):
-        if (getSideEffects(StableCS, TGPredictable, CG) == {}):
-            /* Present the graph to the user */
-            colorOutputs(StableCS)
-            colorInputs(StableCS)
-            showGraphToUser(StableCS)
+  /* Check that the execution of this graph does not 
+   * result in the flow of non-deterministic data or 
+   * require any non-deterministic input */
+  if (getSideEffects(StableCS, TGRandom, CG) == {}):
+    if (getSideEffects(StableCS, TGPredictable, CG) == {}):
+      /* Present the graph to the user */
+      colorOutputs(StableCS)
+      colorInputs(StableCS)
+      showGraphToUser(StableCS)

@@ -1,31 +1,35 @@
-// HELPER METHODS
-/* Given an edge to start from, Edge, work forwards through
- * Graph (to edges which could be influenced by the Edge and
- * so on, using the ContextID to ensure that edges are in the
- * same thread of execution). Return true if the taint ID for
- * TargetTaintedObject can be found at the top level for edges
- * reached from the original Edge. By the top level, we mean 
- * the actual arguments and return values as opposed to tainted
- * objects which are merely reachable from them. Objects have 
- * a flag to prevent redundant work. In the real
- * algorithm used, there is more checking of this than is
- * indicated here to aggressively avoid redundant graph
- * traversals. */    
-function forwardSearch(Edge, Graph, TargetTaintedObject):
-
 // EXECUTION START
 TG = taint trace graph
 
-/* Look at every SubTaintedObject. This means objects not directly passed as
- * arguments or return values, but those which are reachable from such. The
- * assumption is that if taint is passed in this form and subsequently never
- * found to be passed directly at the level of an argument or return value, 
- * it is never accessed and the user should be informed of this. */   
+/* Look at every SubTaintedObject. These are objects not 
+ * directly passed as arguments or return values, but 
+ * rather those which are reachable from such. If taint is 
+ * passed in this form and subsequently never found to be 
+ * passed directly at the level of an argument or return 
+ * value, it is never accessed and the user should be 
+ * informed of this. */   
 foreach Edge in TG.getSortedEdges():
-    foreach TaintedObject in Edge.getTaintedObjects():
-        foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
-            if (forwardSearch(Edge, TG, SubTaintedObject)):
-                SubTaintedObject.setUnused()
-                colorEdge(Edge)
-                
+  foreach TaintedObject in Edge.getTaintedObjects():
+    foreach SubTaintedObject in TaintedObject.
+	                             getSubTaintedObjects():
+      if (forwardSearch(Edge, TG, SubTaintedObject)):
+        SubTaintedObject.setUnused()
+        colorEdge(Edge)
+        
 showGraphToUser(TG)
+
+// HELPER METHODS
+/* @Edge: An edge in @Graph to start the searching from
+ * @Graph: A taint trace graph
+ * @TargetTaintedObject: A tainted object with a taint ID
+ *  to search for
+ * @Return: True if by working forwards from @Edge in 
+ *  @Graph (to edges which could be influenced by @Edge
+ *  and so on, recursively, using edge context information
+ *  to ensure that considered edges were in the same 
+ *  thread of execution), an edge can be found with the 
+ *  taintID for @TargetTaintedObject in the top level. Top
+ *  level means actual arguments and return values as 
+ *  opposed to tainted objects which are merely reachable 
+ *  from them. */  
+function forwardSearch(Edge, Graph, TargetTaintedObject)

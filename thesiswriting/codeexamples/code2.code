@@ -1,46 +1,62 @@
-// HELPER METHODS
-/* Copy the InputGraph, but remove any edges carrying data which doesn't
- * have the input Variability. */
-function pruneToVariability(InputGraph, Variability):
-    
-/* This function takes a fragmented taint graph as input (one can
- * find nodes such that there is no path between them), and extracts
- * every non-fragmented taint graph from it. */
-function getConnectedSubGraphs(InputGraph):
-
-/* Use the CallGraph data to check the overall execution time for the
- * TaintGraph edges. Return true if the time is over THRESHOLD. */
-function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
-
-/* This uses the CallGraph to determine if the events indicated by
- * edges in Graph cause, through their descendent method calls, any 
- * events in the SideEffectGraph to occur. */
-function getSideEffects(Graph, SideEffectGraph, CallGraph):
-    Return any edges in SideEffectGraph which were caused by edges
-	in Graph.
-
 // EXECUTION START
 TG = taint trace graph
-CG = call graph, with all calls made during taint trace collection and
-    their execution time
+CG = call graph taken during taint trace, 
+      with method call execution times
 
 TGPredictable = pruneToVariability(TG, PREDICTABLE)
 TGRandom = pruneToVariability(TG, RANDOM)
 
-PredictableConnectedSubGraphs = getConnectedSubGraphs(TGPredictable)
+PredictableConnectedSubGraphs = 
+  getConnectedSubGraphs(TGPredictable)
 
 foreach PredictableCS in PredictableConnectedSubGraphs:
-    if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
-        /* Check that the execution of this graph does not result in the
-         * flow of non-deterministic data */
-        RandomSideEffects = getSideEffects(PredictableCS, TGRandom, CG)
-        /* If there are side effects, it may be that they are cheap enough
-         * to execute even when fetching from the cache. */
-        if (checkOverCost(RandomSideEffects, CG, REJECT_THRESHOLD)):
-            continue
-        /* Present the graph to the user */
-        colorOutputs(PredictableCS)
-        colorInputs(PredictableCS)
-        showGraphToUser(PredictableCS)
-        /* Indicate the side effects, if any, for the user to handle. */
-        showSideEffectsToUser(RandomSideEffects)
+  if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
+    /* Check that the execution of this graph does not 
+     * result in the flow of non-deterministic data */
+    RandomSideEffects = getSideEffects(PredictableCS, 
+                                        TGRandom, CG)
+    /* If there are side effects, it may be that they are 
+     * cheap enough to execute even when fetching from the
+	 * cache. */
+    if (checkOverCost(RandomSideEffects, CG, 
+	                   REJECT_THRESHOLD)):
+      continue
+    /* Present the graph to the user */
+    colorOutputs(PredictableCS)
+    colorInputs(PredictableCS)
+    showGraphToUser(PredictableCS)
+    /* Indicate the side effects, if any, for the user to 
+     * handle. */
+    showSideEffectsToUser(RandomSideEffects)
+		
+// HELPER METHODS
+/* @InputGraph: A taint trace graph
+ * @Variability: Specify the variability 
+ * @Return: Copy of @InputGraph with edges carrying data
+ *  with variability != @Variability removed */
+function pruneToVariability(InputGraph, Variability)
+  
+/* @InputGraph: A taint trace graph, possibly with nodes
+ *  such that no path exists between them
+ * @Return: A partitioning of @InputGraph which removes no 
+ *  edges and such that within each partition there are no
+ *  disconnected nodes */
+function getConnectedSubGraphs(InputGraph)
+
+/* @TaintGraph: A taint trace graph
+ * @CallGraph: A call graph taken during taint trace with 
+ *  method execution times
+ * @THRESHOLD: A maximum value
+ * @Return: True if and only if the total execution time 
+ *  for the computation represented by edges in 
+ *  @TaintGraph exceeds @THRESHOLD. Uses @CallGraph to
+ *  compute this time */
+function checkOverCost(TaintGraph, CallGraph, THRESHOLD)
+
+/* @Graph: A taint trace graph
+ * @SideEffectGraph: A taint trace graph
+ * @CallGraph: A call graph taken during taint trace
+ * @Return: Any edges in @SideEffectGraph which were 
+ *  caused by edges in @Graph, by checking descendent
+ *  method calls of edges in @Graph using @CallGraph */
+function getSideEffects(Graph, SideEffectGraph, CallGraph)

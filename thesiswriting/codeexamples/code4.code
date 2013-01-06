@@ -1,45 +1,41 @@
-// HELPER METHODS
-/* Extracts from a taint graph the set of taint IDs present amongst
- * its edges. If two graphs share any taint IDs, it means same tainted
- * data flowed it both of them. */
-function getTaintIDSet(Graph):
-
-/* See earlier psuedocode example */
-RequestSubGraphs = getRequestSubGraphs(TG)
-
 // EXECUTION START
 TG = taint trace graph
-
-/* This list will be filled with sets, such that each set contains
- * the taint IDs encountered for a single request. */
 ByRequestTaintIDs = {}
-
+/* Taint IDs which occur in multiple requests */
 PersistentTaintIDs = {}
 
 foreach RequestSG in RequestSubGraphs:
-    ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
-    
-/* Find any taint IDs which where present in multiple Request Graphs.
- * Such indicates tainted data which had a lifetime beyond a single
+  ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
+  
+/* Find any taint IDs which where present in multiple 
+ * Request Graphs. Such data had persisted beyond a single
  * request, and we call such taint IDs persistent. */
 for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
-    for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
-        SetA = ByRequestTaintIDs[i]
-        SetB = ByRequestTaintIDs[j]
-        PersistentTaintIDs.add(SetA intersect SetB)
+  for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
+    SetA = ByRequestTaintIDs[i]
+    SetB = ByRequestTaintIDs[j]
+    PersistentTaintIDs.add(SetA intersect SetB)
 
-/* For each persistent taint ID, go through the the taint graph edges
- * (sorted in the order they occured), coloring any edges which carry the
- * persistent data, and looking for a point where the request ID changes.
- * This point will indicate where multiple requests access the data from,
- * the place where the persistent data is actually stored, and is colored
- * differently. */
 foreach PersistenTaintID in PersistentTaintIDs:
-    foreach Edge in TG.getSortedEdges():
-        if (edge.getAllTaintIDs().contains(PersistentTaintID)):
-            colorEdgeRed(edge)
-            if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
-                colorEdgeGreen(edge)
-            LastRequestID = Edge.getRequestID()
-            
+  foreach Edge in TG.getSortedEdges():
+    if (edge.getAllTaintIDs().contains(PersistentTaintID)):
+	  /* Color any edges which carry persistent data */
+      colorEdgeRed(edge)
+      if (LastRequestID != null AND Edge.getRequestID() 
+	       != LastRequestID)
+		/* Find points where request ID changes to find
+		 * places where persistent data is stored. Color
+		 * these differently */
+        colorEdgeGreen(edge)
+      LastRequestID = Edge.getRequestID()
+      
 showGraphToUser(TG)
+
+// HELPER METHODS
+/* @Graph: A taint trace graph
+ * @Return: The set of taint IDs present amongst the edges
+ *  in @Graph */
+function getTaintIDSet(Graph)
+
+/* See earlier psuedocode example */
+RequestSubGraphs = getRequestSubGraphs(TG)
