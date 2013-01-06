@@ -17,9 +17,9 @@ foreach PredictableCS in PredictableConnectedSubGraphs:
                                         TGRandom, CG)
     /* If there are side effects, it may be that they are 
      * cheap enough to execute even when fetching from the
-	 * cache. */
+  * cache. */
     if (checkOverCost(RandomSideEffects, CG, 
-	                   REJECT_THRESHOLD)):
+                    REJECT_THRESHOLD)):
       continue
     /* Present the graph to the user */
     colorOutputs(PredictableCS)
@@ -28,7 +28,7 @@ foreach PredictableCS in PredictableConnectedSubGraphs:
     /* Indicate the side effects, if any, for the user to 
      * handle. */
     showSideEffectsToUser(RandomSideEffects)
-		
+  
 // HELPER METHODS
 /* @InputGraph: A taint trace graph
  * @Variability: Specify the variability 

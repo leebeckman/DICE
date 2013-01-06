@@ -1,62 +1,62 @@
-1:	// EXECUTION START
-2:	TG = taint trace graph
-3:	CG = call graph taken during taint trace, 
-4:	      with method call execution times
-5:	
-6:	TGPredictable = pruneToVariability(TG, PREDICTABLE)
-7:	TGRandom = pruneToVariability(TG, RANDOM)
-8:	
-9:	PredictableConnectedSubGraphs = 
-10:	  getConnectedSubGraphs(TGPredictable)
-11:	
-12:	foreach PredictableCS in PredictableConnectedSubGraphs:
-13:	  if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
-14:	    /* Check that the execution of this graph does not 
-15:	     * result in the flow of non-deterministic data */
-16:	    RandomSideEffects = getSideEffects(PredictableCS, 
-17:	                                        TGRandom, CG)
-18:	    /* If there are side effects, it may be that they are 
-19:	     * cheap enough to execute even when fetching from the
-20:		 * cache. */
-21:	    if (checkOverCost(RandomSideEffects, CG, 
-22:		                   REJECT_THRESHOLD)):
-23:	      continue
-24:	    /* Present the graph to the user */
-25:	    colorOutputs(PredictableCS)
-26:	    colorInputs(PredictableCS)
-27:	    showGraphToUser(PredictableCS)
-28:	    /* Indicate the side effects, if any, for the user to 
-29:	     * handle. */
-30:	    showSideEffectsToUser(RandomSideEffects)
-31:			
-32:	// HELPER METHODS
-33:	/* @InputGraph: A taint trace graph
-34:	 * @Variability: Specify the variability 
-35:	 * @Return: Copy of @InputGraph with edges carrying data
-36:	 *  with variability != @Variability removed */
-37:	function pruneToVariability(InputGraph, Variability)
-38:	  
-39:	/* @InputGraph: A taint trace graph, possibly with nodes
-40:	 *  such that no path exists between them
-41:	 * @Return: A partitioning of @InputGraph which removes no 
-42:	 *  edges and such that within each partition there are no
-43:	 *  disconnected nodes */
-44:	function getConnectedSubGraphs(InputGraph)
-45:	
-46:	/* @TaintGraph: A taint trace graph
-47:	 * @CallGraph: A call graph taken during taint trace with 
-48:	 *  method execution times
-49:	 * @THRESHOLD: A maximum value
-50:	 * @Return: True if and only if the total execution time 
-51:	 *  for the computation represented by edges in 
-52:	 *  @TaintGraph exceeds @THRESHOLD. Uses @CallGraph to
-53:	 *  compute this time */
-54:	function checkOverCost(TaintGraph, CallGraph, THRESHOLD)
-55:	
-56:	/* @Graph: A taint trace graph
-57:	 * @SideEffectGraph: A taint trace graph
-58:	 * @CallGraph: A call graph taken during taint trace
-59:	 * @Return: Any edges in @SideEffectGraph which were 
-60:	 *  caused by edges in @Graph, by checking descendent
-61:	 *  method calls of edges in @Graph using @CallGraph */
-62:	function getSideEffects(Graph, SideEffectGraph, CallGraph)
+1: // EXECUTION START
+2: TG = taint trace graph
+3: CG = call graph taken during taint trace, 
+4:       with method call execution times
+5: 
+6: TGPredictable = pruneToVariability(TG, PREDICTABLE)
+7: TGRandom = pruneToVariability(TG, RANDOM)
+8: 
+9: PredictableConnectedSubGraphs = 
+10:   getConnectedSubGraphs(TGPredictable)
+11: 
+12: foreach PredictableCS in PredictableConnectedSubGraphs:
+13:   if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
+14:     /* Check that the execution of this graph does not 
+15:      * result in the flow of non-deterministic data */
+16:     RandomSideEffects = getSideEffects(PredictableCS, 
+17:                                         TGRandom, CG)
+18:     /* If there are side effects, it may be that they are 
+19:      * cheap enough to execute even when fetching from the
+20:      * cache. */
+21:     if (checkOverCost(RandomSideEffects, CG, 
+22:                     REJECT_THRESHOLD)):
+23:       continue
+24:     /* Present the graph to the user */
+25:     colorOutputs(PredictableCS)
+26:     colorInputs(PredictableCS)
+27:     showGraphToUser(PredictableCS)
+28:     /* Indicate the side effects, if any, for the user to 
+29:      * handle. */
+30:     showSideEffectsToUser(RandomSideEffects)
+31:   
+32: // HELPER METHODS
+33: /* @InputGraph: A taint trace graph
+34:  * @Variability: Specify the variability 
+35:  * @Return: Copy of @InputGraph with edges carrying data
+36:  *  with variability != @Variability removed */
+37: function pruneToVariability(InputGraph, Variability)
+38:   
+39: /* @InputGraph: A taint trace graph, possibly with nodes
+40:  *  such that no path exists between them
+41:  * @Return: A partitioning of @InputGraph which removes no 
+42:  *  edges and such that within each partition there are no
+43:  *  disconnected nodes */
+44: function getConnectedSubGraphs(InputGraph)
+45: 
+46: /* @TaintGraph: A taint trace graph
+47:  * @CallGraph: A call graph taken during taint trace with 
+48:  *  method execution times
+49:  * @THRESHOLD: A maximum value
+50:  * @Return: True if and only if the total execution time 
+51:  *  for the computation represented by edges in 
+52:  *  @TaintGraph exceeds @THRESHOLD. Uses @CallGraph to
+53:  *  compute this time */
+54: function checkOverCost(TaintGraph, CallGraph, THRESHOLD)
+55: 
+56: /* @Graph: A taint trace graph
+57:  * @SideEffectGraph: A taint trace graph
+58:  * @CallGraph: A call graph taken during taint trace
+59:  * @Return: Any edges in @SideEffectGraph which were 
+60:  *  caused by edges in @Graph, by checking descendent
+61:  *  method calls of edges in @Graph using @CallGraph */
+62: function getSideEffects(Graph, SideEffectGraph, CallGraph)

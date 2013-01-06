@@ -1,53 +1,53 @@
-1:	// EXECUTION START
-2:	TG = taint trace graph
-3:	RequestSubGraphs = getRequestSubGraphs(TG)
-4:	
-5:	foreach RequestSG in RequestSubGraphs:
-6:	  UserOutputEdges = getUserOutputEdges(RequestSG)
-7:	  DBOutputs = getDBOutputEdges(RequestSG)
-8:	  
-9:	  foreach DBOutputEdge in DBOutputs:
-10:	    PostCompEdges = {}
-11:	    /* Start from an edge which outputs to the database.
-12:	     * These are good candidates for blocking computation 
-13:		 * deferable until later. Work backwards from the 
-14:	     * output to see how much computation influencing it 
-15:		 * can be deferred. Stop before the computation could 
-16:		 * influence output to the user. */
-17:	    backwardsExpand(PostCompEdges, DBOutputEdge, 
-18:		                 UserOutputEdges, RequestSG)
-19:	    /* If we found anything, show it to the user */
-20:	    if (PostCompEdges != {}):
-21:	      showGraphToUser(
-22:		   createGraphFromEdges(PostCompEdges))
-23:				
-24:	// HELPER METHODS
-25:	/* @InputGraph: A taint trace graph
-26:	 * @Return: A partitioning of the edges of @InputGraph
-27:	 *  such that the edges in each partition are all from the
-28:	 *  same request. */
-29:	function getRequestSubGraphs(InputGraph)
-30:	
-31:	/* @InputGraph: A taint trace graph
-32:	 * @Return: Any output type edges in @InputGraph for 
-33:	 *  methods known to write output to the user */
-34:	function getUserOutputEdges(InputGraph)
-35:	
-36:	/* @InputGraph: A taint trace graph
-37:	 * @Return: Any output type edges in @InputGraph for 
-38:	 *  methods known to write output to the database */
-39:	function getDBOutputEdges(InputGraph)
-40:	
-41:	/* @FoundEdges: An empty set used to store results
-42:	 * @CurrentEdge: backwardsExpand is recursive. Given an 
-43:	 *  edge @CurrentEdge, work backwards to any edges which
-44:	 *  could have influenced @CurrentEdge, adding them to 
-45:	 *  @FoundEdges
-46:	 * @UserOutputEdges: Provides the condition to stop 
-47:	 *  working backwards. If from a @CurrentEdge it is 
-48:	 *  possible, working forwards to edges influenced by
-49:	 *  @CurrentEdge, to reach edges in @UserOutputEdges, 
-50:	 *  return
-51:	 * @Graph: A taint trace graph */
-52:	function backwardsExpand(FoundEdges, CurrentEdge, 
-53:	                          UserOutputEdges, Graph)
+1: // EXECUTION START
+2: TG = taint trace graph
+3: RequestSubGraphs = getRequestSubGraphs(TG)
+4: 
+5: foreach RequestSG in RequestSubGraphs:
+6:   UserOutputEdges = getUserOutputEdges(RequestSG)
+7:   DBOutputs = getDBOutputEdges(RequestSG)
+8:   
+9:   foreach DBOutputEdge in DBOutputs:
+10:     PostCompEdges = {}
+11:     /* Start from an edge which outputs to the database.
+12:      * These are good candidates for blocking computation 
+13:      * deferable until later. Work backwards from the 
+14:      * output to see how much computation influencing it 
+15:      * can be deferred. Stop before the computation could 
+16:      * influence output to the user. */
+17:     backwardsExpand(PostCompEdges, DBOutputEdge, 
+18:                   UserOutputEdges, RequestSG)
+19:     /* If we found anything, show it to the user */
+20:     if (PostCompEdges != {}):
+21:       showGraphToUser(
+22:     createGraphFromEdges(PostCompEdges))
+23:    
+24: // HELPER METHODS
+25: /* @InputGraph: A taint trace graph
+26:  * @Return: A partitioning of the edges of @InputGraph
+27:  *  such that the edges in each partition are all from the
+28:  *  same request. */
+29: function getRequestSubGraphs(InputGraph)
+30: 
+31: /* @InputGraph: A taint trace graph
+32:  * @Return: Any output type edges in @InputGraph for 
+33:  *  methods known to write output to the user */
+34: function getUserOutputEdges(InputGraph)
+35: 
+36: /* @InputGraph: A taint trace graph
+37:  * @Return: Any output type edges in @InputGraph for 
+38:  *  methods known to write output to the database */
+39: function getDBOutputEdges(InputGraph)
+40: 
+41: /* @FoundEdges: An empty set used to store results
+42:  * @CurrentEdge: backwardsExpand is recursive. Given an 
+43:  *  edge @CurrentEdge, work backwards to any edges which
+44:  *  could have influenced @CurrentEdge, adding them to 
+45:  *  @FoundEdges
+46:  * @UserOutputEdges: Provides the condition to stop 
+47:  *  working backwards. If from a @CurrentEdge it is 
+48:  *  possible, working forwards to edges influenced by
+49:  *  @CurrentEdge, to reach edges in @UserOutputEdges, 
+50:  *  return
+51:  * @Graph: A taint trace graph */
+52: function backwardsExpand(FoundEdges, CurrentEdge, 
+53:                           UserOutputEdges, Graph)

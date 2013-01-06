@@ -1,21 +1,21 @@
-1:	// EXECUTION START
-2:	TG = taint trace graph
-3:	CG = call graph taken during taint trace, 
-4:	      with method call execution times
-5:	   
-6:	TGStable = pruneToVariability(TG, STABLE)
-7:	TGPredictable = pruneToVariability(TG, PREDICTABLE)
-8:	TGRandom = pruneToVariability(TG, RANDOM)
-9:	
-10:	StableConnectedSubGraphs = getConnectedSubGraphs(TGStable)
-11:	
-12:	foreach StableCS in StableConnectedSubGraphs:
-13:	  /* Check that the execution of this graph does not 
-14:	   * result in the flow of non-deterministic data or 
-15:	   * require any non-deterministic input */
-16:	  if (getSideEffects(StableCS, TGRandom, CG) == {}):
-17:	    if (getSideEffects(StableCS, TGPredictable, CG) == {}):
-18:	      /* Present the graph to the user */
-19:	      colorOutputs(StableCS)
-20:	      colorInputs(StableCS)
-21:	      showGraphToUser(StableCS)
+1: // EXECUTION START
+2: TG = taint trace graph
+3: CG = call graph taken during taint trace, 
+4:       with method call execution times
+5:    
+6: TGStable = pruneToVariability(TG, STABLE)
+7: TGPredictable = pruneToVariability(TG, PREDICTABLE)
+8: TGRandom = pruneToVariability(TG, RANDOM)
+9: 
+10: StableConnectedSubGraphs = getConnectedSubGraphs(TGStable)
+11: 
+12: foreach StableCS in StableConnectedSubGraphs:
+13:   /* Check that the execution of this graph does not 
+14:    * result in the flow of non-deterministic data or 
+15:    * require any non-deterministic input */
+16:   if (getSideEffects(StableCS, TGRandom, CG) == {}):
+17:     if (getSideEffects(StableCS, TGPredictable, CG) == {}):
+18:       /* Present the graph to the user */
+19:       colorOutputs(StableCS)
+20:       colorInputs(StableCS)
+21:       showGraphToUser(StableCS)

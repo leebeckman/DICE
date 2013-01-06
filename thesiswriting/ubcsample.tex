@@ -944,52 +944,68 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code2} High level algorithm for caching analysis.}
 \begin{verbatim}
-1:    // HELPER METHODS
-2:    /* Copy the InputGraph, but remove any edges carrying data which doesn't
-3:     * have the input Variability. */
-4:    function pruneToVariability(InputGraph, Variability):
-5:        
-6:    /* This function takes a fragmented taint graph as input (one can
-7:     * find nodes such that there is no path between them), and extracts
-8:     * every non-fragmented taint graph from it. */
-9:    function getConnectedSubGraphs(InputGraph):
-10:    
-11:    /* Use the CallGraph data to check the overall execution time for the
-12:     * TaintGraph edges. Return true if the time is over THRESHOLD. */
-13:    function checkOverCost(TaintGraph, CallGraph, THRESHOLD):
-14:    
-15:    /* This uses the CallGraph to determine if the events indicated by
-16:     * edges in Graph cause, through their descendent method calls, any 
-17:     * events in the SideEffectGraph to occur. */
-18:    function getSideEffects(Graph, SideEffectGraph, CallGraph):
-19:        Return any edges in SideEffectGraph which were caused by edges
-20:        in Graph.
-21:    
-22:    // EXECUTION START
-23:    TG = taint trace graph
-24:    CG = call graph, with all calls made during taint trace collection and
-25:        their execution time
-26:    
-27:    TGPredictable = pruneToVariability(TG, PREDICTABLE)
-28:    TGRandom = pruneToVariability(TG, RANDOM)
-29:    
-30:    PredictableConnectedSubGraphs = getConnectedSubGraphs(TGPredictable)
-31:    
-32:    foreach PredictableCS in PredictableConnectedSubGraphs:
-33:        if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
-34:            /* Check that the execution of this graph does not result in the
-35:             * flow of non-deterministic data */
-36:            RandomSideEffects = getSideEffects(PredictableCS, TGRandom, CG)
-37:            /* If there are side effects, it may be that they are cheap enough
-38:             * to execute even when fetching from the cache. */
-39:            if (checkOverCost(RandomSideEffects, CG, REJECT_THRESHOLD)):
-40:                continue
-41:            /* Present the graph to the user */
-42:            colorOutputs(PredictableCS)
-43:            colorInputs(PredictableCS)
-44:            showGraphToUser(PredictableCS)
-45:            /* Indicate the side effects, if any, for the user to handle. */
-46:            showSideEffectsToUser(RandomSideEffects)
+1: // EXECUTION START
+2: TG = taint trace graph
+3: CG = call graph taken during taint trace, 
+4:       with method call execution times
+5: 
+6: TGPredictable = pruneToVariability(TG, PREDICTABLE)
+7: TGRandom = pruneToVariability(TG, RANDOM)
+8: 
+9: PredictableConnectedSubGraphs = 
+10:   getConnectedSubGraphs(TGPredictable)
+11: 
+12: foreach PredictableCS in PredictableConnectedSubGraphs:
+13:   if (checkOverCost(PredictableCS, CG, ACCEPT_THRESHOLD)):
+14:     /* Check that the execution of this graph does not 
+15:      * result in the flow of non-deterministic data */
+16:     RandomSideEffects = getSideEffects(PredictableCS, 
+17:                                         TGRandom, CG)
+18:     /* If there are side effects, it may be that they are 
+19:      * cheap enough to execute even when fetching from the
+20:      * cache. */
+21:     if (checkOverCost(RandomSideEffects, CG, 
+22:                     REJECT_THRESHOLD)):
+23:       continue
+24:     /* Present the graph to the user */
+25:     colorOutputs(PredictableCS)
+26:     colorInputs(PredictableCS)
+27:     showGraphToUser(PredictableCS)
+28:     /* Indicate the side effects, if any, for the user to 
+29:      * handle. */
+30:     showSideEffectsToUser(RandomSideEffects)
+31:   
+32: // HELPER METHODS
+33: /* @InputGraph: A taint trace graph
+34:  * @Variability: Specify the variability 
+35:  * @Return: Copy of @InputGraph with edges carrying data
+36:  *  with variability != @Variability removed */
+37: function pruneToVariability(InputGraph, Variability)
+38:   
+39: /* @InputGraph: A taint trace graph, possibly with nodes
+40:  *  such that no path exists between them
+41:  * @Return: A partitioning of @InputGraph which removes no 
+42:  *  edges and such that within each partition there are no
+43:  *  disconnected nodes */
+44: function getConnectedSubGraphs(InputGraph)
+45: 
+46: /* @TaintGraph: A taint trace graph
+47:  * @CallGraph: A call graph taken during taint trace with 
+48:  *  method execution times
+49:  * @THRESHOLD: A maximum value
+50:  * @Return: True if and only if the total execution time 
+51:  *  for the computation represented by edges in 
+52:  *  @TaintGraph exceeds @THRESHOLD. Uses @CallGraph to
+53:  *  compute this time */
+54: function checkOverCost(TaintGraph, CallGraph, THRESHOLD)
+55: 
+56: /* @Graph: A taint trace graph
+57:  * @SideEffectGraph: A taint trace graph
+58:  * @CallGraph: A call graph taken during taint trace
+59:  * @Return: Any edges in @SideEffectGraph which were 
+60:  *  caused by edges in @Graph, by checking descendent
+61:  *  method calls of edges in @Graph using @CallGraph */
+62: function getSideEffects(Graph, SideEffectGraph, CallGraph)
 \end{verbatim}
 \end{Program}
 
@@ -1003,28 +1019,27 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code25} High level precomputation for caching analysis.}
 \begin{verbatim}
-1:    // EXECUTION START
-2:    TG = taint trace graph
-3:    CG = call graph, with all calls made during taint trace collection and
-4:        their execution time
-5:       
-6:    TGStable = pruneToVariability(TG, STABLE)
-7:    TGPredictable = pruneToVariability(TG, PREDICTABLE)
-8:    TGRandom = pruneToVariability(TG, RANDOM)
-9:    
-10:    StableConnectedSubGraphs = getConnectedSubGraphs(TGStable)
-11:    
-12:    foreach StableCS in StableConnectedSubGraphs:
-13:        /* Check that the execution of this graph does not result in the
-14:         * flow of non-deterministic data or require any variable input,
-15:         * however predictable, as then we need to be much more
-16:         * careful about using precomputation and skipping execution. */
-17:        if (getSideEffects(StableCS, TGRandom, CG) == {}):
-18:            if (getSideEffects(StableCS, TGPredictable, CG) == {}):
-19:                /* Present the graph to the user */
-20:                colorOutputs(StableCS)
-21:                colorInputs(StableCS)
-22:                showGraphToUser(StableCS)
+1: // EXECUTION START
+2: TG = taint trace graph
+3: CG = call graph taken during taint trace, 
+4:       with method call execution times
+5:    
+6: TGStable = pruneToVariability(TG, STABLE)
+7: TGPredictable = pruneToVariability(TG, PREDICTABLE)
+8: TGRandom = pruneToVariability(TG, RANDOM)
+9: 
+10: StableConnectedSubGraphs = getConnectedSubGraphs(TGStable)
+11: 
+12: foreach StableCS in StableConnectedSubGraphs:
+13:   /* Check that the execution of this graph does not 
+14:    * result in the flow of non-deterministic data or 
+15:    * require any non-deterministic input */
+16:   if (getSideEffects(StableCS, TGRandom, CG) == {}):
+17:     if (getSideEffects(StableCS, TGPredictable, CG) == {}):
+18:       /* Present the graph to the user */
+19:       colorOutputs(StableCS)
+20:       colorInputs(StableCS)
+21:       showGraphToUser(StableCS)
 \end{verbatim}
 \end{Program}
 
@@ -1036,54 +1051,59 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code3} High level algorithm for postcomputation analysis.}
 \begin{verbatim}
-1:    // HELPER METHODS
-2:    /* Takes the InputGraph and splits it into multiple graphs
-3:     * so that each new graph has Edges from a single web request. */
-4:    function getRequestSubGraphs(InputGraph):
-5:    
-6:    /* Return any output type edges for methods known to 
-7:     * write output to the user */
-8:    function getUserOutputEdges(InputGraph):
-9:    
-10:    /* Return any output type edges for methods known to
-11:     * write data to a database */
-12:    function getDBOutputEdges(InputGraph):
-13:    
-14:    /* Given an edge to start from, CurrentEdge, work backwards
-15:     * through Graph (to edges which could have influenced the
-16:     * CurrentEdge and so on, using the ContextID to ensure that
-17:     * edges are in the same thread of execution). */
-18:    function backwardsExpand(FoundEdges, CurrentEdge, UserOutputEdges, Graph):
-19:    
-20:    /* Given an edge to start from, Edge, work forwards through
-21:     * Graph (to edges which could be influenced by the Edge and
-22:     * so on, using the ContextID to ensure that edges are in the
-23:     * same thread of execution). Return true if any of the Target
-24:     * edges can be reached from the original edge.
-25:     */    
-26:    function forwardSearch(Edge, Graph, TargetEdges):
-27:    
-28:    // EXECUTION START
-29:    TG = taint trace graph
-30:
-31:    RequestSubGraphs = getRequestSubGraphs(TG)
-32:    
-33:    foreach RequestSG in RequestSubGraphs:
-34:        UserOutEdges = getUserOutputEdges(RequestSG)
-35:        DBOutputs = getDBOutputEdges(RequestSG)
-36:        
-37:        foreach DBOutEdge in DBOutputs:
-38:            PostCompGraph = Empty Graph
-39:            /* Basically we start from an edge which outputs to the database, as
-40:             * these are good candidates for blocking computation that we might
-41:             * be able to defer until later. We work backwards from the database
-42:             * output to see how much computation influencing it can be deferred,
-43:             * going until we reach a point where the computation could influence
-44:             * output to the user.  */
-45:            backwardsExpand(PostCompGraph, DBOutEdge, UserOutEdges, RequestSG)
-46:            /* If we found anything, show it to the user */
-47:            if (PostCompGraph != {}):
-48:                showGraphToUser(PostCompGraph)
+1: // EXECUTION START
+2: TG = taint trace graph
+3: RequestSubGraphs = getRequestSubGraphs(TG)
+4: 
+5: foreach RequestSG in RequestSubGraphs:
+6:   UserOutputEdges = getUserOutputEdges(RequestSG)
+7:   DBOutputs = getDBOutputEdges(RequestSG)
+8:   
+9:   foreach DBOutputEdge in DBOutputs:
+10:     PostCompEdges = {}
+11:     /* Start from an edge which outputs to the database.
+12:      * These are good candidates for blocking computation 
+13:      * deferable until later. Work backwards from the 
+14:      * output to see how much computation influencing it 
+15:      * can be deferred. Stop before the computation could 
+16:      * influence output to the user. */
+17:     backwardsExpand(PostCompEdges, DBOutputEdge, 
+18:                   UserOutputEdges, RequestSG)
+19:     /* If we found anything, show it to the user */
+20:     if (PostCompEdges != {}):
+21:       showGraphToUser(
+22:     createGraphFromEdges(PostCompEdges))
+23:    
+24: // HELPER METHODS
+25: /* @InputGraph: A taint trace graph
+26:  * @Return: A partitioning of the edges of @InputGraph
+27:  *  such that the edges in each partition are all from the
+28:  *  same request. */
+29: function getRequestSubGraphs(InputGraph)
+30: 
+31: /* @InputGraph: A taint trace graph
+32:  * @Return: Any output type edges in @InputGraph for 
+33:  *  methods known to write output to the user */
+34: function getUserOutputEdges(InputGraph)
+35: 
+36: /* @InputGraph: A taint trace graph
+37:  * @Return: Any output type edges in @InputGraph for 
+38:  *  methods known to write output to the database */
+39: function getDBOutputEdges(InputGraph)
+40: 
+41: /* @FoundEdges: An empty set used to store results
+42:  * @CurrentEdge: backwardsExpand is recursive. Given an 
+43:  *  edge @CurrentEdge, work backwards to any edges which
+44:  *  could have influenced @CurrentEdge, adding them to 
+45:  *  @FoundEdges
+46:  * @UserOutputEdges: Provides the condition to stop 
+47:  *  working backwards. If from a @CurrentEdge it is 
+48:  *  possible, working forwards to edges influenced by
+49:  *  @CurrentEdge, to reach edges in @UserOutputEdges, 
+50:  *  return
+51:  * @Graph: A taint trace graph */
+52: function backwardsExpand(FoundEdges, CurrentEdge, 
+53:                           UserOutputEdges, Graph)
 \end{verbatim}
 \end{Program}
 
@@ -1107,51 +1127,47 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code4} High level algorithm for application state analysis.}
 \begin{verbatim}
-1:    // HELPER METHODS
-2:    /* Extracts from a taint graph the set of taint IDs present amongst
-3:     * its edges. If two graphs share any taint IDs, it means same tainted
-4:     * data flowed it both of them. */
-5:    function getTaintIDSet(Graph):
-6:    
-7:    /* See earlier psuedocode example */
-8:    RequestSubGraphs = getRequestSubGraphs(TG)
-9:    
-10:    // EXECUTION START
-11:    TG = taint trace graph
-12:    
-13:    /* This list will be filled with sets, such that each set contains
-14:     * the taint IDs encountered for a single request. */
-15:    ByRequestTaintIDs = {}
-16:    
-17:    PersistentTaintIDs = {}
-18:    
-19:    foreach RequestSG in RequestSubGraphs:
-20:        ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
-21:        
-22:    /* Find any taint IDs which where present in multiple Request Graphs.
-23:     * Such indicates tainted data which had a lifetime beyond a single
-24:     * request, and we call such taint IDs persistent. */
-25:    for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
-26:        for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
-27:            SetA = ByRequestTaintIDs[i]
-28:            SetB = ByRequestTaintIDs[j]
-29:            PersistentTaintIDs.add(SetA intersect SetB)
-30:    
-31:    /* For each persistent taint ID, go through the the taint graph edges
-32:     * (sorted in the order they occured), coloring any edges which carry the
-33:     * persistent data, and looking for a point where the request ID changes.
-34:     * This point will indicate where multiple requests access the data from,
-35:     * the place where the persistent data is actually stored, and is colored
-36:     * differently. */
-37:    foreach PersistenTaintID in PersistentTaintIDs:
-38:        foreach Edge in TG.getSortedEdges():
-39:            if (edge.getAllTaintIDs().contains(PersistentTaintID)):
-40:                colorEdgeRed(edge)
-41:                if (LastRequestID != null AND Edge.getRequestID() != LastRequestID)
-42:                    colorEdgeGreen(edge)
-43:                LastRequestID = Edge.getRequestID()
-44:                
-45:    showGraphToUser(TG)
+1: // EXECUTION START
+2: TG = taint trace graph
+3: ByRequestTaintIDs = {}
+4: /* Taint IDs which occur in multiple requests */
+5: PersistentTaintIDs = {}
+6: 
+7: foreach RequestSG in RequestSubGraphs:
+8:   ByRequestTaintIDs.add(getTaintIDSet(RequestSG))
+9:   
+10: /* Find any taint IDs which where present in multiple 
+11:  * Request Graphs. Such data had persisted beyond a single
+12:  * request, and we call such taint IDs persistent. */
+13: for (i = 0; i < ByRequestTaintIDs.size(); i+=1):
+14:   for (j = i+1; j < ByRequestTaintIDs.size(); j+=1):
+15:     SetA = ByRequestTaintIDs[i]
+16:     SetB = ByRequestTaintIDs[j]
+17:     PersistentTaintIDs.add(SetA intersect SetB)
+18: 
+19: foreach PersistenTaintID in PersistentTaintIDs:
+20:   foreach Edge in TG.getSortedEdges():
+21:     if (edge.getAllTaintIDs().contains(PersistentTaintID)):
+22:    /* Color any edges which carry persistent data */
+23:       colorEdgeRed(edge)
+24:       if (LastRequestID != null AND Edge.getRequestID() 
+25:         != LastRequestID)
+26:         /* Find points where request ID changes to find
+27:          * places where persistent data is stored. Color
+28:          * these differently */
+29:         colorEdgeGreen(edge)
+30:       LastRequestID = Edge.getRequestID()
+31:       
+32: showGraphToUser(TG)
+33: 
+34: // HELPER METHODS
+35: /* @Graph: A taint trace graph
+36:  * @Return: The set of taint IDs present amongst the edges
+37:  *  in @Graph */
+38: function getTaintIDSet(Graph)
+39: 
+40: /* See earlier psuedocode example */
+41: RequestSubGraphs = getRequestSubGraphs(TG)
 \end{verbatim}
 \end{Program}
 
@@ -1163,51 +1179,72 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code5} High level algorithm for user state analysis.}
 \begin{verbatim}
-1:	// HELPER METHODS
-2:	/* Given a path which starts with a single Edge representing a read 
-3:	 * from persistent data, this recursively attempts to grow the path
-4:	 * using FlowGraph. If the path can be found in the flow graphs for
-5:	 * other requests (accessible in OtherRequestIDsToEdgeMap), it initially 
-6:	 * passes, but if these requests serve data to other users, the path
-7:	 * represents data shared by multiple users and is abandoned. */
-8:	function findUserState(UserStateEdges, Path, FlowGraph, OtherFlows):
-9:	
-10:	/* Construct a map: 
-11:	 * {PersistentTaintID -> {RequestID -> {StartEdge -> FlowSubGraph}}}
-12:	 * This map shows, for each persistent taint ID, which request graphs 
-13:	 * carry that taint, what are the earliest edges carrying that taint,
-14:	 * and where does each bit of persistent taint flows from these points 
-15:	 * of origination. */
-16:	function getMasterMap(PersistentTaintIDs, RequestSubGraphs):
-17:	
-18:	// EXECUTION START
-19:	TG = taint trace graph
-20:	
-21:	RequestSubGraphs = getRequestSubGraphs(TG)
-22:	PersistentTaintIDs = As in earlier pseudocode
-23:	
-24:	Remove from PersistentTaintIDs any IDs which were derived
-25:	from others. This saves work later.
-26:	
-27:	MasterMap = getMasterMap(PersistentTaintIDs, RequestSubGraphs)
-28:	
-29:	foreach PersistentTaintID in MasterMap.keys():
-30:	    RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
-31:	    foreach RequestID in RequestIDToEdgeMap.keys():
-32:	        StartEdgeToFlowGraphMap = RequestIDToEdgeMap.get(RequestID) 
-33:	        foreach StartEdge in StartEdgeToFlowGraphMap.keys():
-34:	            FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
-35:	            /* This map is needed to compare the flow of taint in one
-36:	             * request with the flow of the same taint in other requests. */
-37:	            OtherFlows = RequestIDToEdgeMap.copy()
-38:	            OtherFlows.remove(RequestID)
-39:	            
-40:	            UserStateEdges = {}
-41:	            findUserState(UserStateEdges, {StartEdge}, FlowGraph, OtherFlows)
-42:	            
-43:	            if (UserStateEdges != {}):
-44:	                colorEdge(StartEdge)
-45:	                showGraphToUser(createGraphFromEdges(UserStateEdges))      
+1: // EXECUTION START
+2: TG = taint trace graph
+3: 
+4: RequestSubGraphs = getRequestSubGraphs(TG)
+5: PersistentTaintIDs = As in earlier pseudocode
+6: 
+7: /* Remove from PersistentTaintIDs any IDs which were 
+8:  * derived from others. This saves work later. */
+9: 
+10: MasterMap = getMasterMap(PersistentTaintIDs, 
+11:                           RequestSubGraphs)
+12: 
+13: foreach PersistentTaintID in MasterMap.keys():
+14:   RequestIDToEdgeMap = MasterMap.get(PersistentTaintID)
+15:   foreach RequestID in RequestIDToEdgeMap.keys():
+16:     StartEdgeToFlowGraphMap = 
+17:   RequestIDToEdgeMap.get(RequestID) 
+18:     foreach StartEdge in StartEdgeToFlowGraphMap.keys():
+19:       FlowGraph = StartEdgeToFlowGraphMap.get(StartEdge)
+20:       /* This map is needed to compare the flow of taint 
+21:        * in one request with the flow of the same taint in
+22:        * other requests. */
+23:       OtherFlows = RequestIDToEdgeMap.copy()
+24:       OtherFlows.remove(RequestID)
+25:       
+26:       UserStateEdges = {}
+27:       findUserState(UserStateEdges, {StartEdge}, 
+28:                   FlowGraph, OtherFlows)
+29:       
+30:       if (UserStateEdges != {}):
+31:         colorEdge(StartEdge)
+32:         showGraphToUser(
+33:    createGraphFromEdges(UserStateEdges))  
+34: 
+35: // HELPER METHODS
+36: /* @UserStateEdges: An empty set to store results
+37:  * @Path: @Path starts with a single edge representing a 
+38:  *  read from persistent data. findUserState recursively 
+39:  *  attempts to grow the path along matching edges in 
+40:  *  @FlowGraph. The path grows if it can be found in 
+41:  *  @FlowGraph and in at least one of @OtherFlows, but not
+42:  *  if it can be found in a graph from @OtherFlows which 
+43:  *  serves data to a different user than @FlowGraph. When
+44:  *  @Path is successfully grown, the new edges are added 
+45:  *  to @UserStateEdges
+46:  * @FlowGraph: A taint trace graph indicating the flow and
+47:  *  propagation of a single piece of tainted data
+48:  * @OtherFlows: Flow graphs the same data as @FlowGraph 
+49:  *  but from different requests */
+50: function findUserState(UserStateEdges, Path, 
+51:                         FlowGraph, OtherFlows)
+52: 
+53: /* @PersistentTaintIDs: Set of taint IDs which occur in 
+54:  *  multiple requests
+55:  * @RequestSubGraphs: A partitioning of the edges of a
+56:  *  taint trace graph such that the edges in each 
+57:  *  partition are all from the same request. 
+58:  * @Return: A map: 
+59:  *  {PersistentTaintID -> {RequestID -> 
+60:  *   {StartEdge -> FlowSubGraph}}}
+61:  *  This map shows, for each persistent taint ID, which 
+62:  *  request graphs carry that taint, what are the earliest
+63:  *  edges carrying that taint, and where does each bit of 
+64:  *  persistent taint flows from these points of 
+65:  *  origination. */
+66: function getMasterMap(PersistentTaintIDs, RequestSubGraphs)   
 \end{verbatim}
 \end{Program}
 
@@ -1221,37 +1258,41 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 \begin{Program}
   \caption{\label{prog:code6} High level algorithm for wasteful communication analysis.}
 \begin{verbatim}			
-1:    // HELPER METHODS
-2:    /* Given an edge to start from, Edge, work forwards through
-3:     * Graph (to edges which could be influenced by the Edge and
-4:     * so on, using the ContextID to ensure that edges are in the
-5:     * same thread of execution). Return true if the taint ID for
-6:     * TargetTaintedObject can be found at the top level for edges
-7:     * reached from the original Edge. By the top level, we mean 
-8:     * the actual arguments and return values as opposed to tainted
-9:     * objects which are merely reachable from them. Objects have 
-10:     * a flag to prevent redundant work. In the real
-11:     * algorithm used, there is more checking of this than is
-12:     * indicated here to aggressively avoid redundant graph
-13:     * traversals. */    
-14:    function forwardSearch(Edge, Graph, TargetTaintedObject):
-15:    
-16:    // EXECUTION START
-17:    TG = taint trace graph
-18:    
-19:    /* Look at every SubTaintedObject. This means objects not directly passed as
-20:     * arguments or return values, but those which are reachable from such. The
-21:     * assumption is that if taint is passed in this form and subsequently never
-22:     * found to be passed directly at the level of an argument or return value, 
-23:     * it is never accessed and the user should be informed of this. */   
-24:    foreach Edge in TG.getSortedEdges():
-25:        foreach TaintedObject in Edge.getTaintedObjects():
-26:            foreach SubTaintedObject in TaintedObject.getSubTaintedObjects():
-27:                if (forwardSearch(Edge, TG, SubTaintedObject)):
-28:                    SubTaintedObject.setUnused()
-29:                    colorEdge(Edge)
-30:                    
-31:    showGraphToUser(TG)
+1: // EXECUTION START
+2: TG = taint trace graph
+3: 
+4: /* Look at every SubTaintedObject. These are objects not 
+5:  * directly passed as arguments or return values, but 
+6:  * rather those which are reachable from such. If taint is 
+7:  * passed in this form and subsequently never found to be 
+8:  * passed directly at the level of an argument or return 
+9:  * value, it is never accessed and the user should be 
+10: * informed of this. */   
+11: foreach Edge in TG.getSortedEdges():
+12:   foreach TaintedObject in Edge.getTaintedObjects():
+13:     foreach SubTaintedObject in TaintedObject.
+14:                               getSubTaintedObjects():
+15:       if (forwardSearch(Edge, TG, SubTaintedObject)):
+16:         SubTaintedObject.setUnused()
+17:         colorEdge(Edge)
+18:         
+19: showGraphToUser(TG)
+20: 
+21: // HELPER METHODS
+22: /* @Edge: An edge in @Graph to start the searching from
+23:  * @Graph: A taint trace graph
+24:  * @TargetTaintedObject: A tainted object with a taint ID
+25:  *  to search for
+26:  * @Return: True if by working forwards from @Edge in 
+27:  *  @Graph (to edges which could be influenced by @Edge
+28:  *  and so on, recursively, using edge context information
+29:  *  to ensure that considered edges were in the same 
+30:  *  thread of execution), an edge can be found with the 
+31:  *  taintID for @TargetTaintedObject in the top level. Top
+32:  *  level means actual arguments and return values as 
+33:  *  opposed to tainted objects which are merely reachable 
+34:  *  from them. */  
+35: function forwardSearch(Edge, Graph, TargetTaintedObject)
 \end{verbatim}
 \end{Program}
 
@@ -1534,8 +1575,8 @@ The analysis essentially indicates that the data is able to flow from the databa
 
 \begin{itemize}
 \item The data is read from the database at point 1. Simply note that the input node starts with `forumtitle', identifying the database column from which the data is read.
-\item The forum title data is eventually stored in the Forum:title field at point 2. Continuing along the flow, this field is subsequently accessed by JSP generated code (Method:invoke() indicates the use of reflection to get to the field). 
-\item From there to point 4, the data passes through a series of internal methods from JSP and the JSTL tab library.
+\item The forum title data is eventually stored in the Forum:title field at point 2. Continuing along the flow, this field is subsequently accessed (by reflection, evidenced by the call to Method:invoke()) by a series of autogenerated methods (Java JSP applications convert HTML markup to Java code). 
+\item From there to point 4, the data passes through a series of internal methods from JSP-related libraries.
 \item The forum title is ultimately used in the doStartTag() method at point 4, a method used by JSP tag objects to write data to the user.
 \end{itemize}
 
