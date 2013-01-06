@@ -975,6 +975,12 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 29:      * handle. */
 30:     showSideEffectsToUser(RandomSideEffects)
 31:   
+\end{verbatim}
+Continued in Program~\ref{prog:code2part2}
+\end{Program}
+\begin{Program}
+  \caption{\label{prog:code2part2} High level algorithm for caching analysis, part 2.}
+\begin{verbatim}
 32: // HELPER METHODS
 33: /* @InputGraph: A taint trace graph
 34:  * @Variability: Specify the variability 
@@ -1073,7 +1079,13 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 20:     if (PostCompEdges != {}):
 21:       showGraphToUser(
 22:     createGraphFromEdges(PostCompEdges))
-23:    
+23:   
+\end{verbatim}
+Continued in Program~\ref{prog:code3part2}
+\end{Program}
+\begin{Program}
+  \caption{\label{prog:code3part2} High level algorithm for postcomputation analysis, part 2.}
+\begin{verbatim}
 24: // HELPER METHODS
 25: /* @InputGraph: A taint trace graph
 26:  * @Return: A partitioning of the edges of @InputGraph
@@ -1160,6 +1172,12 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 31:       
 32: showGraphToUser(TG)
 33: 
+\end{verbatim}
+Continued in Program~\ref{prog:code4part2}
+\end{Program}
+\begin{Program}
+  \caption{\label{prog:code4part2} High level algorithm for application state analysis, part 2.}
+\begin{verbatim}
 34: // HELPER METHODS
 35: /* @Graph: A taint trace graph
 36:  * @Return: The set of taint IDs present amongst the edges
@@ -1213,6 +1231,12 @@ The high-level algorithm for performing this analysis is given in Program~\ref{p
 32:         showGraphToUser(
 33:    createGraphFromEdges(UserStateEdges))  
 34: 
+\end{verbatim}
+Continued in Program~\ref{prog:code5part2}
+\end{Program}
+\begin{Program}
+  \caption{\label{prog:code5part2} High level algorithm for user state analysis, part 2.}
+\begin{verbatim}
 35: // HELPER METHODS
 36: /* @UserStateEdges: An empty set to store results
 37:  * @Path: @Path starts with a single edge representing a 
