@@ -584,9 +584,9 @@ The remainder of this thesis is organized as follows: Chapter 2 discusses the bo
 	
 	The main stream of research contributing to this project is that of dynamic information flow tracking (DIFT). Introduced by Suh et al. in \cite{Suh2004}, DIFT refers to tagging (tainting) data used by an application at runtime so that its flow through the application can be tracked. One marks interesting sources - places in an application where input is received, such as by reading from a database or receiving input from a user - where data coming from a source is tainted. From the sources, DIFT systems employ some set of propagation rules which define how tainted data is spread through the system. As a simple case, when a variable is produced by using a tainted input value the taint tag should be copied from the input value to the new variable. This is shown in Program~\ref{prog:code1}. Finally, DIFT systems will establish a set of monitoring sink points in the application to check and report if any tainted data flows through there. These could range from the arguments to a certain function to specific memory locations, depending on the needs of the tool. Many DIFT systems do taint tracking at a fairly low level, down to the level of individual bytes of an application's memory, in order to support such security analyses as memory corruption detection. \\
 
-	Taint tracking has been used almost exclusively in the domain of security, and such systems include \cite{Suh2004} \cite{Newsome2005}, where it is to detect if bytes from untrusted input sources like user input ever end up tainting such sinks as jump target addresses or executable instructions; \cite{Hudgins2004}, where it is used to trace sensitive data like passwords throughout a system to see where and for how long sensitive data is potentially accessible; \cite{Dalton2007}, where the focus shifts to higher-level SQL injection and cross-site scripting attacks, checking if user input taints such sinks as database queries; and \cite{Al-Saleh2010} \cite{Al-Saleh2010a}, which identifies malware and network protocol analysis as uses. \\
+	Taint tracking has been used almost exclusively in the domain of security, and such systems include \cite{Suh2004} \cite{Newsome2005}, where it is to detect if bytes from untrusted input sources like user input ever end up tainting such sinks as jump target addresses or executable instructions; \cite{Hudgins2004}, where it is used to trace sensitive data like passwords throughout a system to see where and for how long sensitive data is potentially accessible; \cite{Dalton2007}, where the focus shifts to higher-level SQL injection and cross-site scripting attacks, checking if user input taints such sinks as database queries; and \cite{Al-Saleh2010a}, which identifies malware and network protocol analysis as uses. \\
 	
-	\cite{Al-Saleh2010} is also interesting in that it focuses on a taint propagation policy known as control flow dependence, where values are tainted if they are assigned values in the scope of a control flow statement (such as an if branch) predicated on tainted data. Such propagation is difficult as it often leads to an explosion of taint in the system, and must be very carefully managed, and our own system does not use it as an intentional design decision. \cite{Gupta2008} additionally identifies data lineage tracing as a use, which focuses on determining the inputs responsible for outputs in various scientific computations, which is similar to some of the analyses we do. \cite{Dalton2010}, \cite{Zavou2011}, and \cite{Kangkook2012} present more security-focused systems, as indeed the majority of taint tracking tools are. \cite{Haldar2005} and \cite{Chin2009} describe Java taint tracking systems which modify the Java runtime to track taint in Strings. By contrast, our system uses AspectJ to obviate the need for such modifications, and we additionally have limited support for tracking taint in numerical values, as described in the Implementation chapter. These systems are, like other efforts, focused on preventing untrusted data from propagating to secure locations.\\
+	\cite{Al-Saleh2010a} is also interesting in that it focuses on a taint propagation policy known as control flow dependence, where values are tainted if they are assigned values in the scope of a control flow statement (such as an if branch) predicated on tainted data. Such propagation is difficult as it often leads to an explosion of taint in the system, and must be very carefully managed, and our own system does not use it as an intentional design decision. \cite{Gupta2008} additionally identifies data lineage tracing as a use, which focuses on determining the inputs responsible for outputs in various scientific computations, which is similar to some of the analyses we do. \cite{Dalton2010}, \cite{Zavou2011}, and \cite{Kangkook2012} present more security-focused systems, as indeed the majority of taint tracking tools are. \cite{Haldar2005} and \cite{Chin2009} describe Java taint tracking systems which modify the Java runtime to track taint in Strings. By contrast, our system uses AspectJ to obviate the need for such modifications, and we additionally have limited support for tracking taint in numerical values, as described in the Implementation chapter. These systems are, like other efforts, focused on preventing untrusted data from propagating to secure locations.\\
 	
 	\cite{Mysore2008} presents something different, and was one of the key pieces in developing our own system. Unlike the previous systems, which are security focused and generally only place sinks at critical points where tainted data is not supposed to reach, dataflow tomogrpahy as introduced in this work does a heavier form of tracking. In tomography, tainted data is reported as it flows through every function call (or even instruction) with the ultimate goal of providing a complete end-to-end picture of how data flows through a system. The goal of their system, like ours, was to help users understand a target application. Their work shares our attention to visualization, noting the difficulty of displaying what are often very large flow graph, as well as our qualitative evaluation strategy. They make the point that while most uses of DIFT are focused on policy enforcement, as with security, their own work is one which focuses on using the analysis for discovery. They do not, however, give any concrete uses for their analysis beyond general understanding. We take a tomographic analysis, and use its output to drive a set of real, varied analyses, demonstrating how the value of obtaining this data. We go further than general understanding, trying to develop tools which suggest specific ways to improve applications.
 	
@@ -1618,8 +1618,7 @@ There are similar graphs for other pieces of precomputable data on the main page
 Having the dataflows for various elements of the main page being identified as precomputable all the way from database to user output means the following: These elements can be easily precomputed - one could even simply hardcode them in the JSP files to save on executing all the JSP/JSTL machinery, along with any user output which was identified as simply nontainted. Furthermore, for the user output which was identified as being tainted by random sources, those flows are independent of those identified by the precomputation analysis, and so can be handled separately from them.
 
 \paragraph{Summary}
-The experimental goals were met in that we were able to identify large sections of a critical page which could be pregenerated. As 
-Identify the sections where are actually precomputable\\ by going through results, precompute those and mix them with \\the dynamic content.
+The experimental goals were met in that we were able to identify large sections of a critical page which could be pregenerated. As jGossip is much more complex than RUBiS, more developer effort is needed to make use of the analysis results than with RUBiS. One would need to go through each identified precomputation result, decide if the saved computations are worth the modifications, and figure out how to modify the application given that much of its code is generated from JSP markup. One would need to be take care not to interfere with execution responsible for generating the dynamic content on this page. In this case gains could be realized by simply removing the JSP tags which ultimately produce the precomputable output, and replacing them with precomputed data.
 
 \subsection{Caching}
 \label{ana:caching}
@@ -1717,8 +1716,7 @@ Interpreting this, a developer can start at the red output node. Figure~\ref{fig
 Using the graph a cache could be implemented as follows: First, consider the inputs. All of them, save for the region parameter, are stable, and thus the only parameter the cache need use to store and return results (the cache key) is the region parameter. The other inputs from the categories and regions tables need only be monitored to detect if they are modified. If so, the cached results are invalidated to be regenerated. As the doGet node is the first to receive the region parameter, the cache check could be performed there. If the cache hits for a given region, the output data (perhaps the entire response page) can be returned and written to the response stream. In the event of a cache miss, the computation can proceed as normal, and the results picked up in the printCategoryByRegion node to be placed in the cache for later.
 
 \paragraph{Summary}
-Identified a critical page which could be entirely cached.
-Identify the cache keys and invalidating data sources,\\ implement a cache to return the entire page given a key.
+This experiment was successful, as the analysis identified a critical page which could be entirely cached instead of generated for each request. Furthermore, the analysis results made it obvious what the various inputs to the cache would be, and where data from the cache could be used. It is up to the developer how exactly to rearchitect the application, but the general guidelines are there.
 
 \subsubsection{jGossip} 
 
@@ -1757,8 +1755,7 @@ The fact that this path was identified by the analysis means that the data which
 Given this graph, it is up to the developer to investigate the feasibility of this cache. The only inputs to it, as shown by the analysis, are the fid and the forum heading. Assuming the headings are stable (and the IDF given in Appendix~\ref{idf:jgossip} does specify this), the fid could be used as a cache key while the headings could be monitored for changes for cache invalidation. The developer would need to investigate the traces further, along with the application code, to determine a good place to implement such a cache. The fact that much of the logic is buried in JSP auto-generated code will make this more difficult than in the case of RUBiS.
 
 \paragraph{Summary}
-Identified portions of a page which could be cached.
-Investigate the result trace to determine how feasible\\ the cache is given the complexity of jGossip's architecture and \\dependence on autogenerated code. Potentially create a cache\\ for a small portion of the page, and explore the results to see\\ if more of the response page can be cached.
+Our goals for this experiment were met, as a possible cache was identified for the analyzed page. The amount of data cached is small, and more work is needed to plan how to best implement the cache (non-trivial given the complexity of jGossip's architecture and use of generated code). Additionally, to obtain greater benefits from this analysis, one would need to continue searching for more caching opportunities beyond this proof-of-concept.
 
 \subsection{Postcomputation}
 \label{ana:postcomp}
@@ -1784,7 +1781,7 @@ Investigate the result trace to determine how feasible\\ the cache is given the 
 For the postcomputation analysis, we sell an item on the RUBiS Store. This simply involves filling out a web form describing various details of the item (name, price, etc), and submitting this to a RegisterItem servlet. The item is added to the database, and after that is done the item details are displayed back to the user when the request returns. This procedure importantly involves a write to a database, which are likely targets for postcomputation.
 
 \paragraph{Experimental Goals}
-The goal here was for the analysis to identify common computations that can be deferred. The output should have it clear at which points in the application logic the computations occur for the purpose of converting them to asynchronous versions.
+The goal here was for the analysis to identify common computations that can be deferred. The output should make it clear at which points in the application logic the computations occur for the purpose of converting them to asynchronous versions.
 
 \paragraph{Analysis}
 \subparagraph{Taint Flow Breakdown}
@@ -1809,8 +1806,7 @@ It is now up to the developer to determine if the semantics of the application c
 Additionally, such modifications tend to free up web servers which allocate threads to handle individual requests. The database update request can be queued in a DBMS, while the webserver is free to complete the request and free up a thread.
 
 \paragraph{Summary}
-Identified a database update and subsequent update\\ verification which could be deferred for a commonly\\ performed request.
-modify the applications to perform the identified\\ computations asynchronously and assess the correct \\operation of the site.
+Having identified a database update and subsequent update verification which could be deferred, a commonly performed request can potentially return back to the user more quickly. It is easy to see where these computations occur and thus where to begin deciding how to convert them to asynchronous versions - in the RegisterItem:doGet() method. A developer can make the appropriate modifications, and from there assess the correct and potentially improved operation of the application.
 
 \subsubsection{jGossip} 
 
@@ -1851,8 +1847,7 @@ At this point it is up to the developer to inspect this graph and determine the 
 As to the details of how exactly to implement this change, that would require a deeper investigation into the application's architecture. This will be made more challenging by the fact that jGossip uses a lot of generated code. Still, the analysis is useful in that it points out the possibility of this optimization, allowing one to recognize it and focus on how to realize it.
 
 \paragraph{Summary}
-Identified a database update and logging action which\\ could be deferred for an infrequently performed request.
-modify the applications to perform the identified\\ computations asynchronously and assess the correct \\operation of the site.
+A database update and logging action which could potentially be deferred were identified, as per the goals of this experiment. The computation occurs for an infrequently performed request, which reduces the usefulness of the optimization. However, having shown that the analysis can identify such cases acts as a proof of concept from which to search for further optimizations.
 
 \subsection{Persistent State}
 \label{ana:pers}
@@ -1885,8 +1880,7 @@ Knowing where persistent data is kept is not in itself an optimization. The know
 Another use for this analysis would be to gauge how much of the logic relies on this kind of stateful data when performing replication. When deploying the RUBiS site across multiple servers to handle greater load, this analysis shows us what execution relies on data which must be shared and kept consistent across the servers. The `chattyList' data could be a bottleneck for the computation encompassed by the orange nodes.
 
 \paragraph{Summary}
-Identified all in-memory persistent state in the application.
-If necessary, modify the application to store this state in\\ a database. Use the knowledge of which application\\ components communicate persistent data to assess the \\viability of replicating the computation those components do.
+The analysis successfully identified the in-memory persistent state in the application and clearly indicated which parts of the application made use of the data. With this information, one could perform a variety of actions depending on one's needs. One could modify the application to store the state in a database instead of in memory. One could also consider how the application interacts with the persistent state to assess the viability of replicating computations which depend on the state.
 
 \subsubsection{jGossip} 
 
@@ -1934,8 +1928,7 @@ The fact that the analysis identified this flow indicates that this username dat
 Knowing that this data is only shared with a single user, one could potentially remove this logic from the server-side code and allow the client to store their own username. The flow shown gives a developer some clues about what the implications of this would be, in that they may need to emulate some of the operations that the JSP/JSTL code performed in order to properly display the data to the user. This amounts to relocating the path shown in the figure from the server to the client, starting with moving the data (point 1), then the computation, and finally outputting it to the user (point 2).
 
 \paragraph{Summary}
- Identified persistent session data and the \\sequence of components responsible for communicating it to the user.\\ Determined that this data was only shared with a single user.
- Potentially move the persistent data out of the server-side\\ and into code the client runs. Use the trace to determine what\\ logic the client needs to properly work with the data.
+Satisfying our experimental goals, the analysis identified data present in multiple requests which was only shared with a single user. Additionally, it showed the sequence of components responsible for communicating the data from where it was stored to the user. This information could potentially be used to move state stored on the server into the client, making the application more resistant to failures on the server.
 
 \subsection{Wasteful Communication}
 \label{ana:waste}
@@ -1972,8 +1965,7 @@ At this point we envision this analysis being mainly useful as an input to more 
 It is also possible that this analysis could be used to help a developer locate wasteful communication for the purpose of modifying the application to remove it, saving resources. This would be of particular use if the communication was occurring across some expensive link, such as over a network.
 
 \paragraph{Summary}
-Identified almost 60\% of edges as carrying unnecessary\\ data in a trace of a commonly accessed page.
-Use these results to obtain better communication \\cost bounds in an application partitioning algorithm.\\ Use the results to identify potential application modifications to\\reduce wasteful inter-component communication.
+The analysis identified almost 60\% of edges as carrying unnecessary data in a trace of a commonly accessed page. Mainly, these results can be used to obtain better communication cost bounds for such tools as application partitioning algorithms. One might also use the results to identify application modifications for reducing wasteful inter-component communication.
 
 % Summary
 % Analysis Type:
