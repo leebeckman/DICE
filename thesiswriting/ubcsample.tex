@@ -839,6 +839,13 @@ The main components of the tool are as follows:
 
 \begin{figure}[ht]
   \begin{center}
+    \includegraphics[width=0.6\textwidth]{figs/visexample2.eps}
+    \caption[Continued Example of Graph Visualization.]{\label{fig:visexample2} Continued Example of Graph Visualization.}
+  \end{center}
+\end{figure}
+
+\begin{figure}[ht]
+  \begin{center}
     \includegraphics[width=0.6\textwidth]{figs/dbformat.eps}
     \caption[Format of input nodes for database data.]{\label{fig:dbformat} Format of input nodes for database data.}
   \end{center}
@@ -853,7 +860,7 @@ The main components of the tool are as follows:
 
 \subsubsection{Visualization System} 
 \label{subsub:vissystem}
-This relies primarily on the JUNG framework to provide a more user-friendly means of working with the taint tracking data. To use the tool, a log file is specified which is then used to generate an internal JUNG graph representation. The presentation of taint traces in graph form is as depicted in Figure~\ref{fig:visexample}, and the points to note are as follows:
+This relies primarily on the JUNG framework to provide a more user-friendly means of working with the taint tracking data. To use the tool, a log file is specified which is then used to generate an internal JUNG graph representation. The presentation of taint traces in graph form is as depicted in Figure~\ref{fig:visexample} and Figure~\ref{fig:visexample2}. The points to note are as follows:
 
 \begin{table}[ht]
   \begin{center}
@@ -876,10 +883,11 @@ This relies primarily on the JUNG framework to provide a more user-friendly mean
 \end{table}
 
 \begin{itemize}
-\item Point 1: A node, or location where tainted data was detected. Most are method calls, like this one, listing the class name, method name (and argument types if necessary), and an object identifier if the call is on an instance.
-\item Point 2: A special type of node, the input node. These indicate and provide information about where tainted data enters an application. Figure~\ref{fig:dbformat} and Figure~\ref{fig:uriformat} outline how to interpret these nodes. For Figure~\ref{fig:dbformat}, note that the first field, identified as the 'target column', is the most important. The rest of the fields identify the various columns present in the data obtained from a database query, and this first field specifies which of these columns was actually accessed.  
-\item Point 3: Directed edges describing each event where tainted data flows from one location to another, listing the type of event (Call, Return, Field Get/Set, etc) and an identifier. The identifier can be used to lookup more detailed information about the event. See Table~\ref{tab:edgetypes} for a breakdown of the possible edge types.
-\item Not shown: Nodes for fields of classes/objects where tainted data is stored. These list the class name and the field name, along with an object identifier if needed, much like the method call nodes.
+\item Point 1, Figure~\ref{fig:visexample}: A node, or location where tainted data was detected. Most are method calls, like this one, listing the class name, method name (and argument types if necessary), and an object identifier if the call is on an instance.
+\item Point 2, Figure~\ref{fig:visexample}: A special type of node, the input node. These indicate and provide information about where tainted data enters an application. Figure~\ref{fig:dbformat} and Figure~\ref{fig:uriformat} outline how to interpret these nodes. For Figure~\ref{fig:dbformat}, note that the first field, identified as the 'target column', is the most important. The rest of the fields identify the various columns present in the data obtained from a database query, and this first field specifies which of these columns was actually accessed.  
+\item Point 3, Figure~\ref{fig:visexample}: Directed edges describing each event where tainted data flows from one location to another, listing the type of event (Call, Return, Field Get/Set, etc) and an identifier. The identifier can be used to lookup more detailed information about the event. See Table~\ref{tab:edgetypes} for a breakdown of the possible edge types.
+\item Point 2, Figure~\ref{fig:visexample2}: A node describing a fields of a class/object where tainted data is stored. These list the class name and the field name, along with an object identifier if needed, much like the method call nodes.
+\item Point 1, Figure~\ref{fig:visexample2}: Note the text within the square brackets for the label of this node. It is the same as the label for the node at point 1 in the same figure. This text means that the object represented by the node (in this case an AbstractSequentialList) was accessed from the field indicated in the brackets, ServletPrinter:chattyList. This information helps to track the flow of data in the graphs. 
 \end{itemize}
 
 The entire graph can be viewed all at once, but the traces are often so large that it is impossible to comprehend the output. To support a more controlled viewing, it is possible to filter the graph in various ways:
