@@ -357,12 +357,14 @@
 
 \chapter{Acknowledgements}      %% Optional
 
-I'd like to thank Eric Wohlstadter of the Software Practices Lab and Rodger Lea of the MAGIC Lab, my supervisory team. Together they kept my work on track and always moving towards completion. They were exceedingly patient and understanding in this effort, as this ended up taking quite a bit longer than I'd planned, and there were many rough edges that they helped me round out.\\
+I'd like to thank Eric Wohlstadter of the Software Practices Lab and Rodger Lea of the MAGIC Lab, my supervisory team. Together they kept my work on track and always moving towards completion. They were exceedingly patient and understanding in this effort, as this ended up taking quite a bit longer than I'd planned, and there were many rough edges that they helped me round out. I thank them in particular for constantly questioning my assumptions, ideas, and things I tried to be vague about.\\
 
-Nima Kaviani, also of the SPL, 
+Nima Kaviani, also of the SPL, inspired me with his work on application partitioning and dedication to his own thesis. I thank him for his words of encouragement and efforts to understand what I was doing.
+
+Finally, thanks to Ed Knorr, my second reader in a field somewhat removed from this work. His acceptance of the task was greatly appreciated.
 
 \chapter{Dedication} %% Optional
-Dedicate this thesis to my wife.
+I dedicate this thesis to my wife, Esther, if she'll have it. She's waited too long for me to finish this, and gracefully provided her proofreading expertise on top of all the support, food, and distractions. <3
 %%The dedication is usually quite short, and is a personal rather than
 %%an academic recognition.  The \emph{Dedication} does not have to be
 %%titled, but it must appear in the table of contents.  If you want to
@@ -1749,14 +1751,14 @@ The fact that this path was identified by the analysis means that the data which
 Given this graph, it is up to the developer to investigate the feasibility of this cache. The only inputs to it, as shown by the analysis, are the fid and the forum heading. Assuming the headings are stable (and the IDF given in Appendix~\ref{idf:jgossip} does specify this), the fid could be used as a cache key while the headings could be monitored for changes for cache invalidation. The developer would need to investigate the traces further, along with the application code, to determine a good place to implement such a cache. The fact that much of the logic is buried in JSP auto-generated code will make this more difficult than in the case of RUBiS.
 
 \paragraph{Summary}
-Our goals for this experiment were met, as a possible cache was identified for the analyzed page. The amount of data cached is small, and more work is needed to plan how to best implement the cache (non-trivial given the complexity of jGossip's architecture and use of generated code). Additionally, to obtain greater benefits from this analysis, one would need to continue searching for more caching opportunities beyond this proof-of-concept.
+Our goals for this experiment were met, as a possible cache was identified for the analyzed page. The amount of data cached is small, and more work is needed to plan how to best implement the cache (non-trivial given the complexity of jGossip's architecture and use of generated code). Additionally, to obtain greater benefits from this analysis, one would need to continue searching for more caching opportunities beyond this proof of concept.
 
 \subsection{Postcomputation}
 \label{ana:postcomp}
 \subsubsection{RUBiS}
 
 \paragraph{Experimental Setup}
-For the postcomputation analysis, we sell an item on the RUBiS Store. This simply involves filling out a web form describing various details of the item (name, price, etc.), and submitting this to a RegisterItem servlet. The item is added to the database, and after that is done the item details are displayed back to the user when the request returns. This procedure importantly involves a write to a database, which are likely targets for postcomputation.
+For the postcomputation analysis, we sell an item on the RUBiS Store. This simply involves filling out a web form describing various details of the item (name, price, etc.), and submitting this to a RegisterItem servlet. The item is added to the database, and after that is done the item details are displayed back to the user when the request returns. This procedure importantly involves a write to a database, which is a likely target for postcomputation.
 
 \paragraph{Experimental Goals}
 The goal here was for the analysis to identify common computations that can be deferred. The output should make it clear at which points in the application logic the computations occur for the purpose of converting them to asynchronous versions.
@@ -1793,7 +1795,7 @@ Figure~\ref{fig:sellitempostcomputation} shows the results of running the postco
 The figure shows that the database update and query flows at points 3, 4, and 5 from Figure~\ref{fig:sellitemtrace} could be deferred. None of the queries return data which is used to generate the response page. Missing from the result graph is the reading of the item properties and writing them to the response page. This is because if these flows were deferred until later the output that the user sees would be incomplete.
 
 \paragraph{Developer Interpretation and Response}
-It is now up to the developer to determine if the semantics of the application can tolerate deferring these computations. It is possible that it does not make sense to display the response page without knowing for certain whether or not the database update was successful. However, if this is okay, the analysis suggests that these queries could be done asynchronously, returning back to the user without waiting for their completion. The application could be altered to support this, and users would see response pages faster. \\
+It is now up to the developer to determine if the semantics of the application can tolerate deferring these computations. It is possible that it does not make sense to display the response page without knowing for certain whether or not the database update was successful. However, if this is acceptable, the analysis suggests that these queries could be done asynchronously, returning back to the user without waiting for their completion. The application could be altered to support this, and users would see response pages faster. \\
 
 Additionally, such modifications tend to free up web servers which allocate threads to handle individual requests. The database update request can be queued in a DBMS, while the webserver is free to complete the request and free up a thread.
 
@@ -1803,7 +1805,7 @@ Having identified a database update and subsequent update verification which cou
 \subsubsection{jGossip} 
 
 \paragraph{Experimental Setup}
-To test the postcomputation analysis for jGossip, we use a trace taken while submitting a delete forum request. This request sends a forum ID parameter to the server, which is used to locate the forum to delete. We anticipated that this action would involve computation and updates to the database which could potentially be deferred. It is true that this operation would likely not occur very often, but the results are still useful as a minor optimization. \\
+To test the postcomputation analysis for jGossip, we use a trace taken while submitting a delete forum request. This request sends a forum ID parameter to the server, which is used to locate the forum to delete. We anticipated that this action would involve computation and updates to the database which could potentially be deferred. It is true that this operation would likely not occur very often, but the results are still useful as a minor optimization and proof of concept. \\
 
 \paragraph{Experimental Goals}
 The goal here was to find potential postcomputation opportunities. Due to the complexity of jGossip, the approach was to focus on analysis results for specific data suspected to be involved in deferrable computations. We hoped to find in the results evidence that such data underwent various computations before being written to a database, computations which did not influence output immediately visible to the user and which could be deferred.
@@ -1835,7 +1837,7 @@ The analysis is showing that the computation and flow of data presented in Figur
 \paragraph{Developer Interpretation and Response}
 At this point it is up to the developer to inspect this graph and determine the feasibility of deferring some of the computations it represents. At a high level, one could modify the application to, having received  the forum ID from the user, enqueue asynchronous computations to perform the forum deletion and logging. The request handler could then immediately return to the user, letting them know that their request had been received and was being processed. \\
 
-As to the details of how exactly to implement this change, that would require a deeper investigation into the application's architecture. This will be made more challenging by the fact that jGossip uses a lot of generated code. Still, the analysis is useful in that it points out the possibility of this optimization, allowing one to recognize it and focus on how to realize it.
+As to the details of how exactly to implement this change, such would require a deeper investigation into the application's architecture. This will be made more challenging by the fact that jGossip uses a lot of generated code. Still, the analysis is useful in that it points out the possibility of this optimization, allowing one to recognize it and focus on how to realize it.
 
 \paragraph{Summary}
 A database update and logging action which could potentially be deferred were identified, as per the goals of this experiment. The computation occurs for an infrequently performed request, which reduces the usefulness of the optimization. However, having shown that the analysis can identify such cases acts as a proof of concept from which to search for further optimizations.
@@ -1862,7 +1864,7 @@ The taint flow for this setup has already been discussed in Section~\ref{sec:rub
 \caption{RUBiS Browse Items State Analysis Results.} 
 \label{fig:browseitemsstate}
 \end{sidewaysfigure}
-The analysis searches the graph for any data which can be found in multiple requests. This is assumed to be persistent data, used for keeping state which lives beyond the scope of a single request. Figure~\ref{fig:browseitemsstate} shows the location of persistent state when interacting with the RUBiS messaging system. Only the portion of the graph which deals with the persistent state is shown here. The red node shows where the persistent state is actually kept, in a variable called `chattyList' on the ServletPrinter class. The orange nodes are those which communicated the persistent data in question. As expected, these  orange nodes include a chatMessage parameter and its flow into the chattyList, as well as the output nodes which encompass the writing of the chat messages out to the user.\\
+The analysis searches the graph for any data which can be found in multiple requests. This is assumed to be persistent data, used for keeping state which exists beyond the scope of a single request. Figure~\ref{fig:browseitemsstate} shows the location of persistent state when interacting with the RUBiS messaging system. Only the portion of the graph which deals with the persistent state is shown here. The red node shows where the persistent state is actually kept, in a variable called `chattyList' on the ServletPrinter class. The orange nodes are those which communicated the persistent data in question. As expected, these  orange nodes include a chatMessage parameter and its flow into the chattyList, as well as the output nodes which encompass the writing of the chat messages out to the user.\\
 
 \paragraph{Developer Interpretation and Response}
 Knowing where persistent data is kept is not in itself an optimization. The knowledge of it is useful in general. Earlier we mentioned cases where an application may be in an environment where persistent state is not allowed or unsafe. If such were the case, these analysis results could be used to target such state for removal, either by changing the logic of the application completely or moving the state into an acceptable store. The `chattyList' data could simply be put into a database table.\\
@@ -1885,7 +1887,7 @@ The RUBiS application did not contain any persistent state which was not shared 
 \subsubsection{jGossip}
 
 \paragraph{Experimental Setup}
-For this analysis we traced jGossip while logging in with two different users, each coming from a different IP address. This was done in order to generate persistent state data for both users, believing that some of this data would be only ever be communicated with a single user.
+For this analysis we traced jGossip while logging in with two different users, each coming from a different IP address. This was done in order to generate persistent state data for both users, as we anticipated that some of this data would only be communicated with a single user.
 
 \paragraph{Experimental Goals}
 The goal of this experiment was to locate unknown persistent state in the jGossip application which was only shared with a single user, and determine which parts of the application interacted with the state.
@@ -1945,7 +1947,7 @@ Understanding the taint flow is not necessary for the goals of this experiment.
 \caption{jGossip Wasteful Communication Analysis Results.} 
 \label{fig:showforumcomm}
 \end{sidewaysfigure}
-This analysis was a very simple one, and serves to hint at the potential for this technique. The wasteful communication analysis was run over the taint flow graph obtained for the jGossip caching analysis, removing any edges which carried tainted data which was never subsequently accessed. Figure~\ref{fig:showforumcomm} shows a before and after view. On the left is shown the unprocessed trace. On the right is the graph with the removed edges. Really, the figure is merely a visual representation of the fact that only 5921 of the original 14693 edges remained. This does not mean that these removed edges carried no useful data, only that some of the data they carried was never used. In jGossip this is largely due to the use of JSP, which passes around objects containing references to all the data needed to render a page, whether or not they are needed in a particular function. The figure serves to show that such an occurrence can be quite prevalent in certain applications, and that our analysis tool is capable of detecting it.
+This analysis was a very simple one, and serves to hint at the potential for this technique. The wasteful communication analysis was run over the taint flow graph obtained for the jGossip caching analysis, removing any edges which carried tainted data which was never subsequently accessed. Figure~\ref{fig:showforumcomm} shows a before and after view. On the top is shown the unprocessed trace. On the bottom is the graph with the removed edges. The figure is merely a visual representation of the fact that only 5921 of the original 14693 edges remained. This does not mean that these removed edges carried no useful data, only that some of the data they carried was never used. In jGossip this is largely due to the use of JSP, which passes around objects containing references to all the data needed to render a page, whether or not they are needed in a particular function. The figure serves to show that such an occurrence can be quite prevalent in certain applications, and that our analysis tool is capable of detecting it.
 
 \paragraph{Developer Interpretation and Response}
 At this point we envision this analysis being mainly useful as an input to more specific analysis tools. In particular, knowing whether or not data is used after it is communicated would be useful in getting better communication cost estimates for application partitioning algorithms. If an application is partitioned, sharing data between partitions incurs an additional cost, and thus only communicating data when it is actually needed (used) will provide savings. Wasteful communication should be avoided in a partitioning scenario, and so the algorithms which attempt to discover optimal partitionings of an application based on its dataflow should be aware of which dataflows are used and which aren't.\\
@@ -1981,9 +1983,9 @@ Such difficulties are examples of the challenges present in automating these kin
 
 For a framework-heavy application like jGossip the graphs are much larger. At their current stage, most of our analysis results are negatively affected by this complexity. They suffer from a `rats nest' effect, and require some manual filtering and searching through to find the parts which could be used to actually support a developer in optimizing the application. In the future the analysis tool could be improved with IDE integration to link results more closely with source code. Such could allow a developer to focus on analysis flows which relate to specific parts of their code, making it easier for developers to navigate through the analysis results.\\
 
-A related problem, again most prevalent in the large jGossip graphs, is that of false positives. The analyses were written to be fairly general in order to find their results in applications which were not written to be easily analyzed. The permissive nature of these analyses may produce a large number of results that needs to be pared down to discover which of them are truly useful. In the caching analysis for jGossip there were results where it was possible for some flows to be affected by random data through control dependence. This could make the results poor candidates for caching, but since our taint tracking technique does not consider control-flow propagation of taint, these results were allowed.\\
+A related problem, again most prevalent in the large jGossip graphs, is that of false positives. The analyses were written to be fairly general in order to find their results in applications which were not written to be easily analyzed. The permissive nature of these analyses may produce a large number of results that need to be pared down to discover which of them are truly useful. In the caching analysis for jGossip there were results where it was possible for some flows to be affected by random data through control dependence. This could make the results poor candidates for caching, but since our taint tracking technique does not consider control-flow propagation of taint, these results were allowed.\\
 
-A final problem, unrelated to the analysis results, is that of the speed of applications during taint tracking. Slowdowns of roughly two orders of magnitude were observed, especially in the more complex jGossip application. This is mainly because of the use of AspectJ, which introduced inefficiencies inherent in its own design and forced us to perform some wasteful workarounds to properly track tainted data. This reality, along with the fact that the log files could be very massive for even small amounts of application activity (tens of thousands of lines per request in jGossip), meant that we generally did not perform analyses over exhaustive taint traces. By this we mean that we did not attempt to work the application through all or even a majority of its possible execution paths. There are issues of coverage here, with the possibility of some analysis being invalidated by additional data. For example, exploring more requests for the user state analysis may have revealed that the persistent data identified was actually shared among multiple users in some cases.\\
+A final problem, unrelated to the analysis results, is that of the speed of applications during taint tracking. Slowdowns of roughly two orders of magnitude were observed, especially in the more complex jGossip application. This is mainly because of the use of AspectJ, which introduced inefficiencies inherent in its own design and forced us to perform some wasteful workarounds to properly track tainted data. This reality, along with the fact that the log files could be very massive for even small amounts of application activity (tens of thousands of lines per request in jGossip), meant that we generally did not perform analyses over exhaustive taint traces. By this we mean that we did not attempt to work the application through all or even a majority of its possible execution paths. There are issues of coverage here, with the possibility of some analyses being invalidated by additional data. For example, exploring more requests for the user state analysis may have revealed that the persistent data identified was actually shared among multiple users in some cases.\\
 
 Even with these shortcomings, the project was still successful given the aims of the thesis. The analyses were able to identify their targets using only the taint tracking data and in some cases light user input. Such input could additionally be automated, such as by monitoring an application's use of data to categorize the variability of its inputs as in the IDFs. As the analyses found valid results, it shows that given optimization opportunities it is possible for a taint tracking based automated analysis to target them. It also demonstrates that the types of optimizations we sought to locate with our analyses actually exist in real web applications. Furthermore, though manual intervention is currently required to produce some of the results, the automation that was observed was promising. Our analyses are relatively simple, being composed ad-hoc from rough descriptions in the literature, and still they were in many cases able to produce very clean results - especially for the simpler RUBiS application. In such cases an inexperienced developer should be able to make use of even this early version of our tools.\\
 
@@ -1997,7 +1999,7 @@ First of all, the tools need to be made more efficient. The speed of the tracker
 
 Moving away from AspectJ for the taint tracker could also allow a more complete tracking. With AspectJ there was no perfect solution for tracking the flow of primitive data types, and what we have in place for tracking numeric values is really a temporary measure. Implementing the tracker at a lower level, such as Java byte-code, would provide the control necessary to tag and track such values. One could also explore the effects of control-flow propagation on the analyses presented here. As has been discussed in the literature, this may lead to many false positives, but there have been efforts to control the proliferation of tainted data in such scenarios which may offer useful lessons. Tracking in this way may capture dependencies between data items that we miss, and allow for more accurate analyses.\\
 
-Concerning the actual interaction with the analysis tool, the needs are mostly related to automation. If the tool was to be truly used to support developers' understanding of applications, it needs to be able to offer cleaner results without expert intervention. Additional study is needed to refine the analyses: to more accurately identify their targets and find ways of more concisely presenting their results. Taking things much further, it would be interesting to attempt to perform some optimizations automatically, as is done in the Fluxo system. There are many challenges here, as the applications targeted by our system were not developed in restricted programming models which could make automatic changes easier. Following the improvements to the analysis tool, it would be valuable to conduct a user study to determine if non-expert developers can actually use the tool to make optimization decisions about web applications they are unfamiliar with.\\
+Concerning the actual interaction with the analysis tool, the needs are mostly related to automation. If the tool was to be truly used to support developers' understanding of applications, it needs to be able to offer cleaner results without expert intervention. Additional study is needed to refine the analyses: to more accurately identify their targets and find ways of more concisely presenting their results. Taking things much further, it would be interesting to attempt to perform some optimizations automatically, as is done in the Fluxo system. There are many challenges here, as the applications targeted by our system were not developed in restricted programming models which make automatic changes easier. Following the improvements to the analysis tool, it would be valuable to conduct a user study to determine if non-expert developers can actually use the tool to make optimization decisions about web applications they are unfamiliar with.\\
 
 Related to improving the analysis tool, the analyses themselves can be developed further. In the future we would like to do a more thorough evaluation of specific analyses, taking the results from the tool and using them to modify applications. Modified applications could be evaluated under typical use scenarios to assess the quality of the optimization suggestions. Thoroughly testing the possible execution paths over a wide variety of applications could enable more accurate analyses as we discover what kinds of dataflow patterns are common and exploitable for optimization. Further study of applications and the literature would also likely reveal additional analyses supported by the taint tracking data, as our set was not intended to be an exhaustive one.\\
 
@@ -2005,7 +2007,7 @@ Finally, once the tools are mature enough, we would like to attempt to integrate
 
 \section{Final Words}
 
-We have demonstrated a proof of concept taint tracker for Java web applications, and a series of analyses to consume the data and identify useful properties. The goal was to show that taint tracking data could be used to support a wide variety of analyses. Furthermore, the results of these analyses would be geared to supporting developers in modifying applications to better deal with migration scenarios. By choosing analyses identified in the literature as useful to this end, we feel that we have made a sound first effort. As all of the analyses were generally successful, finding correct results in real applications, we see promise in this technique. It is no trivial task to take an application written in a non-restricted environment and attempt to automatically optimize it, as there are so many unexpected patterns which can arise.\\
+We have demonstrated a proof of concept taint tracker for Java web applications, and a series of analyses to consume the data and identify useful properties. The goal was to show that taint tracking data could be used to support a wide variety of analyses. Furthermore, the results of these analyses would be geared to supporting developers in modifying applications to better deal with migration scenarios. By choosing analyses identified in the literature as useful to this end, we feel that we have made a sound first effort. As all of the analyses were generally successful, finding correct results in real applications, we see promise in this technique. It is no trivial task to take an application written in a non-restricted environment and attempt to automatically optimize it, as there are many unexpected patterns which can arise.\\
 
 The success we had was a result of focusing on getting a complete picture of application dataflow, for which taint tracking was necessary. The primary function of most web applications is the processing and serving of data for their users. Data is the most natural thing to follow when seeking to understand and improve upon the functioning of these applications. Because of the nature of the data we were collecting, and analyses were conceptually quite simple, while still providing useful results.\\
 
@@ -2392,7 +2394,7 @@ Though there are many points of refinement to be made in our tools and additiona
 \begin{itemize}
 \item Predictable: This describes data with deterministic values over some range. A predictable data source will return an unknown value, but it will be from a small enough set of values that the result could be usefully cached.
 \item Stable: This describes data with strongly deterministic values. Generally, a stable data source should return the same known value for extended periods.
-\item Taint: Where this is used, such as when saying that a piece of data in an application is `tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, refereed to as the `taint source'. In this thesis is made a minor distinction between objects which are directly tainted and those which are reachability tainted. Directly tainted objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted object is reachable through an object's reference graph, such as by following a heirarchy of field references.
+\item Taint: Where this is used, such as when saying that a piece of data in an application is `tainted', it refers to data which has been tagged to be tracked by the tracking system. Whenever tainted data is detected at some monitoring point in an application, the system reports it. Taint can include information about where the data came from, as is the case for the system described here, referred to as the `taint source'. In this thesis is made a minor distinction between objects which are directly tainted and those which are reachability tainted. Directly tainted objects include a set of basic types which, once tainted, are always tainted. These include Strings, StringBuffers, StringBuilders, character arrays, and some numeric values. Reachability tainted means that a directly tainted object is reachable through an object's reference graph, such as by following a heirarchy of field references.
 \item Tomography: This refers to the nature of the taint tracking in question. Tomography-level taint tracking is a heavy form of the analysis where tainted data is not only tagged at a source and identified at predetermined monitoring points, but is rather tracked along its complete path, indiscriminantly through many monitoring points. The basic goal of tomography is to get a complete trace of where tainted data goes in a program. 
 \end{itemize}
 
@@ -2430,25 +2432,36 @@ Finally, one can optionally, for columns and parameters producing numeric values
 \begin{verbatim}
 The contents are specified in a non-XML, condensed format:
 <databasesourceinfo ... />:
-	Database: catalog/table/column - variability: ... - numtracking: ...
+Database: catalog/table/column - variability: ... 
+  - numtracking: ...
 <requestsourceinfo ... />:
-	Request: uri:parameter - variability: ... - numtracking: ...
+Request: uri:parameter - variability: ... 
+  - numtracking: ...
 
-Database: rubis/categories/id - variability: STABLE - numtracking: true
+Database: rubis/categories/id - variability: STABLE - 
+  numtracking: true
 Database: rubis/categories/name - variability: STABLE
-Database: rubis/regions/id - variability: STABLE - numtracking: true
+Database: rubis/regions/id - variability: STABLE 
+  - numtracking: true
 Database: rubis/regions/name - variability: STABLE
-Database: rubis/users/id - variability: STABLE - numtracking: true
+Database: rubis/users/id - variability: STABLE 
+  - numtracking: true
 Request: SubmitChat:chatMessage - variability: RANDOM
 Request: BrowseCategories:region - variability: PREDICTABLE
 Request: BrowseCategories:nickname - variability: PREDICTABLE
 Request: BrowseCategories:password - variability: PREDICTABLE
-Request: RegisterItem:initialPrice - variability: RANDOM - numtracking: true
-Request: RegisterItem:reservePrice - variability: RANDOM - numtracking: true
-Request: RegisterItem:buyNow - variability: RANDOM - numtracking: true
-Request: RegisterItem:quantity - variability: RANDOM - numtracking: true
-Request: RegisterItem:userId - variability: PREDICTABLE - numtracking: true
-Request: RegisterItem:categoryId - variability: PREDICTABLE - numtracking: true
+Request: RegisterItem:initialPrice - variability: RANDOM 
+  - numtracking: true
+Request: RegisterItem:reservePrice - variability: RANDOM 
+  - numtracking: true
+Request: RegisterItem:buyNow - variability: RANDOM 
+  - numtracking: true
+Request: RegisterItem:quantity - variability: RANDOM 
+  - numtracking: true
+Request: RegisterItem:userId - variability: PREDICTABLE 
+  - numtracking: true
+Request: RegisterItem:categoryId - variability: PREDICTABLE 
+  - numtracking: true
 \end{verbatim}		
 
 \section{jGossip Input Source Description File}
@@ -2456,36 +2469,47 @@ Request: RegisterItem:categoryId - variability: PREDICTABLE - numtracking: true
 \begin{verbatim}
 The contents are specified in a non-XML, condensed format:
 <databasesourceinfo ... />:
-	Database: catalog/table/column - variability: ... - numtracking: ...
+Database: catalog/table/column - variability: ... 
+  - numtracking: ...
 <requestsourceinfo ... />:
-	Request: uri:parameter - variability: ... - numtracking: ...
+Request: uri:parameter - variability: ... 
+  - numtracking: ...
 	
 Some names have also been 
 	
 Database: forum_db/jrf_forum/forumtitle - variability: STABLE
 Database: forum_db/jrf_forum/forumdesc - variability: STABLE
-Database: forum_db/jrf_forum/forumid - variability: STABLE - numtracking: true
+Database: forum_db/jrf_forum/forumid - variability: STABLE 
+  - numtracking: true
 Database: forum_db/jrf_forum/locked - variability: STABLE
 Database: forum_db/jrf_group/groupname - variability: STABLE
-Database: forum_db/jrf_group/groupid - variability: STABLE - numtracking: true
+Database: forum_db/jrf_group/groupid - variability: STABLE 
+  - numtracking: true
 Database: forum_db/jrf_group/groupsort - variability: STABLE
 Database: forum_db/jrf_message/content - variability: RANDOM
 Database: forum_db/jrf_message/from - variability: RANDOM
 Database: forum_db/jrf_message/heading - variability: STABLE
-Database: forum_db/jrf_message/id - variability: RANDOM - numtracking: true
-Database: forum_db/jrf_thread/timestamp - variability: PREDICTABLE
-Database: forum_db/jrf_thread/tid - variability: PREDICTABLE - numtracking: true
+Database: forum_db/jrf_message/id - variability: RANDOM 
+  - numtracking: true
+Database: forum_db/jrf_thread/timestamp 
+  - variability: PREDICTABLE
+Database: forum_db/jrf_thread/tid - variability: PREDICTABLE 
+  - numtracking: true
 Database: forum_db/jrf_thread/sortby - variability: PREDICTABLE
-Database: forum_db/jrf_whois/id - variability: PREDICTABLE - numtracking: true
+Database: forum_db/jrf_whois/id - variability: PREDICTABLE 
+  - numtracking: true
 Database: forum_db/jrf_whois/ip - variability: RANDOM
 Database: forum_db/jrf_whois/sessionid - variability: RANDOM
 Database: forum_db/jrf_whois/username - variability: PREDICTABLE
 Database: forum_db/jrf_skinparams/paramname - variability: STABLE
-Database: forum_db/jrf_skinparams/paramvalue - variability: STABLE
+Database: forum_db/jrf_skinparams/paramvalue 
+  - variability: STABLE
 Database: forum_db/jrf_constants/name - variability: STABLE
 Database: forum_db/jrf_constants/value - variability: STABLE
-Request: DeleteForum:fid - variability: PREDICTABLE - numtracking: true
-Request: ShowForum:fid - variability: PREDICTABLE - numtracking: true
+Request: DeleteForum:fid - variability: PREDICTABLE 
+  - numtracking: true
+Request: ShowForum:fid - variability: PREDICTABLE 
+  - numtracking: true
 \end{verbatim}
 
 %%%%%%%%%%%%%%%%%%%%%%%%
