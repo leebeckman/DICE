@@ -1,166 +1,177 @@
 \begin{thebibliography}{10}
 
 \bibitem{Al-Saleh2010a}
-MI~Al-Saleh and JR~Crandall.
-\newblock {On information flow for intrusion detection: What if accurate
-  full-system dynamic information flow tracking was possible?}
-\newblock {\em Proceedings of the 2010 workshop on New \ldots}, 2010.
-
-\bibitem{Al-Saleh2010}
-MI~Al-Saleh and JR~Crandall.
-\newblock {Tracking Address and Control Dependencies for Full-System
-  Information Flow Measurement}.
-\newblock {\em cs.unm.edu}, 2010.
+Mohammed~I. Al-Saleh and Jedidiah~R. Crandall.
+\newblock On information flow for intrusion detection: what if accurate
+  full-system dynamic information flow tracking was possible?
+\newblock In {\em Proceedings of the 2010 workshop on New security paradigms},
+  NSPW '10, pages 17--32, New York, NY, USA, 2010. ACM.
 
 \bibitem{Caracas2008}
 Alexandru Caracas, Andreas Kind, Dieter Gantenbein, Stefan Fussenegger, and
   Dimitrios Dechouniotis.
-\newblock {Mining semantic relations using NetFlow}.
-\newblock {\em 2008 3rd IEEE/IFIP International Workshop on Business-driven IT
-  Management}, pages 110--111, April 2008.
+\newblock Mining semantic relations using netflow.
+\newblock In {\em BDIM}, pages 110--111, 2008.
 
 \bibitem{Challenger1999}
-Jim Challenger.
-\newblock {A scalable system for consistently caching dynamic web data}.
-\newblock {\em INFOCOM'99. Eighteenth \ldots}, 1999.
+J.~Challenger, A.~Iyengar, and P.~Dantzig.
+\newblock A scalable system for consistently caching dynamic web data.
+\newblock In {\em INFOCOM '99. Eighteenth Annual Joint Conference of the IEEE
+  Computer and Communications Societies. Proceedings. IEEE}, volume~1, pages
+  294 --303 vol.1, mar 1999.
+
+\bibitem{Challenger2004}
+James~R. Challenger, Paul Dantzig, Arun Iyengar, Mark~S. Squillante, and
+  Li~Zhang.
+\newblock Efficiently serving dynamic data at highly accessed web sites.
+\newblock {\em IEEE/ACM Trans. Netw.}, 12(2):233--246, April 2004.
 
 \bibitem{Challenger2005}
 Jim Challenger, Paul Dantzig, Arun Iyengar, and Karen Witting.
-\newblock {A fragment-based approach for efficiently creating dynamic web
-  content}.
-\newblock {\em ACM Transactions on Internet Technology}, 5(2):359--389, May
-  2005.
+\newblock A fragment-based approach for efficiently creating dynamic web
+  content.
+\newblock {\em ACM Trans. Internet Technol.}, 5(2):359--389, May 2005.
 
 \bibitem{Challenger2001}
-Jim Challenger, Arun Iyengar, Paul Dantzig, Daniel Dias, and Nathaniel Mills.
-\newblock {Engineering highly accessed Web sites for performance}.
-\newblock {\em Web Engineering}, pages 247--265, 2001.
-
-\bibitem{Challenger2004}
-JR~Challenger and Paul Dantzig.
-\newblock {Efficiently serving dynamic data at highly accessed web sites}.
-\newblock {\em Networking, IEEE/ \ldots}, 12(2):233--246, 2004.
+Jim Challenger, Arun Iyengar, Paul Dantzig, Daniel~M. Dias, and Nathaniel
+  Mills.
+\newblock Engineering highly accessed web sites for performance.
+\newblock In {\em Web Engineering, Software Engineering and Web Application
+  Development}, pages 247--265, London, UK, UK, 2001. Springer-Verlag.
 
 \bibitem{Chin2009}
 Erika Chin and David Wagner.
-\newblock {Efficient character-level taint tracking for Java}.
-\newblock {\em Proceedings of the 2009 ACM workshop on Secure web services -
-  SWS '09}, page~3, 2009.
+\newblock Efficient character-level taint tracking for java.
+\newblock In {\em Proceedings of the 2009 ACM workshop on Secure web services},
+  SWS '09, pages 3--12, New York, NY, USA, 2009. ACM.
+
+\bibitem{Chow2004}
+Jim Chow, Ben Pfaff, Tal Garfinkel, Kevin Christopher, and Mendel Rosenblum.
+\newblock Understanding data lifetime via whole system simulation.
+\newblock In {\em Proceedings of the 13th conference on USENIX Security
+  Symposium - Volume 13}, SSYM'04, pages 22--22, Berkeley, CA, USA, 2004.
+  USENIX Association.
 
 \bibitem{Chun2011}
-BG~Chun, S~Ihm, and P~Maniatis.
-\newblock {Clonecloud: Elastic execution between mobile device and cloud}.
-\newblock {\em Proceedings of the sixth \ldots}, 2011.
+Byung-Gon Chun, Sunghwan Ihm, Petros Maniatis, Mayur Naik, and Ashwin Patti.
+\newblock Clonecloud: elastic execution between mobile device and cloud.
+\newblock In {\em Proceedings of the sixth conference on Computer systems},
+  EuroSys '11, pages 301--314, New York, NY, USA, 2011. ACM.
 
 \bibitem{Chun2010}
 Byung-Gon Chun and Petros Maniatis.
-\newblock {Dynamically partitioning applications between weak devices and
-  clouds}.
-\newblock {\em Proceedings of the 1st ACM Workshop on Mobile Cloud Computing \&
-  Services Social Networks and Beyond - MCS '10}, pages 1--5, 2010.
+\newblock Dynamically partitioning applications between weak devices and
+  clouds.
+\newblock In {\em Proceedings of the 1st ACM Workshop on Mobile Cloud Computing
+  \&\#38; Services: Social Networks and Beyond}, MCS '10, pages 7:1--7:5, New
+  York, NY, USA, 2010. ACM.
 
 \bibitem{Dalton2007}
 Michael Dalton, Hari Kannan, and Christos Kozyrakis.
-\newblock {Raksha: a flexible information flow architecture for software
-  security}.
-\newblock {\em \ldots SIGARCH Computer Architecture \ldots}, 2007.
+\newblock Raksha: a flexible information flow architecture for software
+  security.
+\newblock {\em SIGARCH Comput. Archit. News}, 35(2):482--493, June 2007.
 
 \bibitem{Dalton2010}
 Michael Dalton, Hari Kannan, and Christos Kozyrakis.
-\newblock {Tainting is not pointless}.
-\newblock {\em ACM SIGOPS Operating Systems Review}, 44(2):88, April 2010.
+\newblock Tainting is not pointless.
+\newblock {\em SIGOPS Oper. Syst. Rev.}, 44(2):88--92, April 2010.
 
 \bibitem{Degenaro2000}
 Louis Degenaro, Arun Iyengar, Ilya Lipkind, and Isabelle Rouvellou.
-\newblock {A middleware system which intelligently caches query results}.
-\newblock {\em Middleware 2000}, pages 24--44, 2000.
+\newblock A middleware system which intelligently caches query results.
+\newblock In {\em IFIP/ACM International Conference on Distributed systems
+  platforms}, Middleware '00, pages 24--44, Secaucus, NJ, USA, 2000.
+  Springer-Verlag New York, Inc.
+
+\bibitem{Nahrstedt2003}
+Xiaohui Gu, Klara Nahrstedt, Alan Messer, Ira Greenberg, and Dejan Milojicic.
+\newblock Adaptive offloading inference for delivering applications in
+  pervasive computing environments.
+\newblock In {\em Proceedings of the First IEEE International Conference on
+  Pervasive Computing and Communications}, PERCOM '03, pages 107--, Washington,
+  DC, USA, 2003. IEEE Computer Society.
 
 \bibitem{Gupta2008}
 Rajiv Gupta, Neelam Gupta, Xiangyu Zhang, Dennis Jeffrey, Vijay Nagarajan,
   Sriraman Tallam, and Chen Tian.
-\newblock {Scalable dynamic information flow tracking and its applications}.
-\newblock {\em 2008 IEEE International Symposium on Parallel and Distributed
-  Processing}, pages 1--5, April 2008.
+\newblock Scalable dynamic information flow tracking and its applications.
+\newblock In {\em IPDPS}, pages 1--5, 2008.
 
 \bibitem{Hajjat2010}
-Mohammad Hajjat, Xin Sun, YWE Sung, and David Maltz.
-\newblock {Cloudward bound: planning for beneficial migration of enterprise
-  applications to the cloud}.
-\newblock {\em ACM SIGCOMM \ldots}, pages 243--254, 2010.
+Mohammad Hajjat, Xin Sun, Yu-Wei~Eric Sung, David Maltz, Sanjay Rao, Kunwadee
+  Sripanidkulchai, and Mohit Tawarmalani.
+\newblock Cloudward bound: planning for beneficial migration of enterprise
+  applications to the cloud.
+\newblock {\em SIGCOMM Comput. Commun. Rev.}, 40(4):243--254, August 2010.
 
 \bibitem{Haldar2005}
-V.~Haldar, D.~Chandra, and M.~Franz.
-\newblock {Dynamic Taint Propagation for Java}.
-\newblock {\em 21st Annual Computer Security Applications Conference
-  (ACSAC'05)}, pages 303--311, 2005.
+Vivek Haldar, Deepak Chandra, and Michael Franz.
+\newblock Dynamic taint propagation for java.
+\newblock In {\em Proceedings of the 21st Annual Computer Security Applications
+  Conference}, ACSAC '05, pages 303--311, Washington, DC, USA, 2005. IEEE
+  Computer Society.
 
 \bibitem{Kangkook2012}
-VPKGP Kangkook and JAD Keromytis.
-\newblock {libdft: Practical Dynamic Data Flow Tracking for Commodity Systems}.
-\newblock pages 1--12, 2012.
+Vasileios~P. Kemerlis, Georgios Portokalidis, Kangkook Jee, and Angelos~D.
+  Keromytis.
+\newblock libdft: practical dynamic data flow tracking for commodity systems.
+\newblock {\em SIGPLAN Not.}, 47(7):121--132, March 2012.
 
 \bibitem{Kiciman2010}
-E~Kiciman and Benjamin Livshits.
-\newblock {Fluxo: a system for internet service programming by non-expert
-  developers}.
-\newblock {\em Proceedings of the 1st \ldots}, 2010.
+Emre Kiciman, Benjamin Livshits, Madanlal Musuvathi, and Kevin~C. Webb.
+\newblock Fluxo: a system for internet service programming by non-expert
+  developers.
+\newblock In {\em Proceedings of the 1st ACM symposium on Cloud computing},
+  SoCC '10, pages 107--118, New York, NY, USA, 2010. ACM.
 
 \bibitem{Kiczales1997}
-G~Kiczales, J~Lamping, and A~Mendhekar.
-\newblock {Aspect-oriented programming}.
-\newblock {\em \ldots -Oriented Programming}, (July), 1997.
+Gregor Kiczales, John Lamping, Anurag Mendhekar, Chris Maeda, Cristina~Videira
+  Lopes, Jean-Marc Loingtier, and John Irwin.
+\newblock Aspect-oriented programming.
+\newblock In {\em ECOOP}, pages 220--242, 1997.
 
 \bibitem{Lefebvre2012}
 Geoffrey Lefebvre, Brendan Cully, Christopher Head, Mark Spear, Norm
   Hutchinson, Mike Feeley, and Andrew Warfield.
-\newblock {Execution mining}.
-\newblock {\em Proceedings of the 8th ACM SIGPLAN/SIGOPS conference on Virtual
-  Execution Environments - VEE '12}, page 145, 2012.
+\newblock Execution mining.
+\newblock {\em SIGPLAN Not.}, 47(7):145--158, March 2012.
 
 \bibitem{Mysore2008}
 Shashidhar Mysore, Bita Mazloom, Banit Agrawal, and Timothy Sherwood.
-\newblock {Understanding and visualizing full systems with data flow
-  tomography}.
-\newblock {\em Proceedings of the 13th international conference on
-  Architectural support for programming languages and operating systems -
-  ASPLOS XIII}, page 211, 2008.
-
-\bibitem{Nahrstedt2003}
-K.~Nahrstedt, A.~Messer, I.~Greenberg, and D.~Milojicic.
-\newblock {Adaptive offloading inference for delivering applications in
-  pervasive computing environments}.
-\newblock {\em Proceedings of the First IEEE International Conference on
-  Pervasive Computing and Communications, 2003. (PerCom 2003).}, pages
-  107--114, 2003.
+\newblock Understanding and visualizing full systems with data flow tomography.
+\newblock {\em SIGARCH Comput. Archit. News}, 36(1):211--221, March 2008.
 
 \bibitem{Newsome2005}
-James Newsome and Dawn Song.
-\newblock {Dynamic taint analysis for automatic detection, analysis, and
-  signature generation of exploits on commodity software}.
-\newblock 2005.
+James Newsome and Dawn~Xiaodong Song.
+\newblock Dynamic taint analysis for automatic detection, analysis, and
+  signaturegeneration of exploits on commodity software.
+\newblock In {\em NDSS}, 2005.
 
 \bibitem{Ou2007}
 Shumao Ou, Kun Yang, and Jie Zhang.
-\newblock {An effective offloading middleware for pervasive services on mobile
-  devices}.
-\newblock {\em Pervasive and Mobile Computing}, 3(4):362--385, August 2007.
+\newblock An effective offloading middleware for pervasive services on mobile
+  devices.
+\newblock {\em Pervasive Mob. Comput.}, 3(4):362--385, August 2007.
 
 \bibitem{Rasmussen2009}
-Alexander Rasmussen, E~Kiciman, Benjamin Livshits, and M~Musuvathi.
-\newblock {Short Paper: Improving the Responsiveness of Internet Services with
-  Automatic Cache Placement}.
-\newblock 2009.
+Alexander Rasmussen, Emre Kiciman, Benjamin Livshits, and Madanlal Musuvathi.
+\newblock Improving the responsiveness of internet services with automatic
+  cache placement.
+\newblock In {\em Proceedings of the 4th ACM European conference on Computer
+  systems}, EuroSys '09, pages 27--32, New York, NY, USA, 2009. ACM.
 
 \bibitem{Suh2004}
 G.~Edward Suh, Jae~W. Lee, David Zhang, and Srinivas Devadas.
-\newblock {Secure program execution via dynamic information flow tracking}.
-\newblock {\em ACM SIGARCH Computer Architecture News}, 32(5):85, December
-  2004.
+\newblock Secure program execution via dynamic information flow tracking.
+\newblock {\em SIGPLAN Not.}, 39(11):85--96, October 2004.
 
 \bibitem{Zavou2011}
-Angeliki Zavou, Georgios Portokalidis, and A~Keromytis.
-\newblock {Taint-exchange: a generic system for cross-process and cross-host
-  taint tracking}.
-\newblock {\em Advances in Information and \ldots}, 2011.
+Angeliki Zavou, Georgios Portokalidis, and Angelos~D. Keromytis.
+\newblock Taint-exchange: a generic system for cross-process and cross-host
+  taint tracking.
+\newblock In {\em Proceedings of the 6th International conference on Advances
+  in information and computer security}, IWSEC'11, pages 113--128, Berlin,
+  Heidelberg, 2011. Springer-Verlag.
 
 \end{thebibliography}

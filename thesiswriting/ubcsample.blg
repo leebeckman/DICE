@@ -2,50 +2,54 @@ This is BibTeX, Version 0.99c (TeX Live 2009/Debian)
 The top-level auxiliary file: ubcsample.aux
 The style file: plain.bst
 Database file #1: sample.bib
-Warning--I didn't find a database entry for "Hudgins2004"
-Warning--empty journal in Kangkook2012
-Warning--there's a number but no volume in Kiczales1997
-Warning--empty journal in Newsome2005
-Warning--empty journal in Rasmussen2009
+A bad cross reference---entry "Caracas2008"
+refers to entry "DBLP:conf/bdim/2008", which doesn't exist
+A bad cross reference---entry "Newsome2005"
+refers to entry "DBLP:conf/ndss/2005", which doesn't exist
+A bad cross reference---entry "Gupta2008"
+refers to entry "DBLP:conf/ipps/2008", which doesn't exist
+Warning--I didn't find a database entry for "DBLP:conf/bdim/2008"
+Warning--I didn't find a database entry for "DBLP:conf/ndss/2005"
+Warning--I didn't find a database entry for "DBLP:conf/ipps/2008"
 You've used 27 entries,
             2118 wiz_defined-function locations,
-            665 strings with 9299 characters,
-and the built_in function-call counts, 9596 in all, are:
-= -- 938
-> -- 530
-< -- 12
-+ -- 207
-- -- 180
-* -- 658
-:= -- 1618
-add.period$ -- 81
+            709 strings with 10284 characters,
+and the built_in function-call counts, 12564 in all, are:
+= -- 1277
+> -- 641
+< -- 17
++ -- 255
+- -- 224
+* -- 955
+:= -- 1964
+add.period$ -- 93
 call.type$ -- 27
-change.case$ -- 171
+change.case$ -- 193
 chr.to.int$ -- 0
-cite$ -- 31
-duplicate$ -- 371
-empty$ -- 632
-format.name$ -- 180
-if$ -- 1989
+cite$ -- 27
+duplicate$ -- 478
+empty$ -- 909
+format.name$ -- 224
+if$ -- 2715
 int.to.chr$ -- 0
 int.to.str$ -- 27
 missing$ -- 27
 newline$ -- 138
 num.names$ -- 54
-pop$ -- 169
+pop$ -- 190
 preamble$ -- 1
-purify$ -- 144
+purify$ -- 166
 quote$ -- 0
-skip$ -- 300
+skip$ -- 367
 stack$ -- 0
-substring$ -- 471
-swap$ -- 108
-text.length$ -- 12
+substring$ -- 826
+swap$ -- 163
+text.length$ -- 17
 text.prefix$ -- 0
 top$ -- 0
 type$ -- 108
-warning$ -- 4
-while$ -- 92
+warning$ -- 0
+while$ -- 118
 width$ -- 29
-write$ -- 287
-(There were 5 warnings)
+write$ -- 334
+(There were 3 error messages)

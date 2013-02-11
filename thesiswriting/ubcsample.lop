@@ -11,11 +11,15 @@
 \addvspace {10\p@ }
 \contentsline {Program}{\numberline {3.1}{\ignorespaces Simple Taint Tracking AOP Example.}}{19}{Program.3.1}
 \contentsline {Program}{\numberline {3.2}{\ignorespaces High level algorithm for caching analysis.}}{31}{Program.3.2}
-\contentsline {Program}{\numberline {3.3}{\ignorespaces High level precomputation for caching analysis.}}{32}{Program.3.3}
-\contentsline {Program}{\numberline {3.4}{\ignorespaces High level algorithm for postcomputation analysis.}}{34}{Program.3.4}
-\contentsline {Program}{\numberline {3.5}{\ignorespaces High level algorithm for application state analysis.}}{35}{Program.3.5}
-\contentsline {Program}{\numberline {3.6}{\ignorespaces High level algorithm for user state analysis.}}{37}{Program.3.6}
-\contentsline {Program}{\numberline {3.7}{\ignorespaces High level algorithm for wasteful communication analysis.}}{39}{Program.3.7}
+\contentsline {Program}{\numberline {3.3}{\ignorespaces High level algorithm for caching analysis, part 2.}}{32}{Program.3.3}
+\contentsline {Program}{\numberline {3.4}{\ignorespaces High level precomputation for caching analysis.}}{33}{Program.3.4}
+\contentsline {Program}{\numberline {3.5}{\ignorespaces High level algorithm for postcomputation analysis.}}{35}{Program.3.5}
+\contentsline {Program}{\numberline {3.6}{\ignorespaces High level algorithm for postcomputation analysis, part 2.}}{36}{Program.3.6}
+\contentsline {Program}{\numberline {3.7}{\ignorespaces High level algorithm for application state analysis.}}{37}{Program.3.7}
+\contentsline {Program}{\numberline {3.8}{\ignorespaces High level algorithm for application state analysis, part 2.}}{38}{Program.3.8}
+\contentsline {Program}{\numberline {3.9}{\ignorespaces High level algorithm for user state analysis.}}{39}{Program.3.9}
+\contentsline {Program}{\numberline {3.10}{\ignorespaces High level algorithm for user state analysis, part 2.}}{40}{Program.3.10}
+\contentsline {Program}{\numberline {3.11}{\ignorespaces High level algorithm for wasteful communication analysis.}}{42}{Program.3.11}
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
