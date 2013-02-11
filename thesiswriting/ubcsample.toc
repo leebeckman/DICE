@@ -61,90 +61,90 @@
 \contentsline {subsection}{\numberline {4.4.1}{Example Trace}}{46}{subsection.4.4.1}
 \contentsline {subsection}{\numberline {4.4.2}{Precomputation}}{48}{subsection.4.4.2}
 \contentsline {subsubsection}{\numberline {4.4.2.1}{RUBiS}}{48}{subsubsection.4.4.2.1}
-\contentsline {paragraph}{{Experimental Setup}}{48}{figure.4.2}
-\contentsline {paragraph}{{Experimental Goals}}{49}{section*.9}
-\contentsline {paragraph}{{Analysis}}{49}{section*.10}
-\contentsline {subparagraph}{{Taint Flow Breakdown}}{49}{section*.11}
+\contentsline {paragraph}{\numberline {4.4.2.1.1}{Experimental Setup}}{48}{figure.4.2}
+\contentsline {paragraph}{\numberline {4.4.2.1.2}{Experimental Goals}}{49}{paragraph.4.4.2.1.2}
+\contentsline {paragraph}{\numberline {4.4.2.1.3}{Analysis}}{49}{paragraph.4.4.2.1.3}
+\contentsline {subparagraph}{{Taint Flow Breakdown}}{49}{section*.8}
 \contentsline {subparagraph}{{Analysis Results Breakdown}}{51}{figure.4.4}
-\contentsline {paragraph}{{Developer Interpretation and Response}}{54}{section*.13}
-\contentsline {paragraph}{{Summary}}{55}{section*.14}
+\contentsline {paragraph}{\numberline {4.4.2.1.4}{Developer Interpretation and Response}}{54}{paragraph.4.4.2.1.4}
+\contentsline {paragraph}{\numberline {4.4.2.1.5}{Summary}}{55}{paragraph.4.4.2.1.5}
 \contentsline {subsubsection}{\numberline {4.4.2.2}{jGossip}}{56}{subsubsection.4.4.2.2}
-\contentsline {paragraph}{{Experimental Setup}}{56}{section*.15}
-\contentsline {paragraph}{{Experimental Goals}}{56}{section*.16}
-\contentsline {paragraph}{{Analysis}}{56}{section*.17}
-\contentsline {subparagraph}{{Taint Flow Breakdown}}{56}{section*.18}
-\contentsline {subparagraph}{{Analysis Results Breakdown}}{58}{section*.19}
-\contentsline {paragraph}{{Developer Interpretation and Response}}{58}{section*.20}
-\contentsline {paragraph}{{Summary}}{59}{section*.21}
+\contentsline {paragraph}{\numberline {4.4.2.2.1}{Experimental Setup}}{56}{paragraph.4.4.2.2.1}
+\contentsline {paragraph}{\numberline {4.4.2.2.2}{Experimental Goals}}{56}{paragraph.4.4.2.2.2}
+\contentsline {paragraph}{\numberline {4.4.2.2.3}{Analysis}}{56}{paragraph.4.4.2.2.3}
+\contentsline {subparagraph}{{Taint Flow Breakdown}}{56}{section*.10}
+\contentsline {subparagraph}{{Analysis Results Breakdown}}{58}{section*.11}
+\contentsline {paragraph}{\numberline {4.4.2.2.4}{Developer Interpretation and Response}}{58}{paragraph.4.4.2.2.4}
+\contentsline {paragraph}{\numberline {4.4.2.2.5}{Summary}}{59}{paragraph.4.4.2.2.5}
 \contentsline {subsection}{\numberline {4.4.3}{Caching}}{59}{subsection.4.4.3}
 \contentsline {subsubsection}{\numberline {4.4.3.1}{RUBiS}}{59}{subsubsection.4.4.3.1}
-\contentsline {paragraph}{{Experimental Setup}}{59}{section*.22}
-\contentsline {paragraph}{{Experimental Goals}}{59}{section*.23}
-\contentsline {paragraph}{{Analysis}}{59}{section*.24}
+\contentsline {paragraph}{\numberline {4.4.3.1.1}{Experimental Setup}}{59}{paragraph.4.4.3.1.1}
+\contentsline {paragraph}{\numberline {4.4.3.1.2}{Experimental Goals}}{59}{paragraph.4.4.3.1.2}
+\contentsline {paragraph}{\numberline {4.4.3.1.3}{Analysis}}{59}{paragraph.4.4.3.1.3}
 \contentsline {subparagraph}{{Taint Flow Breakdown}}{59}{figure.4.10}
 \contentsline {subparagraph}{{Analysis Results Breakdown}}{63}{figure.4.11}
-\contentsline {paragraph}{{Developer Interpretation and Response}}{63}{figure.4.13}
-\contentsline {paragraph}{{Summary}}{64}{section*.28}
+\contentsline {paragraph}{\numberline {4.4.3.1.4}{Developer Interpretation and Response}}{63}{figure.4.13}
+\contentsline {paragraph}{\numberline {4.4.3.1.5}{Summary}}{64}{paragraph.4.4.3.1.5}
 \contentsline {subsubsection}{\numberline {4.4.3.2}{jGossip}}{65}{subsubsection.4.4.3.2}
-\contentsline {paragraph}{{Experimental Setup}}{65}{section*.29}
-\contentsline {paragraph}{{Experimental Goals}}{65}{section*.30}
-\contentsline {paragraph}{{Analysis}}{65}{section*.31}
-\contentsline {subparagraph}{{Taint Flow Breakdown}}{65}{section*.32}
+\contentsline {paragraph}{\numberline {4.4.3.2.1}{Experimental Setup}}{65}{paragraph.4.4.3.2.1}
+\contentsline {paragraph}{\numberline {4.4.3.2.2}{Experimental Goals}}{65}{paragraph.4.4.3.2.2}
+\contentsline {paragraph}{\numberline {4.4.3.2.3}{Analysis}}{65}{paragraph.4.4.3.2.3}
+\contentsline {subparagraph}{{Taint Flow Breakdown}}{65}{section*.14}
 \contentsline {subparagraph}{{Analysis Results Breakdown}}{65}{figure.4.14}
-\contentsline {paragraph}{{Developer Interpretation and Response}}{67}{section*.34}
-\contentsline {paragraph}{{Summary}}{67}{section*.35}
+\contentsline {paragraph}{\numberline {4.4.3.2.4}{Developer Interpretation and Response}}{67}{paragraph.4.4.3.2.4}
+\contentsline {paragraph}{\numberline {4.4.3.2.5}{Summary}}{67}{paragraph.4.4.3.2.5}
 \contentsline {subsection}{\numberline {4.4.4}{Postcomputation}}{67}{subsection.4.4.4}
 \contentsline {subsubsection}{\numberline {4.4.4.1}{RUBiS}}{67}{subsubsection.4.4.4.1}
-\contentsline {paragraph}{{Experimental Setup}}{67}{section*.36}
-\contentsline {paragraph}{{Experimental Goals}}{68}{section*.37}
-\contentsline {paragraph}{{Analysis}}{68}{section*.38}
+\contentsline {paragraph}{\numberline {4.4.4.1.1}{Experimental Setup}}{67}{paragraph.4.4.4.1.1}
+\contentsline {paragraph}{\numberline {4.4.4.1.2}{Experimental Goals}}{68}{paragraph.4.4.4.1.2}
+\contentsline {paragraph}{\numberline {4.4.4.1.3}{Analysis}}{68}{paragraph.4.4.4.1.3}
 \contentsline {subparagraph}{{Taint Flow Breakdown}}{68}{figure.4.15}
 \contentsline {subparagraph}{{Analysis Results Breakdown}}{68}{figure.4.16}
-\contentsline {paragraph}{{Developer Interpretation and Response}}{71}{section*.41}
-\contentsline {paragraph}{{Summary}}{71}{section*.42}
+\contentsline {paragraph}{\numberline {4.4.4.1.4}{Developer Interpretation and Response}}{71}{paragraph.4.4.4.1.4}
+\contentsline {paragraph}{\numberline {4.4.4.1.5}{Summary}}{71}{paragraph.4.4.4.1.5}
 \contentsline {subsubsection}{\numberline {4.4.4.2}{jGossip}}{71}{subsubsection.4.4.4.2}
-\contentsline {paragraph}{{Experimental Setup}}{71}{section*.43}
-\contentsline {paragraph}{{Experimental Goals}}{71}{section*.44}
-\contentsline {paragraph}{{Analysis}}{72}{section*.45}
-\contentsline {subparagraph}{{Taint Flow Breakdown}}{72}{section*.46}
+\contentsline {paragraph}{\numberline {4.4.4.2.1}{Experimental Setup}}{71}{paragraph.4.4.4.2.1}
+\contentsline {paragraph}{\numberline {4.4.4.2.2}{Experimental Goals}}{72}{paragraph.4.4.4.2.2}
+\contentsline {paragraph}{\numberline {4.4.4.2.3}{Analysis}}{72}{paragraph.4.4.4.2.3}
+\contentsline {subparagraph}{{Taint Flow Breakdown}}{72}{section*.18}
 \contentsline {subparagraph}{{Analysis Results Breakdown}}{72}{figure.4.17}
-\contentsline {paragraph}{{Developer Interpretation and Response}}{74}{section*.48}
-\contentsline {paragraph}{{Summary}}{74}{section*.49}
+\contentsline {paragraph}{\numberline {4.4.4.2.4}{Developer Interpretation and Response}}{74}{paragraph.4.4.4.2.4}
+\contentsline {paragraph}{\numberline {4.4.4.2.5}{Summary}}{74}{paragraph.4.4.4.2.5}
 \contentsline {subsection}{\numberline {4.4.5}{Persistent State}}{74}{subsection.4.4.5}
 \contentsline {subsubsection}{\numberline {4.4.5.1}{RUBiS}}{74}{subsubsection.4.4.5.1}
-\contentsline {paragraph}{{Experimental Setup}}{74}{section*.50}
-\contentsline {paragraph}{{Experimental Goals}}{74}{section*.51}
-\contentsline {paragraph}{{Analysis}}{74}{section*.52}
-\contentsline {subparagraph}{{Taint Flow Breakdown}}{74}{section*.53}
-\contentsline {subparagraph}{{Analysis Results Breakdown}}{74}{figure.4.18}
-\contentsline {paragraph}{{Developer Interpretation and Response}}{76}{section*.55}
-\contentsline {paragraph}{{Summary}}{76}{section*.56}
-\contentsline {subsubsection}{\numberline {4.4.5.2}{jGossip}}{76}{subsubsection.4.4.5.2}
+\contentsline {paragraph}{\numberline {4.4.5.1.1}{Experimental Setup}}{74}{paragraph.4.4.5.1.1}
+\contentsline {paragraph}{\numberline {4.4.5.1.2}{Experimental Goals}}{74}{paragraph.4.4.5.1.2}
+\contentsline {paragraph}{\numberline {4.4.5.1.3}{Analysis}}{74}{paragraph.4.4.5.1.3}
+\contentsline {subparagraph}{{Taint Flow Breakdown}}{74}{section*.20}
+\contentsline {subparagraph}{{Analysis Results Breakdown}}{75}{figure.4.18}
+\contentsline {paragraph}{\numberline {4.4.5.1.4}{Developer Interpretation and Response}}{75}{paragraph.4.4.5.1.4}
+\contentsline {paragraph}{\numberline {4.4.5.1.5}{Summary}}{75}{paragraph.4.4.5.1.5}
+\contentsline {subsubsection}{\numberline {4.4.5.2}{jGossip}}{77}{subsubsection.4.4.5.2}
 \contentsline {subsection}{\numberline {4.4.6}{User State}}{77}{subsection.4.4.6}
 \contentsline {subsubsection}{\numberline {4.4.6.1}{RUBiS}}{77}{subsubsection.4.4.6.1}
 \contentsline {subsubsection}{\numberline {4.4.6.2}{jGossip}}{77}{subsubsection.4.4.6.2}
-\contentsline {paragraph}{{Experimental Setup}}{77}{section*.57}
-\contentsline {paragraph}{{Experimental Goals}}{77}{section*.58}
-\contentsline {paragraph}{{Analysis}}{77}{section*.59}
-\contentsline {subparagraph}{{Taint Flow Breakdown}}{77}{section*.60}
+\contentsline {paragraph}{\numberline {4.4.6.2.1}{Experimental Setup}}{77}{paragraph.4.4.6.2.1}
+\contentsline {paragraph}{\numberline {4.4.6.2.2}{Experimental Goals}}{77}{paragraph.4.4.6.2.2}
+\contentsline {paragraph}{\numberline {4.4.6.2.3}{Analysis}}{77}{paragraph.4.4.6.2.3}
+\contentsline {subparagraph}{{Taint Flow Breakdown}}{77}{section*.22}
 \contentsline {subparagraph}{{Analysis Results Breakdown}}{77}{figure.4.19}
-\contentsline {paragraph}{{Developer Interpretation and Response}}{79}{section*.62}
-\contentsline {paragraph}{{Summary}}{79}{section*.63}
+\contentsline {paragraph}{\numberline {4.4.6.2.4}{Developer Interpretation and Response}}{79}{paragraph.4.4.6.2.4}
+\contentsline {paragraph}{\numberline {4.4.6.2.5}{Summary}}{79}{paragraph.4.4.6.2.5}
 \contentsline {subsection}{\numberline {4.4.7}{Wasteful Communication}}{79}{subsection.4.4.7}
 \contentsline {subsubsection}{\numberline {4.4.7.1}{RUBiS}}{79}{subsubsection.4.4.7.1}
-\contentsline {subsubsection}{\numberline {4.4.7.2}{jGossip}}{79}{subsubsection.4.4.7.2}
-\contentsline {paragraph}{{Experimental Setup}}{79}{section*.64}
-\contentsline {paragraph}{{Experimental Goals}}{80}{section*.65}
-\contentsline {paragraph}{{Analysis}}{80}{section*.66}
-\contentsline {subparagraph}{{Taint Flow Breakdown}}{80}{section*.67}
+\contentsline {subsubsection}{\numberline {4.4.7.2}{jGossip}}{80}{subsubsection.4.4.7.2}
+\contentsline {paragraph}{\numberline {4.4.7.2.1}{Experimental Setup}}{80}{paragraph.4.4.7.2.1}
+\contentsline {paragraph}{\numberline {4.4.7.2.2}{Experimental Goals}}{80}{paragraph.4.4.7.2.2}
+\contentsline {paragraph}{\numberline {4.4.7.2.3}{Analysis}}{80}{paragraph.4.4.7.2.3}
+\contentsline {subparagraph}{{Taint Flow Breakdown}}{80}{section*.24}
 \contentsline {subparagraph}{{Analysis Results Breakdown}}{80}{figure.4.20}
-\contentsline {paragraph}{{Developer Interpretation and Response}}{80}{section*.69}
-\contentsline {paragraph}{{Summary}}{82}{section*.70}
+\contentsline {paragraph}{\numberline {4.4.7.2.4}{Developer Interpretation and Response}}{80}{paragraph.4.4.7.2.4}
+\contentsline {paragraph}{\numberline {4.4.7.2.5}{Summary}}{82}{paragraph.4.4.7.2.5}
 \contentsline {chapter}{\numberline {5}{Conclusions}}{83}{chapter.5}
 \contentsline {section}{\numberline {5.1}{Discussion of Results}}{83}{section.5.1}
 \contentsline {section}{\numberline {5.2}{Future Work}}{86}{section.5.2}
 \contentsline {section}{\numberline {5.3}{Final Words}}{87}{section.5.3}
-\contentsline {chapter}{{Bibliography}}{89}{chapter*.71}
+\contentsline {chapter}{{Bibliography}}{89}{chapter*.26}
 \contentsline {part}{{Appendices}}{}{}
 \contentsline {chapter}{\numberline {A}{Terms Used}}{93}{appendix.A}
 \contentsline {chapter}{\numberline {B}{Input Description Files}}{94}{appendix.B}
